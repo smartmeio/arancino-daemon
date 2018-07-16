@@ -85,3 +85,6 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# IDE
+.idea/
+venv/
