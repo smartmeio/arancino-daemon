@@ -6,7 +6,7 @@ from serial.tools import list_ports
 from oslo_log import log as logging
 LOG = logging.getLogger(__name__)
 
-class Output(asyncio.Protocol):
+class SerialHandler(asyncio.Protocol):
 
     def connection_made(self, transport):
         self.transport = transport
@@ -100,7 +100,7 @@ class SerialConnector (Thread):
         self.thread_name = name
 
     def run(self):
-        self.coro = serial_asyncio.create_serial_connection(self._loop, Output, self.port.device, baudrate=115200)
+        self.coro = serial_asyncio.create_serial_connection(self._loop, SerialHandler, self.port.device, baudrate=115200)
         self._loop.run_until_complete(self.coro)
         self._loop.run_forever()
         self._loop.close()
