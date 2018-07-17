@@ -1,43 +1,18 @@
 import asyncio
 import serial_asyncio
 import serial
-from serial.tools import list_ports
-
-from oslo_log import log as logging
-LOG = logging.getLogger(__name__)
-
-class SerialHandler(asyncio.Protocol):
-
-    def connection_made(self, transport):
-        self.transport = transport
-        print('port opened', transport)
-        transport.serial.rts = False
-        transport.write(b'start#ok@')
-
-    def data_received(self, data):
-        print('data received', repr(data))
-        #self.transport.close()
-
-    def connection_lost(self, exc): #TODO gestire l'eccezione per evitare che si incricchi la seriale sulla macchina
-        print('port closed ' + self.transport.serial.name)
-        ports_connected.pop(self.transport.serial.name)
-        asyncio.get_event_loop().stop()
-
-
-
-from threading import Thread
 import time
+from serial.tools import list_ports
+from oslo_log import log as logging
+from threading import Thread
 
-# contains all the plugged ports with a specific vid and pid. Object of type Serial.Port
-ports_plugged = []
-
-# contains all the connected serial ports. Object of type Thread - SerialConnector
-ports_connected = {}
+LOG = logging.getLogger(__name__)
 
 '''
 This thread polls serial ports which match with a specifici pid and vid and then connect to them.
 '''
 class SerialMonitor (Thread):
+
     def __init__(self, name):
         Thread.__init__(self)
 
@@ -80,11 +55,12 @@ class SerialMonitor (Thread):
             ports_connected[port.device] = thread_serial
 
 class SerialConnector (Thread):
+
     def __init__(self, name, port):
         Thread.__init__(self)
         self._loop = asyncio.new_event_loop()
         self.port = port
-        self.thread_name = name
+        self.name = name
         self.baudrate = 250000
 
     def run(self):
@@ -93,6 +69,43 @@ class SerialConnector (Thread):
         self._loop.run_forever()
         self._loop.close()
 
+class SerialHandler(asyncio.Protocol):
+
+    def connection_made(self, transport):
+        self.transport = transport
+        print('port opened', transport)
+        transport.serial.rts = False
+        #transport.write( (cmd_start + ch_eot).encode() )
+
+    def data_received(self, data):
+        print('data received ', data)
+        #print('data received ', decode(data))
+        execCommand(data)
+        #self.transport.close()
+
+    def connection_lost(self, exc): #TODO gestire l'eccezione per evitare che si incricchi la seriale sulla macchina
+        print('port closed ' + self.transport.serial.name)
+        serial_connector = ports_connected.pop(self.transport.serial.name)
+        asyncio.get_event_loop().stop()
+
+
+def execCommand(command):
+    print(command.split(ch_sep))
+
+ch_eot = chr(4)     #End Of Transmission Char
+ch_sep = chr(30)    #Separator Char
+cmd_start = 'START' #Start Commmand
+cmd_get = 'GET'     #Get Commmand
+cmd_set = 'SET'     #Set Commmand
+rsp_ok = 'OK'       #OK Response
+rsp_ko = 'KO'       #KO Response
+rsp_na = '1'        #Not Available Response Code
+
+# contains all the plugged ports with a specific vid and pid. Object of type Serial.Port
+ports_plugged = []
+
+# contains all the connected serial ports. Object of type Thread - SerialConnector
+ports_connected = {}
 
 thread = SerialMonitor("Thread-SerialMonitor")
 thread.start()
