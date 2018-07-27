@@ -88,11 +88,13 @@ class SerialHandler(asyncio.Protocol):
         transport.serial.rts = False
         #transport.write( (cmd_start + ch_eot).encode() )
 
+
     def data_received(self, data):
         print('data received ', data.decode())
         response = self._parseCommands(data)
         print(response)
         self.transport.write(response.encode())
+
 
     def connection_lost(self, exc): #TODO gestire l'eccezione per evitare che si incricchi la seriale sulla macchina
         print('port closed ' + self.transport.serial.name)
@@ -115,86 +117,197 @@ class SerialHandler(asyncio.Protocol):
 
         #SET
         if cmd[0] == CMD_APP_SET:
-            return self._OPTS_SET(cmd[1], cmd[2])
+            return self._OPTS_SET(cmd)
         #GET
         elif cmd[0] == CMD_APP_GET:
-            return self._OPTS_GET(cmd[1])
-
+            return self._OPTS_GET(cmd)
         #DEL
         elif cmd[0] == CMD_APP_DEL:
-            idx = len(cmd)
-            return self._OPTS_DEL(cmd[1:idx])
-
+            return self._OPTS_DEL(cmd)
         #KEYS
         elif cmd[0] == CMD_APP_KEYS:
-            if len(cmd) == 2:
-                return self._OPTS_KEYS(cmd[1]) # w/ pattern
-            else:
-                return self._OPTS_KEYS() # w/o pattern
+            self._OPTS_KEYS(cmd)
 
+    # SET
+    def _OPTS_SET(self, cmd):
 
+        '''
+        MCU → SET#<key>#<value>
 
-    #SET
-    def _OPTS_SET(self, key, value):
-        print('set ' + key + ' ' + value)
+        MCU ← 100@ (OK)
+        MCU ← 202@ (KO)
+        '''
+
+        key = cmd[1]
+        value = cmd[2]
 
         rsp = self.datastore.set(key, value)
         if rsp:
-            # return back the value
-            return RSP_OK + CHR_SEP + str(value) + CHR_EOT
+            # return ok response
+            return RSP_OK + CHR_EOT
         else:
             # return the error code
-            return RSP_KO + CHR_SEP + ERR_SET + CHR_EOT
+            return ERR_SET + CHR_EOT
 
 
-    #GET
-    def _OPTS_GET(self, key):
-        print('get ' + key)
-        value = self.datastore.get(key)
+    # GET
+    def _OPTS_GET(self, cmd):
 
-        if value is not None:
+        '''
+        MCU → GET#<key>
+
+        MCU ← 100#<value>@ (OK)
+        MCU ← 201@  (KO)
+        '''
+
+        key = cmd[1]
+
+        rsp = self.datastore.get(key)
+
+        if rsp is not None:
             # return the value
-            return RSP_OK + CHR_SEP + str(value) + CHR_EOT
+            return RSP_OK + CHR_SEP + str(rsp) + CHR_EOT
         else:
             # return the error code
-            return RSP_KO + CHR_SEP + ERR_NOT_AVAIL + CHR_EOT
+            return ERR_NULL + CHR_EOT
 
 
-    #DEL
-    def _OPTS_DEL(self, keys):
-        print('del ' + keys)
-        value = self.datastore.delete(*keys)
-        return RSP_OK + CHR_SEP + str(value) + CHR_EOT
+    # DEL
+    def _OPTS_DEL(self, cmd):
+
+        '''
+        DEL:
+
+        MCU → DEL#<key-1>[#<key-2>#<key-n>]
+
+        MCU ← 100#<num-of-deleted-keys>@
+        '''
+
+        idx = len(cmd)
+        keys = cmd[1:idx]
+
+        rsp = self.datastore.delete(*keys)
+        return RSP_OK + CHR_SEP + str(rsp) + CHR_EOT
 
 
-    #KEYS
-    def _OPTS_KEYS(self, pattern='*'):
-        print('key pattern ' + pattern)
-        value = self.datastore.keys(pattern)
+    # KEYS
+    def _OPTS_KEYS(self, cmd):
 
-        if len(value) == 0:
-            return RSP_KO + CHR_SEP + ERR_NOT_FOUND + CHR_EOT
+        '''
+        MCU → KEYS[#<pattern>]
+
+        MCU ← 100[#<key-1>#<key-2>#<key-n>]@
+        '''
+
+        if len(cmd) == 2:
+            pattern = cmd[1] # w/ pattern
         else:
-            rsp_str = RSP_OK
+            pattern = '*'  # w/o pattern
 
-            for key in value:
-                rsp_str += CHR_SEP + key
+        rsp = self.datastore.keys(pattern)
 
-            return rsp_str + CHR_EOT
+        rsp_str = RSP_OK
+
+        for key in rsp:
+            #TODO CHR_SEP deve essere inserito alla fine, e non se la chiave é l'ultima
+            rsp_str += CHR_SEP + key
+
+        return rsp_str + CHR_EOT
+
+    # HSET
+    def _OPTS_HSET(self, cmd):
+
+        '''
+        MCU → HSET#<key>#<field>#<value>
+
+        MCU ← 101@
+        MCU ← 102@
+        '''
+
+        key = cmd[1]
+        field = cmd[2]
+        value = cmd[3]
+
+        rsp = self.datastore.hset(key, field, value)
+
+        if rsp == 0:
+            return RSP_HSET_NEW + CHR_EOT
+        else: #1
+            return RSP_HSET_UPD + CHR_EOT
+
+    # HGET
+    def _OPTS_HGET(self, cmd):
+
+        '''
+
+        MCU → HGET#<key>#<field>
+
+        MCU ← 100#<value>@
+        MCU ← 201@
+
+        '''
+
+        key = cmd[1]
+        field = cmd[2]
+
+        rsp = self.datastore.get(key, field)
+
+        if rsp is not None:
+            # return the value
+            return RSP_OK + CHR_SEP + str(rsp) + CHR_EOT
+        else:
+            # return the error code
+            return ERR_NULL + CHR_EOT
 
 
+    # HGETALL
+    def _OPTS_HGET_ALL(self, cmd):
+
+        '''
+        MCU → HGETALL#<key>
+
+        MCU ← 100[#<field-1>#<value-1>#<field-2>#<value-2>]@
+        '''
+
+        key = cmd[1]
+
+        rsp_str = RSP_OK
+
+        fields = self.datastore.hgetall(key)
+        for field in fields:
+            # TODO CHR_SEP deve essere inserito alla fine, e non se la chiave é l'ultima
+            rsp_str += CHR_SEP + field + CHR_SEP + fields[field]
+
+        rsp_str += CHR_EOT
+
+
+#Definitions for Serial Protocol
 CHR_EOT = chr(4)        #End Of Transmission Char
 CHR_SEP = chr(30)       #Separator Char
+
 CMD_SYS_START = 'START' #Start Commmand
-CMD_APP_GET = 'GET'     #Get Commmand
-CMD_APP_SET = 'SET'     #Set Commmand
-CMD_APP_DEL = 'DEL'     #Delete Command
-CMD_APP_KEYS = 'DEL'    #Keys Command
-RSP_OK = 'OK'           #OK Response
-RSP_KO = 'KO'           #KO Response
-ERR_NOT_AVAIL = '001'   #Not Available Response Code
-ERR_SET = '002'         #Error during SET
-ERR_NOT_FOUND = '003'   #Not Found
+
+CMD_APP_GET     = 'GET'     #Get value at key
+CMD_APP_SET     = 'SET'     #Set value at key
+CMD_APP_DEL     = 'DEL'     #Delete one or multiple keys
+CMD_APP_KEYS    = 'KEYS'    #Get keys by a pattern
+CMD_APP_HGET    = 'HGET'    #
+CMD_APP_HGETALL = 'HGETALL' #
+CMD_APP_HKEYS   = 'HKEYS'   #
+CMD_APP_VALS    = 'HVALS'   #
+CMD_APP_HDEL    = 'HDEL'    #
+CMD_APP_HSET    = 'HSET'    #
+
+RSP_OK          = '100'     #OK Response
+RSP_HSET_NEW    = '101'     #Set value into a new field
+RSP_HSET_UPD    = '102'     #Set value into an existing field
+
+RSP_KO = 'KO'   #KO Response
+
+ERR             = '200'     #Generic Error
+ERR_NULL        = '201'     #Null value
+ERR_SET         = '202'     #Error during SET
+#ERR_NOT_FOUND   = '203'     #Not Found
 
 # contains all the plugged ports with a specific vid and pid. Object of type Serial.Port
 ports_plugged = []
