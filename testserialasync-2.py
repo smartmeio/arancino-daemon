@@ -118,24 +118,42 @@ class SerialHandler(asyncio.Protocol):
         idx = len(cmd)
         parameters = cmd[1:idx]
 
-        #SET
+        # SET
         if cmd[0] == CMD_APP_SET:
             return self._OPTS_SET(parameters)
-        #GET
+        # GET
         elif cmd[0] == CMD_APP_GET:
             return self._OPTS_GET(parameters)
-        #DEL
+        # DEL
         elif cmd[0] == CMD_APP_DEL:
             return self._OPTS_DEL(parameters)
-        #KEYS
+        # KEYS
         elif cmd[0] == CMD_APP_KEYS:
             return self._OPTS_KEYS(parameters)
+        # HSET
+        elif cmd[0] == CMD_APP_HSET:
+            return self._OPTS_HSET(parameters)
+        # HGET
+        elif cmd[0] == CMD_APP_HGET:
+            return self._OPTS_HGET(parameters)
+        # HGETALL
+        elif cmd[0] == CMD_APP_HGETALL:
+            return self._OPTS_HGETALL(parameters)
+        # HVALS
+        elif cmd[0] == CMD_APP_HVALS:
+            return self._OPTS_HVALS(parameters)
+        # HDEL
+        elif cmd[0] == CMD_APP_HDEL:
+            return self._OPTS_HDEL(parameters)
 
     # SET
     def _OPTS_SET(self, params):
 
         '''
-        https://redis.io/commands/set
+        Set key to hold the string value. If key already holds a value,
+        it is overwritten, regardless of its type. Any previous time to live
+        associated with the key is discarded on successful SET operation.
+            https://redis.io/commands/set
 
         MCU → SET#<key>#<value>
 
@@ -159,7 +177,10 @@ class SerialHandler(asyncio.Protocol):
     def _OPTS_GET(self, args):
 
         '''
-        https://redis.io/commands/get
+        Get the value of key. If the key does not exist the special value nil is returned.
+        An error is returned if the value stored at key is not a string,
+        because GET only handles string values.
+            https://redis.io/commands/get
 
         MCU → GET#<key>
 
@@ -183,7 +204,8 @@ class SerialHandler(asyncio.Protocol):
     def _OPTS_DEL(self, args):
 
         '''
-        https://redis.io/commands/del
+        Removes the specified keys. A key is ignored if it does not exist.
+            https://redis.io/commands/del
 
         MCU → DEL#<key-1>[#<key-2>#<key-n>]
 
@@ -198,7 +220,8 @@ class SerialHandler(asyncio.Protocol):
     def _OPTS_KEYS(self, args):
 
         '''
-        https://redis.io/commands/keys
+        Returns all keys matching pattern.
+            https://redis.io/commands/keys
 
         MCU → KEYS[#<pattern>]
 
@@ -222,6 +245,11 @@ class SerialHandler(asyncio.Protocol):
     def _OPTS_HSET(self, args):
 
         '''
+        Sets field in the hash stored at key to value.
+        If key does not exist, a new key holding a hash is created.
+        If field already exists in the hash, it is overwritten.
+            https://redis.io/commands/hset
+
         MCU → HSET#<key>#<field>#<value>
 
         MCU ← 101@
@@ -246,6 +274,8 @@ class SerialHandler(asyncio.Protocol):
         # redis.exceptions.ResponseError: WRONGTYPE Operation against a key holding the wrong kind of value
         # scatta quando faccio la get (semplice) di una chiave che non contiene un valore semplice ma una hashtable
         '''
+        Returns the value associated with field in the hash stored at key.
+            https://redis.io/commands/hget
 
         MCU → HGET#<key>#<field>
 
@@ -271,6 +301,11 @@ class SerialHandler(asyncio.Protocol):
     def _OPTS_HGET_ALL(self, args):
 
         '''
+        Returns all fields and values of the hash stored at key.
+        In the returned value, every field name is followed by its value,
+        so the length of the reply is twice the size of the hash.
+            https://redis.io/commands/hgetall
+
         MCU → HGETALL#<key>
 
         MCU ← 100[#<field-1>#<value-1>#<field-2>#<value-2>]@
@@ -292,6 +327,9 @@ class SerialHandler(asyncio.Protocol):
     def _OPTS_HKEYS(self, args):
 
         '''
+        Returns all field names in the hash stored at key.
+            https://redis.io/commands/hkeys
+
         MCU → HKEYS#<key>
 
         MCU ← 100[#<field-1>#<field-2>]@
@@ -306,10 +344,12 @@ class SerialHandler(asyncio.Protocol):
         else:
             return RSP_OK + CHR_EOT
 
+
     # HVALS
     def _OPTS_HVALS(self, args):
         '''
-        HVALS:
+        Returns all values in the hash stored at key.
+            https://redis.io/commands/hvals
 
         MCU → HVALS#<key>
 
@@ -322,10 +362,14 @@ class SerialHandler(asyncio.Protocol):
         else:
             return RSP_OK + CHR_EOT
 
+
     # HDEL
     def _OPTS_HDEL(self, args):
         '''
-        HDEL:
+        Removes the specified fields from the hash stored at key.
+        Specified fields that do not exist within this hash are ignored.
+        If key does not exist, it is treated as an empty hash and this command returns 0.
+            https://redis.io/commands/hdel
 
         → HDEL#<key>#<field>[#<field-2>#<field-n>]
 
@@ -354,7 +398,7 @@ CMD_APP_KEYS    = 'KEYS'    #Get keys by a pattern
 CMD_APP_HGET    = 'HGET'    #
 CMD_APP_HGETALL = 'HGETALL' #
 CMD_APP_HKEYS   = 'HKEYS'   #
-CMD_APP_VALS    = 'HVALS'   #
+CMD_APP_HVALS   = 'HVALS'   #
 CMD_APP_HDEL    = 'HDEL'    #
 CMD_APP_HSET    = 'HSET'    #
 
