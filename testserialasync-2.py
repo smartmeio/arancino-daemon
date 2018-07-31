@@ -115,31 +115,36 @@ class SerialHandler(asyncio.Protocol):
 
     def _execCommand(self, cmd):
 
+        idx = len(cmd)
+        parameters = cmd[1:idx]
+
         #SET
         if cmd[0] == CMD_APP_SET:
-            return self._OPTS_SET(cmd)
+            return self._OPTS_SET(parameters)
         #GET
         elif cmd[0] == CMD_APP_GET:
-            return self._OPTS_GET(cmd)
+            return self._OPTS_GET(parameters)
         #DEL
         elif cmd[0] == CMD_APP_DEL:
-            return self._OPTS_DEL(cmd)
+            return self._OPTS_DEL(parameters)
         #KEYS
         elif cmd[0] == CMD_APP_KEYS:
-            self._OPTS_KEYS(cmd)
+            return self._OPTS_KEYS(parameters)
 
     # SET
-    def _OPTS_SET(self, cmd):
+    def _OPTS_SET(self, params):
 
         '''
+        https://redis.io/commands/set
+
         MCU → SET#<key>#<value>
 
         MCU ← 100@ (OK)
         MCU ← 202@ (KO)
         '''
 
-        key = cmd[1]
-        value = cmd[2]
+        key = params[0]
+        value = params[1]
 
         rsp = self.datastore.set(key, value)
         if rsp:
@@ -151,16 +156,18 @@ class SerialHandler(asyncio.Protocol):
 
 
     # GET
-    def _OPTS_GET(self, cmd):
+    def _OPTS_GET(self, args):
 
         '''
+        https://redis.io/commands/get
+
         MCU → GET#<key>
 
         MCU ← 100#<value>@ (OK)
         MCU ← 201@  (KO)
         '''
 
-        key = cmd[1]
+        key = args[0]
 
         rsp = self.datastore.get(key)
 
@@ -173,49 +180,46 @@ class SerialHandler(asyncio.Protocol):
 
 
     # DEL
-    def _OPTS_DEL(self, cmd):
+    def _OPTS_DEL(self, args):
 
         '''
-        DEL:
+        https://redis.io/commands/del
 
         MCU → DEL#<key-1>[#<key-2>#<key-n>]
 
         MCU ← 100#<num-of-deleted-keys>@
         '''
 
-        idx = len(cmd)
-        keys = cmd[1:idx]
-
-        rsp = self.datastore.delete(*keys)
-        return RSP_OK + CHR_SEP + str(rsp) + CHR_EOT
+        num = self.datastore.delete(*args)
+        return RSP_OK + CHR_SEP + str(num) + CHR_EOT
 
 
     # KEYS
-    def _OPTS_KEYS(self, cmd):
+    def _OPTS_KEYS(self, args):
 
         '''
+        https://redis.io/commands/keys
+
         MCU → KEYS[#<pattern>]
 
         MCU ← 100[#<key-1>#<key-2>#<key-n>]@
         '''
 
-        if len(cmd) == 2:
-            pattern = cmd[1] # w/ pattern
+        if len(args) == 1:
+            pattern = args[0] # w/ pattern
         else:
             pattern = '*'  # w/o pattern
 
-        rsp = self.datastore.keys(pattern)
+        keys = self.datastore.keys(pattern)
 
-        rsp_str = RSP_OK
+        if len(keys) > 0:
+            return RSP_OK + CHR_SEP + CHR_SEP.join(keys) + CHR_EOT
+        else:
+            return RSP_OK + CHR_EOT
 
-        for key in rsp:
-            #TODO CHR_SEP deve essere inserito alla fine, e non se la chiave é l'ultima
-            rsp_str += CHR_SEP + key
-
-        return rsp_str + CHR_EOT
 
     # HSET
-    def _OPTS_HSET(self, cmd):
+    def _OPTS_HSET(self, args):
 
         '''
         MCU → HSET#<key>#<field>#<value>
@@ -224,9 +228,9 @@ class SerialHandler(asyncio.Protocol):
         MCU ← 102@
         '''
 
-        key = cmd[1]
-        field = cmd[2]
-        value = cmd[3]
+        key = args[0]
+        field = args[1]
+        value = args[2]
 
         rsp = self.datastore.hset(key, field, value)
 
@@ -235,9 +239,12 @@ class SerialHandler(asyncio.Protocol):
         else: #1
             return RSP_HSET_UPD + CHR_EOT
 
-    # HGET
-    def _OPTS_HGET(self, cmd):
 
+    # HGET
+    def _OPTS_HGET(self, args):
+        #TODO gestire eccezzione
+        # redis.exceptions.ResponseError: WRONGTYPE Operation against a key holding the wrong kind of value
+        # scatta quando faccio la get (semplice) di una chiave che non contiene un valore semplice ma una hashtable
         '''
 
         MCU → HGET#<key>#<field>
@@ -247,21 +254,21 @@ class SerialHandler(asyncio.Protocol):
 
         '''
 
-        key = cmd[1]
-        field = cmd[2]
+        key = args[1]
+        field = args[2]
 
-        rsp = self.datastore.get(key, field)
+        value = self.datastore.get(key, field)
 
-        if rsp is not None:
+        if value is not None:
             # return the value
-            return RSP_OK + CHR_SEP + str(rsp) + CHR_EOT
+            return RSP_OK + CHR_SEP + str(value) + CHR_EOT
         else:
             # return the error code
             return ERR_NULL + CHR_EOT
 
 
     # HGETALL
-    def _OPTS_HGET_ALL(self, cmd):
+    def _OPTS_HGET_ALL(self, args):
 
         '''
         MCU → HGETALL#<key>
@@ -269,16 +276,69 @@ class SerialHandler(asyncio.Protocol):
         MCU ← 100[#<field-1>#<value-1>#<field-2>#<value-2>]@
         '''
 
-        key = cmd[1]
+        key = args[1]
 
-        rsp_str = RSP_OK
+        rsp_str = ""
 
-        fields = self.datastore.hgetall(key)
-        for field in fields:
-            # TODO CHR_SEP deve essere inserito alla fine, e non se la chiave é l'ultima
-            rsp_str += CHR_SEP + field + CHR_SEP + fields[field]
+        data = self.datastore.hgetall(key) #{'field-1': 'value-1', 'field-2': 'value-2'}
 
-        rsp_str += CHR_EOT
+        for field in data:
+            rsp_str += CHR_SEP + field + CHR_SEP + data[field]
+
+        return RSP_OK + rsp_str + CHR_EOT
+
+
+    # HKEYS
+    def _OPTS_HKEYS(self, args):
+
+        '''
+        MCU → HKEYS#<key>
+
+        MCU ← 100[#<field-1>#<field-2>]@
+        '''
+
+        key = args[0]
+
+        fields = self.datastore.keys(key)
+
+        if len(fields) > 0:
+            return RSP_OK + CHR_SEP + CHR_SEP.join(fields) + CHR_EOT
+        else:
+            return RSP_OK + CHR_EOT
+
+    # HVALS
+    def _OPTS_HVALS(self, args):
+        '''
+        HVALS:
+
+        MCU → HVALS#<key>
+
+        MCU ← 100[#<value-1>#<value-2>]@
+        '''
+        key = args[0]
+        values = self.datastore.hvals(key)
+        if len(values) > 0:
+            return RSP_OK + CHR_SEP + CHR_SEP.join(values) + CHR_EOT
+        else:
+            return RSP_OK + CHR_EOT
+
+    # HDEL
+    def _OPTS_HDEL(self, args):
+        '''
+        HDEL:
+
+        → HDEL#<key>#<field>[#<field-2>#<field-n>]
+
+        ← 100#<num-of-deleted-keys>@
+        '''
+
+        idx = len(args)
+        key = args[0]
+        fields = args[1:idx]
+
+        num = self.datastore(key, *fields)
+
+        return RSP_OK + CHR_SEP + str(num) + CHR_EOT
 
 
 #Definitions for Serial Protocol
@@ -314,12 +374,6 @@ ports_plugged = []
 
 # contains all the connected serial ports. Object of type Thread - SerialConnector
 ports_connected = {}
-
-#start redis connection
-#r = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
-
-#thread = SerialMonitor("Thread-SerialMonitor")
-#thread.start()
 
 serialManager = SerialManager()
 serialManager.main()
