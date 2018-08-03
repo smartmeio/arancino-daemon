@@ -159,10 +159,10 @@ class SerialManagerUnitTest():
         MCU ← 100[#<key-1>#<key-2>#<key-n>]@
         '''
 
-        if len(args) == 1:
-            pattern = args[0]  # w/ pattern
-        else:
+        if len(args) == 0:
             pattern = '*'  # w/o pattern
+        else:
+            pattern = args[0]  # w/ pattern
 
         keys = self.datastore.keys(pattern)
 
@@ -227,7 +227,7 @@ class SerialManagerUnitTest():
             return ERR_NULL + CHR_EOT
 
     # HGETALL
-    def _OPTS_HGET_ALL(self, args):
+    def _OPTS_HGETALL(self, args):
         '''
         Returns all fields and values of the hash stored at key.
         In the returned value, every field name is followed by its value,
@@ -239,7 +239,7 @@ class SerialManagerUnitTest():
         MCU ← 100[#<field-1>#<value-1>#<field-2>#<value-2>]@
         '''
 
-        key = args[1]
+        key = args[0]
 
         rsp_str = ""
 
@@ -395,7 +395,8 @@ class SerialManagerUnitTest():
         print("MCU CMD: " + test_cmd.replace(CHR_SEP,"#").replace(CHR_EOT,"@"))
         print("LR RSP: " + test_response.replace(CHR_SEP,"#").replace(CHR_EOT,"@"))
 
-        if test_response == RSP_OK + CHR_SEP + "key-2" + CHR_SEP + "key-1" + CHR_EOT:
+        if test_response == RSP_OK + CHR_SEP + "key-2" + CHR_SEP + "key-1" + CHR_EOT or\
+                test_response == RSP_OK + CHR_SEP + "key-1" + CHR_SEP + "key-2" + CHR_EOT:
             print(bcolors.OKBLUE + "PASSED" + bcolors.ENDC)
         else:
             print(bcolors.FAIL + "FAILED" + bcolors.ENDC)
@@ -413,7 +414,8 @@ class SerialManagerUnitTest():
         print("MCU CMD: " + test_cmd.replace(CHR_SEP, "#").replace(CHR_EOT, "@"))
         print("LR RSP: " + test_response.replace(CHR_SEP, "#").replace(CHR_EOT, "@"))
 
-        if test_response == RSP_OK + CHR_SEP + "key-2" + CHR_SEP + "key-1" + CHR_EOT:
+        if test_response == RSP_OK + CHR_SEP + "key-2" + CHR_SEP + "key-1" + CHR_EOT or\
+                test_response == RSP_OK + CHR_SEP + "key-1" + CHR_SEP + "key-2" + CHR_EOT:
             print(bcolors.OKBLUE + "PASSED" + bcolors.ENDC)
         else:
             print(bcolors.FAIL + "FAILED" + bcolors.ENDC)
@@ -475,7 +477,48 @@ class SerialManagerUnitTest():
         else:
             print(bcolors.FAIL + "FAILED" + bcolors.ENDC)
 
+
+        print("-----------------------------------------------------------------")
+        print(bcolors.BOLD + "TEST: HGETALL" + bcolors.ENDC)
+
+        self.datastore.hset("hkey-1","hfield-2","hvalue-2")
+
+        test_cmd = "HGETALL" + CHR_SEP + "hkey-1"
+        test_response = self._parseCommands(test_cmd)
+        print("MCU CMD: " + test_cmd.replace(CHR_SEP, "#").replace(CHR_EOT, "@"))
+        print("LR RSP: " + test_response.replace(CHR_SEP, "#").replace(CHR_EOT, "@"))
+
+        if test_response == RSP_OK + CHR_SEP + "hfield-1" + CHR_SEP + "hvalue-1" + CHR_SEP + "hfield-2" + CHR_SEP + "hvalue-2" + CHR_EOT:
+            print(bcolors.OKBLUE + "PASSED" + bcolors.ENDC)
+        else:
+            print(bcolors.FAIL + "FAILED" + bcolors.ENDC)
+
         self.datastore.delete("hkey-1")
+
+
+        print("-----------------------------------------------------------------")
+        print(bcolors.BOLD + "TEST: HKEYS" + bcolors.ENDC)
+
+        self.datastore.hset("hkey-1","hfield-2","hvalue-2")
+
+        test_cmd = "HGETALL" + CHR_SEP + "hkey-1"
+        test_response = self._parseCommands(test_cmd)
+        print("MCU CMD: " + test_cmd.replace(CHR_SEP, "#").replace(CHR_EOT, "@"))
+        print("LR RSP: " + test_response.replace(CHR_SEP, "#").replace(CHR_EOT, "@"))
+
+        if test_response == RSP_OK + CHR_SEP + "hfield-1" + CHR_SEP + "hvalue-1" + CHR_SEP + "hfield-2" + CHR_SEP + "hvalue-2" + CHR_EOT:
+            print(bcolors.OKBLUE + "PASSED" + bcolors.ENDC)
+        else:
+            print(bcolors.FAIL + "FAILED" + bcolors.ENDC)
+
+        self.datastore.delete("hkey-1")
+
+        '''
+        MCU → HKEYS#<key>
+
+        MCU ← 100[#<field-1>#<field-2>]@
+        '''
+
 
 class bcolors:
     HEADER = '\033[95m'

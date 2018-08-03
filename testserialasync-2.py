@@ -146,6 +146,10 @@ class SerialHandler(asyncio.Protocol):
         elif cmd[0] == CMD_APP_HDEL:
             return self._OPTS_HDEL(parameters)
 
+        # Default
+        else:
+            return ERR_CMD_FOUND + CHR_SEP
+
     # SET
     def _OPTS_SET(self, params):
 
@@ -228,10 +232,10 @@ class SerialHandler(asyncio.Protocol):
         MCU ← 100[#<key-1>#<key-2>#<key-n>]@
         '''
 
-        if len(args) == 1:
-            pattern = args[0] # w/ pattern
-        else:
+        if len(args) == 0:
             pattern = '*'  # w/o pattern
+        else:
+            pattern = args[0]  # w/ pattern
 
         keys = self.datastore.keys(pattern)
 
@@ -262,9 +266,9 @@ class SerialHandler(asyncio.Protocol):
 
         rsp = self.datastore.hset(key, field, value)
 
-        if rsp == 0:
+        if rsp == 1:
             return RSP_HSET_NEW + CHR_EOT
-        else: #1
+        else: #0
             return RSP_HSET_UPD + CHR_EOT
 
 
@@ -284,10 +288,10 @@ class SerialHandler(asyncio.Protocol):
 
         '''
 
-        key = args[1]
-        field = args[2]
+        key = args[0]
+        field = args[1]
 
-        value = self.datastore.get(key, field)
+        value = self.datastore.hget(key, field)
 
         if value is not None:
             # return the value
@@ -298,7 +302,7 @@ class SerialHandler(asyncio.Protocol):
 
 
     # HGETALL
-    def _OPTS_HGET_ALL(self, args):
+    def _OPTS_HGETALL(self, args):
 
         '''
         Returns all fields and values of the hash stored at key.
@@ -411,7 +415,7 @@ RSP_KO = 'KO'   #KO Response
 ERR             = '200'     #Generic Error
 ERR_NULL        = '201'     #Null value
 ERR_SET         = '202'     #Error during SET
-#ERR_NOT_FOUND   = '203'     #Not Found
+ERR_CMD_FOUND   = '203'     #Command Not Found
 
 # contains all the plugged ports with a specific vid and pid. Object of type Serial.Port
 ports_plugged = []
