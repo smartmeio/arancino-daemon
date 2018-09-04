@@ -45,7 +45,7 @@ class SerialMonitor (Thread):
             time.sleep(10)
 
     def retrieveNewPorts(self, plugged, connected):
-        print('checking differences')
+        #print('checking differences')
         ports_to_connect = []
         for port in plugged:
             if port.device not in connected:
@@ -90,11 +90,12 @@ class SerialHandler(asyncio.Protocol):
 
 
     def data_received(self, data):
-        print('data received ', data.decode())
+        print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ')
+        print('command received: ', data.decode().strip('\n').strip('\t'))
         response = self._parseCommands(data)
-        print(response)
+        print('response sent: ',response)
+        print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ')
         self.transport.write(response.encode())
-
 
     def connection_lost(self, exc): #TODO gestire l'eccezione per evitare che si incricchi la seriale sulla macchina
         print('port closed ' + self.transport.serial.name)
@@ -149,6 +150,10 @@ class SerialHandler(asyncio.Protocol):
         # Default
         else:
             return ERR_CMD_FOUND + CHR_SEP
+
+
+    #TODO gestire in tutte le _OPTS eccezioni sul numero di argomenti, spesso capita che ne arrivano di meno:
+    # IndexError: list index out of range
 
     # SET
     def _OPTS_SET(self, params):
@@ -315,7 +320,7 @@ class SerialHandler(asyncio.Protocol):
         MCU ← 100[#<field-1>#<value-1>#<field-2>#<value-2>]@
         '''
 
-        key = args[1]
+        key = args[0]
 
         rsp_str = ""
 
