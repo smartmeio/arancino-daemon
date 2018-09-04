@@ -349,7 +349,7 @@ class SerialHandler(asyncio.Protocol):
 
         key = args[0]
 
-        fields = self.datastore.keys(key)
+        fields = self.datastore.hkeys(key)
 
         if len(fields) > 0:
             return RSP_OK + CHR_SEP + CHR_SEP.join(fields) + CHR_EOT
