@@ -140,6 +140,9 @@ class SerialHandler(asyncio.Protocol):
         # HGETALL
         elif cmd[0] == CMD_APP_HGETALL:
             return self._OPTS_HGETALL(parameters)
+        # HKEYS
+        elif cmd[0] == CMD_APP_HKEYS:
+            return self._OPTS_HKEYS(parameters)
         # HVALS
         elif cmd[0] == CMD_APP_HVALS:
             return self._OPTS_HVALS(parameters)
