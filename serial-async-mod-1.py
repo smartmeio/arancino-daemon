@@ -392,7 +392,7 @@ class SerialHandler(asyncio.Protocol):
         key = args[0]
         fields = args[1:idx]
 
-        num = self.datastore(key, *fields)
+        num = self.datastore.hdel(key, *fields)
 
         return RSP_OK + CHR_SEP + str(num) + CHR_EOT
 
