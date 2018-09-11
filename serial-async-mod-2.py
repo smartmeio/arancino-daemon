@@ -93,7 +93,7 @@ class SerialHandler(asyncio.Protocol):
     def data_received(self, data):
 
         print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ')
-        datadec = data.decode().strip()
+        datadec = data.decode()
         self._partial += datadec
 
         if self._partial.endswith(CHR_EOT) is True:
@@ -137,11 +137,11 @@ class SerialHandler(asyncio.Protocol):
         #cmd = command.decode().strip()
 
         #splits command by separator char
-        cmd = command.split(CHR_SEP)
+        cmd = command.strip(CHR_EOT).split(CHR_SEP)
 
         #TODO fare controlli per verificare se il comando é composto correttamente ed é valido.
         if len(cmd) > 0:
-            if cmd[1] in commands_list:
+            if cmd[0] in commands_list:
                 #comando presente
                 return cmd;
             else:
@@ -432,7 +432,7 @@ class SerialHandler(asyncio.Protocol):
         key = args[0]
         fields = args[1:idx]
 
-        num = self.datastore(key, *fields)
+        num = self.datastore.hdel(key, *fields)
 
         return RSP_OK + CHR_SEP + str(num) + CHR_EOT
 
