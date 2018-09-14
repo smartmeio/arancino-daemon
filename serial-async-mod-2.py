@@ -89,6 +89,13 @@ class SerialHandler(asyncio.Protocol):
         transport.serial.rts = False
         #transport.write( (cmd_start + ch_eot).encode() )
 
+    def connection_lost(self, exc):
+        try:
+            print('port closed ' + self.transport.serial.name)
+            serial_connector = ports_connected.pop(self.transport.serial.name)
+            asyncio.get_event_loop().stop()
+        except Exception :
+            print("Error Connection Lost ")
 
     def data_received(self, data):
 
@@ -125,11 +132,6 @@ class SerialHandler(asyncio.Protocol):
         print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ')
         self.transport.write(response.encode())
         '''
-
-    def connection_lost(self, exc): #TODO gestire l'eccezione per evitare che si incricchi la seriale sulla macchina
-        print('port closed ' + self.transport.serial.name)
-        serial_connector = ports_connected.pop(self.transport.serial.name)
-        asyncio.get_event_loop().stop()
 
 
     def _parseCommands(self, command):
