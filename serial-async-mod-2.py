@@ -67,7 +67,7 @@ class SerialConnector (Thread):
         self._loop = asyncio.new_event_loop()
         self.port = port
         self.name = name
-        self.baudrate = 250000
+        self.baudrate = 4000000
         self.datastore = datastore
 
     def run(self):
