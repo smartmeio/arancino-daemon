@@ -55,7 +55,7 @@ class SerialMonitor (Thread):
     def connectPorts(self, ports_to_connect):
         for port in ports_to_connect:
             print("ports to connect to: " + port.device)
-            serialConnector = SerialConnector("Thread-" + port.device, port, self.datastore)#, baudrate = 4000000)
+            serialConnector = SerialConnector("Thread-" + port.device, port, self.datastore, baudrate = 4000000)
             serialConnector.start()
             ports_connected[port.device] = serialConnector
 
@@ -99,7 +99,7 @@ class SerialHandler(asyncio.Protocol):
     def data_received(self, data):
 
         print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ')
-        datadec = data.decode().strip()
+        datadec = data.decode()
         self._partial += datadec
 
         if self._partial.endswith(CHR_EOT) is True:
