@@ -1,9 +1,9 @@
 import asyncio, serial_asyncio, serial, time, redis
 from serial.tools import list_ports
-from oslo_log import log as logging
+#from oslo_log import log as logging
 from threading import Thread
 
-LOG = logging.getLogger(__name__)
+#LOG = logging.getLogger(__name__)
 
 class SerialManager():
     def __init__(self):
@@ -55,24 +55,23 @@ class SerialMonitor (Thread):
     def connectPorts(self, ports_to_connect):
         for port in ports_to_connect:
             print("ports to connect to: " + port.device)
-            serialConnector = SerialConnector("Thread-" + port.device, port, self.datastore)
+            serialConnector = SerialConnector("Thread-" + port.device, port, self.datastore)#, baudrate = 4000000)
             serialConnector.start()
             ports_connected[port.device] = serialConnector
 
 
 class SerialConnector (Thread):
 
-    def __init__(self, name, port, datastore):
+    def __init__(self, name, port, datastore, baudrate = 250000):
         Thread.__init__(self)
         self._loop = asyncio.new_event_loop()
         self.port = port
         self.name = name
-        self.baudrate = 4000000
+        self.baudrate = baudrate
         self.datastore = datastore
 
     def run(self):
         self.coro = serial_asyncio.create_serial_connection(self._loop, lambda: SerialHandler(self.datastore), self.port.device, baudrate=self.baudrate)
-        #self.coro = serial_asyncio.create_serial_connection(self._loop, SerialHandler, self.port.device, baudrate=self.baudrate)
         self._loop.run_until_complete(self.coro)
         self._loop.run_forever()
         self._loop.close()
@@ -87,7 +86,7 @@ class SerialHandler(asyncio.Protocol):
         self.transport = transport
         print('port opened', transport)
         transport.serial.rts = False
-        #transport.write( (cmd_start + ch_eot).encode() )
+
 
     def connection_lost(self, exc):
         try:
@@ -100,7 +99,7 @@ class SerialHandler(asyncio.Protocol):
     def data_received(self, data):
 
         print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ')
-        datadec = data.decode()
+        datadec = data.decode().strip()
         self._partial += datadec
 
         if self._partial.endswith(CHR_EOT) is True:
@@ -123,16 +122,6 @@ class SerialHandler(asyncio.Protocol):
 
         else:
             print('partial command received: ', datadec.strip('\n').strip('\t'))
-
-        '''
-        print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ')
-        print('command received: ', data.decode().strip('\n').strip('\t'))
-        response = self._parseCommands(data)
-        print('response sent: ',response)
-        print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ')
-        self.transport.write(response.encode())
-        '''
-
 
     def _parseCommands(self, command):
         #decode the received commands
@@ -158,11 +147,17 @@ class SerialHandler(asyncio.Protocol):
 
     def _execCommand(self, cmd):
 
+        # TODO gestire in tutte le _OPTS eccezioni sul numero di argomenti, spesso capita che ne arrivano di meno:
+        # IndexError: list index out of range
+
         idx = len(cmd)
         parameters = cmd[1:idx]
 
+        # START
+        if cmd[0] == CMD_SYS_START:
+            return self._OPTS_START()
         # SET
-        if cmd[0] == CMD_APP_SET:
+        elif cmd[0] == CMD_APP_SET:
             return self._OPTS_SET(parameters)
         # GET
         elif cmd[0] == CMD_APP_GET:
@@ -191,14 +186,20 @@ class SerialHandler(asyncio.Protocol):
         # HDEL
         elif cmd[0] == CMD_APP_HDEL:
             return self._OPTS_HDEL(parameters)
-
         # Default
         else:
             return ERR_CMD_FOUND + CHR_SEP
 
+    # START
+    def _OPTS_START(self):
+        '''
+        Microcontroller send START command to start communication
 
-    #TODO gestire in tutte le _OPTS eccezioni sul numero di argomenti, spesso capita che ne arrivano di meno:
-    # IndexError: list index out of range
+        MCU → START@
+
+        MCU  ← 100@ (OK)
+        '''
+        return RSP_OK + CHR_EOT
 
     # SET
     def _OPTS_SET(self, params):
@@ -440,10 +441,10 @@ class SerialHandler(asyncio.Protocol):
 
 
 #Definitions for Serial Protocol
-CHR_EOT = chr(4)        #End Of Transmission Char
-CHR_SEP = chr(30)       #Separator Char
+CHR_EOT = chr(4)            #End Of Transmission Char
+CHR_SEP = chr(30)           #Separator Char
 
-CMD_SYS_START = 'START' #Start Commmand
+CMD_SYS_START   = 'START' #Start Commmand
 
 CMD_APP_GET     = 'GET'     #Get value at key
 CMD_APP_SET     = 'SET'     #Set value at key
@@ -460,8 +461,6 @@ RSP_OK          = '100'     #OK Response
 RSP_HSET_NEW    = '101'     #Set value into a new field
 RSP_HSET_UPD    = '102'     #Set value into an existing field
 
-RSP_KO = 'KO'   #KO Response
-
 ERR             = '200'     #Generic Error
 ERR_NULL        = '201'     #Null value
 ERR_SET         = '202'     #Error during SET
@@ -469,7 +468,7 @@ ERR_CMD_FOUND   = '203'     #Command Not Found
 
 
 # list of commands
-commands_list = [CMD_APP_GET, CMD_APP_SET, CMD_APP_DEL, CMD_APP_KEYS, CMD_APP_HGET, CMD_APP_HGETALL, CMD_APP_HKEYS, CMD_APP_HVALS, CMD_APP_HDEL, CMD_APP_HSET]
+commands_list = [CMD_SYS_START, CMD_APP_GET, CMD_APP_SET, CMD_APP_DEL, CMD_APP_KEYS, CMD_APP_HGET, CMD_APP_HGETALL, CMD_APP_HKEYS, CMD_APP_HVALS, CMD_APP_HDEL, CMD_APP_HSET]
 
 # contains all the plugged ports with a specific vid and pid. Object of type Serial.Port
 ports_plugged = []
