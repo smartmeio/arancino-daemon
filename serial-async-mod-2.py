@@ -5,6 +5,15 @@ from threading import Thread
 
 #LOG = logging.getLogger(__name__)
 
+class InvalidArgumentsNumberException(Exception):
+    def __init__(self, message, errors):
+
+        # Call the base class constructor with the parameters it needs
+        super().__init__(message)
+
+        # Now for your custom code...
+        self.errors = errors
+
 class SerialManager():
     def __init__(self):
         self.datastore = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
@@ -87,7 +96,6 @@ class SerialHandler(asyncio.Protocol):
         print('port opened', transport)
         transport.serial.rts = False
 
-
     def connection_lost(self, exc):
         try:
             print('port closed ' + self.transport.serial.name)
@@ -98,13 +106,13 @@ class SerialHandler(asyncio.Protocol):
 
     def data_received(self, data):
 
-        print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ')
+        #print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ')
         datadec = data.decode()
         self._partial += datadec
 
         if self._partial.endswith(CHR_EOT) is True:
             # now command is completed and can be used
-            print('completed command received: ', self._partial.strip('\n').strip('\t'))
+            print('Received Command: ', self._partial.strip('\n').strip('\t'))
 
             # parse and check command
             cmd = self._parseCommands(self._partial)
@@ -114,14 +122,15 @@ class SerialHandler(asyncio.Protocol):
 
             # send response back
             self.transport.write(response.encode())
-            print('response sent: ', response)
+            print('Sent Response: ', response)
+
 
             # clear the handy variable
             self._partial = ""
             print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ')
 
-        else:
-            print('partial command received: ', datadec.strip('\n').strip('\t'))
+        #else:
+        #    print('partial command received: ', datadec.strip('\n').strip('\t'))
 
     def _parseCommands(self, command):
         #decode the received commands
@@ -152,48 +161,70 @@ class SerialHandler(asyncio.Protocol):
 
         idx = len(cmd)
         parameters = cmd[1:idx]
+        '''
+        _OPTIONS = {
+            CMD_SYS_START: self._OPTS_START,
+            CMD_APP_SET: self._OPTS_SET,
+            CMD_APP_GET: self._OPTS_GET,
+            CMD_APP_DEL: self._OPTS_DEL,
+            CMD_APP_KEYS: self._OPTS_KEYS,
+            CMD_APP_HSET: self._OPTS_HSET,
+            CMD_APP_HGETALL: self._OPTS_HGETALL,
+            CMD_APP_HKEYS: self._OPTS_HKEYS,
+            CMD_APP_HVALS: self._OPTS_HVALS,
+            CMD_APP_HDEL: self._OPTS_HDEL
+        }
 
-        # START
-        if cmd[0] == CMD_SYS_START:
-            return self._OPTS_START()
-        # SET
-        elif cmd[0] == CMD_APP_SET:
-            return self._OPTS_SET(parameters)
-        # GET
-        elif cmd[0] == CMD_APP_GET:
-            return self._OPTS_GET(parameters)
-        # DEL
-        elif cmd[0] == CMD_APP_DEL:
-            return self._OPTS_DEL(parameters)
-        # KEYS
-        elif cmd[0] == CMD_APP_KEYS:
-            return self._OPTS_KEYS(parameters)
-        # HSET
-        elif cmd[0] == CMD_APP_HSET:
-            return self._OPTS_HSET(parameters)
-        # HGET
-        elif cmd[0] == CMD_APP_HGET:
-            return self._OPTS_HGET(parameters)
-        # HGETALL
-        elif cmd[0] == CMD_APP_HGETALL:
-            return self._OPTS_HGETALL(parameters)
-        # HKEYS
-        elif cmd[0] == CMD_APP_HKEYS:
-            return self._OPTS_HKEYS(parameters)
-        # HVALS
-        elif cmd[0] == CMD_APP_HVALS:
-            return self._OPTS_HVALS(parameters)
-        # HDEL
-        elif cmd[0] == CMD_APP_HDEL:
-            return self._OPTS_HDEL(parameters)
-        # Default
-        else:
-            return ERR_CMD_FOUND + CHR_SEP
+        _opts = _OPTIONS.get(cmd[0], lambda : ERR_CMD_NOT_FND + CHR_SEP)
+        return _opts(parameters)
+        '''
+        try:
+            # START
+            if cmd[0] == CMD_SYS_START:
+                return self._OPTS_START()
+            # SET
+            elif cmd[0] == CMD_APP_SET:
+                return self._OPTS_SET(parameters)
+            # GET
+            elif cmd[0] == CMD_APP_GET:
+                return self._OPTS_GET(parameters)
+            # DEL
+            elif cmd[0] == CMD_APP_DEL:
+                return self._OPTS_DEL(parameters)
+            # KEYS
+            elif cmd[0] == CMD_APP_KEYS:
+                return self._OPTS_KEYS(parameters)
+            # HSET
+            elif cmd[0] == CMD_APP_HSET:
+                return self._OPTS_HSET(parameters)
+            # HGET
+            elif cmd[0] == CMD_APP_HGET:
+                return self._OPTS_HGET(parameters)
+            # HGETALL
+            elif cmd[0] == CMD_APP_HGETALL:
+                return self._OPTS_HGETALL(parameters)
+            # HKEYS
+            elif cmd[0] == CMD_APP_HKEYS:
+                return self._OPTS_HKEYS(parameters)
+            # HVALS
+            elif cmd[0] == CMD_APP_HVALS:
+                return self._OPTS_HVALS(parameters)
+            # HDEL
+            elif cmd[0] == CMD_APP_HDEL:
+                return self._OPTS_HDEL(parameters)
+            # Default
+            else:
+                return ERR_CMD_NOT_FND + CHR_SEP
+
+        except InvalidArgumentsNumberException as ex:
+            # TODO LOG ERR
+            return ERR_CMD_PRM_NUM + CHR_EOT
+
 
     # START
     def _OPTS_START(self):
         '''
-        Microcontroller send START command to start communication
+        Microcontroller sends START command to start communication
 
         MCU → START@
 
@@ -202,7 +233,7 @@ class SerialHandler(asyncio.Protocol):
         return RSP_OK + CHR_EOT
 
     # SET
-    def _OPTS_SET(self, params):
+    def _OPTS_SET(self, args):
 
         '''
         Set key to hold the string value. If key already holds a value,
@@ -216,17 +247,21 @@ class SerialHandler(asyncio.Protocol):
         MCU ← 202@ (KO)
         '''
 
-        key = params[0]
-        value = params[1]
+        if len(args) == 2:
 
-        rsp = self.datastore.set(key, value)
-        if rsp:
-            # return ok response
-            return RSP_OK + CHR_EOT
+            key = args[0]
+            value = args[1]
+
+            rsp = self.datastore.set(key, value)
+            if rsp:
+                # return ok response
+                return RSP_OK + CHR_EOT
+            else:
+                # return the error code
+                return ERR_SET + CHR_EOT
+
         else:
-            # return the error code
-            return ERR_SET + CHR_EOT
-
+            raise InvalidArgumentsNumberException("Invalid Arguments numbers for command " +CMD_APP_SET+ ": " + len(args))
 
     # GET
     def _OPTS_GET(self, args):
@@ -243,17 +278,21 @@ class SerialHandler(asyncio.Protocol):
         MCU ← 201@  (KO)
         '''
 
-        key = args[0]
+        if len(args) == 1:
 
-        rsp = self.datastore.get(key)
+            key = args[0]
 
-        if rsp is not None:
-            # return the value
-            return RSP_OK + CHR_SEP + str(rsp) + CHR_EOT
+            rsp = self.datastore.get(key)
+
+            if rsp is not None:
+                # return the value
+                return RSP_OK + CHR_SEP + str(rsp) + CHR_EOT
+            else:
+                # return the error code
+                return ERR_NULL + CHR_EOT
+
         else:
-            # return the error code
-            return ERR_NULL + CHR_EOT
-
+            raise InvalidArgumentsNumberException("Invalid Arguments numbers for command " + CMD_APP_GET + ": " + len(args))
 
     # DEL
     def _OPTS_DEL(self, args):
@@ -267,9 +306,13 @@ class SerialHandler(asyncio.Protocol):
         MCU ← 100#<num-of-deleted-keys>@
         '''
 
-        num = self.datastore.delete(*args)
-        return RSP_OK + CHR_SEP + str(num) + CHR_EOT
+        if len(args) >= 1:
 
+            num = self.datastore.delete(*args)
+            return RSP_OK + CHR_SEP + str(num) + CHR_EOT
+
+        else:
+            raise InvalidArgumentsNumberException("Invalid Arguments numbers for command " + CMD_APP_DEL + ": " + len(args))
 
     # KEYS
     def _OPTS_KEYS(self, args):
@@ -311,17 +354,21 @@ class SerialHandler(asyncio.Protocol):
         MCU ← 102@
         '''
 
-        key = args[0]
-        field = args[1]
-        value = args[2]
+        if len(args) == 3:
 
-        rsp = self.datastore.hset(key, field, value)
+            key = args[0]
+            field = args[1]
+            value = args[2]
 
-        if rsp == 1:
-            return RSP_HSET_NEW + CHR_EOT
-        else: #0
-            return RSP_HSET_UPD + CHR_EOT
+            rsp = self.datastore.hset(key, field, value)
 
+            if rsp == 1:
+                return RSP_HSET_NEW + CHR_EOT
+            else: #0
+                return RSP_HSET_UPD + CHR_EOT
+
+        else:
+            raise InvalidArgumentsNumberException("Invalid Arguments numbers for command " + CMD_APP_HSET + ": " + len(args))
 
     # HGET
     def _OPTS_HGET(self, args):
@@ -338,19 +385,22 @@ class SerialHandler(asyncio.Protocol):
         MCU ← 201@
 
         '''
+        if len(args) == 2:
 
-        key = args[0]
-        field = args[1]
+            key = args[0]
+            field = args[1]
 
-        value = self.datastore.hget(key, field)
+            value = self.datastore.hget(key, field)
 
-        if value is not None:
-            # return the value
-            return RSP_OK + CHR_SEP + str(value) + CHR_EOT
+            if value is not None:
+                # return the value
+                return RSP_OK + CHR_SEP + str(value) + CHR_EOT
+            else:
+                # return the error code
+                return ERR_NULL + CHR_EOT
+
         else:
-            # return the error code
-            return ERR_NULL + CHR_EOT
-
+            raise InvalidArgumentsNumberException("Invalid Arguments numbers for command " + CMD_APP_HGET + ": " + len(args))
 
     # HGETALL
     def _OPTS_HGETALL(self, args):
@@ -365,18 +415,21 @@ class SerialHandler(asyncio.Protocol):
 
         MCU ← 100[#<field-1>#<value-1>#<field-2>#<value-2>]@
         '''
+        if len(args) == 1:
 
-        key = args[0]
+            key = args[0]
 
-        rsp_str = ""
+            rsp_str = ""
 
-        data = self.datastore.hgetall(key) #{'field-1': 'value-1', 'field-2': 'value-2'}
+            data = self.datastore.hgetall(key) #{'field-1': 'value-1', 'field-2': 'value-2'}
 
-        for field in data:
-            rsp_str += CHR_SEP + field + CHR_SEP + data[field]
+            for field in data:
+                rsp_str += CHR_SEP + field + CHR_SEP + data[field]
 
-        return RSP_OK + rsp_str + CHR_EOT
+            return RSP_OK + rsp_str + CHR_EOT
 
+        else:
+            raise InvalidArgumentsNumberException("Invalid Arguments numbers for command " + CMD_APP_HGETALL + ": " + len(args))
 
     # HKEYS
     def _OPTS_HKEYS(self, args):
@@ -389,16 +442,19 @@ class SerialHandler(asyncio.Protocol):
 
         MCU ← 100[#<field-1>#<field-2>]@
         '''
+        if len(args) == 1:
 
-        key = args[0]
+            key = args[0]
 
-        fields = self.datastore.hkeys(key)
+            fields = self.datastore.hkeys(key)
 
-        if len(fields) > 0:
-            return RSP_OK + CHR_SEP + CHR_SEP.join(fields) + CHR_EOT
+            if len(fields) > 0:
+                return RSP_OK + CHR_SEP + CHR_SEP.join(fields) + CHR_EOT
+            else:
+                return RSP_OK + CHR_EOT
+
         else:
-            return RSP_OK + CHR_EOT
-
+            raise InvalidArgumentsNumberException("Invalid Arguments numbers for command " + CMD_APP_HKEYS + ": " + len(args))
 
     # HVALS
     def _OPTS_HVALS(self, args):
@@ -410,13 +466,18 @@ class SerialHandler(asyncio.Protocol):
 
         MCU ← 100[#<value-1>#<value-2>]@
         '''
-        key = args[0]
-        values = self.datastore.hvals(key)
-        if len(values) > 0:
-            return RSP_OK + CHR_SEP + CHR_SEP.join(values) + CHR_EOT
-        else:
-            return RSP_OK + CHR_EOT
 
+        if len(args) == 1:
+
+            key = args[0]
+            values = self.datastore.hvals(key)
+            if len(values) > 0:
+                return RSP_OK + CHR_SEP + CHR_SEP.join(values) + CHR_EOT
+            else:
+                return RSP_OK + CHR_EOT
+
+        else:
+            raise InvalidArgumentsNumberException("Invalid Arguments numbers for command " + CMD_APP_HVALS + ": " + len(args))
 
     # HDEL
     def _OPTS_HDEL(self, args):
@@ -431,14 +492,17 @@ class SerialHandler(asyncio.Protocol):
         ← 100#<num-of-deleted-keys>@
         '''
 
-        idx = len(args)
-        key = args[0]
-        fields = args[1:idx]
+        if len(args) == 2:
+            idx = len(args)
+            key = args[0]
+            fields = args[1:idx]
 
-        num = self.datastore.hdel(key, *fields)
+            num = self.datastore.hdel(key, *fields)
 
-        return RSP_OK + CHR_SEP + str(num) + CHR_EOT
+            return RSP_OK + CHR_SEP + str(num) + CHR_EOT
 
+        else:
+            raise InvalidArgumentsNumberException("Invalid Arguments numbers for command " + CMD_APP_HDEL + ": " + len(args))
 
 #Definitions for Serial Protocol
 CHR_EOT = chr(4)            #End Of Transmission Char
@@ -464,7 +528,8 @@ RSP_HSET_UPD    = '102'     #Set value into an existing field
 ERR             = '200'     #Generic Error
 ERR_NULL        = '201'     #Null value
 ERR_SET         = '202'     #Error during SET
-ERR_CMD_FOUND   = '203'     #Command Not Found
+ERR_CMD_NOT_FND = '203'     #Command Not Found
+ERR_CMD_PRM_NUM = '204'     #Invalid parameter number
 
 
 # list of commands
