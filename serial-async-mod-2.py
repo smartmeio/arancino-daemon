@@ -14,6 +14,16 @@ class InvalidArgumentsNumberException(Exception):
         # Now for your custom code...
         self.errors = errors
 
+class RedisException(Exception):
+    def __init__(self, message, errors):
+
+        # Call the base class constructor with the parameters it needs
+        super().__init__(message)
+
+        # Now for your custom code...
+        self.errors = errors
+
+
 class SerialManager():
     def __init__(self):
         self.datastore = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
@@ -220,6 +230,10 @@ class SerialHandler(asyncio.Protocol):
             # TODO LOG ERR
             return ERR_CMD_PRM_NUM + CHR_EOT
 
+        except RedisException as ex:
+            #TODO LOG ERR
+            return ERR_REDIS + CHR_EOT
+
 
     # START
     def _OPTS_START(self):
@@ -252,7 +266,13 @@ class SerialHandler(asyncio.Protocol):
             key = args[0]
             value = args[1]
 
-            rsp = self.datastore.set(key, value)
+            try:
+
+                rsp = self.datastore.set(key, value)
+
+            except Exception as ex:
+                raise RedisException("Generic Redis Error")
+
             if rsp:
                 # return ok response
                 return RSP_OK + CHR_EOT
@@ -282,7 +302,12 @@ class SerialHandler(asyncio.Protocol):
 
             key = args[0]
 
-            rsp = self.datastore.get(key)
+            try:
+
+                rsp = self.datastore.get(key)
+
+            except Exception as ex:
+                raise RedisException("Generic Redis Error")
 
             if rsp is not None:
                 # return the value
@@ -308,7 +333,12 @@ class SerialHandler(asyncio.Protocol):
 
         if len(args) >= 1:
 
-            num = self.datastore.delete(*args)
+            try:
+                num = self.datastore.delete(*args)
+
+            except Exception as ex:
+                raise RedisException("Generic Redis Error")
+
             return RSP_OK + CHR_SEP + str(num) + CHR_EOT
 
         else:
@@ -331,7 +361,12 @@ class SerialHandler(asyncio.Protocol):
         else:
             pattern = args[0]  # w/ pattern
 
-        keys = self.datastore.keys(pattern)
+        try:
+
+            keys = self.datastore.keys(pattern)
+
+        except Exception as ex:
+            raise RedisException("Generic Redis Error")
 
         if len(keys) > 0:
             return RSP_OK + CHR_SEP + CHR_SEP.join(keys) + CHR_EOT
@@ -360,7 +395,12 @@ class SerialHandler(asyncio.Protocol):
             field = args[1]
             value = args[2]
 
-            rsp = self.datastore.hset(key, field, value)
+            try:
+
+                rsp = self.datastore.hset(key, field, value)
+
+            except Exception as ex:
+                raise RedisException("Generic Redis Error")
 
             if rsp == 1:
                 return RSP_HSET_NEW + CHR_EOT
@@ -390,7 +430,12 @@ class SerialHandler(asyncio.Protocol):
             key = args[0]
             field = args[1]
 
-            value = self.datastore.hget(key, field)
+            try:
+
+                value = self.datastore.hget(key, field)
+
+            except Exception as ex:
+                raise RedisException("Generic Redis Error")
 
             if value is not None:
                 # return the value
@@ -421,7 +466,11 @@ class SerialHandler(asyncio.Protocol):
 
             rsp_str = ""
 
-            data = self.datastore.hgetall(key) #{'field-1': 'value-1', 'field-2': 'value-2'}
+            try:
+                data = self.datastore.hgetall(key) #{'field-1': 'value-1', 'field-2': 'value-2'}
+
+            except Exception as ex:
+                raise RedisException("Generic Redis Error")
 
             for field in data:
                 rsp_str += CHR_SEP + field + CHR_SEP + data[field]
@@ -446,7 +495,12 @@ class SerialHandler(asyncio.Protocol):
 
             key = args[0]
 
-            fields = self.datastore.hkeys(key)
+            try:
+
+                fields = self.datastore.hkeys(key)
+
+            except Exception as ex:
+                raise RedisException("Generic Redis Error")
 
             if len(fields) > 0:
                 return RSP_OK + CHR_SEP + CHR_SEP.join(fields) + CHR_EOT
@@ -470,7 +524,14 @@ class SerialHandler(asyncio.Protocol):
         if len(args) == 1:
 
             key = args[0]
-            values = self.datastore.hvals(key)
+
+            try:
+
+                values = self.datastore.hvals(key)
+
+            except Exception as ex:
+                raise RedisException("Generic Redis Error")
+
             if len(values) > 0:
                 return RSP_OK + CHR_SEP + CHR_SEP.join(values) + CHR_EOT
             else:
@@ -497,7 +558,11 @@ class SerialHandler(asyncio.Protocol):
             key = args[0]
             fields = args[1:idx]
 
-            num = self.datastore.hdel(key, *fields)
+            try:
+                num = self.datastore.hdel(key, *fields)
+
+            except Exception as ex:
+                raise RedisException("Generic Redis Error")
 
             return RSP_OK + CHR_SEP + str(num) + CHR_EOT
 
@@ -530,6 +595,7 @@ ERR_NULL        = '201'     #Null value
 ERR_SET         = '202'     #Error during SET
 ERR_CMD_NOT_FND = '203'     #Command Not Found
 ERR_CMD_PRM_NUM = '204'     #Invalid parameter number
+ERR_REDIS       = '205'     #Generic Redis Error
 
 
 # list of commands
