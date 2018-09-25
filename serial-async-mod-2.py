@@ -1,15 +1,25 @@
 import asyncio, serial_asyncio, serial, time, redis
 from serial.tools import list_ports
-#from oslo_log import log as logging
+from oslo_log import log as logging
 from threading import Thread
 
-#LOG = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
+
 
 class InvalidArgumentsNumberException(Exception):
     def __init__(self, message, error_code):
 
         # Call the base class constructor with the parameters it needs
         super(InvalidArgumentsNumberException, self).__init__(message)
+
+        # Now for your custom code...
+        self.error_code = error_code
+
+class InvalidCommandException(Exception):
+    def __init__(self, message, error_code):
+
+        # Call the base class constructor with the parameters it needs
+        super(InvalidCommandException, self).__init__(message)
 
         # Now for your custom code...
         self.error_code = error_code
@@ -74,7 +84,8 @@ class SerialMonitor (Thread):
 
     def connectPorts(self, ports_to_connect):
         for port in ports_to_connect:
-            print("ports to connect to: " + port.device)
+            LOG.info("Ports to connect to: " + port.device)
+            #print("ports to connect to: " + port.device)
             serialConnector = SerialConnector("Thread-" + port.device, port, self.datastore, baudrate = 4000000)
             serialConnector.start()
             ports_connected[port.device] = serialConnector
@@ -97,8 +108,7 @@ class SerialConnector (Thread):
             self._loop.run_forever()
             self._loop.close()
         except Exception as ex:
-            #TODO log ex
-            print(ex)
+            LOG.error(ex)
 
 
 
@@ -109,16 +119,15 @@ class SerialHandler(asyncio.Protocol):
 
     def connection_made(self, transport):
         self.transport = transport
-        print('Port opened', transport)
+        #print('Port opened', transport)
+        LOG.info("Port opened: " + transport.serial.name)
+        LOG.debug("Port opened: " + str(transport))
         transport.serial.rts = False
 
     def connection_lost(self, exc):
-        try:
-            print('Port closed ' + self.transport.serial.name)
-            serial_connector = ports_connected.pop(self.transport.serial.name)
-            asyncio.get_event_loop().stop()
-        except Exception :
-            print("Error Connection Lost ")
+        LOG.info('Port closed ' + self.transport.serial.name)
+        serial_connector = ports_connected.pop(self.transport.serial.name)
+        asyncio.get_event_loop().stop()
 
     def data_received(self, data):
 
@@ -128,22 +137,47 @@ class SerialHandler(asyncio.Protocol):
 
         if self._partial.endswith(CHR_EOT) is True:
             # now command is completed and can be used
-            print('Received Command: ', self._partial.strip('\n').strip('\t'))
+            LOG.debug('Received Command: ', self._partial.strip('\n').strip('\t'))
+            #print('Received Command: ', self._partial.strip('\n').strip('\t'))
 
-            # parse and check command
-            cmd = self._parseCommands(self._partial)
 
-            # then execute it
-            response = self._execCommand(cmd)
 
-            # send response back
-            self.transport.write(response.encode())
-            print('Sent Response: ', response)
+            try:
+                # parse and check command
+                cmd = self._parseCommands(self._partial)
+
+                # then execute it
+                response = self._execCommand(cmd)
+
+
+            except InvalidArgumentsNumberException as ex:
+                LOG.error(ex)
+                response = ex.error_code + CHR_EOT
+
+            except InvalidCommandException as ex:
+                LOG.warn(ex)
+                response = ex.error_code + CHR_EOT
+
+
+            except RedisGenericException as ex:
+                LOG.error(ex)
+                response = ERR_REDIS + CHR_EOT
+
+            except Exception as ex:
+                LOG.error(ex)
+                response = ERR + CHR_EOT
+
+            finally:
+
+                # send response back
+                self.transport.write(response.encode())
+                #print('Sent Response: ', response)
+                LOG.debug('Sent Response: ', response)
 
 
             # clear the handy variable
             self._partial = ""
-            print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ')
+            #print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ')
 
         #else:
         #    print('partial command received: ', datadec.strip('\n').strip('\t'))
@@ -160,13 +194,10 @@ class SerialHandler(asyncio.Protocol):
                 #comando presente
                 return cmd;
             else:
-                print("[Parse Command] Command does not exist")
+                raise InvalidCommandException("Command does not exist: " + cmd[0] + " - Skipped", ERR_CMD_NOT_FND)
         else:
-            print("[Parse Command] No command received")
+            raise InvalidCommandException("No command received", ERR_CMD_NOT_RCV)
 
-
-        #return self._execCommand(cmd)
-        #TODO gestire eccezioni invece di return None
         return cmd;
 
     def _execCommand(self, cmd):
@@ -228,20 +259,9 @@ class SerialHandler(asyncio.Protocol):
             else:
                 return ERR_CMD_NOT_FND + CHR_SEP
 
-        except InvalidArgumentsNumberException as ex:
-            # TODO LOG ERR
-            print(ex)
-            return ERR_CMD_PRM_NUM + CHR_EOT
-
-        except RedisGenericException as ex:
-            #TODO LOG ERR
-            print(ex)
-            return ERR_REDIS + CHR_EOT
-
         except Exception as ex:
-            #TODO LOG ERR
-            print(ex)
-            return ERR + CHR_EOT
+            # generic error handler which raise back exception
+            raise ex
 
     # START
     def _OPTS_START(self):
@@ -439,9 +459,6 @@ class SerialHandler(asyncio.Protocol):
 
     # HGET
     def _OPTS_HGET(self, args):
-        #TODO gestire eccezzione
-        # redis.exceptions.ResponseError: WRONGTYPE Operation against a key holding the wrong kind of value
-        # scatta quando faccio la get (semplice) di una chiave che non contiene un valore semplice ma una hashtable
         '''
         Returns the value associated with field in the hash stored at key.
             https://redis.io/commands/hget
@@ -649,8 +666,9 @@ ERR             = '200'     #Generic Error
 ERR_NULL        = '201'     #Null value
 ERR_SET         = '202'     #Error during SET
 ERR_CMD_NOT_FND = '203'     #Command Not Found
-ERR_CMD_PRM_NUM = '204'     #Invalid parameter number
-ERR_REDIS       = '205'     #Generic Redis Error
+ERR_CMD_NOT_RCV = '204'     #Command Not Received
+ERR_CMD_PRM_NUM = '205'     #Invalid parameter number
+ERR_REDIS       = '206'     #Generic Redis Error
 
 
 # list of commands
