@@ -6,26 +6,27 @@ from threading import Thread
 #LOG = logging.getLogger(__name__)
 
 class InvalidArgumentsNumberException(Exception):
-    def __init__(self, message, errors):
+    def __init__(self, message, error_code):
 
         # Call the base class constructor with the parameters it needs
-        super().__init__(message)
+        super(InvalidArgumentsNumberException, self).__init__(message)
 
         # Now for your custom code...
-        self.errors = errors
+        self.error_code = error_code
 
-class RedisException(Exception):
-    def __init__(self, message, errors):
+class RedisGenericException(Exception):
+    def __init__(self, message, error_code):
 
         # Call the base class constructor with the parameters it needs
-        super().__init__(message)
+        super(RedisGenericException, self).__init__(message)
 
         # Now for your custom code...
-        self.errors = errors
+        self.error_code = error_code
 
 
 class SerialManager():
     def __init__(self):
+
         self.datastore = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
         self.serialMonitor = SerialMonitor("Thread-SerialMonitor", self.datastore)
 
@@ -90,10 +91,15 @@ class SerialConnector (Thread):
         self.datastore = datastore
 
     def run(self):
-        self.coro = serial_asyncio.create_serial_connection(self._loop, lambda: SerialHandler(self.datastore), self.port.device, baudrate=self.baudrate)
-        self._loop.run_until_complete(self.coro)
-        self._loop.run_forever()
-        self._loop.close()
+        try:
+            self.coro = serial_asyncio.create_serial_connection(self._loop, lambda: SerialHandler(self.datastore), self.port.device, baudrate=self.baudrate)
+            self._loop.run_until_complete(self.coro)
+            self._loop.run_forever()
+            self._loop.close()
+        except Exception as ex:
+            #TODO log ex
+            print(ex)
+
 
 
 class SerialHandler(asyncio.Protocol):
@@ -103,12 +109,12 @@ class SerialHandler(asyncio.Protocol):
 
     def connection_made(self, transport):
         self.transport = transport
-        print('port opened', transport)
+        print('Port opened', transport)
         transport.serial.rts = False
 
     def connection_lost(self, exc):
         try:
-            print('port closed ' + self.transport.serial.name)
+            print('Port closed ' + self.transport.serial.name)
             serial_connector = ports_connected.pop(self.transport.serial.name)
             asyncio.get_event_loop().stop()
         except Exception :
@@ -127,7 +133,7 @@ class SerialHandler(asyncio.Protocol):
             # parse and check command
             cmd = self._parseCommands(self._partial)
 
-            # then execute the it
+            # then execute it
             response = self._execCommand(cmd)
 
             # send response back
@@ -149,15 +155,14 @@ class SerialHandler(asyncio.Protocol):
         #splits command by separator char
         cmd = command.strip(CHR_EOT).split(CHR_SEP)
 
-        #TODO fare controlli per verificare se il comando é composto correttamente ed é valido.
         if len(cmd) > 0:
             if cmd[0] in commands_list:
                 #comando presente
                 return cmd;
             else:
-                print("[Parse Command] comando non esistente")
+                print("[Parse Command] Command does not exist")
         else:
-            print("[Parse Command] nessun comando")
+            print("[Parse Command] No command received")
 
 
         #return self._execCommand(cmd)
@@ -165,9 +170,6 @@ class SerialHandler(asyncio.Protocol):
         return cmd;
 
     def _execCommand(self, cmd):
-
-        # TODO gestire in tutte le _OPTS eccezioni sul numero di argomenti, spesso capita che ne arrivano di meno:
-        # IndexError: list index out of range
 
         idx = len(cmd)
         parameters = cmd[1:idx]
@@ -228,12 +230,18 @@ class SerialHandler(asyncio.Protocol):
 
         except InvalidArgumentsNumberException as ex:
             # TODO LOG ERR
+            print(ex)
             return ERR_CMD_PRM_NUM + CHR_EOT
 
-        except RedisException as ex:
+        except RedisGenericException as ex:
             #TODO LOG ERR
+            print(ex)
             return ERR_REDIS + CHR_EOT
 
+        except Exception as ex:
+            #TODO LOG ERR
+            print(ex)
+            return ERR + CHR_EOT
 
     # START
     def _OPTS_START(self):
@@ -261,7 +269,10 @@ class SerialHandler(asyncio.Protocol):
         MCU ← 202@ (KO)
         '''
 
-        if len(args) == 2:
+        n_args_required = 2
+        n_args_received = len(args)
+
+        if n_args_received == n_args_required:
 
             key = args[0]
             value = args[1]
@@ -271,7 +282,7 @@ class SerialHandler(asyncio.Protocol):
                 rsp = self.datastore.set(key, value)
 
             except Exception as ex:
-                raise RedisException("Generic Redis Error")
+                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
 
             if rsp:
                 # return ok response
@@ -281,7 +292,9 @@ class SerialHandler(asyncio.Protocol):
                 return ERR_SET + CHR_EOT
 
         else:
-            raise InvalidArgumentsNumberException("Invalid Arguments numbers for command " +CMD_APP_SET+ ": " + len(args))
+            raise InvalidArgumentsNumberException(
+                "Invalid arguments number for command " + CMD_APP_SET + ". Received: " + str(
+                    n_args_received) + "; Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
 
     # GET
     def _OPTS_GET(self, args):
@@ -298,7 +311,10 @@ class SerialHandler(asyncio.Protocol):
         MCU ← 201@  (KO)
         '''
 
-        if len(args) == 1:
+        n_args_required = 1
+        n_args_received = len(args)
+
+        if n_args_received == n_args_required:
 
             key = args[0]
 
@@ -307,7 +323,7 @@ class SerialHandler(asyncio.Protocol):
                 rsp = self.datastore.get(key)
 
             except Exception as ex:
-                raise RedisException("Generic Redis Error")
+                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
 
             if rsp is not None:
                 # return the value
@@ -317,7 +333,9 @@ class SerialHandler(asyncio.Protocol):
                 return ERR_NULL + CHR_EOT
 
         else:
-            raise InvalidArgumentsNumberException("Invalid Arguments numbers for command " + CMD_APP_GET + ": " + len(args))
+            raise InvalidArgumentsNumberException(
+                "Invalid arguments number for command " + CMD_APP_GET + ". Received: " + str(
+                    n_args_received) + "; Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
 
     # DEL
     def _OPTS_DEL(self, args):
@@ -331,18 +349,23 @@ class SerialHandler(asyncio.Protocol):
         MCU ← 100#<num-of-deleted-keys>@
         '''
 
-        if len(args) >= 1:
+        n_args_required = 1
+        n_args_received = len(args)
+
+        if n_args_received >= n_args_required:
 
             try:
                 num = self.datastore.delete(*args)
 
             except Exception as ex:
-                raise RedisException("Generic Redis Error")
+                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
 
             return RSP_OK + CHR_SEP + str(num) + CHR_EOT
 
         else:
-            raise InvalidArgumentsNumberException("Invalid Arguments numbers for command " + CMD_APP_DEL + ": " + len(args))
+            raise InvalidArgumentsNumberException(
+                "Invalid arguments number for command " + CMD_APP_DEL + ". Received: " + str(
+                    n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
 
     # KEYS
     def _OPTS_KEYS(self, args):
@@ -366,13 +389,12 @@ class SerialHandler(asyncio.Protocol):
             keys = self.datastore.keys(pattern)
 
         except Exception as ex:
-            raise RedisException("Generic Redis Error")
+            raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
 
         if len(keys) > 0:
             return RSP_OK + CHR_SEP + CHR_SEP.join(keys) + CHR_EOT
         else:
             return RSP_OK + CHR_EOT
-
 
     # HSET
     def _OPTS_HSET(self, args):
@@ -389,7 +411,10 @@ class SerialHandler(asyncio.Protocol):
         MCU ← 102@
         '''
 
-        if len(args) == 3:
+        n_args_required = 3
+        n_args_received = len(args)
+
+        if n_args_received == n_args_required:
 
             key = args[0]
             field = args[1]
@@ -400,7 +425,7 @@ class SerialHandler(asyncio.Protocol):
                 rsp = self.datastore.hset(key, field, value)
 
             except Exception as ex:
-                raise RedisException("Generic Redis Error")
+                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
 
             if rsp == 1:
                 return RSP_HSET_NEW + CHR_EOT
@@ -408,7 +433,9 @@ class SerialHandler(asyncio.Protocol):
                 return RSP_HSET_UPD + CHR_EOT
 
         else:
-            raise InvalidArgumentsNumberException("Invalid Arguments numbers for command " + CMD_APP_HSET + ": " + len(args))
+            raise InvalidArgumentsNumberException(
+                "Invalid arguments number for command " + CMD_APP_HSET + ". Received: " + str(
+                    n_args_received) + "; Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
 
     # HGET
     def _OPTS_HGET(self, args):
@@ -425,7 +452,11 @@ class SerialHandler(asyncio.Protocol):
         MCU ← 201@
 
         '''
-        if len(args) == 2:
+
+        n_args_required = 2
+        n_args_received = len(args)
+
+        if n_args_received == n_args_required:
 
             key = args[0]
             field = args[1]
@@ -435,7 +466,7 @@ class SerialHandler(asyncio.Protocol):
                 value = self.datastore.hget(key, field)
 
             except Exception as ex:
-                raise RedisException("Generic Redis Error")
+                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
 
             if value is not None:
                 # return the value
@@ -445,7 +476,9 @@ class SerialHandler(asyncio.Protocol):
                 return ERR_NULL + CHR_EOT
 
         else:
-            raise InvalidArgumentsNumberException("Invalid Arguments numbers for command " + CMD_APP_HGET + ": " + len(args))
+            raise InvalidArgumentsNumberException(
+                "Invalid arguments number for command " + CMD_APP_HGET + ". Found: " + str(
+                    n_args_received) + "; Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
 
     # HGETALL
     def _OPTS_HGETALL(self, args):
@@ -460,17 +493,22 @@ class SerialHandler(asyncio.Protocol):
 
         MCU ← 100[#<field-1>#<value-1>#<field-2>#<value-2>]@
         '''
-        if len(args) == 1:
+
+        n_args_required = 1
+        n_args_received = len(args)
+
+        if n_args_received == n_args_required:
 
             key = args[0]
 
             rsp_str = ""
 
             try:
+
                 data = self.datastore.hgetall(key) #{'field-1': 'value-1', 'field-2': 'value-2'}
 
             except Exception as ex:
-                raise RedisException("Generic Redis Error")
+                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
 
             for field in data:
                 rsp_str += CHR_SEP + field + CHR_SEP + data[field]
@@ -478,7 +516,9 @@ class SerialHandler(asyncio.Protocol):
             return RSP_OK + rsp_str + CHR_EOT
 
         else:
-            raise InvalidArgumentsNumberException("Invalid Arguments numbers for command " + CMD_APP_HGETALL + ": " + len(args))
+            raise InvalidArgumentsNumberException(
+                "Invalid arguments number for command " + CMD_APP_HGETALL + ". Received: " + str(
+                    n_args_received) + "; Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
 
     # HKEYS
     def _OPTS_HKEYS(self, args):
@@ -491,7 +531,10 @@ class SerialHandler(asyncio.Protocol):
 
         MCU ← 100[#<field-1>#<field-2>]@
         '''
-        if len(args) == 1:
+        n_args_required = 1
+        n_args_received = len(args)
+
+        if n_args_received == n_args_required:
 
             key = args[0]
 
@@ -500,7 +543,7 @@ class SerialHandler(asyncio.Protocol):
                 fields = self.datastore.hkeys(key)
 
             except Exception as ex:
-                raise RedisException("Generic Redis Error")
+                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
 
             if len(fields) > 0:
                 return RSP_OK + CHR_SEP + CHR_SEP.join(fields) + CHR_EOT
@@ -508,7 +551,9 @@ class SerialHandler(asyncio.Protocol):
                 return RSP_OK + CHR_EOT
 
         else:
-            raise InvalidArgumentsNumberException("Invalid Arguments numbers for command " + CMD_APP_HKEYS + ": " + len(args))
+            raise InvalidArgumentsNumberException(
+                "Invalid arguments number for command " + CMD_APP_HKEYS + ". Received: " + str(
+                    n_args_received) + "; Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
 
     # HVALS
     def _OPTS_HVALS(self, args):
@@ -520,9 +565,10 @@ class SerialHandler(asyncio.Protocol):
 
         MCU ← 100[#<value-1>#<value-2>]@
         '''
+        n_args_required = 1
+        n_args_received = len(args)
 
-        if len(args) == 1:
-
+        if n_args_received == n_args_required:
             key = args[0]
 
             try:
@@ -530,7 +576,7 @@ class SerialHandler(asyncio.Protocol):
                 values = self.datastore.hvals(key)
 
             except Exception as ex:
-                raise RedisException("Generic Redis Error")
+                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
 
             if len(values) > 0:
                 return RSP_OK + CHR_SEP + CHR_SEP.join(values) + CHR_EOT
@@ -538,7 +584,9 @@ class SerialHandler(asyncio.Protocol):
                 return RSP_OK + CHR_EOT
 
         else:
-            raise InvalidArgumentsNumberException("Invalid Arguments numbers for command " + CMD_APP_HVALS + ": " + len(args))
+            raise InvalidArgumentsNumberException(
+                "Invalid arguments number for command " + CMD_APP_HVALS + ". Received: " + str(
+                    n_args_received) + "; Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
 
     # HDEL
     def _OPTS_HDEL(self, args):
@@ -553,21 +601,28 @@ class SerialHandler(asyncio.Protocol):
         ← 100#<num-of-deleted-keys>@
         '''
 
-        if len(args) == 2:
+        n_args_required = 2
+        n_args_received = len(args)
+
+        if n_args_received >= n_args_required:
             idx = len(args)
             key = args[0]
             fields = args[1:idx]
 
             try:
+
                 num = self.datastore.hdel(key, *fields)
 
             except Exception as ex:
-                raise RedisException("Generic Redis Error")
+                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
 
             return RSP_OK + CHR_SEP + str(num) + CHR_EOT
 
         else:
-            raise InvalidArgumentsNumberException("Invalid Arguments numbers for command " + CMD_APP_HDEL + ": " + len(args))
+            raise InvalidArgumentsNumberException(
+                "Invalid arguments number for command " + CMD_APP_HDEL + ". Received: " + str(
+                    n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
+
 
 #Definitions for Serial Protocol
 CHR_EOT = chr(4)            #End Of Transmission Char
