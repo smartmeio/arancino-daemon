@@ -1,9 +1,19 @@
 import asyncio, serial_asyncio, serial, time, redis
 from serial.tools import list_ports
-from oslo_log import log as logging
 from threading import Thread
 
-LOG = logging.getLogger(__name__)
+#use in Lightning Rod
+#from oslo_log import log as logging
+#use in stand alone mode
+import logging
+
+
+
+#LOG = logging.getLogger(__name__)
+LOG = logging.getLogger("LR Module Serial Manager")
+#use the following lines in standalone mode
+FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 
 
 class InvalidArgumentsNumberException(Exception):
@@ -102,13 +112,13 @@ class SerialConnector (Thread):
         self.datastore = datastore
 
     def run(self):
-        try:
+        #try:
             self.coro = serial_asyncio.create_serial_connection(self._loop, lambda: SerialHandler(self.datastore), self.port.device, baudrate=self.baudrate)
             self._loop.run_until_complete(self.coro)
             self._loop.run_forever()
             self._loop.close()
-        except Exception as ex:
-            LOG.error(ex)
+        #except Exception as ex:
+            #LOG.error(ex)
 
 
 
@@ -137,10 +147,8 @@ class SerialHandler(asyncio.Protocol):
 
         if self._partial.endswith(CHR_EOT) is True:
             # now command is completed and can be used
-            LOG.debug('Received Command: ', self._partial.strip('\n').strip('\t'))
+            LOG.debug('Received Command: ' + self._partial.strip('\n').strip('\t'))
             #print('Received Command: ', self._partial.strip('\n').strip('\t'))
-
-
 
             try:
                 # parse and check command
@@ -151,28 +159,27 @@ class SerialHandler(asyncio.Protocol):
 
 
             except InvalidArgumentsNumberException as ex:
-                LOG.error(ex)
+                LOG.error(str(ex))
                 response = ex.error_code + CHR_EOT
 
             except InvalidCommandException as ex:
-                LOG.warn(ex)
+                LOG.warn(str(ex))
                 response = ex.error_code + CHR_EOT
 
 
             except RedisGenericException as ex:
-                LOG.error(ex)
+                LOG.error(str(ex))
                 response = ERR_REDIS + CHR_EOT
 
             except Exception as ex:
-                LOG.error(ex)
+                LOG.error(str(ex))
                 response = ERR + CHR_EOT
 
             finally:
-
                 # send response back
                 self.transport.write(response.encode())
                 #print('Sent Response: ', response)
-                LOG.debug('Sent Response: ', response)
+                LOG.debug('Sent Response: ' + str(response))
 
 
             # clear the handy variable
