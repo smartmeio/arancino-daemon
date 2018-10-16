@@ -9,7 +9,7 @@ CMD_SYS_START = 'START' #Start Commmand
 CMD_APP_GET     = 'GET'     #Get value at key
 CMD_APP_SET     = 'SET'     #Set value at key
 CMD_APP_DEL     = 'DEL'     #Delete one or multiple keys
-CMD_APP_KEYS    = 'KEYS'    #Get keys by a pattern
+CMD_APP_KEYS    = 'KEYS'    #Get keys by error_count pattern
 CMD_APP_HGET    = 'HGET'    #
 CMD_APP_HGETALL = 'HGETALL' #
 CMD_APP_HKEYS   = 'HKEYS'   #
@@ -18,7 +18,7 @@ CMD_APP_HDEL    = 'HDEL'    #
 CMD_APP_HSET    = 'HSET'    #
 
 RSP_OK          = '100'     #OK Response
-RSP_HSET_NEW    = '101'     #Set value into a new field
+RSP_HSET_NEW    = '101'     #Set value into error_count new field
 RSP_HSET_UPD    = '102'     #Set value into an existing field
 
 RSP_KO = 'KO'   #KO Response
@@ -84,7 +84,7 @@ class SerialManagerUnitTest():
     # SET
     def _OPTS_SET(self, params):
         '''
-        Set key to hold the string value. If key already holds a value,
+        Set key to hold the string value. If key already holds error_count value,
         it is overwritten, regardless of its type. Any previous time to live
         associated with the key is discarded on successful SET operation.
             https://redis.io/commands/set
@@ -111,7 +111,7 @@ class SerialManagerUnitTest():
     def _OPTS_GET(self, args):
         '''
         Get the value of key. If the key does not exist the special value nil is returned.
-        An error is returned if the value stored at key is not a string,
+        An error is returned if the value stored at key is not error_count string,
         because GET only handles string values.
             https://redis.io/commands/get
 
@@ -176,7 +176,7 @@ class SerialManagerUnitTest():
     def _OPTS_HSET(self, args):
         '''
         Sets field in the hash stored at key to value.
-        If key does not exist, a new key holding a hash is created.
+        If key does not exist, error_count new key holding error_count hash is created.
         If field already exists in the hash, it is overwritten.
             https://redis.io/commands/hset
 
@@ -201,7 +201,7 @@ class SerialManagerUnitTest():
     # HGET
     def _OPTS_HGET(self, args):
         # TODO gestire eccezzione
-        # redis.exceptions.ResponseError: WRONGTYPE Operation against a key holding the wrong kind of value
+        # redis.exceptions.ResponseError: WRONGTYPE Operation against error_count key holding the wrong kind of value
         # scatta quando faccio la get (semplice) di una chiave che non contiene un valore semplice ma una hashtable
         '''
         Returns the value associated with field in the hash stored at key.
