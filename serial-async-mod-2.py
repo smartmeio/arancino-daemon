@@ -7,8 +7,6 @@ from threading import Thread
 #use in stand alone mode
 import logging
 
-
-
 #LOG = logging.getLogger(__name__)
 LOG = logging.getLogger("LR Module Serial Manager")
 #use the following lines in standalone mode
@@ -25,6 +23,7 @@ class InvalidArgumentsNumberException(Exception):
         # Now for your custom code...
         self.error_code = error_code
 
+
 class InvalidCommandException(Exception):
     def __init__(self, message, error_code):
 
@@ -33,6 +32,7 @@ class InvalidCommandException(Exception):
 
         # Now for your custom code...
         self.error_code = error_code
+
 
 class RedisGenericException(Exception):
     def __init__(self, message, error_code):
@@ -48,6 +48,7 @@ class SerialManager():
     def __init__(self):
 
         self.datastore = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
+        self.datastore.flushdb()
         self.serialMonitor = SerialMonitor("Thread-SerialMonitor", self.datastore)
 
     def main(self):
@@ -119,7 +120,6 @@ class SerialConnector (Thread):
             self._loop.close()
         #except Exception as ex:
             #LOG.error(ex)
-
 
 
 class SerialHandler(asyncio.Protocol):
@@ -262,6 +262,12 @@ class SerialHandler(asyncio.Protocol):
             # HDEL
             elif cmd[0] == CMD_APP_HDEL:
                 return self._OPTS_HDEL(parameters)
+            # PUB
+            elif cmd[0] == CMD_APP_PUB:
+                return self._OPTS_PUB(parameters)
+            # FLUSH
+            elif cmd[0] == CMD_APP_FLUSH:
+                return self._OPTS_FLUSH(parameters)
             # Default
             else:
                 return ERR_CMD_NOT_FND + CHR_SEP
@@ -290,7 +296,7 @@ class SerialHandler(asyncio.Protocol):
         associated with the key is discarded on successful SET operation.
             https://redis.io/commands/set
 
-        MCU → SET#<key>#<value>
+        MCU → SET#<key>#<value>@
 
         MCU ← 100@ (OK)
         MCU ← 202@ (KO)
@@ -332,7 +338,7 @@ class SerialHandler(asyncio.Protocol):
         because GET only handles string values.
             https://redis.io/commands/get
 
-        MCU → GET#<key>
+        MCU → GET#<key>@
 
         MCU ← 100#<value>@ (OK)
         MCU ← 201@  (KO)
@@ -371,7 +377,7 @@ class SerialHandler(asyncio.Protocol):
         Removes the specified keys. A key is ignored if it does not exist.
             https://redis.io/commands/del
 
-        MCU → DEL#<key-1>[#<key-2>#<key-n>]
+        MCU → DEL#<key-1>[#<key-2>#<key-n>]@
 
         MCU ← 100#<num-of-deleted-keys>@
         '''
@@ -401,7 +407,7 @@ class SerialHandler(asyncio.Protocol):
         Returns all keys matching pattern.
             https://redis.io/commands/keys
 
-        MCU → KEYS[#<pattern>]
+        MCU → KEYS[#<pattern>]@
 
         MCU ← 100[#<key-1>#<key-2>#<key-n>]@
         '''
@@ -432,7 +438,7 @@ class SerialHandler(asyncio.Protocol):
         If field already exists in the hash, it is overwritten.
             https://redis.io/commands/hset
 
-        MCU → HSET#<key>#<field>#<value>
+        MCU → HSET#<key>#<field>#<value>@
 
         MCU ← 101@
         MCU ← 102@
@@ -470,7 +476,7 @@ class SerialHandler(asyncio.Protocol):
         Returns the value associated with field in the hash stored at key.
             https://redis.io/commands/hget
 
-        MCU → HGET#<key>#<field>
+        MCU → HGET#<key>#<field>@
 
         MCU ← 100#<value>@
         MCU ← 201@
@@ -513,7 +519,7 @@ class SerialHandler(asyncio.Protocol):
         so the length of the reply is twice the size of the hash.
             https://redis.io/commands/hgetall
 
-        MCU → HGETALL#<key>
+        MCU → HGETALL#<key>@
 
         MCU ← 100[#<field-1>#<value-1>#<field-2>#<value-2>]@
         '''
@@ -551,7 +557,7 @@ class SerialHandler(asyncio.Protocol):
         Returns all field names in the hash stored at key.
             https://redis.io/commands/hkeys
 
-        MCU → HKEYS#<key>
+        MCU → HKEYS#<key>@
 
         MCU ← 100[#<field-1>#<field-2>]@
         '''
@@ -620,9 +626,9 @@ class SerialHandler(asyncio.Protocol):
         If key does not exist, it is treated as an empty hash and this command returns 0.
             https://redis.io/commands/hdel
 
-        → HDEL#<key>#<field>[#<field-2>#<field-n>]
+        MCU → HDEL#<key>#<field>[#<field-2>#<field-n>]@
 
-        ← 100#<num-of-deleted-keys>@
+        MCU ← 100#<num-of-deleted-keys>@
         '''
 
         n_args_required = 2
@@ -647,6 +653,73 @@ class SerialHandler(asyncio.Protocol):
                 "Invalid arguments number for command " + CMD_APP_HDEL + ". Received: " + str(
                     n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
 
+    # PUB
+    def _OPTS_PUB(self, args):
+        '''
+        Posts a message to the given channel. Return the number of clients 
+        that received the message.
+            https://redis.io/commands/publish
+
+        MCU → PUSH#<channel>#<message>@
+
+        MCU ← 100#<num-of-reached-clients>@
+        '''
+
+        n_args_required = 2
+        n_args_received = len(args)
+
+        if n_args_received >= n_args_required:
+            channel = args[0]
+            message = args[1]
+
+            try:
+
+                num = self.datastore.publish(channel, message)
+
+            except Exception as ex:
+                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
+
+            return RSP_OK + CHR_SEP + str(num) + CHR_EOT
+
+        else:
+            raise InvalidArgumentsNumberException(
+                "Invalid arguments number for command " + CMD_APP_PUB + ". Received: " + str(
+                    n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
+
+    # FLUSH
+    def _OPTS_FLUSH(self, args):
+        '''
+        Delete all the keys of the currently selected DB. 
+        This command never fails.
+            https://redis.io/commands/flushdb
+
+        MCU → FLUSH@
+
+        MCU ← 100@
+        '''
+
+        n_args_required = 0
+        n_args_received = len(args)
+
+        if n_args_received >= n_args_required:
+            idx = len(args)
+            channel = args[0]
+            message = args[1]
+
+            try:
+
+                rsp = self.datastore.flushdb()
+
+            except Exception as ex:
+                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
+
+            return RSP_OK + CHR_SEP + str(num) + CHR_EOT
+
+        else:
+            raise InvalidArgumentsNumberException(
+                "Invalid arguments number for command " + CMD_APP_FLUSH + ". Received: " + str(
+                    n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
+
 
 #Definitions for Serial Protocol
 CHR_EOT = chr(4)            #End Of Transmission Char
@@ -664,6 +737,8 @@ CMD_APP_HKEYS   = 'HKEYS'   #
 CMD_APP_HVALS   = 'HVALS'   #
 CMD_APP_HDEL    = 'HDEL'    #
 CMD_APP_HSET    = 'HSET'    #
+CMD_APP_PUB     = 'PUB'     #
+CMD_APP_FLUSH   = 'FLUSH'   #Flush the current Database, delete all the keys from the current Database
 
 RSP_OK          = '100'     #OK Response
 RSP_HSET_NEW    = '101'     #Set value into a new field
@@ -677,9 +752,13 @@ ERR_CMD_NOT_RCV = '204'     #Command Not Received
 ERR_CMD_PRM_NUM = '205'     #Invalid parameter number
 ERR_REDIS       = '206'     #Generic Redis Error
 
+#Reserved keys
+RSVD_KEY_MONITOR = "___MONITOR___"
+RSVD_KEY_MONITOR = "___VERSION___"
+
 
 # list of commands
-commands_list = [CMD_SYS_START, CMD_APP_GET, CMD_APP_SET, CMD_APP_DEL, CMD_APP_KEYS, CMD_APP_HGET, CMD_APP_HGETALL, CMD_APP_HKEYS, CMD_APP_HVALS, CMD_APP_HDEL, CMD_APP_HSET]
+commands_list = [CMD_SYS_START, CMD_APP_GET, CMD_APP_SET, CMD_APP_DEL, CMD_APP_KEYS, CMD_APP_HGET, CMD_APP_HGETALL, CMD_APP_HKEYS, CMD_APP_HVALS, CMD_APP_HDEL, CMD_APP_HSET, CMD_APP_PUB, CMD_APP_FLUSH]
 
 # contains all the plugged ports with a specific vid and pid. Object of type Serial.Port
 ports_plugged = []
