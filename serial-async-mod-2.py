@@ -1,4 +1,4 @@
-import asyncio, serial_asyncio, serial, time, redis
+import asyncio, serial_asyncio, serial, time, redis, conf
 from serial.tools import list_ports
 from threading import Thread
 
@@ -47,7 +47,8 @@ class RedisGenericException(Exception):
 class SerialManager():
     def __init__(self):
 
-        self.datastore = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
+        #self.datastore = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
+        self.datastore = redis.StrictRedis(host=conf.redis['host'], port=conf.redis['port'], db=conf.redis['db'], decode_responses=conf.redis['dcd_resp'])
         self.datastore.flushdb()
         self.serialMonitor = SerialMonitor("Thread-SerialMonitor", self.datastore)
 
@@ -62,9 +63,11 @@ class SerialMonitor (Thread):
 
         #sets the vendor and product ID to check when poll
         #TODO probably change the discovery method instead of pid e vid
-        self.vid = '2a03'
-        self.pid = '804F'
-        self.match = self.vid + ':' + self.pid
+        #self.vid = '2a03'
+        #self.pid = '804F'
+        #self.match = self.vid + ':' + self.pid
+
+        self.match = "|".join(conf.hwid)
         self.name = name
         self.datastore = datastore
 
