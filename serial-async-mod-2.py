@@ -8,10 +8,15 @@ from threading import Thread
 import logging
 
 #LOG = logging.getLogger(__name__)
-LOG = logging.getLogger("Arancino Module")
+##LOG = logging.getLogger("Arancino Module")
 #use the following lines in standalone mode
-FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-logging.basicConfig(level=logging.DEBUG, format=FORMAT)
+##FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+##logging.basicConfig(level=logging.DEBUG, format=FORMAT)
+
+LOG = conf.logger
+#LOG.setLevel(logging.DEBUG) # better to have too much log than not enough
+# with this pattern, it's rarely necessary to propagate the error up to parent
+#LOG.propagate = False
 
 
 class InvalidArgumentsNumberException(Exception):
