@@ -8,7 +8,7 @@ from threading import Thread
 import logging
 
 #LOG = logging.getLogger(__name__)
-LOG = logging.getLogger("LR Module Serial Manager")
+LOG = logging.getLogger("Arancino Module")
 #use the following lines in standalone mode
 FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
