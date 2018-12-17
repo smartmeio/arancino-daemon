@@ -757,7 +757,7 @@ ERR_REDIS       = '206'     #Generic Redis Error
 
 #Reserved keys
 RSVD_KEY_MONITOR = "___MONITOR___"
-RSVD_KEY_MONITOR = "___VERSION___"
+RSVD_KEY_VERSION = "___VERSION___"
 
 
 # list of commands
