@@ -75,6 +75,7 @@ class SerialMonitor (Thread):
         self.match = "|".join(conf.hwid)
         self.name = name
         self.datastore = datastore
+        self.datastore.set(RSVD_KEY_MODVERSION,"0.0.3")
 
     def run(self):
         # Polls every 10 seconds if there's new serial port to connect to
@@ -762,7 +763,8 @@ ERR_REDIS       = '206'     #Generic Redis Error
 
 #Reserved keys
 RSVD_KEY_MONITOR = "___MONITOR___"
-RSVD_KEY_VERSION = "___VERSION___"
+RSVD_KEY_LIBVERSION = "___LIBVERS___"
+RSVD_KEY_MODVERSION = "___MODVERS___"
 
 
 # list of commands
