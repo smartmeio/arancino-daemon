@@ -1,4 +1,5 @@
-import asyncio, serial_asyncio, serial, time, redis, conf
+import time,  conf, uuid, hashlib, json, signal
+import asyncio, serial_asyncio, redis #external
 from serial.tools import list_ports
 from threading import Thread
 
@@ -49,22 +50,62 @@ class RedisGenericException(Exception):
         self.error_code = error_code
 
 
+
 class SerialManager():
     def __init__(self):
 
-        #self.datastore = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
-        self.datastore = redis.StrictRedis(host=conf.redis['host'], port=conf.redis['port'], db=conf.redis['db'], decode_responses=conf.redis['dcd_resp'])
-        self.datastore.flushdb()
-        self.serialMonitor = SerialMonitor("Thread-SerialMonitor", self.datastore)
+        self.serialMonitor = SerialMonitor("Thread-SerialMonitor")
+
 
     def main(self):
+
         self.serialMonitor.start()
+
+        signal.signal(signal.SIGINT, self.__exit)
+        signal.signal(signal.SIGTERM, self.__exit)
+
+
+    def __exit(self, signum, frame):
+        LOG.warning("Received Stop/Kill: Exiting... ")
+        #self.kill_now = True
+        self.serialMonitor.stop()
 
 
 class SerialMonitor (Thread):
 
-    def __init__(self, name, datastore):
+    # keys used in the list of the ports
+
+    # additional metadata keys
+    __M_ID = "M_ID"
+    __M_ENABLED = "M_ENABLED"
+    __M_AUTO_RECONNECT = "M_AUTORECONNECT"
+    __M_CONNECTED = "M_CONNECTED"
+    __M_PLUGGED = "M_PLUGGED"
+    __M_ALIAS = "M_ALIAS"
+
+    # ports info keys
+
+    __P_DEVICE = "P_DEVICE"
+    __P_NAME = "P_NAME"
+    __P_DESCRIPTION = "P_DESCRIPTION"
+    __P_HWID = "P_HWID"
+    __P_VID = "P_VID"
+    __P_PID = "P_PID"
+    __P_SERIALNUMBER = "P_SERIALNUMBER"
+    __P_LOCATION = "P_LOCATION"
+    __P_MANUFACTURER = "P_MANUFACTURER"
+    __P_PRODUCT = "P_PRODUCT"
+    __P_INTERFACE = "P_INTERFACE"
+
+    # object keys
+
+    __O_PORT = "O_PORT"
+
+    def __init__(self, name):
         Thread.__init__(self)
+
+
+
 
         #sets the vendor and product ID to check when poll
         #TODO probably change the discovery method instead of pid e vid
@@ -72,17 +113,67 @@ class SerialMonitor (Thread):
         #self.pid = '804F'
         #self.match = self.vid + ':' + self.pid
 
+        ##self.datastore = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
+        self.datastore = redis.StrictRedis(host=conf.redis['host'], port=conf.redis['port'], db=conf.redis['db'], decode_responses=conf.redis['dcd_resp'])
+        self.datastore.flushdb()
+
+        self.devicestore = redis.StrictRedis(host=conf.redis['host'], port=conf.redis['port'], db=1, decode_responses=conf.redis['dcd_resp'])
+
+        #TODO make connection pool
+
+
         self.match = "|".join(conf.hwid)
         self.name = name
-        self.datastore = datastore
+        #self.datastore = datastore
+        self.kill_now = False
         self.datastore.set(RSVD_KEY_MODVERSION,"0.0.3")
+
+    # public function
+    def stop(self):
+        self.kill_now = True
+
+    # private function, makes the real stop. invoked by the thread.
+    def __stop(self):
+        ''' EXIT PROCEDURE START'''
+        LOG.debug("Closing Redis Connection...")
+        self.datastore.connection_pool.disconnect()
+        LOG.info("Redis Connection Closed")
+        LOG.debug("Closing Serial Ports Connection...")
+        # TODO 2) close serial connections
+        for port in ports_connected:
+            print(ports_connected[port])
+            ports_connected[port].close()
+
+        LOG.info("Serial Ports Connection Closed")
+        LOG.info("Exiting completed, Bye!")
+        ''' EXIT PROCEDURE STOP'''
 
     def run(self):
         # Polls every 10 seconds if there's new serial port to connect to
         while(True):
 
+
+            if self.kill_now:
+                self.__stop()
+                break
+
             #retrieve each plugged ports which match vid and pid specified above
-            ports_plugged = list(list_ports.grep(self.match))
+            #ports_plugged = list(list_ports.grep(self.match))
+
+            #retrieve all the plugged ports
+            ports_plugged = list_ports.comports()
+            LOG.debug("Plugged Serial Ports Retrieved: " + str(len(ports_plugged)) )
+
+            #apply a filter and enriched
+            ports_plugged = self.filterPorts(ports_plugged)
+            LOG.debug("Filtered Serial Ports Retrieved: " + str(len(ports_plugged)))
+
+            LOG.debug(ports_plugged)
+
+
+            #TODO make a synch with the devicestore
+
+
 
             #retrieve if there are new ports to connect - is a list of type Serial.Port
             if ports_plugged:
@@ -92,24 +183,143 @@ class SerialMonitor (Thread):
                 if ports_to_connect:
                     self.connectPorts(ports_to_connect)
 
+            #TODO eseguire la stessa funzione di sopra di synch con il devicestore
+
             time.sleep(10)
+
 
     def retrieveNewPorts(self, plugged, connected):
         #print('checking differences')
         ports_to_connect = []
         for port in plugged:
-            if port.device not in connected:
+            #TODO introduce new checks eg: verify "enabled" field or "autoreconnect"
+            if port[self.__O_PORT].device not in connected: # if true: there'are new plugged ports discovered
                 ports_to_connect.append(port)
         return ports_to_connect
 
-    def connectPorts(self, ports_to_connect):
-        for port in ports_to_connect:
-            LOG.info("Ports to connect to: " + port.device)
-            #print("ports to connect to: " + port.device)
-            serialConnector = SerialConnector("Thread-" + port.device, port, self.datastore, baudrate = 4000000)
-            serialConnector.start()
-            ports_connected[port.device] = serialConnector
 
+    def connectPorts(self, ports_to_connect):
+        '''
+        Connect to each Serial Port in list
+        :param ports_to_connect: List of ListPortInfo
+        :return ports_connected: List of SerialConnector
+        '''
+
+        for port in ports_to_connect:
+            LOG.info("Ports to connect to: " + port[self.__O_PORT].device)
+
+            serialConnector = SerialConnector("Thread-" + port[self.__O_PORT].device, port[self.__O_PORT], self.datastore, baudrate = 4000000)
+            serialConnector.start()
+            port[self.__M_CONNECTED] = True
+            #ports_connected[port["port"].device] = serialConnector
+            ports_connected[port[self.__O_PORT].device] = serialConnector
+
+
+    def serializePort(self, port, enabled= False, autoconnect= False, connected= False, plugged=False, alias=""):
+        '''
+        Serialize a single Serial Port
+        :param port: ListPortInfo
+        :return:
+        '''
+        p = {}
+        if port is not None:
+
+            # Additional informations
+            # calculate an hash based on vid pid and serial number of the serial port
+            p[self.__M_ID] = self.__encrypt_string(str(port.serial_number) + str(port.vid) + str(port.pid))
+            p[self.__M_ENABLED] = enabled
+            p[self.__M_AUTO_RECONNECT] = autoconnect
+            p[self.__M_CONNECTED] = connected
+            p[self.__M_PLUGGED] = plugged
+            p[self.__M_ALIAS] = alias
+
+        return p
+
+
+    def filterPorts(self, ports):
+        '''
+        Filters Serial Ports with Serial Number, VID and PID
+        :param ports: List of ListPortInfo
+        :return ports_filterd: List
+        '''
+        ports_filterd = []
+        ports_filterd_serialized = []
+        for port in ports:
+            #filters serial with
+            #TODO enable the filter
+            #if port.serial_number != None and port.serial_number != "FFFFFFFFFFFFFFFFFFFF" and port.vid != None and port.pid != None:
+
+                #ports_filterd.append(port)
+                #ports_filterd_serialized.append(self.serializePort(port))
+
+                # create a new object containing the port (ListPortInfo) and additional serialized informations
+                p = self.serializePort(port, plugged=True)
+                p["port"] = port
+                ports_filterd.append(p)
+
+
+        return ports_filterd
+
+
+    def syncPorts(self, ports):
+        '''
+        Makes a synchroinization bewteen the list of plugged ports and the device store (redis db 1)
+        :param ports:
+        :return:
+        '''
+        # 1. load from device store
+        # 2. make diff
+        # 2.1 partendo da quelli presenti su ports_plugged verificare se esiste la controparte sul deveice store
+        # 2.2 se esiste aggiornare i metadati su ports_plugged: DB to LIST
+        #    enabled, autoreconnect, alias
+        # 2.3 se esiste aggiornare i metadadi sul devicestore: LIST to DB
+        #   plugged, connected, ed altri relativi alla porta (ad esempio il device :/dev/tty.ACM0, location ed altri.
+        # 3 se non esiste, inserirla
+
+        for port in ports:
+
+            # get from device store
+            if self.devicestore.exists(port[self.__M_ID]) == 1: # the port is already registered in the device store
+
+                # TODO: pay attention with boolean data and None value
+
+                # update metadata in the list (from redis to list in memory)
+                port[self.__M_ENABLED] = self.devicestore.hget(port[self.__M_ID], self.__M_ENABLED)
+                port[self.__M_AUTO_RECONNECT] = self.devicestore.hget(port[self.__M_ID], self.__M_AUTO_RECONNECT)
+                port[self.__M_ALIAS] = self.devicestore.hget(port[self.__M_ID], self.__M_ALIAS)
+
+                # update metadata in the list (from list to redis)
+                self.devicestore.hset(port[self.__M_ID], self.__M_PLUGGED, port[self.__M_PLUGGED])
+                self.devicestore.hset(port[self.__M_ID], self.__M_CONNECTED, port[self.__M_CONNECTED])
+                self.devicestore.hset(port[self.__M_ID], self.__P_DEVICE, port[self.__P_DEVICE])
+                self.devicestore.hset(port[self.__M_ID], self.__P_LOCATION, port[self.__P_LOCATION])
+                self.devicestore.hset(port[self.__M_ID], self.__P_INTERFACE, port[self.__P_INTERFACE])
+
+            else: #the port does not exist in the device store and must be registered
+
+                # TODO: pay attention with boolean data and None value
+                # use the value of the port id as key in hash of redis, the defined above keys as fields, and values as values
+                self.devicestore.hset(port[self.__M_ID], self.___M_ENABLED , port[self.__M_ENABLED])
+                self.devicestore.hset(port[self.__M_ID], self.__M_AUTO_RECONNECT, port[self.__M_AUTO_RECONNECT])
+                self.devicestore.hset(port[self.__M_ID], self.__M_CONNECTED, port[self.__M_CONNECTED])
+                self.devicestore.hset(port[self.__M_ID], self.__M_PLUGGED, port[self.__M_PLUGGED])
+                self.devicestore.hset(port[self.__M_ID], self.__M_ALIAS, port[self.__M_ALIAS])
+                self.devicestore.hset(port[self.__M_ID], self.__P_DEVICE, port[self.__P_DEVICE])
+                self.devicestore.hset(port[self.__M_ID], self.__P_NAME, port[self.__P_NAME])
+                self.devicestore.hset(port[self.__M_ID], self.__P_DESCRIPTION, port[self.__M_ENABLED])
+                self.devicestore.hset(port[self.__M_ID], self.__P_HWID, port[self.__P_HWID])
+                self.devicestore.hset(port[self.__M_ID], self.__P_VID, port[self.__P_VID])
+                self.devicestore.hset(port[self.__M_ID], self.__P_PID, port[self.__P_PID])
+                self.devicestore.hset(port[self.__M_ID], self.__P_SERIALNUMBER, port[self.__P_SERIALNUMBER])
+                self.devicestore.hset(port[self.__M_ID], self.__P_LOCATION, port[self.__P_LOCATION])
+                self.devicestore.hset(port[self.__M_ID], self.__P_MANUFACTURER, port[self.__P_MANUFACTURER])
+                self.devicestore.hset(port[self.__M_ID], self.__P_PRODUCT, port[self.__P_PRODUCT])
+                self.devicestore.hset(port[self.__M_ID], self.__P_INTERFACE, port[self.__P_INTERFACE])
+
+
+    def __encrypt_string(self, hash_string):
+        sha_signature = hashlib.sha256(hash_string.encode()).hexdigest()
+        return sha_signature
 
 class SerialConnector (Thread):
 
@@ -121,10 +331,19 @@ class SerialConnector (Thread):
         self.baudrate = baudrate
         self.datastore = datastore
 
+    def close(self):
+
+        self._loop.stop()
+        self._loop.close()
+        #asyncio.get_event_loop().stop()
+        #asyncio.get_event_loop().close()
+        pass
+
     def run(self):
         #try:
             self.coro = serial_asyncio.create_serial_connection(self._loop, lambda: SerialHandler(self.datastore), self.port.device, baudrate=self.baudrate)
             self._loop.run_until_complete(self.coro)
+            ####### PAY ATTENTION, disabled the following line becouse i'm trying to implement the external close of the program
             self._loop.run_forever()
             self._loop.close()
         #except Exception as ex:
@@ -772,6 +991,9 @@ commands_list = [CMD_SYS_START, CMD_APP_GET, CMD_APP_SET, CMD_APP_DEL, CMD_APP_K
 
 # contains all the plugged ports with a specific vid and pid. Object of type Serial.Port
 ports_plugged = []
+
+# contains all the plugged port w/o filters. Object of type Serial.Port
+ports_plugged_all = []
 
 # contains all the connected serial ports. Object of type Thread - SerialConnector
 ports_connected = {}
