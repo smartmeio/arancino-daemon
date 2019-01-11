@@ -1,7 +1,22 @@
+'''
+
+Copyright ® SmartMe.IO  2018
+
+LICENSE HERE
+
+Author: Sergio Tomasello - sergio@smartme.io
+Date: 2018 10 01
+Version: 0.0.3
+
+'''
+
+
+
 import time,  conf, uuid, hashlib, json, signal
 import asyncio, serial_asyncio, redis #external
 from serial.tools import list_ports
 from threading import Thread
+from time import localtime, strftime
 
 #use in Lightning Rod
 #from oslo_log import log as logging
@@ -82,6 +97,7 @@ class SerialMonitor (Thread):
     __M_CONNECTED = "M_CONNECTED"
     __M_PLUGGED = "M_PLUGGED"
     __M_ALIAS = "M_ALIAS"
+    __M_DATETIME = "M_DATETIME" #TODO contestualizzare in maniera piu opportuna questo campo: (ultima modifica? ultima rilevazione ?)
 
     # ports info keys
     __P_DEVICE = "P_DEVICE"
@@ -169,31 +185,39 @@ class SerialMonitor (Thread):
             ports_plugged = self.filterPorts(ports_plugged)
             LOG.info("Filtered Serial Ports Retrieved: " + str(len(ports_plugged)))
 
-            #enrich and transform the list of plugged ports
+            #enrich list of plugged ports and transform in Dict
             ports_plugged = self.addAdditionalInfoPort(ports_plugged)
             LOG.debug(ports_plugged)
 
+            # first synchronization in cycle
+            self.syncPorts(ports_plugged)
 
-
-
-            #TODO make a synch with the devicestore
-
-
-'''
-            #retrieve if there are new ports to connect - is a list of type Serial.Port
+            #retrieve if there are new ports to connect to - is a list of type Serial.Port
             if ports_plugged:
                 ports_to_connect = self.retrieveNewPorts(ports_plugged, ports_connected)
 
                 #finally connect the new ports
                 if ports_to_connect:
                     self.connectPorts(ports_to_connect)
-'''
-            #TODO eseguire la stessa funzione di sopra di synch con il devicestore
-            time.sleep(10000)
+
+            # second synchronization in cycle
+            self.syncPorts(ports_plugged)
+
+            time.sleep(10)
 
 
     def retrieveNewPorts(self, plugged, connected):
-        #print('checking differences')
+        '''
+        Retrieves new ports to connect to.
+        Starting from plugged ports, it checks if a port is contained inside
+        the list of connected ports. It also checks if the port is enabled
+        and can be connected.
+
+        :param plugged: Dict of plugged ports
+        :param connected: List of SerialConnector which rappresents the connected ports
+        :return: List of Ports to connect to
+        '''
+
         ports_to_connect = []
         for pp in plugged:
             port = plugged[pp]
@@ -206,7 +230,10 @@ class SerialMonitor (Thread):
 
     def connectPorts(self, ports_to_connect):
         '''
-        Connect to each Serial Port in list
+        For each ports in List, creates a new instance of Serial Connector and the starts it.
+        Serial Connector instance is stored into a List of connected port using the
+        serial number of the port as key for the List
+
         :param ports_to_connect: List of ListPortInfo
         :return ports_connected: List of SerialConnector
         '''
@@ -225,9 +252,9 @@ class SerialMonitor (Thread):
 
     def addAdditionalInfoPort(self, ports):
         '''
-        Create a new struture starting from a List of ListPortInfo this methods.
+        This methods creates a new structure starting from a List of ListPortInfo.
         A base element of the new structure is composed by some metadata and
-            the starting object of type ListPortInfo
+        the initial object of type ListPortInfo
 
 
         :param ports: List of plugged port (ListPortInfo)
@@ -251,93 +278,110 @@ class SerialMonitor (Thread):
 
         return new_ports_struct
 
+
     def filterPorts(self, ports):
         '''
-        Filters Serial Ports with Serial Number, VID and PID
+        Filters Serial Ports with valid Serial Number, VID and PID
         :param ports: List of ListPortInfo
         :return ports_filterd: List
         '''
         ports_filterd = []
 
         for port in ports:
-            #filters serial with
-            #TODO enable the filter
             if port.serial_number != None and port.serial_number != "FFFFFFFFFFFFFFFFFFFF" and port.vid != None and port.pid != None:
-
-                #ports_filterd.append(port)
-                #ports_filterd_serialized.append(self.serializePort(port))
-
-                # create a new object containing the port (ListPortInfo) and additional serialized informations
-                #p = self.additionalInfoPort(port, plugged=True)
-                #p[self.__O_PORT] = port
-                #ports_filterd[p[self.__M_ID]] = p
-
                 ports_filterd.append(port)
-
 
         return ports_filterd
 
 
     def syncPorts(self, ports):
+
         '''
         Makes a synchroinization bewteen the list of plugged ports and the device store (redis db 1)
+        Some values are to be considered as Status Metadata becouse the rappresent the current status of the port,
+        others are to be considered as Configuration Metadata becouse they are setted up by the user.
+        E.g. Status Metadata are: Plugged, Connected,...
+            Configuration Metadata are: Enabled, Alias,...
+
+        Comfiguration Metadata are ever synched from device store to the in memory data structer (plugged ports),
+        meanwhile Status Port are synched from data structure to the device store.
         :param ports:
         :return:
         '''
-        # 1. load from device store
-        # 2. make diff
-        # 2.1 partendo da quelli presenti su ports_plugged verificare se esiste la controparte sul deveice store
-        # 2.2 se esiste aggiornare i metadati su ports_plugged: DB to LIST
-        #    enabled, autoreconnect, alias
-        # 2.3 se esiste aggiornare i metadadi sul devicestore: LIST to DB
-        #   plugged, connected, ed altri relativi alla porta (ad esempio il device :/dev/tty.ACM0, location ed altri.
-        # 3 se non esiste, inserirla
 
-        for port in ports:
 
-            # get from device store
-            if self.devicestore.exists(port[self.__M_ID]) == 1: # the port is already registered in the device store
+        for id, port in ports.items():
+            print(id)
 
-                # TODO: pay attention with boolean data and None value
 
-                # update metadata in the list (from redis to list in memory)
-                port[self.__M_ENABLED] = self.devicestore.hget(port[self.__M_ID], self.__M_ENABLED)
-                port[self.__M_AUTO_RECONNECT] = self.devicestore.hget(port[self.__M_ID], self.__M_AUTO_RECONNECT)
-                port[self.__M_ALIAS] = self.devicestore.hget(port[self.__M_ID], self.__M_ALIAS)
+            if self.devicestore.exists(id) == 1: # the port is already registered in the device store
+                '''
+                Configuration Metadata
+                
+                Gets from device store and synch in memory data structure every time except the first time a port is plugged 
+                Uses __checkValues function to automatically convert the stored values
+                 
+                '''
+                port[self.__M_ENABLED] = self.__checkValues(self.devicestore.hget(id , self.__M_ENABLED),"BOOL") #(self.devicestore.hget(port[self.__M_ID], self.__M_ENABLED).upper() == "TRUE")
+                port[self.__M_AUTO_RECONNECT] = self.__checkValues(self.devicestore.hget(id , self.__M_AUTO_RECONNECT), "BOOL")
+                port[self.__M_ALIAS] = self.devicestore.hget(id, self.__M_ALIAS)
 
-                # update metadata in the list (from list to redis)
-                self.devicestore.hset(port[self.__M_ID], self.__M_PLUGGED, port[self.__M_PLUGGED])
-                self.devicestore.hset(port[self.__M_ID], self.__M_CONNECTED, port[self.__M_CONNECTED])
-                #self.devicestore.hset(port[self.__M_ID], self.__P_DEVICE, port[self.__P_DEVICE])
-                #self.devicestore.hset(port[self.__M_ID], self.__P_LOCATION, port[self.__P_LOCATION])
-                #self.devicestore.hset(port[self.__M_ID], self.__P_INTERFACE, port[self.__P_INTERFACE])
 
-            else: #the port does not exist in the device store and must be registered
+            else:
+                '''
+                The port does not exist in the device store and must be registered. This runs only 
+                the first time a port is plugged and all ports data are stored into device store. 
+                Boolean and Integer object types and None will be stored as String automatically
+                
+                Data are stored using the port id as key in hash of redis, the defined above keys as fields, and values as values
+                '''
+                self.devicestore.hset(id, self.__M_ENABLED , port[self.__M_ENABLED])
+                self.devicestore.hset(id, self.__M_AUTO_RECONNECT, port[self.__M_AUTO_RECONNECT])
+                self.devicestore.hset(id, self.__M_ALIAS, port[self.__M_ALIAS])
+                self.devicestore.hset(id, self.__P_NAME, port[self.__O_PORT].name)
+                self.devicestore.hset(id, self.__P_DESCRIPTION, port[self.__O_PORT].description)
+                self.devicestore.hset(id, self.__P_HWID, port[self.__O_PORT].hwid)
+                self.devicestore.hset(id, self.__P_VID, hex(port[self.__O_PORT].vid))
+                self.devicestore.hset(id, self.__P_PID, hex(port[self.__O_PORT].pid))
+                self.devicestore.hset(id, self.__P_SERIALNUMBER, port[self.__O_PORT].serial_number)
+                self.devicestore.hset(id, self.__P_MANUFACTURER, port[self.__O_PORT].manufacturer)
+                self.devicestore.hset(id, self.__P_PRODUCT, port[self.__O_PORT].product)
 
-                # TODO: pay attention with boolean data and None value
-                # use the value of the port id as key in hash of redis, the defined above keys as fields, and values as values
-                self.devicestore.hset(port[self.__M_ID], self.__M_ENABLED , port[self.__M_ENABLED])
-                self.devicestore.hset(port[self.__M_ID], self.__M_AUTO_RECONNECT, port[self.__M_AUTO_RECONNECT])
-                self.devicestore.hset(port[self.__M_ID], self.__M_CONNECTED, port[self.__M_CONNECTED])
-                self.devicestore.hset(port[self.__M_ID], self.__M_PLUGGED, port[self.__M_PLUGGED])
-                self.devicestore.hset(port[self.__M_ID], self.__M_ALIAS, port[self.__M_ALIAS])
-                self.devicestore.hset(port[self.__M_ID], self.__P_NAME, port[self.__O_PORT].name)
-                self.devicestore.hset(port[self.__M_ID], self.__P_DESCRIPTION, port[self.__O_PORT].description)
-                self.devicestore.hset(port[self.__M_ID], self.__P_HWID, port[self.__O_PORT].hwid)
-                self.devicestore.hset(port[self.__M_ID], self.__P_VID, hex(port[self.__O_PORT].vid))
-                self.devicestore.hset(port[self.__M_ID], self.__P_PID, hex(port[self.__O_PORT].pid))
-                self.devicestore.hset(port[self.__M_ID], self.__P_SERIALNUMBER, port[self.__O_PORT].serial_number)
-                self.devicestore.hset(port[self.__M_ID], self.__P_MANUFACTURER, port[self.__O_PORT].manufacturer)
-                self.devicestore.hset(port[self.__M_ID], self.__P_PRODUCT, port[self.__O_PORT].product)
 
-            self.devicestore.hset(port[self.__M_ID], self.__P_DEVICE, port[self.__O_PORT].device)
-            self.devicestore.hset(port[self.__M_ID], self.__P_LOCATION, port[self.__O_PORT].location)
-            self.devicestore.hset(port[self.__M_ID], self.__P_INTERFACE, port[self.__O_PORT].interface)
-
+            '''
+            Status Metadata
+            
+            Updates metadata in the list (from list to redis) every time
+            '''
+            self.devicestore.hset(id, self.__M_PLUGGED, port[self.__M_PLUGGED])
+            self.devicestore.hset(id, self.__M_CONNECTED, port[self.__M_CONNECTED])
+            self.devicestore.hset(id, self.__P_DEVICE, port[self.__O_PORT].device)
+            self.devicestore.hset(id, self.__P_LOCATION, port[self.__O_PORT].location)
+            self.devicestore.hset(id, self.__P_INTERFACE, port[self.__O_PORT].interface)
+            self.devicestore.hset(id, self.__M_DATETIME, strftime("%Y-%m-%d %H:%M:%S", localtime()))
 
     def __encrypt_string(self, hash_string):
         sha_signature = hashlib.sha256(hash_string.encode()).hexdigest()
         return sha_signature
+
+    def __checkValues(self, value, type):
+        '''
+        :param value: String Value to convert
+        :param type: Oject Type in which the Value is to be converted
+        :return: Converted Object
+        '''
+
+        __val = None
+
+        if type.upper() == "BOOL" or type.upper() == "BOOLEAN":
+            __val = (value.upper() == "TRUE")
+        # TODO datetime
+        # TODO put datetime format in configuration file
+        else:
+            if type.upper() == "DATETIME":
+                __val = time.strptime(value, "%Y-%m-%d %H:%M:%S")
+
+        return __val
 
 class SerialConnector (Thread):
 
@@ -376,30 +420,34 @@ class SerialHandler(asyncio.Protocol):
         self.devicestore = devicestore
         self.port = port
         self._partial = ""
+        self.log_prefix = "[" + self.port.device + " - " + self.port.serial_number + "]: "
 
     def connection_made(self, transport):
         self.transport = transport
         #print('Port opened', transport)
-        LOG.info("Port opened: " + transport.serial.name)
-        LOG.debug("Port opened: " + str(transport))
+        LOG.info(self.log_prefix + "Port opened: " + transport.serial.name)
+        LOG.debug(self.log_prefix + "Port opened: " + str(transport))
         transport.serial.rts = False
 
     def connection_lost(self, exc):
-        global ports_plugged
-        print("AAAAAAAAAAA")
-        print(ports_plugged)
-        print("AAAAAAAAAAA")
+        global ports_plugged, ports_connected
 
         # 1 recupare oggetto dalla plugged port in base a self.port.serialnumber
+        p = ports_plugged[self.port.serial_number]
 
+        if p is not None:
         # 2 aggiornare lo stato "connected" a false
-
-        # 3 fare la sync. puntuale chiamando il device store ed aggiornando "connected" a false
+            p["M_CONNECTED"] = False
 
         # 4 capire se aggiornare acnhe plugged a false.
+            p["M_PLUGGED"] = False
 
-        LOG.info('Port closed ' + self.transport.serial.name)
-        serial_connector = ports_connected.pop(self.transport.serial.name)
+        # 3 fare la sync. puntuale chiamando il device store ed aggiornando "connected" a false
+        self.devicestore.hset(self.port.serial_number, "M_PLUGGED", False)
+        self.devicestore.hset(self.port.serial_number, "M_CONNECTED", False)
+
+        LOG.info(self.log_prefix + "Port closed " + self.transport.serial.name)
+        serial_connector = ports_connected.pop(self.port.serial_number)
 
         ####TODO Test DEL
         del serial_connector
@@ -413,7 +461,7 @@ class SerialHandler(asyncio.Protocol):
 
         if self._partial.endswith(CHR_EOT) is True:
             # now command is completed and can be used
-            LOG.debug('Received Command: ' + self._partial.strip('\n').strip('\t'))
+            LOG.debug(self.log_prefix + "Received Command: " + self._partial.strip('\n').strip('\t'))
             #print('Received Command: ', self._partial.strip('\n').strip('\t'))
 
             try:
@@ -425,27 +473,27 @@ class SerialHandler(asyncio.Protocol):
 
 
             except InvalidArgumentsNumberException as ex:
-                LOG.error(str(ex))
+                LOG.error(self.log_prefix + str(ex))
                 response = ex.error_code + CHR_EOT
 
             except InvalidCommandException as ex:
-                LOG.warn(str(ex))
+                LOG.warn(self.log_prefix + str(ex))
                 response = ex.error_code + CHR_EOT
 
 
             except RedisGenericException as ex:
-                LOG.error(str(ex))
+                LOG.error(self.log_prefix + str(ex))
                 response = ERR_REDIS + CHR_EOT
 
             except Exception as ex:
-                LOG.error(str(ex))
+                LOG.error(self.log_prefix + str(ex))
                 response = ERR + CHR_EOT
 
             finally:
                 # send response back
                 self.transport.write(response.encode())
                 #print('Sent Response: ', response)
-                LOG.debug('Sent Response: ' + str(response))
+                LOG.debug(self.log_prefix + "Sent Response: " + str(response))
 
 
             # clear the handy variable
