@@ -68,9 +68,11 @@ class RedisGenericException(Exception):
 
 class SerialManager():
     def __init__(self):
-
-        self.serialMonitor = SerialMonitor("Thread-SerialMonitor")
-
+        try:
+            self.serialMonitor = SerialMonitor("Thread-SerialMonitor")
+        except Exception as ex:
+            LOG.error(str(ex))
+            exit(1)
 
     def main(self):
 
@@ -118,10 +120,8 @@ class SerialMonitor (Thread):
 
 
     def __init__(self, name):
+
         Thread.__init__(self)
-
-
-
 
         #sets the vendor and product ID to check when poll
         #TODO probably change the discovery method instead of pid e vid
@@ -129,6 +129,19 @@ class SerialMonitor (Thread):
         #self.pid = '804F'
         #self.match = self.vid + ':' + self.pid
 
+        redis_pool_datastore = redis.ConnectionPool(host=conf.redis['host'], port=conf.redis['port'], db=conf.redis['db'], decode_responses=conf.redis['dcd_resp'])
+        redis_pool_devicestore = redis.ConnectionPool(host=conf.redis['host'], port=conf.redis['port'], db=1, decode_responses=conf.redis['dcd_resp'])
+
+        self.datastore = redis.Redis(connection_pool=redis_pool_datastore)
+        self.datastore.flushdb()
+        self.datastore.set(RSVD_KEY_MODVERSION, "0.0.3")
+
+        self.devicestore = redis.Redis(connection_pool=redis_pool_devicestore)
+
+        self.kill_now = False
+
+
+        '''
         ##self.datastore = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
         self.datastore = redis.StrictRedis(host=conf.redis['host'], port=conf.redis['port'], db=conf.redis['db'], decode_responses=conf.redis['dcd_resp'])
         self.datastore.flushdb()
@@ -143,6 +156,9 @@ class SerialMonitor (Thread):
         #self.datastore = datastore
         self.kill_now = False
         self.datastore.set(RSVD_KEY_MODVERSION, "0.0.3")
+        '''
+
+
 
     # public function
     def stop(self):
@@ -153,12 +169,13 @@ class SerialMonitor (Thread):
         ''' EXIT PROCEDURE START'''
         LOG.debug("Closing Redis Connection...")
         self.datastore.connection_pool.disconnect()
+        self.devicestore.connection_pool.disconnect()
         LOG.info("Redis Connection Closed")
         LOG.debug("Closing Serial Ports Connection...")
         # TODO 2) close serial connections
-        for port in ports_connected:
-            print(ports_connected[port])
-            ports_connected[port].close()
+        #for port in ports_connected:
+        #    print(ports_connected[port])
+        #    ports_connected[port].close()
 
         LOG.info("Serial Ports Connection Closed")
         LOG.info("Exiting completed, Bye!")
@@ -195,6 +212,7 @@ class SerialMonitor (Thread):
             #retrieve if there are new ports to connect to - is a list of type Serial.Port
             if ports_plugged:
                 ports_to_connect = self.retrieveNewPorts(ports_plugged, ports_connected)
+                LOG.info("Connectable Serial Ports Retrieved: " + str(len(ports_to_connect)))
 
                 #finally connect the new ports
                 if ports_to_connect:
@@ -203,7 +221,7 @@ class SerialMonitor (Thread):
             # second synchronization in cycle
             self.syncPorts(ports_plugged)
 
-            time.sleep(10)
+            time.sleep(5)
 
 
     def retrieveNewPorts(self, plugged, connected):
@@ -240,7 +258,7 @@ class SerialMonitor (Thread):
 
         global ports_connected
         for port in ports_to_connect:
-            LOG.info("Ports to connect to: " + port[self.__O_PORT].device)
+            LOG.info("Coonnecting to Port: " + port[self.__M_ALIAS] + port[self.__O_PORT].device + " - " + port[self.__O_PORT].serial_number)
 
             serialConnector = SerialConnector("Thread-" + port[self.__O_PORT].device, port[self.__O_PORT], self.datastore, self.devicestore, baudrate = 4000000)
 
@@ -439,12 +457,13 @@ class SerialHandler(asyncio.Protocol):
         # 2 aggiornare lo stato "connected" a false
             p["M_CONNECTED"] = False
 
-        # 4 capire se aggiornare acnhe plugged a false.
-            p["M_PLUGGED"] = False
+        # 4 capire se aggiornare acnhe plugged a false. => se il device é ancora connesso metto True (
+        # lo capisco verificando la lista dei dispositivi e usando grep in base al seriale della porta.
+            p["M_PLUGGED"] = (len(list(list_ports.grep(self.port.serial_number))) == 1 )
 
         # 3 fare la sync. puntuale chiamando il device store ed aggiornando "connected" a false
-        self.devicestore.hset(self.port.serial_number, "M_PLUGGED", False)
-        self.devicestore.hset(self.port.serial_number, "M_CONNECTED", False)
+        self.devicestore.hset(self.port.serial_number, "M_PLUGGED", p["M_PLUGGED"])
+        self.devicestore.hset(self.port.serial_number, "M_CONNECTED", p["M_CONNECTED"])
 
         LOG.info(self.log_prefix + "Port closed " + self.transport.serial.name)
         serial_connector = ports_connected.pop(self.port.serial_number)
@@ -462,7 +481,6 @@ class SerialHandler(asyncio.Protocol):
         if self._partial.endswith(CHR_EOT) is True:
             # now command is completed and can be used
             LOG.debug(self.log_prefix + "Received Command: " + self._partial.strip('\n').strip('\t'))
-            #print('Received Command: ', self._partial.strip('\n').strip('\t'))
 
             try:
                 # parse and check command
@@ -492,7 +510,6 @@ class SerialHandler(asyncio.Protocol):
             finally:
                 # send response back
                 self.transport.write(response.encode())
-                #print('Sent Response: ', response)
                 LOG.debug(self.log_prefix + "Sent Response: " + str(response))
 
 
