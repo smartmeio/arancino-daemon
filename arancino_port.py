@@ -12,7 +12,7 @@ Date: 2019 01 14
 
 from serial.tools import list_ports as list
 
-class ArancinoPortManager:
+class ArancinoPortsDiscovery:
 
     def __init__(self, devicestore):
         self.__devicestore = devicestore
