@@ -1046,7 +1046,7 @@ class SerialHandler(asyncio.Protocol):
             except Exception as ex:
                 raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
 
-            return const.RSP_OK + const.CHR_SEP + str(num) + const.CHR_EOT
+            return const.RSP_OK + const.CHR_EOT
 
         else:
             raise InvalidArgumentsNumberException(
