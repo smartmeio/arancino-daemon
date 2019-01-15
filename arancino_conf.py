@@ -3,17 +3,31 @@ import logging, sys
 from logging.handlers import RotatingFileHandler
 
 #redis connection parameter
-redis = {'host': 'localhost',
+
+#datastore
+redis_dts = {'host': 'localhost',
          'port': 6379,
          'dcd_resp': True,  #decode response
          'db': 0}
 
+#devicestore
+redis_dvs = {'host': 'localhost',
+         'port': 6379,
+         'dcd_resp': True,  #decode response
+         'db': 1}
+
+
+#cycle interval time
+cycle_time = 1
+
 # allowed vid and pid to connect to
+'''
 hwid = [
         'F00A:00FA'
         ,'2A03:804E'
         ,'2341:0043'
         ]
+'''
 
 # logger configuration
 __name = 'Arancino Serial Module'
@@ -33,5 +47,5 @@ def __get_file_handler():
 logger = logging.getLogger(__name)
 
 logger.setLevel(logging.DEBUG)
-#logger.addHandler(__get_console_handler())
+logger.addHandler(__get_console_handler())
 logger.addHandler(__get_file_handler())

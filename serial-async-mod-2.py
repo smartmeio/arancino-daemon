@@ -13,7 +13,7 @@ Version: 0.0.3
 
 
 
-import time,  conf, uuid, hashlib, json, signal
+import time,  arancino_conf as conf, uuid, hashlib, json, signal
 import asyncio, serial_asyncio, redis #external
 from serial.tools import list_ports
 from threading import Thread
@@ -104,8 +104,15 @@ class SerialMonitor (Thread):
         #self.pid = '804F'
         #self.match = self.vid + ':' + self.pid
 
-        redis_pool_datastore = redis.ConnectionPool(host=conf.redis['host'], port=conf.redis['port'], db=conf.redis['db'], decode_responses=conf.redis['dcd_resp'])
-        redis_pool_devicestore = redis.ConnectionPool(host=conf.redis['host'], port=conf.redis['port'], db=1, decode_responses=conf.redis['dcd_resp'])
+        #redis_pool_datastore = redis.ConnectionPool(host=conf.redis['host'], port=conf.redis['port'], db=conf.redis['db'], decode_responses=conf.redis['dcd_resp'])
+        #redis_pool_devicestore = redis.ConnectionPool(host=conf.redis['host'], port=conf.redis['port'], db=1, decode_responses=conf.redis['dcd_resp'])
+
+        redis_pool_datastore = redis.ConnectionPool(host=conf.redis_dts['host'], port=conf.redis_dts['port'],
+                                                     db=conf.redis_dts['db'],
+                                                     decode_responses=conf.redis_dts['dcd_resp'])
+        redis_pool_devicestore = redis.ConnectionPool(host=conf.redis_dvs['host'], port=conf.redis_dvs['port'],
+                                                     db=conf.redis_dvs['db'],
+                                                     decode_responses=conf.redis_dvs['dcd_resp'])
 
         self.datastore = redis.Redis(connection_pool=redis_pool_datastore)
         self.datastore.flushdb()
@@ -205,8 +212,7 @@ class SerialMonitor (Thread):
             # second synchronization in cycle
             self.syncPorts(ports_plugged)
 
-            #TODO move sleep time in configuration file
-            time.sleep(10)
+            time.sleep(conf.cycle_time)
 
 
     def retrieveNewPorts(self, plugged, connected):

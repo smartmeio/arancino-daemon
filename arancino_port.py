@@ -12,14 +12,18 @@ Date: 2019 01 14
 
 from serial.tools import list_ports as list
 
+
 class ArancinoPortsDiscovery:
 
     def __init__(self):
-        #self.__devicestore = devicestore
         pass
 
     def getPluggedArancinoPorts(self):
-
+        """
+        Using python-serial library, it scans the serial ports applies filters and then
+            returns a Dictionary of ArancinoPort
+        :return Dictionary of ArancinoPort
+        """
 
         #sets the vendor and product ID to check when poll
         #TODO probably change the discovery method instead of pid e vid
@@ -67,9 +71,7 @@ class ArancinoPortsDiscovery:
 
 class ArancinoPort:
 
-
-    def __init__(self, enabled = False, auto_connect = False, alias = None, plugged = False, connected = False, port = None ):
-
+    def __init__(self, enabled=False, auto_connect=False, alias=None, plugged=False, connected=False, port=None):
         # serial port
         self.port = port
 
@@ -150,9 +152,3 @@ class ArancinoPort:
     @connected.setter
     def connected(self, connected):
         self.__connected = connected
-
-
-
-#discovery = ArancinoPortsDiscovery(devicestore=None)
-#ports = discovery.getPluggedArancinoPorts()
-
