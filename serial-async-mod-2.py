@@ -4,6 +4,7 @@ Copyright ® SmartMe.IO  2018
 
 LICENSE HERE
 
+Filename:
 Author: Sergio Tomasello - sergio@smartme.io
 Date: 2018 10 01
 Version: 0.0.3
@@ -18,6 +19,7 @@ from serial.tools import list_ports
 from threading import Thread
 from time import localtime, strftime
 import arancino_constants as const
+from arancino_exceptions import InvalidArgumentsNumberException, InvalidCommandException, RedisGenericException
 
 
 #use in Lightning Rod
@@ -36,35 +38,6 @@ LOG = conf.logger
 # with this pattern, it's rarely necessary to propagate the error up to parent
 #LOG.propagate = False
 
-
-class InvalidArgumentsNumberException(Exception):
-    def __init__(self, message, error_code):
-
-        # Call the base class constructor with the parameters it needs
-        super(InvalidArgumentsNumberException, self).__init__(message)
-
-        # Now for your custom code...
-        self.error_code = error_code
-
-
-class InvalidCommandException(Exception):
-    def __init__(self, message, error_code):
-
-        # Call the base class constructor with the parameters it needs
-        super(InvalidCommandException, self).__init__(message)
-
-        # Now for your custom code...
-        self.error_code = error_code
-
-
-class RedisGenericException(Exception):
-    def __init__(self, message, error_code):
-
-        # Call the base class constructor with the parameters it needs
-        super(RedisGenericException, self).__init__(message)
-
-        # Now for your custom code...
-        self.error_code = error_code
 
 
 
@@ -538,7 +511,7 @@ class SerialHandler(asyncio.Protocol):
         else:
             raise InvalidCommandException("No command received", const.ERR_CMD_NOT_RCV)
 
-        return cmd;
+        return cmd
 
     def _execCommand(self, cmd):
 
