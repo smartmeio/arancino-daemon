@@ -17,6 +17,8 @@ import asyncio, serial_asyncio, redis #external
 from serial.tools import list_ports
 from threading import Thread
 from time import localtime, strftime
+import arancino_constants as const
+
 
 #use in Lightning Rod
 #from oslo_log import log as logging
@@ -134,7 +136,7 @@ class SerialMonitor (Thread):
 
         self.datastore = redis.Redis(connection_pool=redis_pool_datastore)
         self.datastore.flushdb()
-        self.datastore.set(RSVD_KEY_MODVERSION, "0.0.3")
+        self.datastore.set(const.RSVD_KEY_MODVERSION, "0.0.3")
 
         self.devicestore = redis.Redis(connection_pool=redis_pool_devicestore)
 
@@ -155,7 +157,7 @@ class SerialMonitor (Thread):
         #self.name = name
         #self.datastore = datastore
         self.kill_now = False
-        self.datastore.set(RSVD_KEY_MODVERSION, "0.0.3")
+        self.datastore.set(const.RSVD_KEY_MODVERSION, "0.0.3")
         '''
 
 
@@ -282,7 +284,7 @@ class SerialMonitor (Thread):
         new_ports_struct = {}
 
         for port in ports:
-            p ={}
+            p = {}
             p[self.__M_ID] = str(port.serial_number)
             p[self.__M_ENABLED] = True
             p[self.__M_AUTO_RECONNECT] = False
@@ -478,7 +480,7 @@ class SerialHandler(asyncio.Protocol):
         datadec = data.decode()
         self._partial += datadec
 
-        if self._partial.endswith(CHR_EOT) is True:
+        if self._partial.endswith(const.CHR_EOT) is True:
             # now command is completed and can be used
             LOG.debug(self.log_prefix + "Received Command: " + self._partial.strip('\n').strip('\t'))
 
@@ -492,20 +494,20 @@ class SerialHandler(asyncio.Protocol):
 
             except InvalidArgumentsNumberException as ex:
                 LOG.error(self.log_prefix + str(ex))
-                response = ex.error_code + CHR_EOT
+                response = ex.error_code + const.CHR_EOT
 
             except InvalidCommandException as ex:
                 LOG.warn(self.log_prefix + str(ex))
-                response = ex.error_code + CHR_EOT
+                response = ex.error_code + const.CHR_EOT
 
 
             except RedisGenericException as ex:
                 LOG.error(self.log_prefix + str(ex))
-                response = ERR_REDIS + CHR_EOT
+                response = const.ERR_REDIS + const.CHR_EOT
 
             except Exception as ex:
                 LOG.error(self.log_prefix + str(ex))
-                response = ERR + CHR_EOT
+                response = const.ERR + const.CHR_EOT
 
             finally:
                 # send response back
@@ -525,16 +527,16 @@ class SerialHandler(asyncio.Protocol):
         #cmd = command.decode().strip()
 
         #splits command by separator char
-        cmd = command.strip(CHR_EOT).split(CHR_SEP)
+        cmd = command.strip(const.CHR_EOT).split(const.CHR_SEP)
 
         if len(cmd) > 0:
             if cmd[0] in commands_list:
                 #comando presente
                 return cmd;
             else:
-                raise InvalidCommandException("Command does not exist: " + cmd[0] + " - Skipped", ERR_CMD_NOT_FND)
+                raise InvalidCommandException("Command does not exist: " + cmd[0] + " - Skipped", const.ERR_CMD_NOT_FND)
         else:
-            raise InvalidCommandException("No command received", ERR_CMD_NOT_RCV)
+            raise InvalidCommandException("No command received", const.ERR_CMD_NOT_RCV)
 
         return cmd;
 
@@ -544,64 +546,64 @@ class SerialHandler(asyncio.Protocol):
         parameters = cmd[1:idx]
         '''
         _OPTIONS = {
-            CMD_SYS_START: self._OPTS_START,
-            CMD_APP_SET: self._OPTS_SET,
-            CMD_APP_GET: self._OPTS_GET,
-            CMD_APP_DEL: self._OPTS_DEL,
-            CMD_APP_KEYS: self._OPTS_KEYS,
-            CMD_APP_HSET: self._OPTS_HSET,
-            CMD_APP_HGETALL: self._OPTS_HGETALL,
-            CMD_APP_HKEYS: self._OPTS_HKEYS,
-            CMD_APP_HVALS: self._OPTS_HVALS,
-            CMD_APP_HDEL: self._OPTS_HDEL
+            const.CMD_SYS_START: self._OPTS_START,
+            const.CMD_APP_SET: self._OPTS_SET,
+            const.CMD_APP_GET: self._OPTS_GET,
+            const.CMD_APP_DEL: self._OPTS_DEL,
+            const.CMD_APP_KEYS: self._OPTS_KEYS,
+            const.CMD_APP_HSET: self._OPTS_HSET,
+            const.CMD_APP_HGETALL: self._OPTS_HGETALL,
+            const.CMD_APP_HKEYS: self._OPTS_HKEYS,
+            const.CMD_APP_HVALS: self._OPTS_HVALS,
+            const.CMD_APP_HDEL: self._OPTS_HDEL
         }
 
-        _opts = _OPTIONS.get(cmd[0], lambda : ERR_CMD_NOT_FND + CHR_SEP)
+        _opts = _OPTIONS.get(cmd[0], lambda : const.ERR_CMD_NOT_FND + const.CHR_SEP)
         return _opts(parameters)
         '''
         try:
             # START
-            if cmd[0] == CMD_SYS_START:
+            if cmd[0] == const.CMD_SYS_START:
                 return self._OPTS_START()
             # SET
-            elif cmd[0] == CMD_APP_SET:
+            elif cmd[0] == const.CMD_APP_SET:
                 return self._OPTS_SET(parameters)
             # GET
-            elif cmd[0] == CMD_APP_GET:
+            elif cmd[0] == const.CMD_APP_GET:
                 return self._OPTS_GET(parameters)
             # DEL
-            elif cmd[0] == CMD_APP_DEL:
+            elif cmd[0] == const.CMD_APP_DEL:
                 return self._OPTS_DEL(parameters)
             # KEYS
-            elif cmd[0] == CMD_APP_KEYS:
+            elif cmd[0] == const.CMD_APP_KEYS:
                 return self._OPTS_KEYS(parameters)
             # HSET
-            elif cmd[0] == CMD_APP_HSET:
+            elif cmd[0] == const.CMD_APP_HSET:
                 return self._OPTS_HSET(parameters)
             # HGET
-            elif cmd[0] == CMD_APP_HGET:
+            elif cmd[0] == const.CMD_APP_HGET:
                 return self._OPTS_HGET(parameters)
             # HGETALL
-            elif cmd[0] == CMD_APP_HGETALL:
+            elif cmd[0] == const.CMD_APP_HGETALL:
                 return self._OPTS_HGETALL(parameters)
             # HKEYS
-            elif cmd[0] == CMD_APP_HKEYS:
+            elif cmd[0] == const.CMD_APP_HKEYS:
                 return self._OPTS_HKEYS(parameters)
             # HVALS
-            elif cmd[0] == CMD_APP_HVALS:
+            elif cmd[0] == const.CMD_APP_HVALS:
                 return self._OPTS_HVALS(parameters)
             # HDEL
-            elif cmd[0] == CMD_APP_HDEL:
+            elif cmd[0] == const.CMD_APP_HDEL:
                 return self._OPTS_HDEL(parameters)
             # PUB
-            elif cmd[0] == CMD_APP_PUB:
+            elif cmd[0] == const.CMD_APP_PUB:
                 return self._OPTS_PUB(parameters)
             # FLUSH
-            elif cmd[0] == CMD_APP_FLUSH:
+            elif cmd[0] == const.CMD_APP_FLUSH:
                 return self._OPTS_FLUSH(parameters)
             # Default
             else:
-                return ERR_CMD_NOT_FND + CHR_SEP
+                return const.ERR_CMD_NOT_FND + const.CHR_SEP
 
         except Exception as ex:
             # generic error handler which raise back exception
@@ -616,7 +618,7 @@ class SerialHandler(asyncio.Protocol):
 
         MCU  ← 100@ (OK)
         '''
-        return RSP_OK + CHR_EOT
+        return const.RSP_OK + const.CHR_EOT
 
     # SET
     def _OPTS_SET(self, args):
@@ -646,19 +648,19 @@ class SerialHandler(asyncio.Protocol):
                 rsp = self.datastore.set(key, value)
 
             except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
+                raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
 
             if rsp:
                 # return ok response
-                return RSP_OK + CHR_EOT
+                return const.RSP_OK + const.CHR_EOT
             else:
                 # return the error code
-                return ERR_SET + CHR_EOT
+                return const.ERR_SET + const.CHR_EOT
 
         else:
             raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + CMD_APP_SET + ". Received: " + str(
-                    n_args_received) + "; Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
+                "Invalid arguments number for command " + const.CMD_APP_SET + ". Received: " + str(
+                    n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
     # GET
     def _OPTS_GET(self, args):
@@ -687,19 +689,19 @@ class SerialHandler(asyncio.Protocol):
                 rsp = self.datastore.get(key)
 
             except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
+                raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
 
             if rsp is not None:
                 # return the value
-                return RSP_OK + CHR_SEP + str(rsp) + CHR_EOT
+                return const.RSP_OK + const.CHR_SEP + str(rsp) + const.CHR_EOT
             else:
                 # return the error code
-                return ERR_NULL + CHR_EOT
+                return const.ERR_NULL + const.CHR_EOT
 
         else:
             raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + CMD_APP_GET + ". Received: " + str(
-                    n_args_received) + "; Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
+                "Invalid arguments number for command " + const.CMD_APP_GET + ". Received: " + str(
+                    n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
     # DEL
     def _OPTS_DEL(self, args):
@@ -722,14 +724,14 @@ class SerialHandler(asyncio.Protocol):
                 num = self.datastore.delete(*args)
 
             except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
+                raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
 
-            return RSP_OK + CHR_SEP + str(num) + CHR_EOT
+            return const.RSP_OK + const.CHR_SEP + str(num) + const.CHR_EOT
 
         else:
             raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + CMD_APP_DEL + ". Received: " + str(
-                    n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
+                "Invalid arguments number for command " + const.CMD_APP_DEL + ". Received: " + str(
+                    n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
     # KEYS
     def _OPTS_KEYS(self, args):
@@ -753,12 +755,12 @@ class SerialHandler(asyncio.Protocol):
             keys = self.datastore.keys(pattern)
 
         except Exception as ex:
-            raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
+            raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
 
         if len(keys) > 0:
-            return RSP_OK + CHR_SEP + CHR_SEP.join(keys) + CHR_EOT
+            return const.RSP_OK + const.CHR_SEP + const.CHR_SEP.join(keys) + const.CHR_EOT
         else:
-            return RSP_OK + CHR_EOT
+            return const.RSP_OK + const.CHR_EOT
 
     # HSET
     def _OPTS_HSET(self, args):
@@ -789,17 +791,17 @@ class SerialHandler(asyncio.Protocol):
                 rsp = self.datastore.hset(key, field, value)
 
             except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
+                raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
 
             if rsp == 1:
-                return RSP_HSET_NEW + CHR_EOT
+                return const.RSP_HSET_NEW + const.CHR_EOT
             else: #0
-                return RSP_HSET_UPD + CHR_EOT
+                return const.RSP_HSET_UPD + const.CHR_EOT
 
         else:
             raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + CMD_APP_HSET + ". Received: " + str(
-                    n_args_received) + "; Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
+                "Invalid arguments number for command " + const.CMD_APP_HSET + ". Received: " + str(
+                    n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
     # HGET
     def _OPTS_HGET(self, args):
@@ -827,19 +829,19 @@ class SerialHandler(asyncio.Protocol):
                 value = self.datastore.hget(key, field)
 
             except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
+                raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
 
             if value is not None:
                 # return the value
-                return RSP_OK + CHR_SEP + str(value) + CHR_EOT
+                return const.RSP_OK + const.CHR_SEP + str(value) + const.CHR_EOT
             else:
                 # return the error code
-                return ERR_NULL + CHR_EOT
+                return const.ERR_NULL + const.CHR_EOT
 
         else:
             raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + CMD_APP_HGET + ". Found: " + str(
-                    n_args_received) + "; Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
+                "Invalid arguments number for command " + const.CMD_APP_HGET + ". Found: " + str(
+                    n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
     # HGETALL
     def _OPTS_HGETALL(self, args):
@@ -869,17 +871,17 @@ class SerialHandler(asyncio.Protocol):
                 data = self.datastore.hgetall(key) #{'field-1': 'value-1', 'field-2': 'value-2'}
 
             except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
+                raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
 
             for field in data:
-                rsp_str += CHR_SEP + field + CHR_SEP + data[field]
+                rsp_str += const.CHR_SEP + field + const.CHR_SEP + data[field]
 
-            return RSP_OK + rsp_str + CHR_EOT
+            return const.RSP_OK + rsp_str + const.CHR_EOT
 
         else:
             raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + CMD_APP_HGETALL + ". Received: " + str(
-                    n_args_received) + "; Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
+                "Invalid arguments number for command " + const.CMD_APP_HGETALL + ". Received: " + str(
+                    n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
     # HKEYS
     def _OPTS_HKEYS(self, args):
@@ -904,17 +906,17 @@ class SerialHandler(asyncio.Protocol):
                 fields = self.datastore.hkeys(key)
 
             except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
+                raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
 
             if len(fields) > 0:
-                return RSP_OK + CHR_SEP + CHR_SEP.join(fields) + CHR_EOT
+                return const.RSP_OK + const.CHR_SEP + const.CHR_SEP.join(fields) + const.CHR_EOT
             else:
-                return RSP_OK + CHR_EOT
+                return const.RSP_OK + const.CHR_EOT
 
         else:
             raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + CMD_APP_HKEYS + ". Received: " + str(
-                    n_args_received) + "; Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
+                "Invalid arguments number for command " + const.CMD_APP_HKEYS + ". Received: " + str(
+                    n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
     # HVALS
     def _OPTS_HVALS(self, args):
@@ -937,17 +939,17 @@ class SerialHandler(asyncio.Protocol):
                 values = self.datastore.hvals(key)
 
             except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
+                raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
 
             if len(values) > 0:
-                return RSP_OK + CHR_SEP + CHR_SEP.join(values) + CHR_EOT
+                return const.RSP_OK + const.CHR_SEP + const.CHR_SEP.join(values) + const.CHR_EOT
             else:
-                return RSP_OK + CHR_EOT
+                return const.RSP_OK + const.CHR_EOT
 
         else:
             raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + CMD_APP_HVALS + ". Received: " + str(
-                    n_args_received) + "; Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
+                "Invalid arguments number for command " + const.CMD_APP_HVALS + ". Received: " + str(
+                    n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
     # HDEL
     def _OPTS_HDEL(self, args):
@@ -975,14 +977,14 @@ class SerialHandler(asyncio.Protocol):
                 num = self.datastore.hdel(key, *fields)
 
             except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
+                raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
 
-            return RSP_OK + CHR_SEP + str(num) + CHR_EOT
+            return const.RSP_OK + const.CHR_SEP + str(num) + const.CHR_EOT
 
         else:
             raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + CMD_APP_HDEL + ". Received: " + str(
-                    n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
+                "Invalid arguments number for command " + const.CMD_APP_HDEL + ". Received: " + str(
+                    n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
     # PUB
     def _OPTS_PUB(self, args):
@@ -1008,14 +1010,14 @@ class SerialHandler(asyncio.Protocol):
                 num = self.datastore.publish(channel, message)
 
             except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
+                raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
 
-            return RSP_OK + CHR_SEP + str(num) + CHR_EOT
+            return const.RSP_OK + const.CHR_SEP + str(num) + const.CHR_EOT
 
         else:
             raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + CMD_APP_PUB + ". Received: " + str(
-                    n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
+                "Invalid arguments number for command " + const.CMD_APP_PUB + ". Received: " + str(
+                    n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
     # FLUSH
     def _OPTS_FLUSH(self, args):
@@ -1042,60 +1044,22 @@ class SerialHandler(asyncio.Protocol):
                 rsp = self.datastore.flushdb()
 
             except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ERR_REDIS)
+                raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
 
-            return RSP_OK + CHR_SEP + str(num) + CHR_EOT
+            return const.RSP_OK + const.CHR_SEP + str(num) + const.CHR_EOT
 
         else:
             raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + CMD_APP_FLUSH + ". Received: " + str(
-                    n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", ERR_CMD_PRM_NUM)
-
-
-#Definitions for Serial Protocol
-CHR_EOT = chr(4)            #End Of Transmission Char
-CHR_SEP = chr(30)           #Separator Char
-
-CMD_SYS_START   = 'START' #Start Commmand
-
-CMD_APP_GET     = 'GET'     #Get value at key
-CMD_APP_SET     = 'SET'     #Set value at key
-CMD_APP_DEL     = 'DEL'     #Delete one or multiple keys
-CMD_APP_KEYS    = 'KEYS'    #Get keys by a pattern
-CMD_APP_HGET    = 'HGET'    #
-CMD_APP_HGETALL = 'HGETALL' #
-CMD_APP_HKEYS   = 'HKEYS'   #
-CMD_APP_HVALS   = 'HVALS'   #
-CMD_APP_HDEL    = 'HDEL'    #
-CMD_APP_HSET    = 'HSET'    #
-CMD_APP_PUB     = 'PUB'     #
-CMD_APP_FLUSH   = 'FLUSH'   #Flush the current Database, delete all the keys from the current Database
-
-RSP_OK          = '100'     #OK Response
-RSP_HSET_NEW    = '101'     #Set value into a new field
-RSP_HSET_UPD    = '102'     #Set value into an existing field
-
-ERR             = '200'     #Generic Error
-ERR_NULL        = '201'     #Null value
-ERR_SET         = '202'     #Error during SET
-ERR_CMD_NOT_FND = '203'     #Command Not Found
-ERR_CMD_NOT_RCV = '204'     #Command Not Received
-ERR_CMD_PRM_NUM = '205'     #Invalid parameter number
-ERR_REDIS       = '206'     #Generic Redis Error
-
-#Reserved keys
-RSVD_KEY_MONITOR = "___MONITOR___"
-RSVD_KEY_LIBVERSION = "___LIBVERS___"
-RSVD_KEY_MODVERSION = "___MODVERS___"
+                "Invalid arguments number for command " + const.CMD_APP_FLUSH + ". Received: " + str(
+                    n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
 
 # list of commands
-commands_list = [CMD_SYS_START, CMD_APP_GET, CMD_APP_SET, CMD_APP_DEL, CMD_APP_KEYS, CMD_APP_HGET, CMD_APP_HGETALL, CMD_APP_HKEYS, CMD_APP_HVALS, CMD_APP_HDEL, CMD_APP_HSET, CMD_APP_PUB, CMD_APP_FLUSH]
+commands_list = const.getCommandsList()
 
 # contains all the plugged ports with a specific vid and pid. Object of type Serial.Port
 #global ports_plugged
 ports_plugged = {}
-
 
 
 # contains all the connected serial ports. Object of type Thread - SerialConnector

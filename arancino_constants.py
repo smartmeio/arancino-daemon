@@ -46,3 +46,21 @@ ERR_REDIS       = '206'     #Generic Redis Error
 RSVD_KEY_MONITOR = "___MONITOR___"
 RSVD_KEY_LIBVERSION = "___LIBVERS___"
 RSVD_KEY_MODVERSION = "___MODVERS___"
+
+
+__COMMANDLIST = [ CMD_SYS_START,
+                CMD_APP_GET,
+                CMD_APP_SET,
+                CMD_APP_DEL,
+                CMD_APP_KEYS,
+                CMD_APP_HGET,
+                CMD_APP_HGETALL,
+                CMD_APP_HKEYS,
+                CMD_APP_HVALS,
+                CMD_APP_HDEL,
+                CMD_APP_HSET,
+                CMD_APP_PUB,
+                CMD_APP_FLUSH]
+
+def getCommandsList():
+    return __COMMANDLIST
