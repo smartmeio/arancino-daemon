@@ -20,7 +20,7 @@ from threading import Thread
 from time import localtime, strftime
 import arancino_constants as const
 from arancino_exceptions import InvalidArgumentsNumberException, InvalidCommandException, RedisGenericException
-
+from arancino_port import ArancinoPort, ArancinoPortsDiscovery
 
 #use in Lightning Rod
 #from oslo_log import log as logging
@@ -70,7 +70,7 @@ class SerialMonitor (Thread):
     # additional metadata keys
     __M_ID = "M_ID"
     __M_ENABLED = "M_ENABLED"
-    __M_AUTO_RECONNECT = "M_AUTORECONNECT"
+    __M_AUTO_CONNECT = "M_AUTO_CONNECT"
     __M_CONNECTED = "M_CONNECTED"
     __M_PLUGGED = "M_PLUGGED"
     __M_ALIAS = "M_ALIAS"
@@ -115,6 +115,8 @@ class SerialMonitor (Thread):
 
         self.kill_now = False
 
+        self.discovery = ArancinoPortsDiscovery()
+
 
         '''
         ##self.datastore = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
@@ -158,13 +160,15 @@ class SerialMonitor (Thread):
 
     def run(self):
         # Polls every 10 seconds if there's new serial port to connect to
+        global ports_plugged, ports_connected
+
         while(True):
 
 
             if self.kill_now:
                 self.__stop()
                 break
-
+            '''
             #retrieve each plugged ports which match vid and pid specified above
             #ports_plugged = list(list_ports.grep(self.match))
 
@@ -180,6 +184,11 @@ class SerialMonitor (Thread):
             #enrich list of plugged ports and transform in Dict
             ports_plugged = self.addAdditionalInfoPort(ports_plugged)
             LOG.debug(ports_plugged)
+            '''
+
+            ports_plugged = self.discovery.getPluggedArancinoPorts()
+            LOG.info("Plugged Serial Ports Retrieved: " + str(len(ports_plugged)))
+
 
             # first synchronization in cycle
             self.syncPorts(ports_plugged)
@@ -196,100 +205,56 @@ class SerialMonitor (Thread):
             # second synchronization in cycle
             self.syncPorts(ports_plugged)
 
-            time.sleep(5)
+            #TODO move sleep time in configuration file
+            time.sleep(10)
 
 
     def retrieveNewPorts(self, plugged, connected):
-        '''
+        """
         Retrieves new ports to connect to.
         Starting from plugged ports, it checks if a port is contained inside
         the list of connected ports. It also checks if the port is enabled
         and can be connected.
 
-        :param plugged: Dict of plugged ports
+        :param plugged: Dict of ArancinoPorts
         :param connected: List of SerialConnector which rappresents the connected ports
-        :return: List of Ports to connect to
-        '''
+        :return: List of ArancinoPorts to connect to
+        """
 
         ports_to_connect = []
-        for pp in plugged:
-            port = plugged[pp]
-            #TODO introduce new checks eg: verify "enabled" field or "autoreconnect"
-            if port[self.__O_PORT].serial_number not in connected and port[self.__M_ENABLED]:
-                # if true: there'are new plugged ports discovered
-                ports_to_connect.append(port)
+        for id, arancino in plugged.items():
+            if arancino.id not in connected:
+                    if arancino.enabled:
+                        # if true: there'are new plugged ports discovered
+                        ports_to_connect.append(arancino)
+                    else:
+                        LOG.warning("Port Not Enabled: " + arancino.alias + " " + arancino.port.device + " - " + arancino.id)
+
         return ports_to_connect
 
 
     def connectPorts(self, ports_to_connect):
-        '''
+        """
         For each ports in List, creates a new instance of Serial Connector and the starts it.
         Serial Connector instance is stored into a List of connected port using the
         serial number of the port as key for the List
 
         :param ports_to_connect: List of ListPortInfo
         :return ports_connected: List of SerialConnector
-        '''
+        """
 
         global ports_connected
-        for port in ports_to_connect:
-            LOG.info("Coonnecting to Port: " + port[self.__M_ALIAS] + port[self.__O_PORT].device + " - " + port[self.__O_PORT].serial_number)
+        for arancino in ports_to_connect:
+            LOG.info("Connecting to Port: " + arancino.alias + " " + arancino.port.device + " - " + arancino.id)
 
-            serialConnector = SerialConnector("Thread-" + port[self.__O_PORT].device, port[self.__O_PORT], self.datastore, self.devicestore, baudrate = 4000000)
+            serialConnector = SerialConnector("Thread-" + arancino.port.device, arancino.port, self.datastore, self.devicestore, baudrate = 4000000)
 
-            port[self.__M_CONNECTED] = True
-            #ports_connected[port["port"].device] = serialConnector
-            ports_connected[port[self.__O_PORT].serial_number] = serialConnector
+            arancino.connected = True
+            ports_connected[arancino.id] = serialConnector
             serialConnector.start()
 
-
-    def addAdditionalInfoPort(self, ports):
-        '''
-        This methods creates a new structure starting from a List of ListPortInfo.
-        A base element of the new structure is composed by some metadata and
-        the initial object of type ListPortInfo
-
-
-        :param ports: List of plugged port (ListPortInfo)
-        :return: Dict of Ports with additional information
-        '''
-
-        new_ports_struct = {}
-
-        for port in ports:
-            p = {}
-            p[self.__M_ID] = str(port.serial_number)
-            p[self.__M_ENABLED] = True
-            p[self.__M_AUTO_RECONNECT] = False
-            p[self.__M_CONNECTED] = False
-            p[self.__M_PLUGGED] = True
-            p[self.__M_ALIAS] = ""
-
-            p[self.__O_PORT] = port
-
-            new_ports_struct[p[self.__M_ID]] = p
-
-        return new_ports_struct
-
-
-    def filterPorts(self, ports):
-        '''
-        Filters Serial Ports with valid Serial Number, VID and PID
-        :param ports: List of ListPortInfo
-        :return ports_filterd: List
-        '''
-        ports_filterd = []
-
-        for port in ports:
-            if port.serial_number != None and port.serial_number != "FFFFFFFFFFFFFFFFFFFF" and port.vid != None and port.pid != None:
-                ports_filterd.append(port)
-
-        return ports_filterd
-
-
     def syncPorts(self, ports):
-
-        '''
+        """
         Makes a synchroinization bewteen the list of plugged ports and the device store (redis db 1)
         Some values are to be considered as Status Metadata becouse the rappresent the current status of the port,
         others are to be considered as Configuration Metadata becouse they are setted up by the user.
@@ -300,12 +265,10 @@ class SerialMonitor (Thread):
         meanwhile Status Port are synched from data structure to the device store.
         :param ports:
         :return:
-        '''
+        """
 
 
-        for id, port in ports.items():
-            print(id)
-
+        for id, arancino in ports.items():
 
             if self.devicestore.exists(id) == 1: # the port is already registered in the device store
                 '''
@@ -315,9 +278,9 @@ class SerialMonitor (Thread):
                 Uses __checkValues function to automatically convert the stored values
                  
                 '''
-                port[self.__M_ENABLED] = self.__checkValues(self.devicestore.hget(id , self.__M_ENABLED),"BOOL") #(self.devicestore.hget(port[self.__M_ID], self.__M_ENABLED).upper() == "TRUE")
-                port[self.__M_AUTO_RECONNECT] = self.__checkValues(self.devicestore.hget(id , self.__M_AUTO_RECONNECT), "BOOL")
-                port[self.__M_ALIAS] = self.devicestore.hget(id, self.__M_ALIAS)
+                arancino.enabled = self.__checkValues(self.devicestore.hget(id , self.__M_ENABLED),"BOOL") #(self.devicestore.hget(port[self.__M_ID], self.__M_ENABLED).upper() == "TRUE")
+                arancino.auto_connect = self.__checkValues(self.devicestore.hget(id, self.__M_AUTO_CONNECT), "BOOL")
+                arancino.alias = self.devicestore.hget(id, self.__M_ALIAS)
 
 
             else:
@@ -328,17 +291,17 @@ class SerialMonitor (Thread):
                 
                 Data are stored using the port id as key in hash of redis, the defined above keys as fields, and values as values
                 '''
-                self.devicestore.hset(id, self.__M_ENABLED , port[self.__M_ENABLED])
-                self.devicestore.hset(id, self.__M_AUTO_RECONNECT, port[self.__M_AUTO_RECONNECT])
-                self.devicestore.hset(id, self.__M_ALIAS, port[self.__M_ALIAS])
-                self.devicestore.hset(id, self.__P_NAME, port[self.__O_PORT].name)
-                self.devicestore.hset(id, self.__P_DESCRIPTION, port[self.__O_PORT].description)
-                self.devicestore.hset(id, self.__P_HWID, port[self.__O_PORT].hwid)
-                self.devicestore.hset(id, self.__P_VID, hex(port[self.__O_PORT].vid))
-                self.devicestore.hset(id, self.__P_PID, hex(port[self.__O_PORT].pid))
-                self.devicestore.hset(id, self.__P_SERIALNUMBER, port[self.__O_PORT].serial_number)
-                self.devicestore.hset(id, self.__P_MANUFACTURER, port[self.__O_PORT].manufacturer)
-                self.devicestore.hset(id, self.__P_PRODUCT, port[self.__O_PORT].product)
+                self.devicestore.hset(id, self.__M_ENABLED, arancino.enabled)
+                self.devicestore.hset(id, self.__M_AUTO_CONNECT, arancino.auto_connect)
+                self.devicestore.hset(id, self.__M_ALIAS, arancino.alias)
+                self.devicestore.hset(id, self.__P_NAME, arancino.port.name)
+                self.devicestore.hset(id, self.__P_DESCRIPTION, arancino.port.description)
+                self.devicestore.hset(id, self.__P_HWID, arancino.port.hwid)
+                self.devicestore.hset(id, self.__P_VID, hex(arancino.port.vid))
+                self.devicestore.hset(id, self.__P_PID, hex(arancino.port.pid))
+                self.devicestore.hset(id, self.__P_SERIALNUMBER, arancino.port.serial_number)
+                self.devicestore.hset(id, self.__P_MANUFACTURER, arancino.port.manufacturer)
+                self.devicestore.hset(id, self.__P_PRODUCT, arancino.port.product)
 
 
             '''
@@ -346,16 +309,19 @@ class SerialMonitor (Thread):
             
             Updates metadata in the list (from list to redis) every time
             '''
-            self.devicestore.hset(id, self.__M_PLUGGED, port[self.__M_PLUGGED])
-            self.devicestore.hset(id, self.__M_CONNECTED, port[self.__M_CONNECTED])
-            self.devicestore.hset(id, self.__P_DEVICE, port[self.__O_PORT].device)
-            self.devicestore.hset(id, self.__P_LOCATION, port[self.__O_PORT].location)
-            self.devicestore.hset(id, self.__P_INTERFACE, port[self.__O_PORT].interface)
-            self.devicestore.hset(id, self.__M_DATETIME, strftime("%Y-%m-%d %H:%M:%S", localtime()))
+            self.devicestore.hset(id, self.__M_PLUGGED, arancino.plugged)
+            self.devicestore.hset(id, self.__M_CONNECTED, arancino.connected)
+            self.devicestore.hset(id, self.__P_DEVICE, arancino.port.device)
+            self.devicestore.hset(id, self.__P_LOCATION, arancino.port.location)
+            self.devicestore.hset(id, self.__P_INTERFACE, arancino.port.interface)
+            #TODO mamage datetime
+            #self.devicestore.hset(id, self.__M_DATETIME, strftime("%Y-%m-%d %H:%M:%S", localtime()))
 
+    '''
     def __encrypt_string(self, hash_string):
         sha_signature = hashlib.sha256(hash_string.encode()).hexdigest()
         return sha_signature
+    '''
 
     def __checkValues(self, value, type):
         '''
@@ -426,20 +392,29 @@ class SerialHandler(asyncio.Protocol):
         global ports_plugged, ports_connected
 
         # 1 recupare oggetto dalla plugged port in base a self.port.serialnumber
-        p = ports_plugged[self.port.serial_number]
+        # TODO here is used serial_number, because id is not available
+        #   serial_number is part of ListPortInfo, id is part of ArancinoPort. At this moment
+        #   id is derivated from serial_number and now it works, but if the way of calculate id will change
+        #   this will not work anymore
+        arancino = ports_plugged[self.port.serial_number]
 
-        if p is not None:
+        if arancino is not None:
         # 2 aggiornare lo stato "connected" a false
-            p["M_CONNECTED"] = False
+            arancino.connected = False
 
         # 4 capire se aggiornare acnhe plugged a false. => se il device é ancora connesso metto True (
         # lo capisco verificando la lista dei dispositivi e usando grep in base al seriale della porta.
-            p["M_PLUGGED"] = (len(list(list_ports.grep(self.port.serial_number))) == 1 )
+            #arancino.plugged = (len(list(list_ports.grep(self.port.serial_number))) == 1)
+            arancino.plugged = (arancino.id in ArancinoPortsDiscovery().getPluggedArancinoPorts())
 
         # 3 fare la sync. puntuale chiamando il device store ed aggiornando "connected" a false
-        self.devicestore.hset(self.port.serial_number, "M_PLUGGED", p["M_PLUGGED"])
-        self.devicestore.hset(self.port.serial_number, "M_CONNECTED", p["M_CONNECTED"])
+        #TODO: non mi piace, arancino potrebbe essere None, forse é il caso di passare al
+        #   SerialHandler o l'id o tutto Arancino Port cosi fixo anche il punto di sopra
 
+        self.devicestore.hset(self.port.serial_number, "M_PLUGGED", arancino.plugged)
+        self.devicestore.hset(self.port.serial_number, "M_CONNECTED", arancino.connected)
+
+        # TODO verify is this log is compliant with the others
         LOG.info(self.log_prefix + "Port closed " + self.transport.serial.name)
         serial_connector = ports_connected.pop(self.port.serial_number)
 

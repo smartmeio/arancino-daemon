@@ -4,7 +4,7 @@ Copyright ® SmartMe.IO  2018
 
 LICENSE HERE
 
-Filename = arancino_port.py
+Filename:  arancino_port.py
 Author: Sergio Tomasello - sergio@smartme.io
 Date: 2019 01 14
 
@@ -14,14 +14,23 @@ from serial.tools import list_ports as list
 
 class ArancinoPortsDiscovery:
 
-    def __init__(self, devicestore):
-        self.__devicestore = devicestore
+    def __init__(self):
+        #self.__devicestore = devicestore
+        pass
 
     def getPluggedArancinoPorts(self):
-        __ports = list.comports()
-        __ports = self.__filterSerialPorts(__ports)
-        __ports = self.__transformInArancinoPorts(__ports)
-        return __ports
+
+
+        #sets the vendor and product ID to check when poll
+        #TODO probably change the discovery method instead of pid e vid
+        #self.vid = '2a03'
+        #self.pid = '804F'
+        #self.match = self.vid + ':' + self.pid
+
+        self.__ports = list.comports()
+        self.__ports = self.__filterSerialPorts(self.__ports)
+        self.__ports = self.__transformInArancinoPorts(self.__ports)
+        return self.__ports
 
     def __filterSerialPorts(self, ports):
         """
@@ -29,7 +38,6 @@ class ArancinoPortsDiscovery:
         :param ports: List of ListPortInfo
         :return ports_filterd: List
         """
-
         ports_filterd = []
 
         for port in ports:
@@ -60,7 +68,7 @@ class ArancinoPortsDiscovery:
 class ArancinoPort:
 
 
-    def __init__(self, enabled = False, autoconnection = False, alias = None, plugged = False, connected = False, port = None ):
+    def __init__(self, enabled = False, auto_connect = False, alias = None, plugged = False, connected = False, port = None ):
 
         # serial port
         self.port = port
@@ -70,7 +78,7 @@ class ArancinoPort:
 
         # configuration metadata
         self.enabled = enabled
-        self.autoconnection = autoconnection
+        self.auto_connect = auto_connect
         self.alias = alias
 
         # status metadata
@@ -87,7 +95,7 @@ class ArancinoPort:
     @port.setter
     def port(self, port):
         self.__port = port
-        #self.__id = port.serial_number
+        self.__id = port.serial_number
 
 
     @property
@@ -105,13 +113,13 @@ class ArancinoPort:
         self.__enabled = enabled
 
     @property
-    def autoconnection(self):
-        return self.__autoreconnect
+    def auto_connect(self):
+        return self.__auto_connect
 
 
-    @autoconnection.setter
-    def autoconnection(self, autoconnection):
-        self.__autoconnection = autoconnection
+    @auto_connect.setter
+    def auto_connect(self, auto_connect):
+        self.__auto_connect = auto_connect
 
 
     @property
@@ -142,3 +150,9 @@ class ArancinoPort:
     @connected.setter
     def connected(self, connected):
         self.__connected = connected
+
+
+
+#discovery = ArancinoPortsDiscovery(devicestore=None)
+#ports = discovery.getPluggedArancinoPorts()
+

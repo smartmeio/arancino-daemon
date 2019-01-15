@@ -4,17 +4,19 @@ Copyright ® SmartMe.IO  2018
 
 LICENSE HERE
 
-Filename = arancino_properties.py
+Filename = arancino_constants.py
 Author: Sergio Tomasello - sergio@smartme.io
 Date: 2019 01 14
 
 '''
 
 #Definitions for Serial Protocol
+
+#Special Chars
 CHR_EOT = chr(4)            #End Of Transmission Char
 CHR_SEP = chr(30)           #Separator Char
 
-
+#Commands sent by the microcontroller running Arancino Library
 CMD_SYS_START   = 'START' #Start Commmand
 
 CMD_APP_GET     = 'GET'     #Get value at key
@@ -30,10 +32,12 @@ CMD_APP_HSET    = 'HSET'    #
 CMD_APP_PUB     = 'PUB'     #
 CMD_APP_FLUSH   = 'FLUSH'   #Flush the current Database, delete all the keys from the current Database
 
+#Response codes to the microcontroller
 RSP_OK          = '100'     #OK Response
 RSP_HSET_NEW    = '101'     #Set value into a new field
 RSP_HSET_UPD    = '102'     #Set value into an existing field
 
+#Error codes
 ERR             = '200'     #Generic Error
 ERR_NULL        = '201'     #Null value
 ERR_SET         = '202'     #Error during SET
@@ -47,7 +51,7 @@ RSVD_KEY_MONITOR = "___MONITOR___"
 RSVD_KEY_LIBVERSION = "___LIBVERS___"
 RSVD_KEY_MODVERSION = "___MODVERS___"
 
-
+#Complete list of available commands
 __COMMANDLIST = [ CMD_SYS_START,
                 CMD_APP_GET,
                 CMD_APP_SET,
