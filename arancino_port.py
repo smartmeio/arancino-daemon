@@ -18,7 +18,7 @@ class ArancinoPortsDiscovery:
     def __init__(self):
         pass
 
-    def getPluggedArancinoPorts(self):
+    def getPluggedArancinoPorts(self, prev_plugged, connected):
         """
         Using python-serial library, it scans the serial ports applies filters and then
             returns a Dictionary of ArancinoPort
@@ -33,7 +33,7 @@ class ArancinoPortsDiscovery:
 
         self.__ports = list.comports()
         self.__ports = self.__filterSerialPorts(self.__ports)
-        self.__ports = self.__transformInArancinoPorts(self.__ports)
+        self.__ports = self.__transformInArancinoPorts(self.__ports, connected)
         return self.__ports
 
     def __filterSerialPorts(self, ports):
@@ -50,7 +50,7 @@ class ArancinoPortsDiscovery:
 
         return ports_filterd
 
-    def __transformInArancinoPorts(self, ports):
+    def __transformInArancinoPorts(self, ports, connected):
         """
         This methods creates a new structure starting from a List of ListPortInfo.
         A base element of the new structure is composed by some metadata and
@@ -63,10 +63,22 @@ class ArancinoPortsDiscovery:
         new_ports_struct = {}
 
         for port in ports:
+
             p = ArancinoPort(plugged=True, port=port)
+
+            if p.id in connected:
+                p.connected = True
+
             new_ports_struct[p.id] = p
 
         return new_ports_struct
+
+
+    '''
+    def __encrypt_string(self, hash_string):
+        sha_signature = hashlib.sha256(hash_string.encode()).hexdigest()
+        return sha_signature
+    '''
 
 
 class ArancinoPort:

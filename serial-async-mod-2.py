@@ -13,15 +13,16 @@ Version: 0.1.0
 
 
 
-import time,  arancino_conf as conf, uuid, hashlib, json, signal
-import asyncio, serial_asyncio, redis #external
-from serial.tools import list_ports
+import time,  arancino_conf as conf, signal#, uuid, hashlib, json,
+import asyncio, serial_asyncio#, redis #external
+#from serial.tools import list_ports
 from threading import Thread
 from time import localtime, strftime
 import arancino_constants as const
 from arancino_exceptions import InvalidArgumentsNumberException, InvalidCommandException, RedisGenericException
-from arancino_port import ArancinoPort, ArancinoPortsDiscovery
+from arancino_port import ArancinoPortsDiscovery
 from arancino_datastore import ArancinoDataStore
+from arancino_synch import ArancinoSynch
 
 #use in Lightning Rod
 #from oslo_log import log as logging
@@ -66,50 +67,22 @@ class SerialManager():
 
 class SerialMonitor (Thread):
 
-    ### keys used in the list of the ports
-
-    # additional metadata keys
-    __M_ID = "M_ID"
-    __M_ENABLED = "M_ENABLED"
-    __M_AUTO_CONNECT = "M_AUTO_CONNECT"
-    __M_CONNECTED = "M_CONNECTED"
-    __M_PLUGGED = "M_PLUGGED"
-    __M_ALIAS = "M_ALIAS"
-    __M_DATETIME = "M_DATETIME" #TODO contestualizzare in maniera piu opportuna questo campo: (ultima modifica? ultima rilevazione ?)
-
-    # ports info keys
-    __P_DEVICE = "P_DEVICE"
-    __P_NAME = "P_NAME"
-    __P_DESCRIPTION = "P_DESCRIPTION"
-    __P_HWID = "P_HWID"
-    __P_VID = "P_VID"
-    __P_PID = "P_PID"
-    __P_SERIALNUMBER = "P_SERIALNUMBER"
-    __P_LOCATION = "P_LOCATION"
-    __P_MANUFACTURER = "P_MANUFACTURER"
-    __P_PRODUCT = "P_PRODUCT"
-    __P_INTERFACE = "P_INTERFACE"
-
-    # object keys
-    __O_PORT = "O_PORT" #ListPortInfo
-    __O_SERIAL = "O_SERIAL" #SerialConnector
-
-
     def __init__(self, name):
 
         Thread.__init__(self)
 
-        self.arancinoDs = ArancinoDataStore()
+        #self.arancinoDs = ArancinoDataStore()
+        #self.arancinoSy = ArancinoSynch()
 
-        self.datastore = self.arancinoDs.getDataStore()
+        global arancinoDs, arancinoDy
+
+        self.datastore = arancinoDs.getDataStore()
         self.datastore.flushdb()
         self.datastore.set(const.RSVD_KEY_MODVERSION, conf.version)
 
-        self.devicestore = self.arancinoDs.getDeviceStore()
+        self.devicestore = arancinoDs.getDeviceStore()
 
         self.kill_now = False
-
-        self.discovery = ArancinoPortsDiscovery()
 
 
         '''
@@ -154,7 +127,7 @@ class SerialMonitor (Thread):
 
     def run(self):
         # Polls every 10 seconds if there's new serial port to connect to
-        global ports_plugged, ports_connected
+        global ports_plugged, ports_connected, arancinoDs, arancinoSy
 
         while(True):
 
@@ -180,12 +153,13 @@ class SerialMonitor (Thread):
             LOG.debug(ports_plugged)
             '''
 
-            ports_plugged = self.discovery.getPluggedArancinoPorts()
+            ports_plugged = arancinoDy.getPluggedArancinoPorts(ports_plugged, ports_connected)
             LOG.info("Plugged Serial Ports Retrieved: " + str(len(ports_plugged)))
 
 
             # first synchronization in cycle
-            self.syncPorts(ports_plugged)
+            #self.syncPorts(ports_plugged)
+            arancinoSy.synchPorts(ports_plugged)
 
             #retrieve if there are new ports to connect to - is a list of type Serial.Port
             if ports_plugged:
@@ -197,7 +171,8 @@ class SerialMonitor (Thread):
                     self.connectPorts(ports_to_connect)
 
             # second synchronization in cycle
-            self.syncPorts(ports_plugged)
+            #self.syncPorts(ports_plugged)
+            arancinoSy.synchPorts(ports_plugged)
 
             time.sleep(conf.cycle_time)
 
@@ -246,95 +221,6 @@ class SerialMonitor (Thread):
             ports_connected[arancino.id] = serialConnector
             serialConnector.start()
 
-    def syncPorts(self, ports):
-        """
-        Makes a synchroinization bewteen the list of plugged ports and the device store (redis db 1)
-        Some values are to be considered as Status Metadata becouse the rappresent the current status of the port,
-        others are to be considered as Configuration Metadata becouse they are setted up by the user.
-        E.g. Status Metadata are: Plugged, Connected,...
-            Configuration Metadata are: Enabled, Alias,...
-
-        Comfiguration Metadata are ever synched from device store to the in memory data structer (plugged ports),
-        meanwhile Status Port are synched from data structure to the device store.
-        :param ports:
-        :return:
-        """
-
-
-        for id, arancino in ports.items():
-
-            if self.devicestore.exists(id) == 1: # the port is already registered in the device store
-                '''
-                Configuration Metadata
-                
-                Gets from device store and synch in memory data structure every time except the first time a port is plugged 
-                Uses __checkValues function to automatically convert the stored values
-                 
-                '''
-                arancino.enabled = self.__checkValues(self.devicestore.hget(id , self.__M_ENABLED), "BOOL") #(self.devicestore.hget(port[self.__M_ID], self.__M_ENABLED).upper() == "TRUE")
-                arancino.auto_connect = self.__checkValues(self.devicestore.hget(id, self.__M_AUTO_CONNECT), "BOOL")
-                arancino.alias = self.devicestore.hget(id, self.__M_ALIAS)
-
-
-            else:
-                '''
-                The port does not exist in the device store and must be registered. This runs only 
-                the first time a port is plugged and all ports data are stored into device store. 
-                Boolean and Integer object types and None will be stored as String automatically
-                
-                Data are stored using the port id as key in hash of redis, the defined above keys as fields, and values as values
-                '''
-                self.devicestore.hset(id, self.__M_ENABLED, arancino.enabled)
-                self.devicestore.hset(id, self.__M_AUTO_CONNECT, arancino.auto_connect)
-                self.devicestore.hset(id, self.__M_ALIAS, arancino.alias)
-                self.devicestore.hset(id, self.__P_NAME, arancino.port.name)
-                self.devicestore.hset(id, self.__P_DESCRIPTION, arancino.port.description)
-                self.devicestore.hset(id, self.__P_HWID, arancino.port.hwid)
-                self.devicestore.hset(id, self.__P_VID, hex(arancino.port.vid))
-                self.devicestore.hset(id, self.__P_PID, hex(arancino.port.pid))
-                self.devicestore.hset(id, self.__P_SERIALNUMBER, arancino.port.serial_number)
-                self.devicestore.hset(id, self.__P_MANUFACTURER, arancino.port.manufacturer)
-                self.devicestore.hset(id, self.__P_PRODUCT, arancino.port.product)
-
-
-            '''
-            Status Metadata
-            
-            Updates metadata in the list (from list to redis) every time
-            '''
-            self.devicestore.hset(id, self.__M_PLUGGED, arancino.plugged)
-            self.devicestore.hset(id, self.__M_CONNECTED, arancino.connected)
-            self.devicestore.hset(id, self.__P_DEVICE, arancino.port.device)
-            self.devicestore.hset(id, self.__P_LOCATION, arancino.port.location)
-            self.devicestore.hset(id, self.__P_INTERFACE, arancino.port.interface)
-            #TODO mamage datetime
-            #self.devicestore.hset(id, self.__M_DATETIME, strftime("%Y-%m-%d %H:%M:%S", localtime()))
-
-    '''
-    def __encrypt_string(self, hash_string):
-        sha_signature = hashlib.sha256(hash_string.encode()).hexdigest()
-        return sha_signature
-    '''
-
-    def __checkValues(self, value, type):
-        '''
-        :param value: String Value to convert
-        :param type: Oject Type in which the Value is to be converted
-        :return: Converted Object
-        '''
-
-        __val = None
-
-        if type.upper() == "BOOL" or type.upper() == "BOOLEAN":
-            __val = (value.upper() == "TRUE")
-        # TODO datetime
-        # TODO put datetime format in configuration file
-        else:
-            if type.upper() == "DATETIME":
-                __val = time.strptime(value, "%Y-%m-%d %H:%M:%S")
-
-        return __val
-
 class SerialConnector (Thread):
 
     def __init__(self, name, port, datastore, devicestore, baudrate = 250000):
@@ -382,7 +268,7 @@ class SerialHandler(asyncio.Protocol):
         transport.serial.rts = False
 
     def connection_lost(self, exc):
-        global ports_plugged, ports_connected
+        global ports_plugged, ports_connected, arancinoSy, arancinoDy
 
         # 1 recupare oggetto dalla plugged port in base a self.port.serialnumber
         # TODO here is used serial_number, because id is not available
@@ -392,24 +278,31 @@ class SerialHandler(asyncio.Protocol):
         arancino = ports_plugged[self.port.serial_number]
 
         if arancino is not None:
+
+
         # 2 aggiornare lo stato "connected" a false
             arancino.connected = False
 
         # 4 capire se aggiornare acnhe plugged a false. => se il device é ancora connesso metto True (
         # lo capisco verificando la lista dei dispositivi e usando grep in base al seriale della porta.
             #arancino.plugged = (len(list(list_ports.grep(self.port.serial_number))) == 1)
-            arancino.plugged = (arancino.id in ArancinoPortsDiscovery().getPluggedArancinoPorts())
+            arancino.plugged = (arancino.id in arancinoDy.getPluggedArancinoPorts(ports_plugged, ports_connected))
 
         # 3 fare la sync. puntuale chiamando il device store ed aggiornando "connected" a false
         #TODO: non mi piace, arancino potrebbe essere None, forse é il caso di passare al
         #   SerialHandler o l'id o tutto Arancino Port cosi fixo anche il punto di sopra
-
+        '''
         self.devicestore.hset(self.port.serial_number, "M_PLUGGED", arancino.plugged)
         self.devicestore.hset(self.port.serial_number, "M_CONNECTED", arancino.connected)
+        '''
+        arancinoSy.synchPort(arancino)
+
 
         # TODO verify is this log is compliant with the others
         LOG.info(self.log_prefix + "Port closed " + self.transport.serial.name)
         serial_connector = ports_connected.pop(self.port.serial_number)
+
+
 
         ####TODO Test DEL
         del serial_connector
@@ -1006,6 +899,11 @@ ports_plugged = {}
 # contains all the connected serial ports. Object of type Thread - SerialConnector
 #global ports_connected
 ports_connected = {}
+
+arancinoDs = ArancinoDataStore()
+arancinoSy = ArancinoSynch()
+arancinoDy = ArancinoPortsDiscovery()
+
 
 serialManager = SerialManager()
 serialManager.main()

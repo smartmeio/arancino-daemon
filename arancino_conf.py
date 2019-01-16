@@ -33,7 +33,7 @@ hwid = [
 '''
 
 # logger configuration
-__name = 'Arancino Serial Module'
+__name = 'Arancino Serial'
 __filename = 'arancino.log'
 __format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 

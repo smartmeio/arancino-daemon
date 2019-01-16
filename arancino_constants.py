@@ -68,3 +68,32 @@ __COMMANDLIST = [ CMD_SYS_START,
 
 def getCommandsList():
     return __COMMANDLIST
+
+
+#Keys used in to store port information into devicestore
+
+# additional metadata keys
+M_ID              = "M_ID"
+M_ENABLED         = "M_ENABLED"
+M_AUTO_CONNECT    = "M_AUTO_CONNECT"
+M_CONNECTED       = "M_CONNECTED"
+M_PLUGGED         = "M_PLUGGED"
+M_ALIAS           = "M_ALIAS"
+M_DATETIME        = "M_DATETIME" #TODO contestualizzare in maniera piu opportuna questo campo: (ultima modifica? ultima rilevazione ?)
+
+# ports info keys
+P_DEVICE          = "P_DEVICE"
+P_NAME            = "P_NAME"
+P_DESCRIPTION     = "P_DESCRIPTION"
+P_HWID            = "P_HWID"
+P_VID             = "P_VID"
+P_PID             = "P_PID"
+P_SERIALNUMBER    = "P_SERIALNUMBER"
+P_LOCATION        = "P_LOCATION"
+P_MANUFACTURER    = "P_MANUFACTURER"
+P_PRODUCT         = "P_PRODUCT"
+P_INTERFACE       = "P_INTERFACE"
+
+# object keys
+#O_PORT            = "O_PORT" #ListPortInfo
+#O_SERIAL          = "O_SERIAL" #SerialConnector
