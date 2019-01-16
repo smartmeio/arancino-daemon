@@ -71,7 +71,7 @@ class ArancinoPortsDiscovery:
 
 class ArancinoPort:
 
-    def __init__(self, enabled=False, auto_connect=False, alias=None, plugged=False, connected=False, port=None):
+    def __init__(self, enabled=False, auto_connect=False, alias="", plugged=False, connected=False, port=None):
         # serial port
         self.port = port
 

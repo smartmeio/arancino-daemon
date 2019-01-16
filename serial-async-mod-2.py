@@ -4,10 +4,10 @@ Copyright ® SmartMe.IO  2018
 
 LICENSE HERE
 
-Filename:
+Filename: arancino_serial.py
 Author: Sergio Tomasello - sergio@smartme.io
 Date: 2018 10 01
-Version: 0.0.3
+Version: 0.1.0
 
 '''
 
@@ -21,6 +21,7 @@ from time import localtime, strftime
 import arancino_constants as const
 from arancino_exceptions import InvalidArgumentsNumberException, InvalidCommandException, RedisGenericException
 from arancino_port import ArancinoPort, ArancinoPortsDiscovery
+from arancino_datastore import ArancinoDataStore
 
 #use in Lightning Rod
 #from oslo_log import log as logging
@@ -98,27 +99,13 @@ class SerialMonitor (Thread):
 
         Thread.__init__(self)
 
-        #sets the vendor and product ID to check when poll
-        #TODO probably change the discovery method instead of pid e vid
-        #self.vid = '2a03'
-        #self.pid = '804F'
-        #self.match = self.vid + ':' + self.pid
+        self.arancinoDs = ArancinoDataStore()
 
-        #redis_pool_datastore = redis.ConnectionPool(host=conf.redis['host'], port=conf.redis['port'], db=conf.redis['db'], decode_responses=conf.redis['dcd_resp'])
-        #redis_pool_devicestore = redis.ConnectionPool(host=conf.redis['host'], port=conf.redis['port'], db=1, decode_responses=conf.redis['dcd_resp'])
-
-        redis_pool_datastore = redis.ConnectionPool(host=conf.redis_dts['host'], port=conf.redis_dts['port'],
-                                                     db=conf.redis_dts['db'],
-                                                     decode_responses=conf.redis_dts['dcd_resp'])
-        redis_pool_devicestore = redis.ConnectionPool(host=conf.redis_dvs['host'], port=conf.redis_dvs['port'],
-                                                     db=conf.redis_dvs['db'],
-                                                     decode_responses=conf.redis_dvs['dcd_resp'])
-
-        self.datastore = redis.Redis(connection_pool=redis_pool_datastore)
+        self.datastore = self.arancinoDs.getDataStore()
         self.datastore.flushdb()
-        self.datastore.set(const.RSVD_KEY_MODVERSION, "0.0.3")
+        self.datastore.set(const.RSVD_KEY_MODVERSION, conf.version)
 
-        self.devicestore = redis.Redis(connection_pool=redis_pool_devicestore)
+        self.devicestore = self.arancinoDs.getDeviceStore()
 
         self.kill_now = False
 
@@ -284,7 +271,7 @@ class SerialMonitor (Thread):
                 Uses __checkValues function to automatically convert the stored values
                  
                 '''
-                arancino.enabled = self.__checkValues(self.devicestore.hget(id , self.__M_ENABLED),"BOOL") #(self.devicestore.hget(port[self.__M_ID], self.__M_ENABLED).upper() == "TRUE")
+                arancino.enabled = self.__checkValues(self.devicestore.hget(id , self.__M_ENABLED), "BOOL") #(self.devicestore.hget(port[self.__M_ID], self.__M_ENABLED).upper() == "TRUE")
                 arancino.auto_connect = self.__checkValues(self.devicestore.hget(id, self.__M_AUTO_CONNECT), "BOOL")
                 arancino.alias = self.devicestore.hget(id, self.__M_ALIAS)
 

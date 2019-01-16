@@ -2,6 +2,9 @@
 import logging, sys
 from logging.handlers import RotatingFileHandler
 
+#version
+version = "0.1.0"
+
 #redis connection parameter
 
 #datastore
@@ -18,7 +21,7 @@ redis_dvs = {'host': 'localhost',
 
 
 #cycle interval time
-cycle_time = 1
+cycle_time = 10
 
 # allowed vid and pid to connect to
 '''
