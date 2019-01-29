@@ -76,6 +76,7 @@ class ArancinoSynch:
             arancino.alias = self.__devicestore.hget(arancino.id, const.M_ALIAS)
 
 
+
         else:
             '''
             The port does not exist in the device store and must be registered. This runs only 

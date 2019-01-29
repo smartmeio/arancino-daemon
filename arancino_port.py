@@ -19,6 +19,7 @@ under the License
 '''
 
 from serial.tools import list_ports as list
+import arancino_conf as conf
 
 
 class ArancinoPortsDiscovery:
@@ -32,12 +33,6 @@ class ArancinoPortsDiscovery:
             returns a Dictionary of ArancinoPort
         :return Dictionary of ArancinoPort
         """
-
-        #sets the vendor and product ID to check when poll
-        #TODO probably change the discovery method instead of pid e vid
-        #self.vid = '2a03'
-        #self.pid = '804F'
-        #self.match = self.vid + ':' + self.pid
 
         self.__ports = list.comports()
         self.__ports = self.__filterSerialPorts(self.__ports)
@@ -72,7 +67,7 @@ class ArancinoPortsDiscovery:
 
         for port in ports:
 
-            p = ArancinoPort(plugged=True, port=port)
+            p = ArancinoPort(port, plugged=True)
 
             if p.id in connected:
                 p.connected = True
@@ -91,7 +86,7 @@ class ArancinoPortsDiscovery:
 
 class ArancinoPort:
 
-    def __init__(self, enabled=False, auto_connect=False, alias="", plugged=False, connected=False, port=None):
+    def __init__(self, port, enabled=False, auto_connect=False, alias="", plugged=False, connected=False, hide=False):
         # serial port
         self.port = port
 
@@ -102,6 +97,7 @@ class ArancinoPort:
         self.enabled = enabled
         self.auto_connect = auto_connect
         self.alias = alias
+        self.hide = hide
 
         # status metadata
         self.plugged = plugged
@@ -152,6 +148,16 @@ class ArancinoPort:
     @alias.setter
     def alias(self, alias):
         self.__alias = alias
+
+
+    @property
+    def hide(self):
+        return self.__hide
+
+
+    @connected.setter
+    def hide(self, hide):
+        self.hide = hide
 
 
     @property

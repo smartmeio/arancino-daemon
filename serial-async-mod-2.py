@@ -128,6 +128,8 @@ class SerialMonitor (Thread):
         #    print(ports_connected[port])
         #    ports_connected[port].close()
 
+        # TODO 3) set Plugged and Connecte Metadata to False in every PORT in devicestore
+
         LOG.info("Serial Ports Connection Closed")
         LOG.info("Exiting completed, Bye!")
         ''' EXIT PROCEDURE STOP'''
@@ -327,10 +329,10 @@ class SerialHandler(asyncio.Protocol):
 
             try:
                 # parse and check command
-                cmd = self._parseCommands(self._partial)
+                cmd = self.__parseCommands(self._partial)
 
                 # then execute it
-                response = self._execCommand(cmd)
+                response = self.__execCommand(cmd)
 
 
             except InvalidArgumentsNumberException as ex:
@@ -363,7 +365,7 @@ class SerialHandler(asyncio.Protocol):
         #else:
         #    print('partial command received: ', datadec.strip('\n').strip('\t'))
 
-    def _parseCommands(self, command):
+    def __parseCommands(self, command):
         #decode the received commands
         #cmd = command.decode().strip()
 
@@ -381,67 +383,51 @@ class SerialHandler(asyncio.Protocol):
 
         return cmd
 
-    def _execCommand(self, cmd):
+    def __execCommand(self, cmd):
 
         idx = len(cmd)
         parameters = cmd[1:idx]
-        '''
-        _OPTIONS = {
-            const.CMD_SYS_START: self._OPTS_START,
-            const.CMD_APP_SET: self._OPTS_SET,
-            const.CMD_APP_GET: self._OPTS_GET,
-            const.CMD_APP_DEL: self._OPTS_DEL,
-            const.CMD_APP_KEYS: self._OPTS_KEYS,
-            const.CMD_APP_HSET: self._OPTS_HSET,
-            const.CMD_APP_HGETALL: self._OPTS_HGETALL,
-            const.CMD_APP_HKEYS: self._OPTS_HKEYS,
-            const.CMD_APP_HVALS: self._OPTS_HVALS,
-            const.CMD_APP_HDEL: self._OPTS_HDEL
-        }
 
-        _opts = _OPTIONS.get(cmd[0], lambda : const.ERR_CMD_NOT_FND + const.CHR_SEP)
-        return _opts(parameters)
-        '''
         try:
             # START
             if cmd[0] == const.CMD_SYS_START:
-                return self._OPTS_START()
+                return self.__OPTS_START()
             # SET
             elif cmd[0] == const.CMD_APP_SET:
-                return self._OPTS_SET(parameters)
+                return self.__OPTS_SET(parameters)
             # GET
             elif cmd[0] == const.CMD_APP_GET:
-                return self._OPTS_GET(parameters)
+                return self.__OPTS_GET(parameters)
             # DEL
             elif cmd[0] == const.CMD_APP_DEL:
-                return self._OPTS_DEL(parameters)
+                return self.__OPTS_DEL(parameters)
             # KEYS
             elif cmd[0] == const.CMD_APP_KEYS:
-                return self._OPTS_KEYS(parameters)
+                return self.__OPTS_KEYS(parameters)
             # HSET
             elif cmd[0] == const.CMD_APP_HSET:
-                return self._OPTS_HSET(parameters)
+                return self.__OPTS_HSET(parameters)
             # HGET
             elif cmd[0] == const.CMD_APP_HGET:
-                return self._OPTS_HGET(parameters)
+                return self.__OPTS_HGET(parameters)
             # HGETALL
             elif cmd[0] == const.CMD_APP_HGETALL:
-                return self._OPTS_HGETALL(parameters)
+                return self.__OPTS_HGETALL(parameters)
             # HKEYS
             elif cmd[0] == const.CMD_APP_HKEYS:
-                return self._OPTS_HKEYS(parameters)
+                return self.__OPTS_HKEYS(parameters)
             # HVALS
             elif cmd[0] == const.CMD_APP_HVALS:
-                return self._OPTS_HVALS(parameters)
+                return self.__OPTS_HVALS(parameters)
             # HDEL
             elif cmd[0] == const.CMD_APP_HDEL:
-                return self._OPTS_HDEL(parameters)
+                return self.__OPTS_HDEL(parameters)
             # PUB
             elif cmd[0] == const.CMD_APP_PUB:
-                return self._OPTS_PUB(parameters)
+                return self.__OPTS_PUB(parameters)
             # FLUSH
             elif cmd[0] == const.CMD_APP_FLUSH:
-                return self._OPTS_FLUSH(parameters)
+                return self.__OPTS_FLUSH(parameters)
             # Default
             else:
                 return const.ERR_CMD_NOT_FND + const.CHR_SEP
@@ -451,7 +437,7 @@ class SerialHandler(asyncio.Protocol):
             raise ex
 
     # START
-    def _OPTS_START(self):
+    def __OPTS_START(self):
         '''
         Microcontroller sends START command to start communication
 
@@ -462,7 +448,7 @@ class SerialHandler(asyncio.Protocol):
         return const.RSP_OK + const.CHR_EOT
 
     # SET
-    def _OPTS_SET(self, args):
+    def __OPTS_SET(self, args):
 
         '''
         Set key to hold the string value. If key already holds a value,
@@ -504,7 +490,7 @@ class SerialHandler(asyncio.Protocol):
                     n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
     # GET
-    def _OPTS_GET(self, args):
+    def __OPTS_GET(self, args):
 
         '''
         Get the value of key. If the key does not exist the special value nil is returned.
@@ -545,7 +531,7 @@ class SerialHandler(asyncio.Protocol):
                     n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
     # DEL
-    def _OPTS_DEL(self, args):
+    def __OPTS_DEL(self, args):
 
         '''
         Removes the specified keys. A key is ignored if it does not exist.
@@ -575,7 +561,7 @@ class SerialHandler(asyncio.Protocol):
                     n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
     # KEYS
-    def _OPTS_KEYS(self, args):
+    def __OPTS_KEYS(self, args):
 
         '''
         Returns all keys matching pattern.
@@ -604,7 +590,7 @@ class SerialHandler(asyncio.Protocol):
             return const.RSP_OK + const.CHR_EOT
 
     # HSET
-    def _OPTS_HSET(self, args):
+    def __OPTS_HSET(self, args):
 
         '''
         Sets field in the hash stored at key to value.
@@ -645,7 +631,7 @@ class SerialHandler(asyncio.Protocol):
                     n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
     # HGET
-    def _OPTS_HGET(self, args):
+    def __OPTS_HGET(self, args):
         '''
         Returns the value associated with field in the hash stored at key.
             https://redis.io/commands/hget
@@ -685,7 +671,7 @@ class SerialHandler(asyncio.Protocol):
                     n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
     # HGETALL
-    def _OPTS_HGETALL(self, args):
+    def __OPTS_HGETALL(self, args):
 
         '''
         Returns all fields and values of the hash stored at key.
@@ -725,7 +711,7 @@ class SerialHandler(asyncio.Protocol):
                     n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
     # HKEYS
-    def _OPTS_HKEYS(self, args):
+    def __OPTS_HKEYS(self, args):
 
         '''
         Returns all field names in the hash stored at key.
@@ -760,7 +746,7 @@ class SerialHandler(asyncio.Protocol):
                     n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
     # HVALS
-    def _OPTS_HVALS(self, args):
+    def __OPTS_HVALS(self, args):
         '''
         Returns all values in the hash stored at key.
             https://redis.io/commands/hvals
@@ -793,7 +779,7 @@ class SerialHandler(asyncio.Protocol):
                     n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
     # HDEL
-    def _OPTS_HDEL(self, args):
+    def __OPTS_HDEL(self, args):
         '''
         Removes the specified fields from the hash stored at key.
         Specified fields that do not exist within this hash are ignored.
@@ -828,7 +814,7 @@ class SerialHandler(asyncio.Protocol):
                     n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
     # PUB
-    def _OPTS_PUB(self, args):
+    def __OPTS_PUB(self, args):
         '''
         Posts a message to the given channel. Return the number of clients 
         that received the message.
@@ -861,7 +847,7 @@ class SerialHandler(asyncio.Protocol):
                     n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
     # FLUSH
-    def _OPTS_FLUSH(self, args):
+    def __OPTS_FLUSH(self, args):
         '''
         Delete all the keys of the currently selected DB. 
         This command never fails.

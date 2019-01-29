@@ -81,26 +81,27 @@ def getCommandsList():
 #Keys used in to store port information into devicestore
 
 # additional metadata keys
-M_ID              = "M_ID"
-M_ENABLED         = "M_ENABLED"
-M_AUTO_CONNECT    = "M_AUTO_CONNECT"
-M_CONNECTED       = "M_CONNECTED"
-M_PLUGGED         = "M_PLUGGED"
-M_ALIAS           = "M_ALIAS"
-M_DATETIME        = "M_DATETIME" #TODO contestualizzare in maniera piu opportuna questo campo: (ultima modifica? ultima rilevazione ?)
+M_ID              = "M_ID"              # String
+M_ENABLED         = "M_ENABLED"         # Boolean
+M_AUTO_CONNECT    = "M_AUTO_CONNECT"    # Boolean
+M_CONNECTED       = "M_CONNECTED"       # Boolean
+M_PLUGGED         = "M_PLUGGED"         # Boolean
+M_ALIAS           = "M_ALIAS"           # Boolean
+M_DATETIME        = "M_DATETIME"        # Datetime #TODO contestualizzare in maniera piu opportuna questo campo: (ultima modifica? ultima rilevazione ?)
+M_HIDE_DEVICE     = "M_HIDE_DEVICE"     # Boolean
 
 # ports info keys
-P_DEVICE          = "P_DEVICE"
-P_NAME            = "P_NAME"
-P_DESCRIPTION     = "P_DESCRIPTION"
-P_HWID            = "P_HWID"
-P_VID             = "P_VID"
-P_PID             = "P_PID"
-P_SERIALNUMBER    = "P_SERIALNUMBER"
-P_LOCATION        = "P_LOCATION"
-P_MANUFACTURER    = "P_MANUFACTURER"
-P_PRODUCT         = "P_PRODUCT"
-P_INTERFACE       = "P_INTERFACE"
+P_DEVICE          = "P_DEVICE"          # String
+P_NAME            = "P_NAME"            # String
+P_DESCRIPTION     = "P_DESCRIPTION"     # String
+P_HWID            = "P_HWID"            # String
+P_VID             = "P_VID"             # Number in Hex format
+P_PID             = "P_PID"             # Number in Hex
+P_SERIALNUMBER    = "P_SERIALNUMBER"    # String (Hex)
+P_LOCATION        = "P_LOCATION"        # Number-Number
+P_MANUFACTURER    = "P_MANUFACTURER"    # String
+P_PRODUCT         = "P_PRODUCT"         # String
+P_INTERFACE       = "P_INTERFACE"       # String
 
 # object keys
 #O_PORT            = "O_PORT" #ListPortInfo
