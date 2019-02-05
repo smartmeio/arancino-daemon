@@ -86,7 +86,7 @@ class ArancinoPortsDiscovery:
 
 class ArancinoPort:
 
-    def __init__(self, port, enabled=False, auto_connect=False, alias="", plugged=False, connected=False, hide=False):
+    def __init__(self, port, enabled=conf.port['enabled'], auto_connect=conf.port['auto_connect'], alias="", plugged=False, connected=False, hide=conf.port['hide']):
         # serial port
         self.port = port
 
@@ -155,9 +155,9 @@ class ArancinoPort:
         return self.__hide
 
 
-    @connected.setter
+    @hide.setter
     def hide(self, hide):
-        self.hide = hide
+        self.__hide = hide
 
 
     @property

@@ -106,3 +106,8 @@ P_INTERFACE       = "P_INTERFACE"       # String
 # object keys
 #O_PORT            = "O_PORT" #ListPortInfo
 #O_SERIAL          = "O_SERIAL" #SerialConnector
+
+
+# ports_plugged positionals
+IDX_SERIAL_CONNECTOR = 0
+IDX_SERIAL_TRANSPORT = 1

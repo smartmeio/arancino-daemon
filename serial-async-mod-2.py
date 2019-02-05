@@ -19,6 +19,21 @@ under the License
 '''
 
 
+'''
+
+Dict ports_plugged = { 
+    "port id" : ArancinoPort
+} 
+
+
+Dict ports_connected = {
+    "port id" : [SerialConnector, SerialTransport]
+}
+
+
+'''
+
+
 
 import time,  arancino_conf as conf, signal#, uuid, hashlib, json,
 import asyncio, serial_asyncio#, redis #external
@@ -30,6 +45,7 @@ from arancino_exceptions import InvalidArgumentsNumberException, InvalidCommandE
 from arancino_port import ArancinoPortsDiscovery
 from arancino_datastore import ArancinoDataStore
 from arancino_synch import ArancinoSynch
+import serial
 
 #use in Lightning Rod
 #from oslo_log import log as logging
@@ -164,29 +180,31 @@ class SerialMonitor (Thread):
 
             ports_plugged = arancinoDy.getPluggedArancinoPorts(ports_plugged, ports_connected)
             LOG.info("Plugged Serial Ports Retrieved: " + str(len(ports_plugged)))
-
+            LOG.info("Connected Serial Ports: " + str(len(ports_connected)))
 
             # first synchronization in cycle
-            #self.syncPorts(ports_plugged)
             arancinoSy.synchPorts(ports_plugged)
 
             #retrieve if there are new ports to connect to - is a list of type Serial.Port
             if ports_plugged:
-                ports_to_connect = self.retrieveNewPorts(ports_plugged, ports_connected)
+                ports_to_connect = self.__retrieveNewPorts(ports_plugged, ports_connected)
                 LOG.info("Connectable Serial Ports Retrieved: " + str(len(ports_to_connect)))
 
                 #finally connect the new ports
                 if ports_to_connect:
-                    self.connectPorts(ports_to_connect)
+                    self.__connectPorts(ports_to_connect)
+
+
+            self.__checkEnabledPorts(ports_plugged, ports_connected)
+
 
             # second synchronization in cycle
-            #self.syncPorts(ports_plugged)
             arancinoSy.synchPorts(ports_plugged)
 
             time.sleep(conf.cycle_time)
 
 
-    def retrieveNewPorts(self, plugged, connected):
+    def __retrieveNewPorts(self, plugged, connected):
         """
         Retrieves new ports to connect to.
         Starting from plugged ports, it checks if a port is contained inside
@@ -210,7 +228,7 @@ class SerialMonitor (Thread):
         return ports_to_connect
 
 
-    def connectPorts(self, ports_to_connect):
+    def __connectPorts(self, ports_to_connect):
         """
         For each ports in List, creates a new instance of Serial Connector and the starts it.
         Serial Connector instance is stored into a List of connected port using the
@@ -227,8 +245,32 @@ class SerialMonitor (Thread):
             serialConnector = SerialConnector("Thread-" + arancino.port.device, arancino.port, self.datastore, self.devicestore, baudrate = 4000000)
 
             arancino.connected = True
-            ports_connected[arancino.id] = serialConnector
+            ports_connected[arancino.id] = [serialConnector, None] # SerialConnector and SerialTransport
             serialConnector.start()
+
+
+    def __checkEnabledPorts(self, plugged, connected):
+        # checks if a port has been DISABLED
+        # has sense only with Arancino Synch
+
+
+        to_be_removed = []
+        for id, p_connected in ports_connected.items():
+            # ports_plugged[id]
+            arancino = plugged[id]
+            if arancino is not None and not arancino.enabled:
+                transport = p_connected[const.IDX_SERIAL_TRANSPORT]
+                transport.close()
+                arancino.connected = False
+                arancino.plugged = (arancino.id in arancinoDy.getPluggedArancinoPorts(plugged, connected))
+                # TODO verify is this log is compliant with the others
+                LOG.info("Port Closed: " + arancino.alias + " " + arancino.port.device + " - " + arancino.id)
+                to_be_removed.append(id)
+
+
+        for id in to_be_removed:
+            connected.pop(id)
+
 
 class SerialConnector (Thread):
 
@@ -262,7 +304,7 @@ class SerialConnector (Thread):
 
 
 class SerialHandler(asyncio.Protocol):
-    def __init__(self, datastore = None, devicestore = None, port = None):
+    def __init__(self, datastore=None, devicestore=None, port=None):
         self.datastore = datastore
         self.devicestore = devicestore
         self.port = port
@@ -275,6 +317,11 @@ class SerialHandler(asyncio.Protocol):
         LOG.info(self.log_prefix + "Port opened: " + transport.serial.name)
         LOG.debug(self.log_prefix + "Port opened: " + str(transport))
         transport.serial.rts = False
+
+        global ports_connected
+        ports_connected[self.port.serial_number][const.IDX_SERIAL_TRANSPORT] = transport
+
+
 
     def connection_lost(self, exc):
         global ports_plugged, ports_connected, arancinoSy, arancinoDy
@@ -311,11 +358,8 @@ class SerialHandler(asyncio.Protocol):
         LOG.info(self.log_prefix + "Port closed " + self.transport.serial.name)
         serial_connector = ports_connected.pop(self.port.serial_number)
 
-
-
-        ####TODO Test DEL
         del serial_connector
-        asyncio.get_event_loop().stop()
+
 
     def data_received(self, data):
 
@@ -340,7 +384,7 @@ class SerialHandler(asyncio.Protocol):
                 response = ex.error_code + const.CHR_EOT
 
             except InvalidCommandException as ex:
-                LOG.warn(self.log_prefix + str(ex))
+                LOG.warning(self.log_prefix + str(ex))
                 response = ex.error_code + const.CHR_EOT
 
 

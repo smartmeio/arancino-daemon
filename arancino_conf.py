@@ -43,6 +43,15 @@ redis_dvs = {'host': 'localhost',
 #cycle interval time
 cycle_time = 10
 
+
+# default arancino port configuration
+
+port = {
+    'enabled': True,
+    'auto_connect': False,
+    'hide': False
+}
+
 # allowed vid and pid to connect to
 '''
 hwid = [
