@@ -17,7 +17,7 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 '''
-
+from arancino_constants import M_PLUGGED
 from arancino_datastore import ArancinoDataStore
 import arancino_constants as const
 
@@ -109,6 +109,25 @@ class ArancinoSynch:
         self.__devicestore.hset(arancino.id, const.P_INTERFACE, arancino.port.interface)
         # TODO manage datetime
         # self.devicestore.hset(id, const.M_DATETIME, strftime("%Y-%m-%d %H:%M:%S", localtime()))
+
+    def synchClean(self, ports):
+        """
+        :param ports: Dictionary of ArancinoPorts
+        """
+        keys = self.__devicestore.keys()
+        print(keys)
+
+        diff = {}
+        items = {}
+        if len(keys) > 0: # se ci sono chiavi sul db
+            if ports is not None:
+                items = ports
+
+            diff = set(keys).difference(items)
+
+            for it in diff:
+                self.__devicestore.hset(it, M_PLUGGED, False)
+
 
 
     def __checkValues(self, value, type):

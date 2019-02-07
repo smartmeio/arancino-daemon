@@ -184,6 +184,7 @@ class SerialMonitor (Thread):
 
             # first synchronization in cycle
             arancinoSy.synchPorts(ports_plugged)
+            arancinoSy.synchClean(ports_plugged)
 
             #retrieve if there are new ports to connect to - is a list of type Serial.Port
             if ports_plugged:
@@ -944,3 +945,10 @@ arancinoDy = ArancinoPortsDiscovery()
 
 serialManager = SerialManager()
 serialManager.main()
+
+
+#TODO quando c'é una scheda connessa sul device store PLUGGED = TRUE
+# appena la stacco, PLUGGED rimane  TRUE perche essendo la sync
+# impostata sul Dict delle plugged_ports allora non aggiorna piu quella scheda
+# Nella sync andrebbero spazzolate tutte le schede ed impostare
+# CONNECTED=FALSE e PLUGGED = FALSE
