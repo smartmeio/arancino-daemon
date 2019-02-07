@@ -97,7 +97,7 @@ class SerialMonitor (Thread):
         #self.arancinoDs = ArancinoDataStore()
         #self.arancinoSy = ArancinoSynch()
 
-        global arancinoDs, arancinoDy
+        global arancinoDs, arancinoDy, ports_connected, ports_plugged
 
         self.datastore = arancinoDs.getDataStore()
         self.datastore.flushdb()
@@ -139,12 +139,21 @@ class SerialMonitor (Thread):
         self.devicestore.connection_pool.disconnect()
         LOG.info("Redis Connection Closed")
         LOG.debug("Closing Serial Ports Connection...")
-        # TODO 2) close serial connections
-        #for port in ports_connected:
-        #    print(ports_connected[port])
-        #    ports_connected[port].close()
 
-        # TODO 3) set Plugged and Connecte Metadata to False in every PORT in devicestore
+        # Close each serial connection
+        to_stop = []
+        for id, p_connected in ports_connected.items():
+            # ports_plugged[id]
+            arancino = ports_plugged[id]
+            to_stop.append(arancino)
+
+        if to_stop is not None and len(to_stop) > 0:
+            self.__stopPorts(to_stop)
+
+
+        #set Plugged and Connected Metadata to False in every PORT in devicestore
+        arancinoSy.synchPorts(ports_plugged)
+
 
         LOG.info("Serial Ports Connection Closed")
         LOG.info("Exiting completed, Bye!")
@@ -184,7 +193,7 @@ class SerialMonitor (Thread):
 
             # first synchronization in cycle
             arancinoSy.synchPorts(ports_plugged)
-            arancinoSy.synchClean(ports_plugged)
+
 
             #retrieve if there are new ports to connect to - is a list of type Serial.Port
             if ports_plugged:
@@ -196,7 +205,9 @@ class SerialMonitor (Thread):
                     self.__connectPorts(ports_to_connect)
 
 
-            self.__checkEnabledPorts(ports_plugged, ports_connected)
+            to_stop = self.__getDisabledPorts(ports_plugged, ports_connected)
+            if to_stop is not None and len(to_stop) > 0:
+                self.__stopPorts(to_stop)
 
 
             # second synchronization in cycle
@@ -250,27 +261,41 @@ class SerialMonitor (Thread):
             serialConnector.start()
 
 
-    def __checkEnabledPorts(self, plugged, connected):
+    def __getDisabledPorts(self, plugged, connected):
         # checks if a port has been DISABLED
         # has sense only with Arancino Synch
 
-
-        to_be_removed = []
+        disabled_ports = []
         for id, p_connected in ports_connected.items():
             # ports_plugged[id]
             arancino = plugged[id]
             if arancino is not None and not arancino.enabled:
-                transport = p_connected[const.IDX_SERIAL_TRANSPORT]
-                transport.close()
-                arancino.connected = False
-                arancino.plugged = (arancino.id in arancinoDy.getPluggedArancinoPorts(plugged, connected))
+                #transport = p_connected[const.IDX_SERIAL_TRANSPORT]
+                #transport.close()
+                #arancino.connected = False
+                #arancino.plugged = (arancino.id in arancinoDy.getPluggedArancinoPorts(plugged, connected))
                 # TODO verify is this log is compliant with the others
-                LOG.info("Port Closed: " + arancino.alias + " " + arancino.port.device + " - " + arancino.id)
-                to_be_removed.append(id)
+                #LOG.info("Port Closed: " + arancino.alias + " " + arancino.port.device + " - " + arancino.id)
+                disabled_ports.append(id)
 
 
-        for id in to_be_removed:
-            connected.pop(id)
+        #for id in disabled_ports:
+        #   connected.pop(id)
+
+        return disabled_ports
+
+
+    def __stopPorts(self, arancino_to_stop):
+
+        for arancino in arancino_to_stop:
+            port = ports_connected[arancino.id]
+            transport = port[const.IDX_SERIAL_TRANSPORT]
+            transport.close()
+            arancino.connected = False
+            arancino.plugged = (arancino.id in arancinoDy.getPluggedArancinoPorts(ports_plugged, ports_connected))
+
+            ports_connected.pop(arancino.id)
+
 
 
 class SerialConnector (Thread):
