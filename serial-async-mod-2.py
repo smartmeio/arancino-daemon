@@ -19,24 +19,8 @@ under the License
 '''
 
 
-'''
-
-Dict ports_plugged = { 
-    "port id" : ArancinoPort
-} 
-
-
-Dict ports_connected = {
-    "port id" : [SerialConnector, SerialTransport]
-}
-
-
-'''
-
-
-
 import time,  arancino_conf as conf, signal#, uuid, hashlib, json,
-import asyncio, serial_asyncio#, redis #external
+import asyncio, serial_asyncio, sys#, redis #external
 #from serial.tools import list_ports
 from threading import Thread
 from time import localtime, strftime
@@ -148,44 +132,26 @@ class SerialMonitor (Thread):
             to_stop.append(arancino)
 
         if to_stop is not None and len(to_stop) > 0:
-            self.__stopPorts(to_stop)
+            self.__stopPorts(to_stop, ports_plugged, ports_connected)
 
 
         #set Plugged and Connected Metadata to False in every PORT in devicestore
         arancinoSy.synchPorts(ports_plugged)
 
-
         LOG.info("Serial Ports Connection Closed")
         LOG.info("Exiting completed, Bye!")
-        ''' EXIT PROCEDURE STOP'''
+
+        sys.exit(0)
 
     def run(self):
         # Polls every 10 seconds if there's new serial port to connect to
         global ports_plugged, ports_connected, arancinoDs, arancinoSy
 
-        while(True):
+        while not self.kill_now:
 
-
-            if self.kill_now:
-                self.__stop()
-                break
-            '''
-            #retrieve each plugged ports which match vid and pid specified above
-            #ports_plugged = list(list_ports.grep(self.match))
-
-            #retrieve all the plugged ports
-            global ports_plugged, ports_connected
-            ports_plugged = list_ports.comports()
-            LOG.debug("Plugged Serial Ports Retrieved: " + str(len(ports_plugged)) )
-
-            #apply a filter
-            ports_plugged = self.filterPorts(ports_plugged)
-            LOG.info("Filtered Serial Ports Retrieved: " + str(len(ports_plugged)))
-
-            #enrich list of plugged ports and transform in Dict
-            ports_plugged = self.addAdditionalInfoPort(ports_plugged)
-            LOG.debug(ports_plugged)
-            '''
+            #if self.kill_now:
+            #    self.__stop()
+            #    break
 
             ports_plugged = arancinoDy.getPluggedArancinoPorts(ports_plugged, ports_connected)
             LOG.info("Plugged Serial Ports Retrieved: " + str(len(ports_plugged)))
@@ -207,7 +173,7 @@ class SerialMonitor (Thread):
 
             to_stop = self.__getDisabledPorts(ports_plugged, ports_connected)
             if to_stop is not None and len(to_stop) > 0:
-                self.__stopPorts(to_stop)
+                self.__stopPorts(to_stop, ports_plugged, ports_connected)
 
 
             # second synchronization in cycle
@@ -215,6 +181,7 @@ class SerialMonitor (Thread):
 
             time.sleep(conf.cycle_time)
 
+        self.__stop()
 
     def __retrieveNewPorts(self, plugged, connected):
         """
@@ -247,14 +214,14 @@ class SerialMonitor (Thread):
         serial number of the port as key for the List
 
         :param ports_to_connect: List of ListPortInfo
-        :return ports_connected: List of SerialConnector
+        :return ports_connected: List of SerialConnector and SerialTransport
         """
 
         global ports_connected
         for arancino in ports_to_connect:
             LOG.info("Connecting to Port: " + arancino.alias + " " + arancino.port.device + " - " + arancino.id)
 
-            serialConnector = SerialConnector("Thread-" + arancino.port.device, arancino.port, self.datastore, self.devicestore, baudrate = 4000000)
+            serialConnector = SerialConnector( self.datastore, self.devicestore,  arancino=arancino, baudrate = 4000000)
 
             arancino.connected = True
             ports_connected[arancino.id] = [serialConnector, None] # SerialConnector and SerialTransport
@@ -262,127 +229,131 @@ class SerialMonitor (Thread):
 
 
     def __getDisabledPorts(self, plugged, connected):
-        # checks if a port has been DISABLED
-        # has sense only with Arancino Synch
+        """
+        Cycles all the connected ports and puts the disabled ones into
+        disabled_ports List. Finally it returns disabled_ports
 
+        :param connected: Dict of Connected Ports
+        :param plugged: Dict of Plugged Ports
+        :return disabled_ports: a list of Disabled ArancinoPort
+
+        """
         disabled_ports = []
-        for id, p_connected in ports_connected.items():
-            # ports_plugged[id]
+        for id, conn_arr in connected.items():
             arancino = plugged[id]
             if arancino is not None and not arancino.enabled:
-                #transport = p_connected[const.IDX_SERIAL_TRANSPORT]
-                #transport.close()
-                #arancino.connected = False
-                #arancino.plugged = (arancino.id in arancinoDy.getPluggedArancinoPorts(plugged, connected))
-                # TODO verify is this log is compliant with the others
-                #LOG.info("Port Closed: " + arancino.alias + " " + arancino.port.device + " - " + arancino.id)
-                disabled_ports.append(id)
-
-
-        #for id in disabled_ports:
-        #   connected.pop(id)
+                disabled_ports.append(arancino)
 
         return disabled_ports
 
 
-    def __stopPorts(self, arancino_to_stop):
+    def __stopPorts(self, ports_to_stop, plugged, connected):
+        """
+        Cycles all the connected ports and puts the disabled ones into
+        disabled_ports List. Finally it returns disabled_ports
 
-        for arancino in arancino_to_stop:
-            port = ports_connected[arancino.id]
+        :param connected: Dict of Connected Ports
+        :param plugged: Dict of Plugged Ports
+
+        """
+
+        for arancino in ports_to_stop:
+            port = connected[arancino.id]
+
             transport = port[const.IDX_SERIAL_TRANSPORT]
             transport.close()
+
+            connector = port[const.IDX_SERIAL_CONNECTOR]
+            connector.close()
+
             arancino.connected = False
-            arancino.plugged = (arancino.id in arancinoDy.getPluggedArancinoPorts(ports_plugged, ports_connected))
+            arancino.plugged = (arancino.id in arancinoDy.getPluggedArancinoPorts(plugged, connected))
 
-            ports_connected.pop(arancino.id)
+            if id in connected:
+                port = connected.pop(arancino.id)
+                del port
 
+            del connector, transport
+            LOG.info("Port Closed: " + arancino.alias + " " + arancino.port.device + " - " + arancino.id)
 
 
 class SerialConnector (Thread):
 
-    def __init__(self, name, port, datastore, devicestore, baudrate = 250000):
+    def __init__(self, datastore, devicestore, arancino, baudrate = 250000):
         Thread.__init__(self)
         self._loop = asyncio.new_event_loop()
-        self.port = port
-        self.name = name
+        self.arancino = arancino
+        self.name = "SerialConnector-" + self.arancino.port.device
         self.baudrate = baudrate
         self.datastore = datastore
         self.devicestore = devicestore
 
 
+
     def close(self):
 
-        self._loop.stop()
-        self._loop.close()
-        #asyncio.get_event_loop().stop()
-        #asyncio.get_event_loop().close()
-        pass
+        self.task.cancel()
+        self._loop.call_soon_threadsafe(self._loop.stop)
 
     def run(self):
         #try:
-            self.coro = serial_asyncio.create_serial_connection(self._loop, lambda: SerialHandler(self.datastore, self.devicestore, self.port), self.port.device, baudrate=self.baudrate)
+            self.coro = serial_asyncio.create_serial_connection(self._loop, lambda: SerialHandler(self.datastore, self.devicestore, self.arancino), self.arancino.port.device, baudrate=self.baudrate)
             self._loop.run_until_complete(self.coro)
             ####### PAY ATTENTION, disabled the following line becouse i'm trying to implement the external close of the program
+
+            self.task=self._loop.create_task(self.coro)
+
+
             self._loop.run_forever()
             self._loop.close()
+
+            LOG.info("The Thread " + self.name + " is Closed.")
         #except Exception as ex:
             #LOG.error(ex)
 
 
 class SerialHandler(asyncio.Protocol):
-    def __init__(self, datastore=None, devicestore=None, port=None):
+    def __init__(self, datastore=None, devicestore=None, arancino=None):
         self.datastore = datastore
         self.devicestore = devicestore
-        self.port = port
+        self.arancino = arancino
         self._partial = ""
-        self.log_prefix = "[" + self.port.device + " - " + self.port.serial_number + "]: "
+        self.log_prefix = "[" + self.arancino.port.device + " - " + self.arancino.id + "]: "
 
     def connection_made(self, transport):
         self.transport = transport
-        #print('Port opened', transport)
         LOG.info(self.log_prefix + "Port opened: " + transport.serial.name)
         LOG.debug(self.log_prefix + "Port opened: " + str(transport))
         transport.serial.rts = False
 
         global ports_connected
-        ports_connected[self.port.serial_number][const.IDX_SERIAL_TRANSPORT] = transport
+        ports_connected[self.arancino.id][const.IDX_SERIAL_TRANSPORT] = transport
 
 
 
     def connection_lost(self, exc):
+        '''
+        When a connection_lost is triggered means the connection to the serial port is lost or interrupted.
+        In this case ArancinoPort (from plugged_ports) must be updated and status information stored into
+        the device store.
+        '''
+
         global ports_plugged, ports_connected, arancinoSy, arancinoDy
 
-        # 1 recupare oggetto dalla plugged port in base a self.port.serialnumber
-        # TODO here is used serial_number, because id is not available
-        #   serial_number is part of ListPortInfo, id is part of ArancinoPort. At this moment
-        #   id is derivated from serial_number and now it works, but if the way of calculate id will change
-        #   this will not work anymore
-        arancino = ports_plugged[self.port.serial_number]
+        # sets connected metadata status to False.
+        self.arancino.connected = False
 
-        if arancino is not None:
+        # using arancino discovery utility, gets the the all plugged ports and the check if the current arancino port is
+        # plugged or not, if yes plugged metadata status is True, otherwise, False
+        self.arancino.plugged = (self.arancino.id in arancinoDy.getPluggedArancinoPorts(ports_plugged, ports_connected))
 
-
-        # 2 aggiornare lo stato "connected" a false
-            arancino.connected = False
-
-        # 4 capire se aggiornare acnhe plugged a false. => se il device é ancora connesso metto True (
-        # lo capisco verificando la lista dei dispositivi e usando grep in base al seriale della porta.
-            #arancino.plugged = (len(list(list_ports.grep(self.port.serial_number))) == 1)
-            arancino.plugged = (arancino.id in arancinoDy.getPluggedArancinoPorts(ports_plugged, ports_connected))
-
-        # 3 fare la sync. puntuale chiamando il device store ed aggiornando "connected" a false
-        #TODO: non mi piace, arancino potrebbe essere None, forse é il caso di passare al
-        #   SerialHandler o l'id o tutto Arancino Port cosi fixo anche il punto di sopra
-        '''
-        self.devicestore.hset(self.port.serial_number, "M_PLUGGED", arancino.plugged)
-        self.devicestore.hset(self.port.serial_number, "M_CONNECTED", arancino.connected)
-        '''
-        arancinoSy.synchPort(arancino)
+        # call arancino synch utility to synchronize with the datastore.
+        arancinoSy.synchPort(self.arancino)
 
 
         # TODO verify is this log is compliant with the others
         LOG.info(self.log_prefix + "Port closed " + self.transport.serial.name)
-        serial_connector = ports_connected.pop(self.port.serial_number)
+        serial_connector = ports_connected.pop(self.arancino.id)
 
         del serial_connector
 
@@ -886,7 +857,7 @@ class SerialHandler(asyncio.Protocol):
     # PUB
     def __OPTS_PUB(self, args):
         '''
-        Posts a message to the given channel. Return the number of clients 
+        Posts a message to the given channel. Return the number of clients
         that received the message.
             https://redis.io/commands/publish
 
@@ -919,7 +890,7 @@ class SerialHandler(asyncio.Protocol):
     # FLUSH
     def __OPTS_FLUSH(self, args):
         '''
-        Delete all the keys of the currently selected DB. 
+        Delete all the keys of the currently selected DB.
         This command never fails.
             https://redis.io/commands/flushdb
 
@@ -954,13 +925,23 @@ class SerialHandler(asyncio.Protocol):
 # list of commands
 commands_list = const.getCommandsList()
 
-# contains all the plugged ports with a specific vid and pid. Object of type Serial.Port
-#global ports_plugged
+'''
+Contains all the plugged ports with a specific vid and pid. Object of type Serial.Port
+
+Dict ports_plugged = { 
+    "port id" : ArancinoPort
+} 
+'''
 ports_plugged = {}
 
+'''
+Contains all the connected serial ports. Object of type Thread - SerialConnector and SerialTransport.
+in 0 position there is SerialConnector instance and in position 1 there is the corresponding SerialTransport
 
-# contains all the connected serial ports. Object of type Thread - SerialConnector
-#global ports_connected
+Dict ports_connected = {
+    "port id" : [SerialConnector, SerialTransport]
+}
+'''
 ports_connected = {}
 
 arancinoDs = ArancinoDataStore()
@@ -970,10 +951,3 @@ arancinoDy = ArancinoPortsDiscovery()
 
 serialManager = SerialManager()
 serialManager.main()
-
-
-#TODO quando c'é una scheda connessa sul device store PLUGGED = TRUE
-# appena la stacco, PLUGGED rimane  TRUE perche essendo la sync
-# impostata sul Dict delle plugged_ports allora non aggiorna piu quella scheda
-# Nella sync andrebbero spazzolate tutte le schede ed impostare
-# CONNECTED=FALSE e PLUGGED = FALSE
