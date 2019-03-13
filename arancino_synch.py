@@ -45,7 +45,7 @@ class ArancinoSynch:
     def synchPort(self, port):
         """
         Makes a synchronization between the list of plugged ports and the device store
-            Some values are to be considered as Status Metadata because the represent the current status of the port,
+            Some values are to be considered as Status Metadata because they represent the current status of the port,
             others are to be considered as Configuration Metadata because they are setted up by the user.
 
             Status Metadata are: Plugged, Connected,...
@@ -60,14 +60,14 @@ class ArancinoSynch:
 
         arancino = port
 
-        if self.__devicestore.exists(arancino.id) == 1:  # the port is already registered in devicestore
+        if self.__devicestore.exists(arancino.id) == 1:  # the port is already registered in the device store
             '''
             Configuration Metadata
 
             The following line of code are executed every time a specific port/device is plugged. 
                 It runs only if a port/device is already registerd.
 
-            When a port/device is contained in devicestore, its configuration data are loaded 
+            When a port/device is contained in the device store, its configuration data are loaded 
                 from devicestore and stored into in-memory data structure. The data flow in this 
                 synchronization phase is from "Redis" to "In Memory". 
 
@@ -89,28 +89,28 @@ class ArancinoSynch:
 
             Data are stored using the port id as key in hash of redis, the defined above keys as fields, and values as values
             '''
-            self.__devicestore.hset(arancino.id, const.M_ENABLED, arancino.enabled)
-            self.__devicestore.hset(arancino.id, const.M_AUTO_CONNECT, arancino.auto_connect)
-            self.__devicestore.hset(arancino.id, const.M_ALIAS, arancino.alias)
-            self.__devicestore.hset(arancino.id, const.P_NAME, arancino.port.name)
-            self.__devicestore.hset(arancino.id, const.P_DESCRIPTION, arancino.port.description)
-            self.__devicestore.hset(arancino.id, const.P_HWID, arancino.port.hwid)
-            self.__devicestore.hset(arancino.id, const.P_VID, hex(arancino.port.vid))
-            self.__devicestore.hset(arancino.id, const.P_PID, hex(arancino.port.pid))
-            self.__devicestore.hset(arancino.id, const.P_SERIALNUMBER, arancino.port.serial_number)
-            self.__devicestore.hset(arancino.id, const.P_MANUFACTURER, arancino.port.manufacturer)
-            self.__devicestore.hset(arancino.id, const.P_PRODUCT, arancino.port.product)
+            self.__devicestore.hset(arancino.id, const.M_ENABLED, str(arancino.enabled))
+            self.__devicestore.hset(arancino.id, const.M_AUTO_CONNECT, str(arancino.auto_connect))
+            self.__devicestore.hset(arancino.id, const.M_ALIAS, str(arancino.alias))
+            self.__devicestore.hset(arancino.id, const.P_NAME, str(arancino.port.name))
+            self.__devicestore.hset(arancino.id, const.P_DESCRIPTION, str(arancino.port.description))
+            self.__devicestore.hset(arancino.id, const.P_HWID, str(arancino.port.hwid))
+            self.__devicestore.hset(arancino.id, const.P_VID, str(hex(arancino.port.vid)))
+            self.__devicestore.hset(arancino.id, const.P_PID, str(hex(arancino.port.pid)))
+            self.__devicestore.hset(arancino.id, const.P_SERIALNUMBER, str(arancino.port.serial_number))
+            self.__devicestore.hset(arancino.id, const.P_MANUFACTURER, str(arancino.port.manufacturer))
+            self.__devicestore.hset(arancino.id, const.P_PRODUCT, str(arancino.port.product))
 
         '''
         Status Metadata
 
         Updates metadata in the list (from list to redis) every time
         '''
-        self.__devicestore.hset(arancino.id, const.M_PLUGGED, arancino.plugged)
-        self.__devicestore.hset(arancino.id, const.M_CONNECTED, arancino.connected)
-        self.__devicestore.hset(arancino.id, const.P_DEVICE, arancino.port.device)
-        self.__devicestore.hset(arancino.id, const.P_LOCATION, arancino.port.location)
-        self.__devicestore.hset(arancino.id, const.P_INTERFACE, arancino.port.interface)
+        self.__devicestore.hset(arancino.id, const.M_PLUGGED, str(arancino.plugged))
+        self.__devicestore.hset(arancino.id, const.M_CONNECTED, str(arancino.connected))
+        self.__devicestore.hset(arancino.id, const.P_DEVICE, str(arancino.port.device))
+        self.__devicestore.hset(arancino.id, const.P_LOCATION, str(arancino.port.location))
+        self.__devicestore.hset(arancino.id, const.P_INTERFACE, str(arancino.port.interface))
         # TODO manage datetime
         # self.devicestore.hset(id, const.M_DATETIME, strftime("%Y-%m-%d %H:%M:%S", localtime()))
 
@@ -133,8 +133,8 @@ class ArancinoSynch:
             diff = set(keys).difference(items)
 
             for it in diff:
-                self.__devicestore.hset(it, const.M_PLUGGED, False)
-                self.__devicestore.hset(it, const.M_CONNECTED, False)
+                self.__devicestore.hset(it, const.M_PLUGGED, str(False))
+                self.__devicestore.hset(it, const.M_CONNECTED, str(False))
 
 
     def __checkValues(self, value, type):
@@ -147,7 +147,10 @@ class ArancinoSynch:
         __val = None
 
         if type.upper() == "BOOL" or type.upper() == "BOOLEAN":
-            __val = (value.upper() == "TRUE")
+            if value is not None:
+                __val = (value.upper() == "TRUE")
+            else:
+                __val = False
         # TODO datetime
         # TODO put datetime format in configuration file
         #else:
