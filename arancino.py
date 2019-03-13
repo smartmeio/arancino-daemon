@@ -50,24 +50,51 @@ LOG = conf.logger
 
 
 
-class SerialManager():
+class Arancino():
     def __init__(self):
         try:
-            self.serialMonitor = SerialMonitor("Thread-SerialMonitor")
+
+            self.init()
+
         except Exception as ex:
             LOG.error(str(ex))
             exit(1)
 
-    def main(self):
+
+    def init(self):
+        try:
+
+            global commands_list, ports_plugged, ports_connected, arancinoDs, arancinoSy, arancinoDy
+
+            commands_list = const.getCommandsList()
+            ports_plugged = {}
+            ports_connected = {}
+
+            arancinoDs = ArancinoDataStore()
+            arancinoSy = ArancinoSynch()
+            arancinoDy = ArancinoPortsDiscovery()
+
+            self.serialMonitor = SerialMonitor("Thread-SerialMonitor")
+
+        except Exception as ex:
+            LOG.error(str(ex))
+            exit(1)
+
+
+
+    def start(self):
 
         self.serialMonitor.start()
 
         signal.signal(signal.SIGINT, self.__exit)
         signal.signal(signal.SIGTERM, self.__exit)
 
+    def stop(self):
+        LOG.info("Received Stop: Exiting... ")
+        self.serialMonitor.stop()
 
     def __exit(self, signum, frame):
-        LOG.warning("Received Stop/Kill: Exiting... ")
+        LOG.warning("Received Kill: Exiting... ")
         #self.kill_now = True
         self.serialMonitor.stop()
 
@@ -923,7 +950,7 @@ class SerialHandler(asyncio.Protocol):
 
 
 # list of commands
-commands_list = const.getCommandsList()
+#commands_list = const.getCommandsList()
 
 '''
 Contains all the plugged ports with a specific vid and pid. Object of type Serial.Port
@@ -932,7 +959,11 @@ Dict ports_plugged = {
     "port id" : ArancinoPort
 } 
 '''
+
+'''
 ports_plugged = {}
+'''
+
 
 '''
 Contains all the connected serial ports. Object of type Thread - SerialConnector and SerialTransport.
@@ -942,12 +973,15 @@ Dict ports_connected = {
     "port id" : [SerialConnector, SerialTransport]
 }
 '''
+
+
+'''
 ports_connected = {}
 
 arancinoDs = ArancinoDataStore()
 arancinoSy = ArancinoSynch()
 arancinoDy = ArancinoPortsDiscovery()
+'''
 
-
-serialManager = SerialManager()
-serialManager.main()
+arancino = Arancino()
+arancino.start()

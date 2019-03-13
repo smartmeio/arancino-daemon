@@ -63,6 +63,11 @@ target/
 .AppleDouble
 .LSOverride
 
+
+# Log file
+*.log
+*.log.*
+
 # Icon must end with two \r
 Icon
 
