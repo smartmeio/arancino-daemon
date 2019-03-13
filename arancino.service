@@ -1,0 +1,15 @@
+[Unit]
+Description=Arancino
+After=network.target redis-persistent.service redis-volatile.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/Users/sergio/Sources/gitlab-workspace/arancino-module/start.py
+Restart=on-failure
+RestartSec=3
+#on-abort
+
+[Install]
+WantedBy=multi-user.target
