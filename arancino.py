@@ -23,6 +23,7 @@ import time,  arancino_conf as conf, signal#, uuid, hashlib, json,
 import asyncio, serial_asyncio, sys#, redis #external
 #from serial.tools import list_ports
 from threading import Thread
+import threading
 from time import localtime, strftime
 import arancino_constants as const
 from arancino_exceptions import InvalidArgumentsNumberException, InvalidCommandException, RedisGenericException
@@ -81,32 +82,32 @@ class Arancino():
             exit(1)
 
 
-
     def start(self):
 
         self.serialMonitor.start()
-
         signal.signal(signal.SIGINT, self.__exit)
         signal.signal(signal.SIGTERM, self.__exit)
+
 
     def stop(self):
         LOG.info("Received Stop: Exiting... ")
         self.serialMonitor.stop()
 
+
     def __exit(self, signum, frame):
         LOG.warning("Received Kill: Exiting... ")
-        #self.kill_now = True
         self.serialMonitor.stop()
 
 
-class SerialMonitor (Thread):
+class SerialMonitor (threading.Thread):
+
+    kill_now = False
 
     def __init__(self, name):
 
-        Thread.__init__(self)
-
-        #self.arancinoDs = ArancinoDataStore()
-        #self.arancinoSy = ArancinoSynch()
+        #Thread.__init__(self)
+        super(SerialMonitor, self).__init__()
+        self._stop_event = threading.Event()
 
         global arancinoDs, arancinoDy, ports_connected, ports_plugged
 
@@ -116,7 +117,7 @@ class SerialMonitor (Thread):
 
         self.devicestore = arancinoDs.getDeviceStore()
 
-        self.kill_now = False
+
 
 
         '''
@@ -135,8 +136,6 @@ class SerialMonitor (Thread):
         self.kill_now = False
         self.datastore.set(const.RSVD_KEY_MODVERSION, "0.0.3")
         '''
-
-
 
     # public function
     def stop(self):
@@ -168,6 +167,7 @@ class SerialMonitor (Thread):
         LOG.info("Serial Ports Connection Closed")
         LOG.info("Exiting completed, Bye!")
 
+        self._stop_event.set()
         sys.exit(0)
 
     def run(self):
@@ -950,7 +950,7 @@ class SerialHandler(asyncio.Protocol):
 
 
 # list of commands
-#commands_list = const.getCommandsList()
+commands_list = const.getCommandsList()
 
 '''
 Contains all the plugged ports with a specific vid and pid. Object of type Serial.Port
@@ -960,9 +960,9 @@ Dict ports_plugged = {
 } 
 '''
 
-'''
+
 ports_plugged = {}
-'''
+
 
 
 '''
@@ -974,14 +974,12 @@ Dict ports_connected = {
 }
 '''
 
-
-'''
 ports_connected = {}
 
 arancinoDs = ArancinoDataStore()
 arancinoSy = ArancinoSynch()
 arancinoDy = ArancinoPortsDiscovery()
-'''
+
 
 arancino = Arancino()
 arancino.start()
