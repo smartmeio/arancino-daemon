@@ -21,40 +21,21 @@ under the License
 
 import time,  arancino_conf as conf, signal#, uuid, hashlib, json,
 import asyncio, serial_asyncio, sys#, redis #external
-#from serial.tools import list_ports
+
 from threading import Thread
 import threading
-from time import localtime, strftime
+
 import arancino_constants as const
 from arancino_exceptions import InvalidArgumentsNumberException, InvalidCommandException, RedisGenericException
 from arancino_port import ArancinoPortsDiscovery
 from arancino_datastore import ArancinoDataStore
 from arancino_synch import ArancinoSynch
-import serial
-
-#use in Lightning Rod
-#from oslo_log import log as logging
-#use in stand alone mode
-import logging
-
-#LOG = logging.getLogger(__name__)
-##LOG = logging.getLogger("Arancino Module")
-#use the following lines in standalone mode
-##FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-##logging.basicConfig(level=logging.DEBUG, format=FORMAT)
-
-LOG = conf.logger
-#LOG.setLevel(logging.DEBUG) # better to have too much log than not enough
-# with this pattern, it's rarely necessary to propagate the error up to parent
-#LOG.propagate = False
-
 
 
 
 class Arancino():
     def __init__(self):
         try:
-
             self.init()
 
         except Exception as ex:
@@ -116,26 +97,6 @@ class SerialMonitor (threading.Thread):
         self.datastore.set(const.RSVD_KEY_MODVERSION, conf.version)
 
         self.devicestore = arancinoDs.getDeviceStore()
-
-
-
-
-        '''
-        ##self.datastore = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
-        self.datastore = redis.StrictRedis(host=conf.redis['host'], port=conf.redis['port'], db=conf.redis['db'], decode_responses=conf.redis['dcd_resp'])
-        self.datastore.flushdb()
-
-        self.devicestore = redis.StrictRedis(host=conf.redis['host'], port=conf.redis['port'], db=1, decode_responses=conf.redis['dcd_resp'])
-
-        #TODO make connection pool
-
-
-        #self.match = "|".join(conf.hwid)
-        #self.name = name
-        #self.datastore = datastore
-        self.kill_now = False
-        self.datastore.set(const.RSVD_KEY_MODVERSION, "0.0.3")
-        '''
 
     # public function
     def stop(self):
@@ -949,8 +910,12 @@ class SerialHandler(asyncio.Protocol):
                     n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
 
+# logger
+LOG = conf.logger
+
+
 # list of commands
-commands_list = const.getCommandsList()
+#####commands_list = const.getCommandsList()
 
 '''
 Contains all the plugged ports with a specific vid and pid. Object of type Serial.Port
@@ -961,7 +926,7 @@ Dict ports_plugged = {
 '''
 
 
-ports_plugged = {}
+#####ports_plugged = {}
 
 
 
@@ -974,12 +939,12 @@ Dict ports_connected = {
 }
 '''
 
-ports_connected = {}
+#####ports_connected = {}
 
-arancinoDs = ArancinoDataStore()
-arancinoSy = ArancinoSynch()
-arancinoDy = ArancinoPortsDiscovery()
+#####arancinoDs = ArancinoDataStore()
+#####arancinoSy = ArancinoSynch()
+#####arancinoDy = ArancinoPortsDiscovery()
 
 
-arancino = Arancino()
-arancino.start()
+#####arancino = Arancino()
+#####arancino.start()
