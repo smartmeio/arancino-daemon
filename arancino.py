@@ -34,6 +34,7 @@ from arancino_synch import ArancinoSynch
 
 
 class Arancino():
+
     def __init__(self):
         try:
             self.init()
@@ -46,8 +47,9 @@ class Arancino():
     def init(self):
         try:
 
+            '''
             global commands_list, ports_plugged, ports_connected, arancinoDs, arancinoSy, arancinoDy
-
+            
             commands_list = const.getCommandsList()
             ports_plugged = {}
             ports_connected = {}
@@ -55,8 +57,11 @@ class Arancino():
             arancinoDs = ArancinoDataStore()
             arancinoSy = ArancinoSynch()
             arancinoDy = ArancinoPortsDiscovery()
+            '''
 
-            self.serialMonitor = SerialMonitor("Thread-SerialMonitor")
+
+
+            self.serialMonitor = SerialMonitor("Aranncino-SerialMonitor")
 
         except Exception as ex:
             LOG.error(str(ex))
@@ -83,20 +88,44 @@ class Arancino():
 class SerialMonitor (threading.Thread):
 
     kill_now = False
+    arancinoContext = None
+
+    ports_connected = {}
+    ports_plugged = {}
+
+    arancinoDs = None
+    arancinoDy = None
+    arancinoSy = None
 
     def __init__(self, name):
 
-        #Thread.__init__(self)
         super(SerialMonitor, self).__init__()
         self._stop_event = threading.Event()
 
-        global arancinoDs, arancinoDy, ports_connected, ports_plugged
+        self.arancinoDs = ArancinoDataStore()
+        self.arancinoSy = ArancinoSynch()
+        self.arancinoDy = ArancinoPortsDiscovery()
 
-        self.datastore = arancinoDs.getDataStore()
+
+        #global arancinoDs, arancinoDy, ports_connected, ports_plugged
+
+        self.datastore = self.arancinoDs.getDataStore()
         self.datastore.flushdb()
         self.datastore.set(const.RSVD_KEY_MODVERSION, conf.version)
 
-        self.devicestore = arancinoDs.getDeviceStore()
+        self.devicestore = self.arancinoDs.getDeviceStore()
+
+
+        self.arancinoContext = {
+            "commands_list": const.getCommandsList(),
+            "ports_plugged": self.ports_plugged,
+            "ports_connected": self.ports_connected,
+            "arancino_discovery": self.arancinoDy,
+            "arancino_synch": self.arancinoSy,
+            "arancino_datastore": self.arancinoDs
+        }
+
+
 
     # public function
     def stop(self):
@@ -106,24 +135,26 @@ class SerialMonitor (threading.Thread):
     def __stop(self):
         ''' EXIT PROCEDURE START'''
         LOG.debug("Closing Redis Connection...")
+
         self.datastore.connection_pool.disconnect()
         self.devicestore.connection_pool.disconnect()
+
         LOG.info("Redis Connection Closed")
         LOG.debug("Closing Serial Ports Connection...")
 
         # Close each serial connection
         to_stop = []
-        for id, p_connected in ports_connected.items():
+        for id, p_connected in self.ports_connected.items():
             # ports_plugged[id]
-            arancino = ports_plugged[id]
+            arancino = self.ports_plugged[id]
             to_stop.append(arancino)
 
         if to_stop is not None and len(to_stop) > 0:
-            self.__stopPorts(to_stop, ports_plugged, ports_connected)
+            self.__stopPorts(to_stop, self.ports_plugged, self.ports_connected)
 
 
         #set Plugged and Connected Metadata to False in every PORT in devicestore
-        arancinoSy.synchPorts(ports_plugged)
+        self.arancinoSy.synchPorts(self.ports_plugged)
 
         LOG.info("Serial Ports Connection Closed")
         LOG.info("Exiting completed, Bye!")
@@ -133,7 +164,7 @@ class SerialMonitor (threading.Thread):
 
     def run(self):
         # Polls every 10 seconds if there's new serial port to connect to
-        global ports_plugged, ports_connected, arancinoDs, arancinoSy
+        #global ports_plugged, ports_connected, arancinoDs, arancinoSy
 
         while not self.kill_now:
 
@@ -141,31 +172,32 @@ class SerialMonitor (threading.Thread):
             #    self.__stop()
             #    break
 
-            ports_plugged = arancinoDy.getPluggedArancinoPorts(ports_plugged, ports_connected)
-            LOG.info("Plugged Serial Ports Retrieved: " + str(len(ports_plugged)))
-            LOG.info("Connected Serial Ports: " + str(len(ports_connected)))
+            self.ports_plugged = self.arancinoDy.getPluggedArancinoPorts(self.ports_plugged, self.ports_connected)
+
+            LOG.info("Plugged Serial Ports Retrieved: " + str(len(self.ports_plugged)))
+            LOG.info("Connected Serial Ports: " + str(len(self.ports_connected)))
 
             # first synchronization in cycle
-            arancinoSy.synchPorts(ports_plugged)
+            self.arancinoSy.synchPorts(self.ports_plugged)
 
 
             #retrieve if there are new ports to connect to - is a list of type Serial.Port
-            if ports_plugged:
-                ports_to_connect = self.__retrieveNewPorts(ports_plugged, ports_connected)
+            if self.ports_plugged:
+                ports_to_connect = self.__retrieveNewPorts(self.ports_plugged, self.ports_connected)
                 LOG.info("Connectable Serial Ports Retrieved: " + str(len(ports_to_connect)))
 
                 #finally connect the new ports
                 if ports_to_connect:
-                    self.__connectPorts(ports_to_connect)
+                    self.__connectPorts(ports_to_connect, self.ports_connected)
 
 
-            to_stop = self.__getDisabledPorts(ports_plugged, ports_connected)
+            to_stop = self.__getDisabledPorts(self.ports_plugged, self.ports_connected)
             if to_stop is not None and len(to_stop) > 0:
-                self.__stopPorts(to_stop, ports_plugged, ports_connected)
+                self.__stopPorts(to_stop, self.ports_plugged, self.ports_connected)
 
 
             # second synchronization in cycle
-            arancinoSy.synchPorts(ports_plugged)
+            self.arancinoSy.synchPorts(self.ports_plugged)
 
             time.sleep(conf.cycle_time)
 
@@ -195,7 +227,7 @@ class SerialMonitor (threading.Thread):
         return ports_to_connect
 
 
-    def __connectPorts(self, ports_to_connect):
+    def __connectPorts(self, ports_to_connect, connected):
         """
         For each ports in List, creates a new instance of Serial Connector and the starts it.
         Serial Connector instance is stored into a List of connected port using the
@@ -205,14 +237,15 @@ class SerialMonitor (threading.Thread):
         :return ports_connected: List of SerialConnector and SerialTransport
         """
 
-        global ports_connected
+        #global ports_connected
         for arancino in ports_to_connect:
             LOG.info("Connecting to Port: " + arancino.alias + " " + arancino.port.device + " - " + arancino.id)
 
-            serialConnector = SerialConnector( self.datastore, self.devicestore,  arancino=arancino, baudrate = 4000000)
+            #serialConnector = SerialConnector( self.datastore, self.devicestore,  arancino=arancino, baudrate = 4000000)
+            serialConnector = SerialConnector(self.arancinoContext, arancino=arancino, baudrate=4000000)
 
             arancino.connected = True
-            ports_connected[arancino.id] = [serialConnector, None] # SerialConnector and SerialTransport
+            connected[arancino.id] = [serialConnector, None] # SerialConnector and SerialTransport
             serialConnector.start()
 
 
@@ -255,7 +288,7 @@ class SerialMonitor (threading.Thread):
             connector.close()
 
             arancino.connected = False
-            arancino.plugged = (arancino.id in arancinoDy.getPluggedArancinoPorts(plugged, connected))
+            arancino.plugged = (arancino.id in self.arancinoDy.getPluggedArancinoPorts(plugged, connected))
 
             if id in connected:
                 port = connected.pop(arancino.id)
@@ -267,14 +300,16 @@ class SerialMonitor (threading.Thread):
 
 class SerialConnector (Thread):
 
-    def __init__(self, datastore, devicestore, arancino, baudrate = 250000):
+    #def __init__(self, datastore, devicestore, arancino, baudrate = 250000):
+    def __init__(self, arancinoContext, arancino, baudrate=250000):
         Thread.__init__(self)
         self._loop = asyncio.new_event_loop()
         self.arancino = arancino
-        self.name = "SerialConnector-" + self.arancino.port.device
+        self.name = "ArancinoSerialConnector-" + self.arancino.port.device
         self.baudrate = baudrate
-        self.datastore = datastore
-        self.devicestore = devicestore
+        self.arancinoContext = arancinoContext
+        self.datastore = arancinoContext["arancino_datastore"].getDataStore()
+        self.devicestore = arancinoContext["arancino_datastore"].getDeviceStore()
 
 
 
@@ -285,9 +320,8 @@ class SerialConnector (Thread):
 
     def run(self):
         #try:
-            self.coro = serial_asyncio.create_serial_connection(self._loop, lambda: SerialHandler(self.datastore, self.devicestore, self.arancino), self.arancino.port.device, baudrate=self.baudrate)
+            self.coro = serial_asyncio.create_serial_connection(self._loop, lambda: SerialHandler(self.arancinoContext, self.arancino), self.arancino.port.device, baudrate=self.baudrate)
             self._loop.run_until_complete(self.coro)
-            ####### PAY ATTENTION, disabled the following line becouse i'm trying to implement the external close of the program
 
             self.task=self._loop.create_task(self.coro)
 
@@ -301,10 +335,21 @@ class SerialConnector (Thread):
 
 
 class SerialHandler(asyncio.Protocol):
-    def __init__(self, datastore=None, devicestore=None, arancino=None):
-        self.datastore = datastore
-        self.devicestore = devicestore
+    #def __init__(self, datastore=None, devicestore=None, arancino=None):
+    def __init__(self, arancinoContext, arancino=None):
+
+        self.arancinoContext = arancinoContext
+        self.datastore = arancinoContext["arancino_datastore"].getDataStore()
+        self.devicestore = arancinoContext["arancino_datastore"].getDeviceStore()
+        self.ports_connected = arancinoContext["ports_connected"]
+        self.ports_plugged = arancinoContext["ports_plugged"]
+        self.arancinoSy = arancinoContext["arancino_synch"]
+        self.arancinoDy = arancinoContext["arancino_discovery"]
+        self.arancinoDs = arancinoContext["arancino_datastore"]
+        self.commands_list = arancinoContext["commands_list"]
+
         self.arancino = arancino
+
         self._partial = ""
         self.log_prefix = "[" + self.arancino.port.device + " - " + self.arancino.id + "]: "
 
@@ -314,8 +359,8 @@ class SerialHandler(asyncio.Protocol):
         LOG.debug(self.log_prefix + "Port opened: " + str(transport))
         transport.serial.rts = False
 
-        global ports_connected
-        ports_connected[self.arancino.id][const.IDX_SERIAL_TRANSPORT] = transport
+        #global ports_connected
+        self.ports_connected[self.arancino.id][const.IDX_SERIAL_TRANSPORT] = transport
 
 
 
@@ -326,23 +371,29 @@ class SerialHandler(asyncio.Protocol):
         the device store.
         '''
 
-        global ports_plugged, ports_connected, arancinoSy, arancinoDy
+        #global ports_plugged, ports_connected, arancinoSy, arancinoDy
 
         # sets connected metadata status to False.
         self.arancino.connected = False
 
         # using arancino discovery utility, gets the the all plugged ports and the check if the current arancino port is
         # plugged or not, if yes plugged metadata status is True, otherwise, False
-        self.arancino.plugged = (self.arancino.id in arancinoDy.getPluggedArancinoPorts(ports_plugged, ports_connected))
+        self.arancino.plugged = (self.arancino.id in self.arancinoDy.getPluggedArancinoPorts(self.ports_plugged, self.ports_connected))
 
         # call arancino synch utility to synchronize with the datastore.
-        arancinoSy.synchPort(self.arancino)
+        self.arancinoSy.synchPort(self.arancino)
 
 
         # TODO verify is this log is compliant with the others
         LOG.info(self.log_prefix + "Port closed " + self.transport.serial.name)
-        serial_connector = ports_connected.pop(self.arancino.id)
+        connected_port = self.ports_connected.pop(self.arancino.id)
+        serial_connector = connected_port[const.IDX_SERIAL_CONNECTOR]
+        serial_transport = connected_port[const.IDX_SERIAL_TRANSPORT]
 
+        serial_transport.close()
+        serial_connector.close()
+
+        del serial_transport
         del serial_connector
 
 
@@ -402,7 +453,7 @@ class SerialHandler(asyncio.Protocol):
         cmd = command.strip(const.CHR_EOT).split(const.CHR_SEP)
 
         if len(cmd) > 0:
-            if cmd[0] in commands_list:
+            if cmd[0] in self.commands_list:
                 #comando presente
                 return cmd;
             else:
