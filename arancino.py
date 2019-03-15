@@ -900,7 +900,7 @@ class SerialHandler(asyncio.Protocol):
         that received the message.
             https://redis.io/commands/publish
 
-        MCU → PUSH#<channel>#<message>@
+        MCU → PUB#<channel>#<message>@
 
         MCU ← 100#<num-of-reached-clients>@
         '''
@@ -960,6 +960,10 @@ class SerialHandler(asyncio.Protocol):
                 "Invalid arguments number for command " + const.CMD_APP_FLUSH + ". Received: " + str(
                     n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
+
+def start():
+    arancino = Arancino()
+    arancino.start()
 
 # logger
 LOG = conf.logger

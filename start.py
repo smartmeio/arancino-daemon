@@ -1,7 +1,6 @@
 #!/usr/local/bin/python3
 
 
-import arancino as arn
+import arancino
 
-arancino = arn.Arancino()
 arancino.start()
