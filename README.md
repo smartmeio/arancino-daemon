@@ -1,3 +1,3 @@
-# lighting-rod-module-serial-manager
+# Arancino: serial module for Arancino Library
 
-Modulo di Lighting Rod per la comunicazione seriale
+Receives commands from Arancino Library (uC) trough the Arancino Cortex Protocol over serial connection
