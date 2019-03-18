@@ -19,7 +19,7 @@
 # External Vars:    Lista delle variabili definite estarnamente ed usate nella pipeline:
 #                   REPO_USR:       nome utente del associato a dev ops per effettuare upload dell'artefatto
 #                   REPO_PWD:       password associata all'utente dev ops
-#                   REPO_BASE_URL:  url di base del repository: https://download.smartme.io
+#                   REPO_BASE_URL:  url di base del repository: https://packages.smartme.io
 #
 
 image: digitalgenius/alpine-python3-pg
@@ -75,8 +75,9 @@ package_staging:
     - sed -i "s/$DEVVER/$NEWVER/g" setup.py     #nel file setup.py sostituisco la versione: version='1.0.1', => version='1.0.1.20190318-170022-dev-a12def33',
 
     - python3 setup.py sdist
-    - PKG_NAME="$(ls dist/)"                    #ottengo il nome del file generato
-    - echo $PKG_NAME > tmp/pgk_name.tmp         #salvo il nome del pacchetto su file temp
+    - ls dist/ > tmp/pgk_name.tmp               #ottengo il nome del file generato e salvo il nome del pacchetto su file temp
+    #- PKG_NAME="$(ls dist/)"                    #ottengo il nome del file generato
+    #- echo $PKG_NAME > tmp/pgk_name.tmp         #salvo il nome del pacchetto su file temp
     - mv dist/*.tar.gz tmp/                     #sposto il file su di dir temp.
 
   dependencies:
@@ -105,8 +106,9 @@ package_release:
   script:
     - echo pypi > tmp/repo_name.tmp             #il nome del repository
     - python3 setup.py sdist                    #non si devono fare trucchi, la versione nel file setup.py deve coincidere con quella del tag di release.
-    - PKG_NAME="$(ls dist/)"                    #ottengo il nome del file generato
-    - echo $PKG_NAME > tmp/pgk_name.tmp         #salvo il nome del pacchetto su file temp
+    - ls dist/ > tmp/pgk_name.tmp               #ottengo il nome del file generato e salvo il nome del pacchetto su file temp
+    #- PKG_NAME="$(ls dist/)"                    #ottengo il nome del file generato
+    #- echo $PKG_NAME > tmp/pgk_name.tmp         #salvo il nome del pacchetto su file temp
     - mv dist/*.tar.gz tmp/                     #sposto il file su di dir temp.
 
   artifacts:

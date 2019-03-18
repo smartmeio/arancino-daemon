@@ -36,9 +36,11 @@ setup(
 
     long_description_content_type="text/markdown",
 
-    author='Sergio Tomasello',
+    author='Sergio Tomasello @ SmartMe.IO',
 
     author_email='sergio@smartme.io',
+
+    license='Apache License, Version 2.0',
 
     url='http://www.arancino.cc',
 
