@@ -18,7 +18,6 @@ License for the specific language governing permissions and limitations
 under the License
 '''
 
-#!/usr/bin/env python
 import logging, sys
 from logging.handlers import RotatingFileHandler
 
@@ -78,6 +77,6 @@ def __get_file_handler():
 
 logger = logging.getLogger(__name)
 
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 logger.addHandler(__get_console_handler())
 logger.addHandler(__get_file_handler())
