@@ -19,7 +19,7 @@ under the License
 '''
 
 from arancino.arancino_datastore import ArancinoDataStore
-from arancino import arancino_constants as const
+import arancino.arancino_constants as const
 
 
 class ArancinoSynch:

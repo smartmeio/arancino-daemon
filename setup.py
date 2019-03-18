@@ -20,6 +20,10 @@ under the License
 
 from setuptools import setup, find_packages
 
+
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(
 
     name='arancino',
@@ -28,16 +32,21 @@ setup(
 
     description='Arancino Module for Arancino Library',
 
+    long_description=long_description,
+
+    long_description_content_type="text/markdown",
+
     author='Sergio Tomasello',
 
     author_email='sergio@smartme.io',
 
-    #url='http://www.smartme.io,
+    url='http://www.arancino.cc',
 
     classifiers=['Development Status :: 4 - Beta',
                  'License :: OSI Approved :: Apache Software License',
                  'Programming Language :: Python :: 3',
                  'Environment :: Console',
+                 'Operating System :: Unix'
                  ],
 
     platforms=['Any'],
@@ -46,15 +55,13 @@ setup(
 
     provides=['arancino'],
 
-    packages=find_packages(),
+    packages=find_packages(exclude=["test"]),
+
+    data_files=[('/etc/arancino/extras/',['extras/arancino.service'])],
+
+    install_requires=['pyserial>=3.4', 'pyserial-asyncio>=0.4', 'redis>=2.10.6'],
 
     include_package_data=True,
-
-    entry_points={
-        's4t.modules': [
-            'arancino_module = arancino_module.arancino_module:ArancinoTestModule',
-        ],
-    },
 
     zip_safe=False,
 )

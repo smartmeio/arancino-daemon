@@ -19,7 +19,7 @@ under the License
 '''
 
 from serial.tools import list_ports as list
-from arancino import arancino_conf as conf
+import arancino.arancino_conf as conf
 
 
 class ArancinoPortsDiscovery:

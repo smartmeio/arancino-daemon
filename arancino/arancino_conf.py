@@ -18,7 +18,7 @@ License for the specific language governing permissions and limitations
 under the License
 '''
 
-import logging, sys
+import logging, sys, os
 from logging.handlers import RotatingFileHandler
 
 #version
@@ -62,7 +62,7 @@ hwid = [
 
 # logger configuration
 __name = 'Arancino Serial'
-__filename = 'arancino.log'
+__filename = os.path.join(os.getcwd(), 'arancino.log')
 __format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 def __get_console_handler():
