@@ -18,8 +18,8 @@ License for the specific language governing permissions and limitations
 under the License
 '''
 
-from arancino_datastore import ArancinoDataStore
-import arancino_constants as const
+from arancino.arancino_datastore import ArancinoDataStore
+from arancino import arancino_constants as const
 
 
 class ArancinoSynch:

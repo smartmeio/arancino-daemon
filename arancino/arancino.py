@@ -19,17 +19,17 @@ under the License
 '''
 
 
-import time,  arancino_conf as conf, signal#, uuid, hashlib, json,
+import time, signal#, uuid, hashlib, json,
+from arancino import arancino_conf as conf, arancino_constants as const
 import asyncio, serial_asyncio, sys#, redis #external
 
 from threading import Thread
 import threading
 
-import arancino_constants as const
-from arancino_exceptions import InvalidArgumentsNumberException, InvalidCommandException, RedisGenericException
-from arancino_port import ArancinoPortsDiscovery
-from arancino_datastore import ArancinoDataStore
-from arancino_synch import ArancinoSynch
+from arancino.arancino_exceptions import InvalidArgumentsNumberException, InvalidCommandException, RedisGenericException
+from arancino.arancino_port import ArancinoPortsDiscovery
+from arancino.arancino_datastore import ArancinoDataStore
+from arancino.arancino_synch import ArancinoSynch
 
 
 

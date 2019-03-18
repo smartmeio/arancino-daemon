@@ -18,7 +18,7 @@ License for the specific language governing permissions and limitations
 under the License
 '''
 
-import arancino_conf as conf
+from arancino import arancino_conf as conf
 import redis
 
 class ArancinoDataStore():
