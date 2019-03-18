@@ -162,15 +162,15 @@ upload:
     # DOWNLOAD
     #- curl -u $REPO_USR:$REPO_PWD -T tmp/$PKG_NAME.zip "${REPO_BASE_URL}/artifactory/${REPO_NAME}/${TARGET_PATH}/${PKG_NAME}.zip"
 
-  dependencies:
-    - package_release
-    - package_staging
+  #dependencies:
+  #  - package_release
+  #  - package_staging
 
   only:
     - branches
     - tags
-#  except:
-#    - tags
+  except:
+    - master
 
 
 #################################
