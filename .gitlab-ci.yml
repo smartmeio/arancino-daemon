@@ -1,0 +1,184 @@
+# Project:          Arancino Library - Serial Manager
+# Author:           Sergio Tomasello <sergio@smartme.io>
+# Created:          2018.10.11
+# Notes:            La pipeline esegue la creazione dell'archivio della libreria compatibile per Aduino IDE
+# Internal Vars:    Lista delle variabili definete internamente ed usate nella pipeline:
+#                   DATE:           data di esecuzione della pipeline
+#                   PKG_NAME:       nome del pacchetto
+#                   REPO_NAME:      nome del repository di produzione, composto da due parti:
+#                                   il nome del progetto -> $CI_PROJECT_NAME
+#                                   ambiente di lavoro: -> "staging" o "release"
+#                                   $CI_PROJECT_NAME-staging
+#                                   $CI_PROJECT_NAME-release
+#                   REPO_DIR:       nome della directory di upload del repository, composto da due parti:
+#                                   il nome del progetto -> $CI_PROJECT_NAME
+#                                   ambiente di lavoro: -> "staging" o "release"
+#                                   $CI_PROJECT_NAME/staging
+#                                   $CI_PROJECT_NAME/release
+#
+# External Vars:    Lista delle variabili definite estarnamente ed usate nella pipeline:
+#                   REPO_USR:       nome utente del associato a dev ops per effettuare upload dell'artefatto
+#                   REPO_PWD:       password associata all'utente dev ops
+#                   REPO_BASE_URL:  url di base del repository: https://packages.smartme.io
+#
+
+image: digitalgenius/alpine-python3-pg
+
+stages:
+  - start
+  - package
+  - upload
+  - cleanup
+
+#################################
+#######       START       #######
+#################################
+
+start:
+  stage: start
+
+  variables:
+    GIT_STRATEGY: none
+
+  script:
+    - mkdir -p tmp
+    - echo `date +%Y-%m-%d` > tmp/date.tmp
+    - echo `date +%H-%M-%S` > tmp/time.tmp
+
+  artifacts:
+    paths:
+      - tmp/
+    expire_in: 1d
+
+
+#################################
+#######      PACKAGE      #######
+#################################
+
+#######    Package Staging    #######
+#questo job esegue la compressione ad ogni commit su tutti i branch tranne master
+package_staging:
+
+  stage: package
+
+  script:
+    - DATE="$(cat tmp/date.tmp)"
+    - TIME="$(cat tmp/time.tmp)"
+
+    - VER=$DATE-$TIME-$CI_COMMIT_REF_NAME-${CI_COMMIT_SHA:0:8}
+
+    - echo pypi-snapshot > tmp/repo_name.tmp    #il nome del repository
+
+    - DEVVER="$(cat setup.py | grep version=)"  #prendo dal file setup.py la versione: => version='1.0.1',
+    - NEWVERTMP=${DEVVER%??}                   #taglio gli ultimi due caratteri => ', => version='1.0.1
+    - NEWVER="$NEWVERTMP.$VER',"                 #concateno le stringhe ed aggiunto i due caratteri tolti => version='1.0.1.20190318-170022-dev-a12def33',
+    - sed -i "s/$DEVVER/$NEWVER/g" setup.py     #nel file setup.py sostituisco la versione: version='1.0.1', => version='1.0.1.20190318-170022-dev-a12def33',
+
+    - python3 setup.py sdist
+    - ls dist/ > tmp/pgk_name.tmp               #ottengo il nome del file generato e salvo il nome del pacchetto su file temp
+    #- PKG_NAME="$(ls dist/)"                    #ottengo il nome del file generato
+    #- echo $PKG_NAME > tmp/pgk_name.tmp         #salvo il nome del pacchetto su file temp
+    - mv dist/*.tar.gz tmp/                     #sposto il file su di dir temp.
+
+  dependencies:
+    - start
+
+  artifacts:
+    paths:
+      - tmp/
+
+  only:
+    - branches
+
+  except:
+    - tags
+
+
+#######    Package Release    #######
+#esegue la compressione del pacchetto quando viene creato un tag su master (ovvero ad ogni release)
+package_release:
+
+  stage: package
+
+  variables:
+    GIT_STRATEGY: none
+
+  script:
+    - echo pypi > tmp/repo_name.tmp             #il nome del repository
+    - python3 setup.py sdist                    #non si devono fare trucchi, la versione nel file setup.py deve coincidere con quella del tag di release.
+    - ls dist/ > tmp/pgk_name.tmp               #ottengo il nome del file generato e salvo il nome del pacchetto su file temp
+    #- PKG_NAME="$(ls dist/)"                    #ottengo il nome del file generato
+    #- echo $PKG_NAME > tmp/pgk_name.tmp         #salvo il nome del pacchetto su file temp
+    - mv dist/*.tar.gz tmp/                     #sposto il file su di dir temp.
+
+  artifacts:
+    paths:
+      - tmp/
+
+  only:
+    - tags
+
+  except:
+    - branches
+
+
+#################################
+#######       UPLOAD      #######
+#################################
+
+#######    Upload Staging    #######
+#carica sul repository manager
+upload:
+
+  stage: upload
+
+  variables:
+    GIT_STRATEGY: none
+
+  script:
+    #- DATE="$(cat tmp/date.tmp)"
+    #- TIME="$(cat tmp/time.tmp)"
+    - PKG_NAME="$(cat tmp/pgk_name.tmp)"
+    - REPO_NAME="$(cat tmp/repo_name.tmp)"
+    #- TARGET_PATH="$(cat tmp/target_path.tmp)"
+    #- REPO_NAME=$CI_PROJECT_NAME
+    #- REPO_DIR=$CI_PROJECT_NAME/staging
+    - apk add curl
+    #- REPO_URL=$REPO_BASE_URL
+    #- echo ${REPO_URL}
+    #- echo ${REPO_BASE_URL}
+    # Nexus 3
+    - curl -X POST "${REPO_BASE_URL}/service/rest/v1/components?repository=${REPO_NAME}" -u $REPO_USR:$REPO_PWD -F pypi.asset1=@tmp/$PKG_NAME
+    # Artifactory
+    # RESOLVE
+    # - curl -u $REPO_USR:$REPO_PWD -O "${REPO_BASE_URL}/artifactory/${REPO_NAME}/${PKG_NAME}.zip"
+    # DOWNLOAD
+    #- curl -u $REPO_USR:$REPO_PWD -T tmp/$PKG_NAME.zip "${REPO_BASE_URL}/artifactory/${REPO_NAME}/${TARGET_PATH}/${PKG_NAME}.zip"
+
+  #dependencies:
+  #  - package_staging
+
+  only:
+    - branches
+    - tags
+#  except:
+#    - tags
+
+
+#################################
+#######      CLEANUP      #######
+#################################
+
+#######    Cleanup Job    #######
+cleanup:
+
+    stage: cleanup
+
+    variables:
+        GIT_STRATEGY: none
+
+    script:
+        - echo "Cleaning up"
+        - rm -rf tmp/
+
+    when: always
