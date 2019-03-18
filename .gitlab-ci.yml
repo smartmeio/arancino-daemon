@@ -70,9 +70,9 @@ package_staging:
     - echo pypi-snapshot > tmp/repo_name.tmp    #il nome del repository
 
     - DEVVER="$(cat setup.py | grep version=)"  #prendo dal file setup.py la versione: => version='1.0.1',
-    - NEWVERTMP=${$DEVVER%??}                   #taglio gli ultimi due caratteri => ', => version='1.0.1
-    - NEWVER="NEWVERTMP.$VER',"                 #concateno le stringhe ed aggiunto i due caratteri tolti => version='1.0.1.20190318-170022-dev-a12def33',
-    - sed -i 's/$DEVVER/$NEWVER/g' setup.py     #nel file setup.py sostituisco la versione: version='1.0.1', => version='1.0.1.20190318-170022-dev-a12def33',
+    - NEWVERTMP=${DEVVER%??}                   #taglio gli ultimi due caratteri => ', => version='1.0.1
+    - NEWVER="$NEWVERTMP.$VER',"                 #concateno le stringhe ed aggiunto i due caratteri tolti => version='1.0.1.20190318-170022-dev-a12def33',
+    - sed -i "s/$DEVVER/$NEWVER/g" setup.py     #nel file setup.py sostituisco la versione: version='1.0.1', => version='1.0.1.20190318-170022-dev-a12def33',
 
     - python3 setup.py sdist
     - PKG_NAME="$(ls dist/)"                    #ottengo il nome del file generato
