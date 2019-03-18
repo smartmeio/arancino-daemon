@@ -52,10 +52,7 @@ start:
 
 
   except:
-    - branches
     - master
-    - tags
-
 
 #################################
 #######      PACKAGE      #######
