@@ -101,9 +101,6 @@ package_release:
 
   stage: package
 
-  variables:
-    GIT_STRATEGY: none
-
   script:
     - echo pypi > tmp/repo_name.tmp             #il nome del repository
     - python3 setup.py sdist                    #non si devono fare trucchi, la versione nel file setup.py deve coincidere con quella del tag di release.
@@ -111,6 +108,9 @@ package_release:
     #- PKG_NAME="$(ls dist/)"                    #ottengo il nome del file generato
     #- echo $PKG_NAME > tmp/pgk_name.tmp         #salvo il nome del pacchetto su file temp
     - mv dist/*.tar.gz tmp/                     #sposto il file su di dir temp.
+
+  dependencies:
+    - start
 
   artifacts:
     paths:
