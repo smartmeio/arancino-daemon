@@ -92,6 +92,7 @@ package_staging:
 
   except:
     - master
+    - tags
 
 
 #######    Package Release    #######
@@ -116,8 +117,7 @@ package_release:
       - tmp/
 
   only:
-    - master
-
+    - tags
 
   except:
     - branches
