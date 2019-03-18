@@ -942,9 +942,6 @@ class SerialHandler(asyncio.Protocol):
         n_args_received = len(args)
 
         if n_args_received >= n_args_required:
-            idx = len(args)
-            channel = args[0]
-            message = args[1]
 
             try:
 
