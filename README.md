@@ -46,3 +46,23 @@ $ chmod +x <PATH TO ARANCINO MODULE>/start.py
 ## Extras
 
 ### Run arancino as _daemon_ with _systemctl_
+
+During installation the file _arancino.services_ was copied in _/etc/arancino/extras/_. Move _/etc/arancino/extras/arancino.service_ into _systemd_ directory and then enabled the service:
+
+```shell
+
+$ sudo cp /etc/arancino/extras/arancino.service /etc/systemd/system/
+$ systemctl enable arancino.service
+
+```
+
+Run `ps` to check if Arancino daemon is up and running:
+
+```shell
+
+$ ps aux | grep arancino
+
+```
+
+
+
