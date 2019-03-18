@@ -10,10 +10,19 @@ Receives commands from Arancino Library (uC) trough the Arancino Cortex Protocol
 
 ## Setup
 
-Add Smartme.IO repository to the pypi source:
+Add Smartme.IO repository as pypi source. There are two repository, one for release packages and one for development (snapshot). Open your `pip.conf` and add the following lines:
 
-~*TODO*~
+```
 
+$ sudo vi <HOME>/.config/pip/pip.conf
+
+.....
+
+[global]
+--extra-index-url = https://packages.smartme.io/repository/pypi-snapshot/simple
+--extra-index-url = https://packages.smartme.io/repository/pypi/simple
+
+```
 
 Install Arancino Module:
 
@@ -32,3 +41,8 @@ $ chmod +x <PATH TO ARANCINO MODULE>/start.py
 
 ## Configuration
 ~*TODO*~
+
+
+## Extras
+
+### Run arancino as _daemon_ with _systemctl_
