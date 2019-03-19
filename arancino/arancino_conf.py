@@ -22,7 +22,7 @@ import logging, sys, os
 from logging.handlers import RotatingFileHandler
 
 #version
-version = "0.1.0"
+version = "0.1.1"
 
 #redis connection parameter
 
@@ -78,5 +78,5 @@ def __get_file_handler():
 logger = logging.getLogger(__name)
 
 logger.setLevel(logging.INFO)
-logger.addHandler(__get_console_handler())
+#logger.addHandler(__get_console_handler())
 logger.addHandler(__get_file_handler())
