@@ -65,4 +65,12 @@ $ ps aux | grep arancino
 ```
 
 
+## Compatibility with Arancino Library
 
+
+|Module Version   	|       |Library Version   	|
+|---	            |---	|---                |
+| `0.0.1`   	    | `==`  | `0.0.1`           |
+| `0.0.2`  	        | `<=`  | `0.0.2`           |
+| `0.1.0`  	        | `>=`  | `0.1.0`           |
+| `0.1.1`           |       |                   |
