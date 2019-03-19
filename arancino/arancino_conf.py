@@ -64,6 +64,10 @@ hwid = [
 __name = 'Arancino Serial'
 __filename = os.path.join(os.getcwd(), 'arancino.log')
 __format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+__dirlog = "/var/log/arancino"
+
+if not os.path.exists(__dirlog):
+    os.makedirs(__dirlog)
 
 def __get_console_handler():
    console_handler = logging.StreamHandler(sys.stdout)
