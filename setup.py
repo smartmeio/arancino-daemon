@@ -59,7 +59,7 @@ setup(
 
     packages=find_packages(exclude=["test"]),
 
-    data_files=[('/etc/arancino/extras/',['extras/arancino.service'])],
+    data_files=[('/arancino/extras/',['extras/arancino.service'])],
 
     install_requires=['pyserial>=3.4', 'pyserial-asyncio>=0.4', 'redis>=2.10.6'],
 
