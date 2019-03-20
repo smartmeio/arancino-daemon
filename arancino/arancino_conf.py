@@ -22,7 +22,7 @@ import logging, sys, os
 from logging.handlers import RotatingFileHandler
 
 #version
-version = "0.1.2"
+version = "0.1.3"
 
 #redis connection parameter
 
