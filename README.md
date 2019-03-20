@@ -46,13 +46,35 @@ All available configuration can be set up in the _<PATH TO ARANCINO MODULE>/aran
 
 ## Extras
 
+### Change `ExecStart` directive
+
+During installation the file _arancino.services_ was copied in _<PATH TO ARANCINO MODULE>/extras/_.
+Move it into _systemd_ directory and change the `ExecStart` directive to execute the _start.py_ script.
+
+```shell
+$ sudo cp <PATH TO ARANCINO MODULE>/extras/arancino.service /etc/systemd/system/
+$ sudo vi /etc/systemd/system/arancino.service 
+
+...
+[Service]
+Type=simple
+User=root
+Group=root
+=====> ExecStart=<PATH TO ARANCINO MODULE>/start.py <=====
+Restart=on-failure
+RestartSec=3
+...
+
+``` 
+
+
+
 ### Run arancino as _daemon_ with _systemctl_
 
-During installation the file _arancino.services_ was copied in _<PATH TO ARANCINO MODULE>/extras/_. Move it to into _systemd_ directory and then enabled the service:
+Finally enabled and start the Aracnino service:
 
 ```shell
 
-$ sudo cp <PATH TO ARANCINO MODULE>/extras/arancino.service /etc/systemd/system/
 $ systemctl enable arancino.service
 $ systemctl start arancino.service
 
