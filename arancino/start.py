@@ -1,5 +1,3 @@
-#!/usr/local/bin/python3
-
 '''
 SPDX-license-identifier: Apache-2.0
 

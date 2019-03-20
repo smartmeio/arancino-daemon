@@ -19,8 +19,8 @@ $ sudo vi <HOME>/.config/pip/pip.conf
 .....
 
 [global]
---extra-index-url = https://packages.smartme.io/repository/pypi-snapshot/simple
 --extra-index-url = https://packages.smartme.io/repository/pypi/simple
+                    https://packages.smartme.io/repository/pypi-snapshot/simple
 
 ```
 
@@ -40,27 +40,63 @@ $ chmod +x <PATH TO ARANCINO MODULE>/start.py
 ```
 
 ## Configuration
-~*TODO*~
+
+All available configuration can be set up in the _<PATH TO ARANCINO MODULE>/arancino_conf.py_ file.  
 
 
-## Extras
+## Run
 
-### Run arancino as _daemon_ with _systemctl_
-
-During installation the file _arancino.services_ was copied in _/etc/arancino/extras/_. Move _/etc/arancino/extras/arancino.service_ into _systemd_ directory and then enabled the service:
+To run Arancino use the `start.py' script. If you don't want to run as _root_ please change the owner of log dir, and then run Arancino:
 
 ```shell
 
-$ sudo cp /etc/arancino/extras/arancino.service /etc/systemd/system/
-$ systemctl enable arancino.service
+$ sudo chown -R <USER> /var/log/arancino/
+$ python3 <PATH TO ARANCINO MODULE>/start.py
+
 
 ```
 
-Run `ps` to check if Arancino daemon is up and running:
+## Extras
+
+### Arancino as System Daemon 
+
+#### Change `ExecStart` directive
+
+During installation the file _arancino.services_ was copied in _<PATH TO ARANCINO MODULE>/extras/_.
+Move it into _systemd_ directory and change the `ExecStart` directive to execute the _start.py_ script.
+
+```shell
+$ sudo cp <PATH TO ARANCINO MODULE>/extras/arancino.service /etc/systemd/system/
+$ sudo vi /etc/systemd/system/arancino.service 
+
+...
+[Service]
+Type=simple
+User=root
+Group=root
+=====> ExecStart=<PATH TO ARANCINO MODULE>/start.py <=====
+Restart=on-failure
+RestartSec=3
+...
+
+``` 
+
+#### Run arancino as _daemon_ with _systemctl_
+
+Finally enabled and start the Aracnino service:
 
 ```shell
 
-$ ps aux | grep arancino
+$ systemctl enable arancino.service
+$ systemctl start arancino.service
+
+```
+
+Run `ps` or `systemctl status` to check if Arancino daemon is up and running:
+
+```shell
+
+$ systemctl status arancino
 
 ```
 
