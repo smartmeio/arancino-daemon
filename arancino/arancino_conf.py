@@ -22,7 +22,7 @@ import logging, sys, os
 from logging.handlers import RotatingFileHandler
 
 #version
-version = "0.1.0"
+version = "0.1.1"
 
 #redis connection parameter
 
@@ -62,8 +62,12 @@ hwid = [
 
 # logger configuration
 __name = 'Arancino Serial'
-__filename = os.path.join(os.getcwd(), 'arancino.log')
+__filename = 'arancino.log'
+__dirlog = "/var/log/arancino"
 __format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+if not os.path.exists(__dirlog):
+    os.makedirs(__dirlog)
 
 def __get_console_handler():
    console_handler = logging.StreamHandler(sys.stdout)
@@ -71,12 +75,12 @@ def __get_console_handler():
    return console_handler
 
 def __get_file_handler():
-   file_handler = RotatingFileHandler(__filename, mode='a', maxBytes=1*1024*1024, backupCount=5)
+   file_handler = RotatingFileHandler(os.path.join(__dirlog, __filename), mode='a', maxBytes=1*1024*1024, backupCount=5)
    file_handler.setFormatter(__format)
    return file_handler
 
 logger = logging.getLogger(__name)
 
 logger.setLevel(logging.INFO)
-logger.addHandler(__get_console_handler())
+#logger.addHandler(__get_console_handler())
 logger.addHandler(__get_file_handler())
