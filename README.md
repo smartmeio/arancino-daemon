@@ -19,8 +19,8 @@ $ sudo vi <HOME>/.config/pip/pip.conf
 .....
 
 [global]
---extra-index-url = https://packages.smartme.io/repository/pypi-snapshot/simple
 --extra-index-url = https://packages.smartme.io/repository/pypi/simple
+                    https://packages.smartme.io/repository/pypi-snapshot/simple
 
 ```
 
@@ -40,27 +40,29 @@ $ chmod +x <PATH TO ARANCINO MODULE>/start.py
 ```
 
 ## Configuration
-~*TODO*~
+
+All available configuration can be set up in the _<PATH TO ARANCINO MODULE>/arancino_conf.py_ file.  
 
 
 ## Extras
 
 ### Run arancino as _daemon_ with _systemctl_
 
-During installation the file _arancino.services_ was copied in _/etc/arancino/extras/_. Move _/etc/arancino/extras/arancino.service_ into _systemd_ directory and then enabled the service:
+During installation the file _arancino.services_ was copied in _<PATH TO ARANCINO MODULE>/extras/_. Move it to into _systemd_ directory and then enabled the service:
 
 ```shell
 
-$ sudo cp /etc/arancino/extras/arancino.service /etc/systemd/system/
+$ sudo cp <PATH TO ARANCINO MODULE>/extras/arancino.service /etc/systemd/system/
 $ systemctl enable arancino.service
+$ systemctl start arancino.service
 
 ```
 
-Run `ps` to check if Arancino daemon is up and running:
+Run `ps` or `systemctl status` to check if Arancino daemon is up and running:
 
 ```shell
 
-$ ps aux | grep arancino
+$ systemctl status arancino
 
 ```
 
