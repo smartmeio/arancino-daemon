@@ -186,4 +186,5 @@ cleanup:
         - echo "Cleaning up"
         - rm -rf tmp/
 
-    when: always
+    except:
+      - master

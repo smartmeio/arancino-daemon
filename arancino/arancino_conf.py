@@ -22,7 +22,7 @@ import logging, sys, os
 from logging.handlers import RotatingFileHandler
 
 #version
-version = "0.1.2"
+version = "0.1.3"
 
 #redis connection parameter
 
@@ -34,9 +34,9 @@ redis_dts = {'host': 'localhost',
 
 #devicestore
 redis_dvs = {'host': 'localhost',
-         'port': 6379,
+         'port': 6380,
          'dcd_resp': True,  #decode response
-         'db': 1}
+         'db': 0}
 
 
 #cycle interval time
