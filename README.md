@@ -41,8 +41,20 @@ $ chmod +x <PATH TO ARANCINO MODULE>/start.py
 
 ## Configuration
 
-All available configuration can be set up in the _<PATH TO ARANCINO MODULE>/arancino_conf.py_ file.  
+All available configuration can be set up in the _<PATH TO ARANCINO MODULE>/arancino_conf.py_ file.
 
+
+### Log Configuration
+_TODO_
+
+### Redis Configuration
+_TODO_
+
+### Arancino Port Configuration
+_TODO_
+
+### Polling Cycle
+_TODO_
 
 ## Run
 
@@ -100,6 +112,10 @@ $ systemctl status arancino
 
 ```
 
+### Redis daemons configuration
+_TODO_
+ 
+
 
 ## Compatibility with Arancino Library
 
@@ -110,3 +126,5 @@ $ systemctl status arancino
 | `0.0.2`  	        | `<=`  | `0.0.2`           |
 | `0.1.0`  	        | `>=`  | `0.1.0`           |
 | `0.1.1`           |       |                   |
+| `0.1.2`           |       |                   |
+| `0.1.3`           |       |                   |
