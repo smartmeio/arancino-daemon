@@ -1,5 +1,10 @@
 # Changelog
 
+#### v 0.1.4 - YYYY.MM.DD
+
+#### v 0.1.3 - 2019.03.22
+* Include in Extras Redis the fixed configuration and services files for Arancino OS.
+
 #### v 0.1.2 - 2019.03.20
 * Removed python interpreter from the start.py script.
 
