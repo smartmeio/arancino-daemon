@@ -34,9 +34,9 @@ redis_dts = {'host': 'localhost',
 
 #devicestore
 redis_dvs = {'host': 'localhost',
-         'port': 6379,
+         'port': 6380,
          'dcd_resp': True,  #decode response
-         'db': 1}
+         'db': 0}
 
 
 #cycle interval time
