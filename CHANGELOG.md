@@ -1,9 +1,12 @@
 # Changelog
 
 #### v 0.1.4 - YYYY.MM.DD
+* Setup.py now includes extras/*
+* Log info and error enhancement. #25
+* Log file size incremented form 1Mb to 10Mb (rotating).
 
 #### v 0.1.3 - 2019.03.22
-* Include in Extras Redis the fixed configuration and services files for Arancino OS.
+* Included in Extras the fixed configuration and services Redis files for Arancino OS.
 
 #### v 0.1.2 - 2019.03.20
 * Removed python interpreter from the start.py script.

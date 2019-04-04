@@ -174,7 +174,10 @@ class SerialMonitor (threading.Thread):
             self.ports_plugged = self.arancinoDy.getPluggedArancinoPorts(self.ports_plugged, self.ports_connected)
 
             LOG.info("Plugged Serial Ports Retrieved: " + str(len(self.ports_plugged)))
+            LOG.debug('Plugged Serial Ports Retrieved: ' + ' '.join('[' + str(arancino.port.device) + ' - ' + str(key) + ']'for key, arancino in self.ports_plugged.items()))
+
             LOG.info("Connected Serial Ports: " + str(len(self.ports_connected)))
+            LOG.debug('Connected Serial Ports: ' + ' '.join('[' + str(value[1].serial.name) + ' - ' + str(key) + ']' for key, value in self.ports_connected.items()))
 
             # first synchronization in cycle
             self.arancinoSy.synchPorts(self.ports_plugged)
@@ -184,6 +187,7 @@ class SerialMonitor (threading.Thread):
             if self.ports_plugged:
                 ports_to_connect = self.__retrieveNewPorts(self.ports_plugged, self.ports_connected)
                 LOG.info("Connectable Serial Ports Retrieved: " + str(len(ports_to_connect)))
+                LOG.debug("Connectable Serial Ports Retrieved: " + ' '.join('[' + str(port.device) + ' - ' + str(key) + ']'for key, port in self.ports_to_connect.items()) )
 
                 #finally connect the new ports
                 if ports_to_connect:
@@ -362,7 +366,6 @@ class SerialHandler(asyncio.Protocol):
         self.ports_connected[self.arancino.id][const.IDX_SERIAL_TRANSPORT] = transport
 
 
-
     def connection_lost(self, exc):
         '''
         When a connection_lost is triggered means the connection to the serial port is lost or interrupted.
@@ -382,9 +385,9 @@ class SerialHandler(asyncio.Protocol):
         # call arancino synch utility to synchronize with the datastore.
         self.arancinoSy.synchPort(self.arancino)
 
-
-        # TODO verify is this log is compliant with the others
         LOG.info(self.log_prefix + "Port closed " + self.transport.serial.name)
+        LOG.debug(self.log_prefix + "Port closed " + str(self.transport))
+
         connected_port = self.ports_connected.pop(self.arancino.id)
         serial_connector = connected_port[const.IDX_SERIAL_CONNECTOR]
         serial_transport = connected_port[const.IDX_SERIAL_TRANSPORT]
@@ -409,22 +412,19 @@ class SerialHandler(asyncio.Protocol):
             try:
                 # parse and check command
                 cmd = self.__parseCommands(self._partial)
-
                 # then execute it
                 response = self.__execCommand(cmd)
 
-
             except InvalidArgumentsNumberException as ex:
-                LOG.error(self.log_prefix + str(ex))
+                LOG.error(self.log_prefix + str(ex) + " => " + self._partial)
                 response = ex.error_code + const.CHR_EOT
 
             except InvalidCommandException as ex:
-                LOG.warning(self.log_prefix + str(ex))
+                LOG.warning(self.log_prefix + str(ex) + " => ".join(cmd))
                 response = ex.error_code + const.CHR_EOT
 
-
             except RedisGenericException as ex:
-                LOG.error(self.log_prefix + str(ex))
+                LOG.error(self.log_prefix + str(ex) + " => ".join(cmd))
                 response = const.ERR_REDIS + const.CHR_EOT
 
             except Exception as ex:
@@ -439,10 +439,11 @@ class SerialHandler(asyncio.Protocol):
 
             # clear the handy variable
             self._partial = ""
-            #print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ')
 
-        #else:
-        #    print('partial command received: ', datadec.strip('\n').strip('\t'))
+            LOG.debug('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ')
+
+        else:
+            LOG.debug('Partial Command Received: ' + datadec.strip('\n').strip('\t'))
 
     def __parseCommands(self, command):
         #decode the received commands
@@ -522,7 +523,7 @@ class SerialHandler(asyncio.Protocol):
 
         MCU → START@
 
-        MCU  ← 100@ (OK)
+        MCU ← 100@ (OK)
         '''
         return const.RSP_OK + const.CHR_EOT
 
@@ -580,7 +581,7 @@ class SerialHandler(asyncio.Protocol):
         MCU → GET#<key>@
 
         MCU ← 100#<value>@ (OK)
-        MCU ← 201@  (KO)
+        MCU ← 201@ (KO)
         '''
 
         n_args_required = 1

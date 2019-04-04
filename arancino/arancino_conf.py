@@ -75,7 +75,7 @@ def __get_console_handler():
    return console_handler
 
 def __get_file_handler():
-   file_handler = RotatingFileHandler(os.path.join(__dirlog, __filename), mode='a', maxBytes=1*1024*1024, backupCount=5)
+   file_handler = RotatingFileHandler(os.path.join(__dirlog, __filename), mode='a', maxBytes=10*1024*1024, backupCount=5)
    file_handler.setFormatter(__format)
    return file_handler
 
