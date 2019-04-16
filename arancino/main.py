@@ -945,7 +945,18 @@ class SerialHandler(asyncio.Protocol):
 
             try:
 
+                #before flush, save all Reserved Keys
+                rsvd_keys = self.datastore.keys("___*___")
+                rsvd_keys_value = []
+                for k in rsvd_keys:
+                    rsvd_keys_value[k] = self.datastore.get(k)
+
+                #flush
                 rsp = self.datastore.flushdb()
+
+                #finally set them all again
+                for k, v in rsvd_keys_value.items():
+                    self.datastore.set(k, v)
 
             except Exception as ex:
                 raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
