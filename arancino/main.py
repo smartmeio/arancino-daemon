@@ -552,6 +552,13 @@ class SerialHandler(asyncio.Protocol):
 
             try:
 
+
+                # if it's the reserverd key __LIBVERSION__,
+                # then add port id to associate the device and the running version of the library
+
+                if key.upper() == "___LIBVERS___":
+                    key += ""self.arancino.id+"___"
+
                 rsp = self.datastore.set(key, value)
 
             except Exception as ex:
