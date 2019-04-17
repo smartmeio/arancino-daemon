@@ -59,7 +59,7 @@ setup(
 
     packages=find_packages(exclude=["test"]),
 
-    data_files=[('/arancino/extras/',['extras/*'])],
+    data_files=[('/arancino/extras/', ['extras/arancino.service', 'extras/redis-persistent.conf', 'extras/redis-persistent.service', 'extras/redis-volatile.conf', 'extras/redis-volatile.service'])],
 
     install_requires=['pyserial>=3.4', 'pyserial-asyncio>=0.4', 'redis>=2.10.6'],
 
