@@ -174,10 +174,10 @@ class SerialMonitor (threading.Thread):
             self.ports_plugged = self.arancinoDy.getPluggedArancinoPorts(self.ports_plugged, self.ports_connected)
 
             LOG.info("Plugged Serial Ports Retrieved: " + str(len(self.ports_plugged)))
-            LOG.debug('Plugged Serial Ports Retrieved: ' + ' '.join('[' + str(arancino.port.device) + ' - ' + str(key) + ']'for key, arancino in self.ports_plugged.items()))
+            LOG.debug('Plugged Serial Ports Retrieved: ' + str(len(self.ports_plugged)) + ' => ' + ' '.join('[' + str(arancino.port.device) + ' - ' + str(key) + ']'for key, arancino in self.ports_plugged.items()))
 
             LOG.info("Connected Serial Ports: " + str(len(self.ports_connected)))
-            LOG.debug('Connected Serial Ports: ' + ' '.join('[' + str(value[1].serial.name) + ' - ' + str(key) + ']' for key, value in self.ports_connected.items()))
+            LOG.debug('Connected Serial Ports: ' + str(len(self.ports_connected)) + ' => ' + ' '.join('[' + str(value[1].serial.name) + ' - ' + str(key) + ']' for key, value in self.ports_connected.items()))
 
             # first synchronization in cycle
             self.arancinoSy.synchPorts(self.ports_plugged)
@@ -187,8 +187,7 @@ class SerialMonitor (threading.Thread):
             if self.ports_plugged:
                 ports_to_connect = self.__retrieveNewPorts(self.ports_plugged, self.ports_connected)
                 LOG.info("Connectable Serial Ports Retrieved: " + str(len(ports_to_connect)))
-                LOG.debug("Connectable Serial Ports Retrieved: " + ' '.join('[' + str(port.device) + ' - ' + str(key) + ']'for key, port in self.ports_to_connect.items()) )
-
+                LOG.debug("Connectable Serial Ports Retrieved: " + str(len(ports_to_connect)) + ' => ' + ' '.join('[' + str(p.port.device) + ' - ' + str(p.id) + ']' for p in ports_to_connect))
                 #finally connect the new ports
                 if ports_to_connect:
                     self.__connectPorts(ports_to_connect, self.ports_connected)
@@ -556,8 +555,8 @@ class SerialHandler(asyncio.Protocol):
                 # if it's the reserverd key __LIBVERSION__,
                 # then add port id to associate the device and the running version of the library
 
-                if key.upper() == "___LIBVERS___":
-                    key += ""self.arancino.id+"___"
+                if key.upper() == const.RSVD_KEY_LIBVERSION:
+                    key += self.arancino.id+"___"
 
                 rsp = self.datastore.set(key, value)
 
