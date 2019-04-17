@@ -28,7 +28,7 @@ setup(
 
     name='arancino',
 
-    version='0.1.3',
+    version='0.1.4',
 
     description='Arancino Module for Arancino Library',
 
@@ -59,7 +59,7 @@ setup(
 
     packages=find_packages(exclude=["test"]),
 
-    data_files=[('/arancino/extras/',['extras/arancino.service'])],
+    data_files=[('/arancino/extras/',['extras/*'])],
 
     install_requires=['pyserial>=3.4', 'pyserial-asyncio>=0.4', 'redis>=2.10.6'],
 

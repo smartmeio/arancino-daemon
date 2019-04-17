@@ -1,5 +1,14 @@
 # Changelog
 
+#### v 0.1.4 - 2019.04.17
+* Setup.py now includes extras/*
+* Log info and error enhancement. #25
+* Log file size incremented form 1Mb to 10Mb (rotating).
+* Reserved keys are saved when FLUSH command is received. #29
+
+#### v 0.1.3 - 2019.03.22
+* Included in Extras the fixed configuration and services Redis files for Arancino OS.
+
 #### v 0.1.2 - 2019.03.20
 * Removed python interpreter from the start.py script.
 

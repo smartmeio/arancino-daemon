@@ -54,11 +54,6 @@ ERR_CMD_NOT_RCV = '204'     #Command Not Received
 ERR_CMD_PRM_NUM = '205'     #Invalid parameter number
 ERR_REDIS       = '206'     #Generic Redis Error
 
-#Reserved keys
-RSVD_KEY_MONITOR = "___MONITOR___"
-RSVD_KEY_LIBVERSION = "___LIBVERS___"
-RSVD_KEY_MODVERSION = "___MODVERS___"
-
 #Complete list of available commands
 __COMMANDLIST = [ CMD_SYS_START,
                 CMD_APP_GET,
@@ -74,9 +69,21 @@ __COMMANDLIST = [ CMD_SYS_START,
                 CMD_APP_PUB,
                 CMD_APP_FLUSH]
 
+#Reserved keys
+RSVD_KEY_MONITOR = "___MONITOR___"
+RSVD_KEY_LIBVERSION = "___LIBVERS___"
+RSVD_KEY_MODVERSION = "___MODVERS___"
+
+#Reseverd keys list
+__RESERVEDKEYSLIST  = [ RSVD_KEY_MONITOR,
+                        RSVD_KEY_LIBVERSION,
+                        RSVD_KEY_MODVERSION ]
+
 def getCommandsList():
     return __COMMANDLIST
 
+def getReservedKeysList():
+    return __RESERVEDKEYSLIST
 
 #Keys used in to store port information into devicestore
 
