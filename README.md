@@ -38,7 +38,11 @@ Use directly the Command Line Interface and pip by specifying the repository url
 
 ```shell
 
-$ pip3 install arancino -i https://packages.smartme.io/repository/pypi/simple
+$ pip3 install arancino --extra-index-url https://packages.smartme.io/repository/pypi/simple
+
+or
+
+$ pip3 install arancino --extra-index-url https://packages.smartme.io/repository/pypi-staging/simple
 
 ```
 
