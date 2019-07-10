@@ -28,7 +28,7 @@ $ sudo vi <HOME>/.config/pip/pip.conf
 Install Arancino Module:
 
 ```shell
-$ sudo pip install arancino
+$ sudo pip3 install arancino
 
 ```
 
@@ -38,7 +38,15 @@ Use directly the Command Line Interface and pip by specifying the repository url
 
 ```shell
 
-$ pip3 install arancino -i https://packages.smartme.io/repository/pypi/simple
+$ sudo pip3 install arancino --extra-index-url https://packages.smartme.io/repository/pypi/simple
+
+```
+
+or
+
+```
+
+$ sudo pip3 install arancino --extra-index-url https://packages.smartme.io/repository/pypi-staging/simple
 
 ```
 
