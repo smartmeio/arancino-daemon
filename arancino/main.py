@@ -113,10 +113,12 @@ class SerialMonitor (threading.Thread):
         self.datastore.set(const.RSVD_KEY_MODVERSION, conf.version)
 
         self.devicestore = self.arancinoDs.getDeviceStore()
+        self.datastore_rsvd = self.arancinoDs.getDataStoreRsvd()
 
 
         self.arancinoContext = {
             "commands_list": const.getCommandsList(),
+            "reserved_keys_list" : const.getReservedKeysList(),
             "ports_plugged": self.ports_plugged,
             "ports_connected": self.ports_connected,
             "arancino_discovery": self.arancinoDy,
@@ -343,12 +345,14 @@ class SerialHandler(asyncio.Protocol):
         self.arancinoContext = arancinoContext
         self.datastore = arancinoContext["arancino_datastore"].getDataStore()
         self.devicestore = arancinoContext["arancino_datastore"].getDeviceStore()
+        self.datastore_rsvd = arancinoContext["arancino_datastore"].getDataStoreRsvd()
         self.ports_connected = arancinoContext["ports_connected"]
         self.ports_plugged = arancinoContext["ports_plugged"]
         self.arancinoSy = arancinoContext["arancino_synch"]
         self.arancinoDy = arancinoContext["arancino_discovery"]
         self.arancinoDs = arancinoContext["arancino_datastore"]
         self.commands_list = arancinoContext["commands_list"]
+        self.reserved_keys_list = arancinoContext["reserved_keys_list"]
 
         self.arancino = arancino
 
@@ -551,14 +555,24 @@ class SerialHandler(asyncio.Protocol):
 
             try:
 
+                # It's a reserved key.
+                if key.startswith("____") and key.endswith("___"): #and key not in self.reserved_keys_list:
 
-                # if it's the reserverd key __LIBVERSION__,
-                # then add port id to associate the device and the running version of the library
+                    # if it's the reserverd key __LIBVERSION__,
+                    # then add port id to associate the device and the running version of the library
+                    if key.upper() == const.RSVD_KEY_LIBVERSION:
+                        key += self.arancino.id+"___"
 
-                if key.upper() == const.RSVD_KEY_LIBVERSION:
-                    key += self.arancino.id+"___"
 
-                rsp = self.datastore.set(key, value)
+                    # the keys which start with ___U_ are reserved keys defined in the user space
+                    # if key.startswith("___U_"):
+
+                    # write to the dedicate data store (dedicated to reserved keys)
+                    rsp = self.datastore_rsvd.set(key, value)
+
+                # It isn't a reserved key. It's an application key
+                else:
+                    rsp = self.datastore.set(key, value)
 
             except Exception as ex:
                 raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
@@ -596,10 +610,23 @@ class SerialHandler(asyncio.Protocol):
         if n_args_received == n_args_required:
 
             key = args[0]
+            rsp = None
 
             try:
 
-                rsp = self.datastore.get(key)
+                # It's a reserved key.
+                if key.startswith("____") and key.endswith("___"):
+
+                    # if it's the reserverd key __LIBVERSION__,
+                    # then add port id to associate the device and the running version of the library
+                    if key.upper() == const.RSVD_KEY_LIBVERSION:
+                        key += self.arancino.id+"___"
+
+                    rsp = self.datastore_rsvd.get(key)
+
+                # It's an application key.
+                else:
+                    rsp = self.datastore.get(key)
 
             except Exception as ex:
                 raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
@@ -634,6 +661,9 @@ class SerialHandler(asyncio.Protocol):
         if n_args_received >= n_args_required:
 
             try:
+
+                #TODO delete user-reserved keys
+
                 num = self.datastore.delete(*args)
 
             except Exception as ex:
@@ -935,7 +965,7 @@ class SerialHandler(asyncio.Protocol):
     # FLUSH
     def __OPTS_FLUSH(self, args):
         '''
-        Delete all the keys of the currently selected DB.
+        Delete all the keys of the currently application DB.
         This command never fails.
             https://redis.io/commands/flushdb
 
@@ -951,18 +981,25 @@ class SerialHandler(asyncio.Protocol):
 
             try:
 
+                '''
                 #before flush, save all Reserved Keys
                 rsvd_keys = self.datastore.keys("___*___")
                 rsvd_keys_value = []
                 for k in rsvd_keys:
                     rsvd_keys_value[k] = self.datastore.get(k)
-
+                
                 #flush
                 rsp = self.datastore.flushdb()
-
+                
                 #finally set them all again
                 for k, v in rsvd_keys_value.items():
                     self.datastore.set(k, v)
+                
+                '''
+
+                # flush directly the datastore; reserved keys are stored separately
+                rsp = self.datastore.flushdb()
+
 
             except Exception as ex:
                 raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
