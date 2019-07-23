@@ -237,7 +237,7 @@ class SerialMonitor (threading.Thread):
         Serial Connector instance is stored into a List of connected port using the
         serial number of the port as key for the List
 
-        :param ports_to_connect: List of ListPortInfo
+        :param ports_to_connect: List of ArancinoPort
         :return ports_connected: List of SerialConnector and SerialTransport
         """
 
