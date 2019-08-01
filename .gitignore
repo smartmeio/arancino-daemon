@@ -93,6 +93,7 @@ Temporary Items
 # IDE
 .idea/
 venv/
+.vscode/
 
 # Redis
 *.rdb
