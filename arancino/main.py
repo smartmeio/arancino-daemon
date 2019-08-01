@@ -25,6 +25,8 @@ import asyncio, serial_asyncio, sys
 from threading import Thread
 import threading
 
+from serial.threaded.__init__ import *
+
 import arancino.arancino_conf as conf
 import arancino.arancino_constants as const
 from arancino.arancino_exceptions import InvalidArgumentsNumberException, InvalidCommandException, RedisGenericException
@@ -82,6 +84,7 @@ class Arancino():
     def __exit(self, signum, frame):
         LOG.warning("Received Kill: Exiting... ")
         self.serialMonitor.stop()
+
 
 
 class SerialMonitor (threading.Thread):
@@ -284,9 +287,9 @@ class SerialMonitor (threading.Thread):
 
         for arancino in ports_to_stop:
             port = connected[arancino.id]
-
+            #todo da capire come gestire il transport
             transport = port[const.IDX_SERIAL_TRANSPORT]
-            transport.close()
+            #transport.close()
 
             connector = port[const.IDX_SERIAL_CONNECTOR]
             connector.close()
@@ -302,7 +305,51 @@ class SerialMonitor (threading.Thread):
             LOG.info("Port Closed: " + arancino.alias + " " + arancino.port.device + " - " + arancino.id)
 
 
-class SerialConnector (Thread):
+class ArancinoLineReader(LineReader):
+
+    def write(self, text):
+        self.transport.write(text.encode(self.ENCODING,self.UNICODE_HANDLING))
+
+
+class ArancinoReaderThread(ReaderThread):
+
+    def run(self):
+        """Reader loop"""
+        if not hasattr(self.serial, 'cancel_read'):
+            self.serial.timeout = 1
+        self.protocol = self.protocol_factory()
+        try:
+            self.protocol.connection_made(self)
+        except Exception as e:
+            self.alive = False
+            self.protocol.connection_lost(e)
+            self._connection_made.set()
+            return
+        error = None
+        self._connection_made.set()
+        while self.alive and self.serial.is_open:
+            try:
+                # read all that is there
+                data = self.serial.read(self.serial.in_waiting)
+            except serial.SerialException as e:
+                # probably some I/O problem such as disconnected USB serial
+                # adapters -> exit
+                error = e
+                break
+            else:
+                if data:
+                    # make a separated try-except for called user code
+                    try:
+                        self.protocol.data_received(data)
+                    except Exception as e:
+                        error = e
+                        break
+        self.alive = False
+        self.protocol.connection_lost(error)
+        self.protocol = None
+
+
+class SerialConnector ():
 
     #def __init__(self, datastore, devicestore, arancino, baudrate = 250000):
     def __init__(self, arancinoContext, arancino, baudrate=250000):
@@ -314,31 +361,23 @@ class SerialConnector (Thread):
         self.arancinoContext = arancinoContext
         self.datastore = arancinoContext["arancino_datastore"].getDataStore()
         self.devicestore = arancinoContext["arancino_datastore"].getDeviceStore()
-
+        self.ser =  serial.serial_for_url(self.arancino.port.device, baudrate=self.baudrate, timeout=None)
+        self.arancinoReaderTh = ArancinoReaderThread(self.ser, SerialHandler)
 
 
     def close(self):
 
-        self.task.cancel()
-        self._loop.call_soon_threadsafe(self._loop.stop)
+        self.arancinoReaderTh.close()
 
-    def run(self):
+    def start(self):
         #try:
-            self.coro = serial_asyncio.create_serial_connection(self._loop, lambda: SerialHandler(self.arancinoContext, self.arancino), self.arancino.port.device, baudrate=self.baudrate)
-            self._loop.run_until_complete(self.coro)
 
-            self.task=self._loop.create_task(self.coro)
-
-
-            self._loop.run_forever()
-            self._loop.close()
-
-            LOG.info("The Thread " + self.name + " is Closed.")
+         self.arancinoReaderTh.start()
         #except Exception as ex:
             #LOG.error(ex)
 
 
-class SerialHandler(asyncio.Protocol):
+class SerialHandler(ArancinoLineReader):
     #def __init__(self, datastore=None, devicestore=None, arancino=None):
     def __init__(self, arancinoContext, arancino=None):
 
@@ -360,10 +399,12 @@ class SerialHandler(asyncio.Protocol):
         self.log_prefix = "[" + self.arancino.port.device + " - " + self.arancino.id + "]: "
 
     def connection_made(self, transport):
+        super(SerialHandler, self).connection_made(transport)
         self.transport = transport
         LOG.info(self.log_prefix + "Port opened: " + transport.serial.name)
         LOG.debug(self.log_prefix + "Port opened: " + str(transport))
         transport.serial.rts = False
+        #todo verificare la gestioen dell'oggetto transport
 
         #global ports_connected
         self.ports_connected[self.arancino.id][const.IDX_SERIAL_TRANSPORT] = transport
@@ -395,7 +436,8 @@ class SerialHandler(asyncio.Protocol):
         serial_connector = connected_port[const.IDX_SERIAL_CONNECTOR]
         serial_transport = connected_port[const.IDX_SERIAL_TRANSPORT]
 
-        serial_transport.close()
+        #todo verificare se è corretto commentare la transporto.close()e anche verificare l'oggetto serial_transport
+        #serial_transport.close()
         serial_connector.close()
 
         del serial_transport
@@ -436,7 +478,9 @@ class SerialHandler(asyncio.Protocol):
 
             finally:
                 # send response back
-                self.transport.write(response.encode())
+                #self.transport.write(response.encode())
+                self.write(response)
+
                 LOG.debug(self.log_prefix + "Sent Response: " + str(response))
 
 
@@ -1010,6 +1054,9 @@ class SerialHandler(asyncio.Protocol):
             raise InvalidArgumentsNumberException(
                 "Invalid arguments number for command " + const.CMD_APP_FLUSH + ". Received: " + str(
                     n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
+
+
+
 
 
 def start():
