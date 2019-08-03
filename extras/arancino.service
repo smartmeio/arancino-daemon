@@ -1,6 +1,6 @@
 [Unit]
 Description=Arancino
-After=network.target, redis-persistent.service, redis-volatile.service
+After=network.target redis-persistent.service redis-volatile.service
 
 [Service]
 Type=simple
