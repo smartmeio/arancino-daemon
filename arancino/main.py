@@ -1,3 +1,4 @@
+# coding=utf-8
 '''
 SPDX-license-identifier: Apache-2.0
 
@@ -19,8 +20,8 @@ under the License
 '''
 
 
-import time, signal
-import asyncio, serial_asyncio, sys
+import time, signal, sys
+#import asyncio, serial_asyncio, sys
 
 from threading import Thread
 import threading
@@ -182,7 +183,9 @@ class SerialMonitor (threading.Thread):
             LOG.debug('Plugged Serial Ports Retrieved: ' + str(len(self.ports_plugged)) + ' => ' + ' '.join('[' + str(arancino.port.device) + ' - ' + str(key) + ']'for key, arancino in self.ports_plugged.items()))
 
             LOG.info("Connected Serial Ports: " + str(len(self.ports_connected)))
-            LOG.debug('Connected Serial Ports: ' + str(len(self.ports_connected)) + ' => ' + ' '.join('[' + str(value[1].serial.name) + ' - ' + str(key) + ']' for key, value in self.ports_connected.items()))
+            LOG.debug('Connected Serial Ports: ' + str(len(self.ports_connected)) + ' => ' + ' '.join('[' + str(connector.arancino.port.device) + ' - ' + str(key) + ']' for key, connector in self.ports_connected.items()))
+
+            #LOG.debug('Connected Serial Ports: ' + str(len(self.ports_connected)) + ' => ' + ' '.join('[' + str(value[1].serial.name) + ' - ' + str(key) + ']' for key, value in self.ports_connected.items()))
 
             # first synchronization in cycle
             self.arancinoSy.synchPorts(self.ports_plugged)
@@ -236,7 +239,7 @@ class SerialMonitor (threading.Thread):
 
     def __connectPorts(self, ports_to_connect, connected):
         """
-        For each ports in List, creates a new instance of Serial Connector and the starts it.
+        For each ports in List, creates a new instance of Serial Connector and starts it.
         Serial Connector instance is stored into a List of connected port using the
         serial number of the port as key for the List
 
@@ -251,9 +254,11 @@ class SerialMonitor (threading.Thread):
             #serialConnector = SerialConnector( self.datastore, self.devicestore,  arancino=arancino, baudrate = 4000000)
             serialConnector = SerialConnector(self.arancinoContext, arancino=arancino, baudrate=4000000)
 
-            arancino.connected = True
-            connected[arancino.id] = [serialConnector, None] # SerialConnector and SerialTransport
+
             serialConnector.start()
+            #connected[arancino.id] = [serialConnector, None]  # SerialConnector and SerialTransport
+            connected[arancino.id] = serialConnector
+            arancino.connected = True
 
 
     def __getDisabledPorts(self, plugged, connected):
@@ -288,10 +293,11 @@ class SerialMonitor (threading.Thread):
         for arancino in ports_to_stop:
             port = connected[arancino.id]
             #todo da capire come gestire il transport
-            transport = port[const.IDX_SERIAL_TRANSPORT]
+            #transport = port[const.IDX_SERIAL_TRANSPORT]
             #transport.close()
 
-            connector = port[const.IDX_SERIAL_CONNECTOR]
+            #connector = port[const.IDX_SERIAL_CONNECTOR]
+            connector = port
             connector.close()
 
             arancino.connected = False
@@ -301,84 +307,92 @@ class SerialMonitor (threading.Thread):
                 port = connected.pop(arancino.id)
                 del port
 
-            del connector, transport
+            del connector
+            #del transport
             LOG.info("Port Closed: " + arancino.alias + " " + arancino.port.device + " - " + arancino.id)
 
 
 class ArancinoLineReader(LineReader):
 
     def write(self, text):
-        self.transport.write(text.encode(self.ENCODING,self.UNICODE_HANDLING))
+        self.transport.write(text.encode(self.ENCODING, self.UNICODE_HANDLING))
 
 
-class ArancinoReaderThread(ReaderThread):
+# class ArancinoReaderThread(ReaderThread):
+#
+#     # def __init__(self):
+#     #     super.__init__(daemon=True)
+#
+#     def run(self):
+#         """Reader loop"""
+#         if not hasattr(self.serial, 'cancel_read'):
+#             self.serial.timeout = 1
+#         self.protocol = self.protocol_factory()
+#         try:
+#             self.protocol.connection_made(self)
+#         except Exception as e:
+#             self.alive = False
+#             self.protocol.connection_lost(e)
+#             self._connection_made.set()
+#             return
+#         error = None
+#         self._connection_made.set()
+#         while self.alive and self.serial.is_open:
+#             try:
+#                 # read all that is there
+#                 data = self.serial.read(self.serial.in_waiting)
+#             except serial.SerialException as e:
+#                 # probably some I/O problem such as disconnected USB serial
+#                 # adapters -> exit
+#                 error = e
+#                 break
+#             else:
+#                 if data:
+#                     # make a separated try-except for called user code
+#                     try:
+#                         self.protocol.data_received(data)
+#                     except Exception as e:
+#                         error = e
+#                         break
+#         self.alive = False
+#         self.protocol.connection_lost(error)
+#         self.protocol = None
 
-    def run(self):
-        """Reader loop"""
-        if not hasattr(self.serial, 'cancel_read'):
-            self.serial.timeout = 1
-        self.protocol = self.protocol_factory()
-        try:
-            self.protocol.connection_made(self)
-        except Exception as e:
-            self.alive = False
-            self.protocol.connection_lost(e)
-            self._connection_made.set()
-            return
-        error = None
-        self._connection_made.set()
-        while self.alive and self.serial.is_open:
-            try:
-                # read all that is there
-                data = self.serial.read(self.serial.in_waiting)
-            except serial.SerialException as e:
-                # probably some I/O problem such as disconnected USB serial
-                # adapters -> exit
-                error = e
-                break
-            else:
-                if data:
-                    # make a separated try-except for called user code
-                    try:
-                        self.protocol.data_received(data)
-                    except Exception as e:
-                        error = e
-                        break
-        self.alive = False
-        self.protocol.connection_lost(error)
-        self.protocol = None
 
+class SerialConnector:
 
-class SerialConnector ():
-
-    #def __init__(self, datastore, devicestore, arancino, baudrate = 250000):
     def __init__(self, arancinoContext, arancino, baudrate=250000):
-        Thread.__init__(self)
-        self._loop = asyncio.new_event_loop()
         self.arancino = arancino
         self.name = "ArancinoSerialConnector-" + self.arancino.port.device
         self.baudrate = baudrate
         self.arancinoContext = arancinoContext
         self.datastore = arancinoContext["arancino_datastore"].getDataStore()
         self.devicestore = arancinoContext["arancino_datastore"].getDeviceStore()
-        self.ser =  serial.serial_for_url(self.arancino.port.device, baudrate=self.baudrate, timeout=None)
-        self.arancinoReaderTh = ArancinoReaderThread(self.ser, SerialHandler)
-
+        self.serial = serial.serial_for_url(self.arancino.port.device, baudrate=self.baudrate, timeout=None)
+        #self.arancinoReaderTh = ArancinoReaderThread(self.serial, lambda: SerialHandler(self.arancinoContext, self.arancino))
+        self.arancinoReaderTh = ReaderThread(self.serial, lambda: SerialHandler(self.arancinoContext, self.arancino))
 
     def close(self):
+        try:
+            '''
+            Close the serial is enough becouse in the run() of ReaderThread there's this control:
+                ===> while self.alive and self.serial.is_open
+            exiting the while it calls the .join() and close the thread
+            '''
+            self.arancinoReaderTh.serial.close()
 
-        self.arancinoReaderTh.close()
+        except Exception as ex:
+            LOG.warn(ex)
 
     def start(self):
-        #try:
-
-         self.arancinoReaderTh.start()
-        #except Exception as ex:
-            #LOG.error(ex)
+        try:
+            self.arancinoReaderTh.start()
+        except Exception as ex:
+            LOG.warn(ex)
 
 
 class SerialHandler(ArancinoLineReader):
-    #def __init__(self, datastore=None, devicestore=None, arancino=None):
+
     def __init__(self, arancinoContext, arancino=None):
 
         self.arancinoContext = arancinoContext
@@ -406,8 +420,7 @@ class SerialHandler(ArancinoLineReader):
         transport.serial.rts = False
         #todo verificare la gestioen dell'oggetto transport
 
-        #global ports_connected
-        self.ports_connected[self.arancino.id][const.IDX_SERIAL_TRANSPORT] = transport
+        #self.ports_connected[self.arancino.id][const.IDX_SERIAL_TRANSPORT] = transport
 
 
     def connection_lost(self, exc):
@@ -416,8 +429,6 @@ class SerialHandler(ArancinoLineReader):
         In this case ArancinoPort (from plugged_ports) must be updated and status information stored into
         the device store.
         '''
-
-        #global ports_plugged, ports_connected, arancinoSy, arancinoDy
 
         # sets connected metadata status to False.
         self.arancino.connected = False
@@ -433,14 +444,15 @@ class SerialHandler(ArancinoLineReader):
         LOG.debug(self.log_prefix + "Port closed " + str(self.transport))
 
         connected_port = self.ports_connected.pop(self.arancino.id)
-        serial_connector = connected_port[const.IDX_SERIAL_CONNECTOR]
-        serial_transport = connected_port[const.IDX_SERIAL_TRANSPORT]
+        #serial_connector = connected_port[const.IDX_SERIAL_CONNECTOR]
+        serial_connector = connected_port
+        #serial_transport = connected_port[const.IDX_SERIAL_TRANSPORT]
 
         #todo verificare se è corretto commentare la transporto.close()e anche verificare l'oggetto serial_transport
         #serial_transport.close()
         serial_connector.close()
 
-        del serial_transport
+        #del serial_transport
         del serial_connector
 
 
