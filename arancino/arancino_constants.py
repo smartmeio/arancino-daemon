@@ -29,6 +29,8 @@ CMD_SYS_START   = 'START' #Start Commmand
 
 CMD_APP_GET     = 'GET'     #Get value at key
 CMD_APP_SET     = 'SET'     #Set value at key
+CMD_APP_SET_STD = 'SET'     #Set value at key (Standard as SET above)
+CMD_APP_SET_RSVD= 'SETRSVD' #Set value at key (Reserved by User)
 CMD_APP_DEL     = 'DEL'     #Delete one or multiple keys
 CMD_APP_KEYS    = 'KEYS'    #Get keys by a pattern
 CMD_APP_HGET    = 'HGET'    #
@@ -116,5 +118,5 @@ P_INTERFACE       = "P_INTERFACE"       # String
 
 
 # ports_plugged positionals
-IDX_SERIAL_CONNECTOR = 0
-IDX_SERIAL_TRANSPORT = 1
+#IDX_SERIAL_CONNECTOR = 0
+#IDX_SERIAL_TRANSPORT = 1

@@ -113,7 +113,8 @@ class SerialMonitor (threading.Thread):
         #global arancinoDs, arancinoDy, ports_connected, ports_plugged
 
         self.datastore = self.arancinoDs.getDataStore()
-        self.datastore.flushdb()
+        #probably is not necessary to flush when starts, becouse it's clean when the device is started
+        #self.datastore.flushdb()
         self.datastore.set(const.RSVD_KEY_MODVERSION, conf.version)
 
         self.devicestore = self.arancinoDs.getDeviceStore()
@@ -366,8 +367,8 @@ class SerialConnector:
         self.name = "ArancinoSerialConnector-" + self.arancino.port.device
         self.baudrate = baudrate
         self.arancinoContext = arancinoContext
-        self.datastore = arancinoContext["arancino_datastore"].getDataStore()
-        self.devicestore = arancinoContext["arancino_datastore"].getDeviceStore()
+        #self.datastore = arancinoContext["arancino_datastore"].getDataStore()
+        #self.devicestore = arancinoContext["arancino_datastore"].getDeviceStore()
         self.serial = serial.serial_for_url(self.arancino.port.device, baudrate=self.baudrate, timeout=None)
         #self.arancinoReaderTh = ArancinoReaderThread(self.serial, lambda: SerialHandler(self.arancinoContext, self.arancino))
         self.arancinoReaderTh = ReaderThread(self.serial, lambda: SerialHandler(self.arancinoContext, self.arancino))
@@ -532,8 +533,11 @@ class SerialHandler(ArancinoLineReader):
             if cmd[0] == const.CMD_SYS_START:
                 return self.__OPTS_START()
             # SET
-            elif cmd[0] == const.CMD_APP_SET:
-                return self.__OPTS_SET(parameters)
+            elif cmd[0] == const.CMD_APP_SET_STD:
+                return self.__OPTS_SET_STD(parameters)
+            # SET RESERVED
+            elif cmd[0] == const.CMD_APP_SET_RSVD:
+                return self.__OPTS_SET_RSVD(parameters)
             # GET
             elif cmd[0] == const.CMD_APP_GET:
                 return self.__OPTS_GET(parameters)
@@ -586,8 +590,18 @@ class SerialHandler(ArancinoLineReader):
         '''
         return const.RSP_OK + const.CHR_EOT
 
+    # SET STANDARD (to standard device store)
+    def __OPTS_SET_STD(self, args):
+        # wraps __OPTS_SET
+        return self.__OPTS_SET(args, "STD")
+
+    # SET RESERVED (to reserved keys device store)
+    def __OPTS_SET_RSVD(self, args,):
+        # wraps __OPTS_SET
+        return self.__OPTS_SET(args, "RSVD")
+
     # SET
-    def __OPTS_SET(self, args):
+    def __OPTS_SET(self, args, type):
 
         '''
         Set key to hold the string value. If key already holds a value,
@@ -611,24 +625,21 @@ class SerialHandler(ArancinoLineReader):
 
             try:
 
-                # It's a reserved key.
-                if key.startswith("____") and key.endswith("___"): #and key not in self.reserved_keys_list:
+                # STANDARD DEVICE STORE (even with reserved key by arancino)
+                if type == 'STD':
 
                     # if it's the reserverd key __LIBVERSION__,
                     # then add port id to associate the device and the running version of the library
                     if key.upper() == const.RSVD_KEY_LIBVERSION:
                         key += self.arancino.id+"___"
 
-
-                    # the keys which start with ___U_ are reserved keys defined in the user space
-                    # if key.startswith("___U_"):
-
-                    # write to the dedicate data store (dedicated to reserved keys)
-                    rsp = self.datastore_rsvd.set(key, value)
-
-                # It isn't a reserved key. It's an application key
-                else:
                     rsp = self.datastore.set(key, value)
+
+                else:
+                    if type == 'RSVD':
+                        # write to the dedicate data store (dedicated to reserved keys)
+                        rsp = self.datastore_rsvd.set(key, value)
+
 
             except Exception as ex:
                 raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
@@ -669,7 +680,7 @@ class SerialHandler(ArancinoLineReader):
             rsp = None
 
             try:
-
+                '''
                 # It's a reserved key.
                 if key.startswith("____") and key.endswith("___"):
 
@@ -683,6 +694,18 @@ class SerialHandler(ArancinoLineReader):
                 # It's an application key.
                 else:
                     rsp = self.datastore.get(key)
+                '''
+                # if it's the reserverd key __LIBVERSION__,
+                # then add port id to associate the device and the running version of the library
+                if key.upper() == const.RSVD_KEY_LIBVERSION:
+                    key += self.arancino.id + "___"
+
+                # first get from standard datastore
+                rsp = self.datastore.get(key)
+
+                # then try get from reserved datastore
+                if rsp is None:
+                    rsp = self.datastore_rsvd.get(key)
 
             except Exception as ex:
                 raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)

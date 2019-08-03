@@ -22,7 +22,7 @@ import logging, sys, os
 from logging.handlers import RotatingFileHandler
 
 #version
-version = "0.1.5"
+version = "1.0.0"
 
 #redis connection parameter
 
@@ -36,7 +36,7 @@ redis_dts = {'host': 'localhost',
 redis_dvs = {'host': 'localhost',
          'port': 6379,
          'dcd_resp': True,  #decode response
-         'db': 2}
+         'db': 1}
 
 #datastore reserved keys
 redis_dts_rsvd = {'host': 'localhost',
@@ -55,6 +55,14 @@ port = {
     'enabled': True,
     'auto_connect': False,
     'hide': False
+}
+
+# known baudrates
+
+baudrate = {
+    'arancino' : 4000000,
+    'SAMD21': 4000000,
+    '328P': 250000
 }
 
 # allowed vid and pid to connect to
