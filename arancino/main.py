@@ -180,10 +180,10 @@ class SerialMonitor (threading.Thread):
 
             self.ports_plugged = self.arancinoDy.getPluggedArancinoPorts(self.ports_plugged, self.ports_connected)
 
-            LOG.info("Plugged Serial Ports Retrieved: " + str(len(self.ports_plugged)))
+            #LOG.info("Plugged Serial Ports Retrieved: " + str(len(self.ports_plugged)))
             LOG.debug('Plugged Serial Ports Retrieved: ' + str(len(self.ports_plugged)) + ' => ' + ' '.join('[' + str(arancino.port.device) + ' - ' + str(key) + ']'for key, arancino in self.ports_plugged.items()))
 
-            LOG.info("Connected Serial Ports: " + str(len(self.ports_connected)))
+            #LOG.info("Connected Serial Ports: " + str(len(self.ports_connected)))
             LOG.debug('Connected Serial Ports: ' + str(len(self.ports_connected)) + ' => ' + ' '.join('[' + str(connector.arancino.port.device) + ' - ' + str(key) + ']' for key, connector in self.ports_connected.items()))
 
             #LOG.debug('Connected Serial Ports: ' + str(len(self.ports_connected)) + ' => ' + ' '.join('[' + str(value[1].serial.name) + ' - ' + str(key) + ']' for key, value in self.ports_connected.items()))
@@ -195,7 +195,7 @@ class SerialMonitor (threading.Thread):
             #retrieve if there are new ports to connect to - is a list of type Serial.Port
             if self.ports_plugged:
                 ports_to_connect = self.__retrieveNewPorts(self.ports_plugged, self.ports_connected)
-                LOG.info("Connectable Serial Ports Retrieved: " + str(len(ports_to_connect)))
+                #LOG.info("Connectable Serial Ports Retrieved: " + str(len(ports_to_connect)))
                 LOG.debug("Connectable Serial Ports Retrieved: " + str(len(ports_to_connect)) + ' => ' + ' '.join('[' + str(p.port.device) + ' - ' + str(p.id) + ']' for p in ports_to_connect))
                 #finally connect the new ports
                 if ports_to_connect:
@@ -371,6 +371,9 @@ class SerialConnector:
         #self.devicestore = arancinoContext["arancino_datastore"].getDeviceStore()
         self.serial = serial.serial_for_url(self.arancino.port.device, baudrate=self.baudrate, timeout=None)
         #self.arancinoReaderTh = ArancinoReaderThread(self.serial, lambda: SerialHandler(self.arancinoContext, self.arancino))
+
+        self.log_prefix = "[" + self.arancino.port.device + " - " + self.arancino.id + "]: "
+
         self.arancinoReaderTh = ReaderThread(self.serial, lambda: SerialHandler(self.arancinoContext, self.arancino))
 
     def close(self):
@@ -381,15 +384,16 @@ class SerialConnector:
             exiting the while it calls the .join() and close the thread
             '''
             self.arancinoReaderTh.serial.close()
+            self.arancinoReaderTh.close()
 
         except Exception as ex:
-            LOG.warn(ex)
+            LOG.exception(self.log_prefix + str(ex))
 
     def start(self):
         try:
             self.arancinoReaderTh.start()
         except Exception as ex:
-            LOG.warn(ex)
+            LOG.exception(self.log_prefix + str(ex))
 
 
 class SerialHandler(ArancinoLineReader):
@@ -1089,8 +1093,6 @@ class SerialHandler(ArancinoLineReader):
             raise InvalidArgumentsNumberException(
                 "Invalid arguments number for command " + const.CMD_APP_FLUSH + ". Received: " + str(
                     n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
-
-
 
 
 

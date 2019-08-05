@@ -77,6 +77,7 @@ hwid = [
 # logger configuration
 __name = 'Arancino Serial'
 __filename = 'arancino.log'
+__error_filename = 'arancino.error.log'
 __dirlog = "/var/log/arancino"
 __format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
@@ -93,8 +94,17 @@ def __get_file_handler():
    file_handler.setFormatter(__format)
    return file_handler
 
+
+def __get_error_file_handler():
+    file_handler_error = RotatingFileHandler(os.path.join(__dirlog, __error_filename), mode='a', maxBytes=10*1024*1024, backupCount=5)
+    #file_handler_error = logging.FileHandler(LOG_FILE_ERROR, mode='w')
+    file_handler_error.setFormatter(__format)
+    file_handler_error.setLevel(logging.ERROR)
+    return file_handler_error
+
 logger = logging.getLogger(__name)
 
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 logger.addHandler(__get_console_handler())
 logger.addHandler(__get_file_handler())
+logger.addHandler(__get_error_file_handler())
