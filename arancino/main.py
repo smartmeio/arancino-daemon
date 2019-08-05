@@ -34,6 +34,7 @@ from arancino.arancino_exceptions import InvalidArgumentsNumberException, Invali
 from arancino.arancino_port import ArancinoPortsDiscovery
 from arancino.arancino_datastore import ArancinoDataStore
 from arancino.arancino_synch import ArancinoSynch
+from datetime import timedelta
 
 class Arancino():
 
@@ -172,11 +173,10 @@ class SerialMonitor (threading.Thread):
         # Polls every 10 seconds if there's new serial port to connect to
         #global ports_plugged, ports_connected, arancinoDs, arancinoSy
 
-        while not self.kill_now:
+        thread_start = time.time()
+        thread_start_reset = time.time()
 
-            #if self.kill_now:
-            #    self.__stop()
-            #    break
+        while not self.kill_now:
 
             self.ports_plugged = self.arancinoDy.getPluggedArancinoPorts(self.ports_plugged, self.ports_connected)
 
@@ -186,7 +186,12 @@ class SerialMonitor (threading.Thread):
             #LOG.info("Connected Serial Ports: " + str(len(self.ports_connected)))
             LOG.debug('Connected Serial Ports: ' + str(len(self.ports_connected)) + ' => ' + ' '.join('[' + str(connector.arancino.port.device) + ' - ' + str(key) + ']' for key, connector in self.ports_connected.items()))
 
-            #LOG.debug('Connected Serial Ports: ' + str(len(self.ports_connected)) + ' => ' + ' '.join('[' + str(value[1].serial.name) + ' - ' + str(key) + ']' for key, value in self.ports_connected.items()))
+            #log that every hour
+            if (time.time()-thread_start_reset) >= 3600:
+                LOG.info('Plugged Serial Ports Retrieved: ' + str(len(self.ports_plugged)) + ' => ' + ' '.join('[' + str(arancino.port.device) + ' - ' + str(key) + ']' for key, arancino in self.ports_plugged.items()))
+                LOG.info('Connected Serial Ports: ' + str(len(self.ports_connected)) + ' => ' + ' '.join('[' + str(connector.arancino.port.device) + ' - ' + str(key) + ']' for key, connector in self.ports_connected.items()))
+                LOG.info('Uptime: ' + str(timedelta(seconds=int(time.time() - thread_start))))
+                thread_start_reset = time.time()
 
             # first synchronization in cycle
             self.arancinoSy.synchPorts(self.ports_plugged)
@@ -384,7 +389,6 @@ class SerialConnector:
             exiting the while it calls the .join() and close the thread
             '''
             self.arancinoReaderTh.serial.close()
-            self.arancinoReaderTh.close()
 
         except Exception as ex:
             LOG.exception(self.log_prefix + str(ex))
