@@ -19,18 +19,20 @@ License for the specific language governing permissions and limitations
 under the License
 '''
 
+import signal
+import sys
+import time
+from datetime import timedelta
 
-
+from serial.threaded.__init__ import *
 
 import arancino.arancino_conf as conf
 import arancino.arancino_constants as const
-import time, signal, sys
-from serial.threaded.__init__ import *
+from arancino.arancino_datastore import ArancinoDataStore
 from arancino.arancino_exceptions import InvalidArgumentsNumberException, InvalidCommandException, RedisGenericException
 from arancino.arancino_port import ArancinoPortsDiscovery
-from arancino.arancino_datastore import ArancinoDataStore
 from arancino.arancino_synch import ArancinoSynch
-from datetime import timedelta
+
 
 class Arancino():
 
@@ -104,9 +106,6 @@ class SerialMonitor (threading.Thread):
         self.arancinoSy = ArancinoSynch()
         self.arancinoDy = ArancinoPortsDiscovery()
 
-
-        #global arancinoDs, arancinoDy, ports_connected, ports_plugged
-
         self.datastore = self.arancinoDs.getDataStore()
         #probably is not necessary to flush when starts, becouse it's clean when the device is started
         #self.datastore.flushdb()
@@ -165,7 +164,6 @@ class SerialMonitor (threading.Thread):
 
     def run(self):
         # Polls every 10 seconds if there's new serial port to connect to
-        #global ports_plugged, ports_connected, arancinoDs, arancinoSy
 
         thread_start = time.time()
         thread_start_reset = time.time()
