@@ -1103,7 +1103,7 @@ class SerialHandler(ArancinoLineReader):
 
             try:
 
-                '''
+                
                 #before flush, save all Reserved Keys
                 rsvd_keys = self.datastore.keys("___*___")
                 rsvd_keys_value = []
@@ -1117,10 +1117,8 @@ class SerialHandler(ArancinoLineReader):
                 for k, v in rsvd_keys_value.items():
                     self.datastore.set(k, v)
                 
-                '''
-
                 # flush directly the datastore; reserved keys are stored separately
-                rsp = self.datastore.flushdb()
+                #rsp = self.datastore.flushdb()
 
 
             except Exception as ex:
