@@ -51,7 +51,7 @@ setup(
                  'Operating System :: Unix'
                  ],
 
-    platforms=['Any'],
+    platforms=['Unix'],
 
     scripts=[],
 
