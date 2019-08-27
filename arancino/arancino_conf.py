@@ -104,7 +104,7 @@ def __get_error_file_handler():
 
 logger = logging.getLogger(__name)
 
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 logger.addHandler(__get_console_handler())
 logger.addHandler(__get_file_handler())
 logger.addHandler(__get_error_file_handler())

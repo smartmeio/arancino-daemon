@@ -546,7 +546,7 @@ class SerialHandler(ArancinoLineReader):
         if len(cmd) > 0:
             if cmd[0] in self.commands_list:
                 #comando presente
-                return cmd;
+                return cmd
             else:
                 raise InvalidCommandException("Command does not exist: " + cmd[0] + " - Skipped", const.ERR_CMD_NOT_FND)
         else:
@@ -558,7 +558,6 @@ class SerialHandler(ArancinoLineReader):
 
         idx = len(cmd)
         parameters = cmd[1:idx]
-
         try:
             # START
             if cmd[0] == const.CMD_SYS_START:
@@ -566,9 +565,9 @@ class SerialHandler(ArancinoLineReader):
             # SET
             elif cmd[0] == const.CMD_APP_SET_STD:
                 return self.__OPTS_SET_STD(parameters)
-            # SET RESERVED
-            elif cmd[0] == const.CMD_APP_SET_RSVD:
-                return self.__OPTS_SET_RSVD(parameters)
+            # SET PERSISTENT
+            elif cmd[0] == const.CMD_APP_SET_PERS:
+                return self.__OPTS_SET_PERS(parameters)
             # GET
             elif cmd[0] == const.CMD_APP_GET:
                 return self.__OPTS_GET(parameters)
@@ -626,10 +625,10 @@ class SerialHandler(ArancinoLineReader):
         # wraps __OPTS_SET
         return self.__OPTS_SET(args, "STD")
 
-    # SET RESERVED (to reserved keys device store)
-    def __OPTS_SET_RSVD(self, args,):
+    # SET PERSISTENT (to persistent keys device store)
+    def __OPTS_SET_PERS(self, args,):
         # wraps __OPTS_SET
-        return self.__OPTS_SET(args, "RSVD")
+        return self.__OPTS_SET(args, "PERS")
 
     # SET
     def __OPTS_SET(self, args, type):
@@ -667,8 +666,8 @@ class SerialHandler(ArancinoLineReader):
                     rsp = self.datastore.set(key, value)
 
                 else:
-                    if type == 'RSVD':
-                        # write to the dedicate data store (dedicated to reserved keys)
+                    if type == 'PERS':
+                        # write to the dedicate data store (dedicated to persistent keys)
                         rsp = self.datastore_rsvd.set(key, value)
 
 
