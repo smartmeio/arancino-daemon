@@ -652,10 +652,12 @@ class SerialHandler(ArancinoLineReader):
 
             key = args[0]
             value = args[1]
+            error = False
+            rsp = False
 
             try:
 
-                # STANDARD DEVICE STORE (even with reserved key by arancino)
+                # STANDARD DATA STORE (even with reserved key by arancino)
                 if type == 'STD':
 
                     # if it's the reserverd key __LIBVERSION__,
@@ -663,13 +665,24 @@ class SerialHandler(ArancinoLineReader):
                     if key.upper() == const.RSVD_KEY_LIBVERSION:
                         key += self.arancino.id+"___"
 
-                    rsp = self.datastore.set(key, value)
+                    # check if key exist in the other data store
+                    exist = self.datastore_rsvd.exists(key)
+                    if( exist == 1):
+                        raise RedisGenericException("Duplicate Key In Persistent Data Store: ", const.ERR_REDIS_KEY_EXISTS_IN_PERS)
+                    else:
+                        rsp = self.datastore.set(key, value)
 
+                # PERSISTENT DATA STORE
                 else:
                     if type == 'PERS':
-                        # write to the dedicate data store (dedicated to persistent keys)
-                        rsp = self.datastore_rsvd.set(key, value)
 
+                        # check if key exist in the other data store
+                        exist = self.datastore.exists(key)
+                        if( exist == 1):
+                            raise RedisGenericException("Duplicate Key In Standard Data Store: ", const.ERR_REDIS_KEY_EXISTS_IN_STD)
+                        else:
+                            # write to the dedicate data store (dedicated to persistent keys)
+                            rsp = self.datastore_rsvd.set(key, value)
 
             except Exception as ex:
                 raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)

@@ -55,6 +55,8 @@ ERR_CMD_NOT_FND = '203'     #Command Not Found
 ERR_CMD_NOT_RCV = '204'     #Command Not Received
 ERR_CMD_PRM_NUM = '205'     #Invalid parameter number
 ERR_REDIS       = '206'     #Generic Redis Error
+ERR_REDIS_KEY_EXISTS_IN_STD         = '207'     #Key exists in the Standard Data Store
+ERR_REDIS_KEY_EXISTS_IN_PERS        = '208'     #Key exists in the Persistent Data Store
 
 #Complete list of available commands
 __COMMANDLIST = [ CMD_SYS_START,
