@@ -509,11 +509,11 @@ class SerialHandler(ArancinoLineReader):
                 response = ex.error_code + const.CHR_EOT
 
             except InvalidCommandException as ex:
-                LOG.warning(self.log_prefix + str(ex) + " => ".join(cmd))
+                LOG.warning(self.log_prefix + str(ex) + " => " + self._partial)
                 response = ex.error_code + const.CHR_EOT
 
             except RedisGenericException as ex:
-                LOG.error(self.log_prefix + str(ex) + " => ".join(cmd))
+                LOG.error(self.log_prefix + str(ex) + " => " + self._partial)
                 response = const.ERR_REDIS + const.CHR_EOT
 
             except Exception as ex:

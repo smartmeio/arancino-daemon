@@ -34,15 +34,15 @@ redis_dts = {'host': 'localhost',
 
 #devicestore
 redis_dvs = {'host': 'localhost',
-         'port': 6379,
+         'port': 6380,
          'dcd_resp': True,  #decode response
-         'db': 1}
+         'db': 0}
 
 #datastore reserved keys
 redis_dts_rsvd = {'host': 'localhost',
-         'port': 6379,
+         'port': 6380,
          'dcd_resp': True,  #decode response
-         'db': 2}
+         'db': 1}
 
 
 #cycle interval time
@@ -104,7 +104,7 @@ def __get_error_file_handler():
 
 logger = logging.getLogger(__name)
 
-logger.setLevel(logging.DEBUG)
-logger.addHandler(__get_console_handler())
+logger.setLevel(logging.INFO)
+#logger.addHandler(__get_console_handler())
 logger.addHandler(__get_file_handler())
 logger.addHandler(__get_error_file_handler())

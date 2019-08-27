@@ -18,7 +18,9 @@ License for the specific language governing permissions and limitations
 under the License
 '''
 
-import arancino.main as arancino
-
+import arancino.arancino_main as arancino
 arancino.start()
 
+#from arancino_main import Arancino
+#a = Arancino()
+#a.start()
