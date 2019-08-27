@@ -1106,7 +1106,7 @@ class SerialHandler(ArancinoLineReader):
                 
                 #before flush, save all Reserved Keys
                 rsvd_keys = self.datastore.keys("___*___")
-                rsvd_keys_value = []
+                rsvd_keys_value = {}
                 for k in rsvd_keys:
                     rsvd_keys_value[k] = self.datastore.get(k)
                 
