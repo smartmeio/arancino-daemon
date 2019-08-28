@@ -506,6 +506,10 @@ class SerialHandler(ArancinoLineReader):
                 # then execute it
                 response = self.__execCommand(cmd)
 
+            except NonCompatibilityException as ex:
+                LOG.error(self.log_prefix + str(ex) + " => " + self._partial)
+                response = ex.error_code + const.CHR_EOT
+
             except InvalidArgumentsNumberException as ex:
                 LOG.error(self.log_prefix + str(ex) + " => " + self._partial)
                 response = ex.error_code + const.CHR_EOT
@@ -516,7 +520,7 @@ class SerialHandler(ArancinoLineReader):
 
             except RedisGenericException as ex:
                 LOG.error(self.log_prefix + str(ex) + " => " + self._partial)
-                response = const.ERR_REDIS + const.CHR_EOT
+                response = ex.error_code + const.CHR_EOT
 
             except Exception as ex:
                 LOG.error(self.log_prefix + str(ex))
