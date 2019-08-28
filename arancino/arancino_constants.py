@@ -57,6 +57,7 @@ ERR_CMD_PRM_NUM = '205'     #Invalid parameter number
 ERR_REDIS       = '206'     #Generic Redis Error
 ERR_REDIS_KEY_EXISTS_IN_STD         = '207'     #Key exists in the Standard Data Store
 ERR_REDIS_KEY_EXISTS_IN_PERS        = '208'     #Key exists in the Persistent Data Store
+ERR_NON_COMPATIBILITY               = '209'     #Non compatibility between Arancino Module and Library
 
 #Complete list of available commands
 __COMMANDLIST = [ CMD_SYS_START,
@@ -124,3 +125,28 @@ P_INTERFACE       = "P_INTERFACE"       # String
 # ports_plugged positionals
 #IDX_SERIAL_CONNECTOR = 0
 #IDX_SERIAL_TRANSPORT = 1
+
+
+# compatibilty matrix of Aracnino Module and Arancino Library
+
+COMPATIBILITY_MATRIX_MOD = {
+    #MODULE : #LIBRARY
+#    "0.0.1" : ["0.0.1"],
+#    "0.0.2" : ["0.0.1","0.0.2"],
+#    "0.1.0" : ["0.1.0"],
+#    "0.1.1" : ["0.1.0"],
+#    "0.1.2" : ["0.1.0"],
+#    "0.1.3" : ["0.1.0"],
+#    "0.1.4" : ["0.1.0"],
+#    "0.1.5" : ["0.1.0"],
+    "1.0.0" : ["1.0.0"],
+}
+'''
+COMPATIBILITY_MATRIX_LIB = {
+    #LIBRARY: #MODULE
+    "0.0.1" : ["0.0.1","0.0.2"],
+    "0.0.2" : ["0.0.2"],
+    "0.1.0" : ["0.1.0","0.1.1","0.1.2","0.1.3","0.1.4","0.1.5"],
+    "1.0.0" : ["1.0.0"],
+}
+'''

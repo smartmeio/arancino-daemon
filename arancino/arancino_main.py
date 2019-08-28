@@ -29,7 +29,7 @@ from serial.threaded.__init__ import *
 import arancino.arancino_conf as conf
 import arancino.arancino_constants as const
 from arancino.arancino_datastore import ArancinoDataStore
-from arancino.arancino_exceptions import InvalidArgumentsNumberException, InvalidCommandException, RedisGenericException
+from arancino.arancino_exceptions import InvalidArgumentsNumberException, InvalidCommandException, RedisGenericException, NonCompatibilityException
 from arancino.arancino_port import ArancinoPortsDiscovery
 from arancino.arancino_synch import ArancinoSynch
 
@@ -122,7 +122,8 @@ class SerialMonitor (threading.Thread):
             "ports_connected": self.ports_connected,
             "arancino_discovery": self.arancinoDy,
             "arancino_synch": self.arancinoSy,
-            "arancino_datastore": self.arancinoDs
+            "arancino_datastore": self.arancinoDs,
+            "compatibility_array" : const.COMPATIBILITY_MATRIX_MOD[conf.version]
         }
 
 
@@ -431,6 +432,7 @@ class SerialHandler(ArancinoLineReader):
         self.arancinoDs = arancinoContext["arancino_datastore"]
         self.commands_list = arancinoContext["commands_list"]
         self.reserved_keys_list = arancinoContext["reserved_keys_list"]
+        self.compatibility_array = arancinoContext["compatibility_array"]
 
         self.arancino = arancino
 
@@ -561,7 +563,7 @@ class SerialHandler(ArancinoLineReader):
         try:
             # START
             if cmd[0] == const.CMD_SYS_START:
-                return self.__OPTS_START()
+                return self.__OPTS_START(parameters)
             # SET
             elif cmd[0] == const.CMD_APP_SET_STD:
                 return self.__OPTS_SET_STD(parameters)
@@ -610,7 +612,7 @@ class SerialHandler(ArancinoLineReader):
             raise ex
 
     # START
-    def __OPTS_START(self):
+    def __OPTS_START(self, args):
         '''
         Microcontroller sends START command to start communication
 
@@ -618,7 +620,30 @@ class SerialHandler(ArancinoLineReader):
 
         MCU ← 100@ (OK)
         '''
-        return const.RSP_OK + const.CHR_EOT
+
+        n_args_required = 1
+        n_args_received = len(args)
+
+        if n_args_received == n_args_required:
+            
+            # first argument in the START comamnd is the version of the library
+            value_libvers = args[0]
+            key_libvers = const.RSVD_KEY_LIBVERSION + self.arancino.id+"___"
+
+            # store the reserved key
+            self.datastore.set(key_libvers, value_libvers)
+
+            # and then check if it's compatible. if the library is not compatible, disconnect the board and 
+            if value_libvers not in self.compatibility_array:
+                # TODO disconnect the device. If the device is not disconnected, it will try to START every 2,5 seconds.
+                raise NonCompatibilityException("Module version " + conf.version + " can not work with Library version " + value_libvers + " on the device: " + self.arancino.port.device + " - " + self.arancino.id, const.ERR_NON_COMPATIBILITY)
+            
+            else:
+                return const.RSP_OK + const.CHR_EOT
+
+        else:
+            raise InvalidArgumentsNumberException("Invalid arguments number for command " + const.CMD_SYS_START + ". Received: " + str(n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
+
 
     # SET STANDARD (to standard device store)
     def __OPTS_SET_STD(self, args):
@@ -643,6 +668,9 @@ class SerialHandler(ArancinoLineReader):
 
         MCU ← 100@ (OK)
         MCU ← 202@ (KO)
+        MCU ← 206@ (KO)
+        MCU ← 207@ (KO)
+        MCU ← 208@ (KO)
         '''
 
         n_args_required = 2
@@ -652,52 +680,83 @@ class SerialHandler(ArancinoLineReader):
 
             key = args[0]
             value = args[1]
-            error = False
             rsp = False
-
+            
             try:
-
                 # STANDARD DATA STORE (even with reserved key by arancino)
                 if type == 'STD':
-
-                    # if it's the reserverd key __LIBVERSION__,
-                    # then add port id to associate the device and the running version of the library
-                    if key.upper() == const.RSVD_KEY_LIBVERSION:
-                        key += self.arancino.id+"___"
-
-                    # check if key exist in the other data store
-                    exist = self.datastore_rsvd.exists(key)
-                    if( exist == 1):
+                    
+                    # check if key exist in other data store
+                    if( self.datastore_rsvd.exists(key) == 1):
                         raise RedisGenericException("Duplicate Key In Persistent Data Store: ", const.ERR_REDIS_KEY_EXISTS_IN_PERS)
                     else:
+                        # store the value at key
                         rsp = self.datastore.set(key, value)
 
-                # PERSISTENT DATA STORE
-                else:
-                    if type == 'PERS':
 
-                        # check if key exist in the other data store
-                        exist = self.datastore.exists(key)
-                        if( exist == 1):
+                else:
+                    # PERSISTENT DATA STORE
+                    if type == 'PERS':
+                        
+                        # check if key exist in other data store
+                        if( self.datastore.exists(key) == 1):
                             raise RedisGenericException("Duplicate Key In Standard Data Store: ", const.ERR_REDIS_KEY_EXISTS_IN_STD)
                         else:
                             # write to the dedicate data store (dedicated to persistent keys)
                             rsp = self.datastore_rsvd.set(key, value)
 
+                if rsp:
+                    # return ok response
+                    return const.RSP_OK + const.CHR_EOT
+                else:
+                    # return the error code
+                    return const.ERR_SET + const.CHR_EOT
+
             except Exception as ex:
                 raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
 
-            if rsp:
-                # return ok response
-                return const.RSP_OK + const.CHR_EOT
-            else:
-                # return the error code
-                return const.ERR_SET + const.CHR_EOT
+
+            # try:
+
+            #     # STANDARD DATA STORE (even with reserved key by arancino)
+            #     if type == 'STD':
+
+            #         # if it's the reserverd key __LIBVERSION__,
+            #         # then add port id to associate the device and the running version of the library
+            #         if key.upper() == const.RSVD_KEY_LIBVERSION:
+            #             key += self.arancino.id+"___"
+
+            #         # check if key exist in the other data store
+            #         exist = self.datastore_rsvd.exists(key)
+            #         if( exist == 1):
+            #             raise RedisGenericException("Duplicate Key In Persistent Data Store: ", const.ERR_REDIS_KEY_EXISTS_IN_PERS)
+            #         else:
+            #             rsp = self.datastore.set(key, value)
+
+            #     # PERSISTENT DATA STORE
+            #     else:
+            #         if type == 'PERS':
+
+            #             # check if key exist in the other data store
+            #             exist = self.datastore.exists(key)
+            #             if( exist == 1):
+            #                 raise RedisGenericException("Duplicate Key In Standard Data Store: ", const.ERR_REDIS_KEY_EXISTS_IN_STD)
+            #             else:
+            #                 # write to the dedicate data store (dedicated to persistent keys)
+            #                 rsp = self.datastore_rsvd.set(key, value)
+
+            # except Exception as ex:
+            #     raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
+
+            # if rsp:
+            #     # return ok response
+            #     return const.RSP_OK + const.CHR_EOT
+            # else:
+            #     # return the error code
+            #     return const.ERR_SET + const.CHR_EOT
 
         else:
-            raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + const.CMD_APP_SET + ". Received: " + str(
-                    n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
+            raise InvalidArgumentsNumberException("Invalid arguments number for command " + const.CMD_APP_SET + ". Received: " + str(n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
     # GET
     def __OPTS_GET(self, args):

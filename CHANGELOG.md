@@ -1,8 +1,14 @@
 # Changelog
 
 #### v 1.0.0 - 2019.MM.DD
-* Now it uses threading services of py-serial instead of py-serial-asyncio
-* Introduced the possibility of set one or more reserved keys by the user in Arancino Library with a new command: `CMD_APP_SET_RSVD`
+* Now it uses threading services of py-serial instead of py-serial-asyncio.
+* Introduced the possibility of set one or more persistent keys by the user in Arancino Library with a new command: `CMD_APP_SET_PERS`.
+* Restored #29 ( Reserved keys are saved when FLUSH command is received).
+* Fixed FLUSH command #39.
+* Fixed a bug which disconnect a device when a `GenericRedisException` and `InvalidCommandException` are raised during the command parsing #37.
+* Logs are reduced and Exceptions/Error are tracked in a separetend file #24: `arancino.error.log`. 
+* Introduced check on versions compatibility with Arancino Library running on connected devices #11.
+* Pypi packet is now only for Unix not Windows #38.
 
 #### v 0.1.5 - 2019.07.23
 * Fix Arancino Service
