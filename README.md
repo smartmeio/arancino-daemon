@@ -64,7 +64,26 @@ All available configurations can be setted up in the _<PATH TO ARANCINO MODULE>/
 
 
 ### Log Configuration
-_TODO_
+Arancino Module uses python logging system and has three different handlers, one handler logs into the console and the others into files, one of which is dedicate only for errors. It's possible to change the log levels, following the standard python logging library: `ERROR`, `WARNING`, `INFO`, `DEBUG`.
+
+Following the Production and Dev/Test configurations (Console is disabled):
+
+```python
+# PRODUCTION ENVIRONMENT
+logger.setLevel(logging.INFO)
+#logger.addHandler(__get_console_handler())
+logger.addHandler(__get_file_handler())
+logger.addHandler(__get_error_file_handler())
+```
+
+```python
+# DEVELOPMENT/TEST ENVIRONMENT
+logger.setLevel(logging.DEBUG)
+logger.addHandler(__get_console_handler())
+logger.addHandler(__get_file_handler())
+logger.addHandler(__get_error_file_handler())
+```
+
 
 ### Redis Configuration
 In __Arancino OS__ by default there are two running instances of Redis with two databases each one. The first instance is volatile and the second one is persistent. The volatile one is used to store application data of the Arancino firmware (e.g date read by a sensor like Temperature, Humidity etc...) (first instance first database) it is called _datastore_, The Persistent one is used to store devices informations (second instance first database) and configuration data for Arancino Firmware (second instance second database) they are called _devicestore_ and _datastore_persistant_. 
