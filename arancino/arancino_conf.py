@@ -38,7 +38,7 @@ redis_dvs = {'host': 'localhost',
          'dcd_resp': True,  #decode response
          'db': 0}
 
-#datastore reserved keys
+#datastore persisten keys
 redis_dts_rsvd = {'host': 'localhost',
          'port': 6380,
          'dcd_resp': True,  #decode response
@@ -90,13 +90,13 @@ def __get_console_handler():
    return console_handler
 
 def __get_file_handler():
-   file_handler = RotatingFileHandler(os.path.join(__dirlog, __filename), mode='a', maxBytes=10*1024*1024, backupCount=5)
+   file_handler = RotatingFileHandler(os.path.join(__dirlog, __filename), mode='a', maxBytes=10*1024, backupCount=10)
    file_handler.setFormatter(__format)
    return file_handler
 
 
 def __get_error_file_handler():
-    file_handler_error = RotatingFileHandler(os.path.join(__dirlog, __error_filename), mode='a', maxBytes=10*1024*1024, backupCount=5)
+    file_handler_error = RotatingFileHandler(os.path.join(__dirlog, __error_filename), mode='a', maxBytes=10*1024, backupCount=10)
     #file_handler_error = logging.FileHandler(LOG_FILE_ERROR, mode='w')
     file_handler_error.setFormatter(__format)
     file_handler_error.setLevel(logging.ERROR)
@@ -104,7 +104,7 @@ def __get_error_file_handler():
 
 logger = logging.getLogger(__name)
 
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 #logger.addHandler(__get_console_handler())
 logger.addHandler(__get_file_handler())
 logger.addHandler(__get_error_file_handler())
