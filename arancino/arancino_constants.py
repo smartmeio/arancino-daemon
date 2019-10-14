@@ -18,6 +18,7 @@ License for the specific language governing permissions and limitations
 under the License
 '''
 
+
 #Definitions for Serial Protocol
 
 #Special Chars
@@ -76,10 +77,13 @@ __COMMANDLIST = [ CMD_SYS_START,
                 CMD_APP_PUB,
                 CMD_APP_FLUSH]
 
+#Characters for Reserverd keys def
+RSVD_CHARS = "___"
+
 #Reserved keys
-RSVD_KEY_MONITOR = "___MONITOR___"
-RSVD_KEY_LIBVERSION = "___LIBVERS___"
-RSVD_KEY_MODVERSION = "___MODVERS___"
+RSVD_KEY_MONITOR    = RSVD_CHARS + "MONITOR" + RSVD_CHARS
+RSVD_KEY_LIBVERSION = RSVD_CHARS + "LIBVERS" + RSVD_CHARS
+RSVD_KEY_MODVERSION = RSVD_CHARS + "MODVERS" + RSVD_CHARS
 
 #Reseverd keys list
 __RESERVEDKEYSLIST  = [ RSVD_KEY_MONITOR,

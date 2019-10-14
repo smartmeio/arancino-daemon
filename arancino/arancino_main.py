@@ -632,7 +632,7 @@ class SerialHandler(ArancinoLineReader):
             
             # first argument in the START comamnd is the version of the library
             value_libvers = args[0]
-            key_libvers = const.RSVD_KEY_LIBVERSION + self.arancino.id+"___"
+            key_libvers = const.RSVD_KEY_LIBVERSION + self.arancino.id + const.RSVD_CHARS
 
             # store the reserved key
             self.datastore.set(key_libvers, value_libvers)
@@ -687,6 +687,8 @@ class SerialHandler(ArancinoLineReader):
             rsp = False
             
             try:
+                #Keys must be unique among data stores
+
                 # STANDARD DATA STORE (even with reserved key by arancino)
                 if type == 'STD':
                     
@@ -728,7 +730,7 @@ class SerialHandler(ArancinoLineReader):
             #         # if it's the reserverd key __LIBVERSION__,
             #         # then add port id to associate the device and the running version of the library
             #         if key.upper() == const.RSVD_KEY_LIBVERSION:
-            #             key += self.arancino.id+"___"
+            #             key += self.arancino.id + const.RSVD_CHARS
 
             #         # check if key exist in the other data store
             #         exist = self.datastore_rsvd.exists(key)
@@ -788,12 +790,12 @@ class SerialHandler(ArancinoLineReader):
             try:
                 '''
                 # It's a reserved key.
-                if key.startswith("____") and key.endswith("___"):
+                if key.startswith(const.RSVD_CHARS) and key.endswith(const.RSVD_CHARS):
 
                     # if it's the reserverd key __LIBVERSION__,
                     # then add port id to associate the device and the running version of the library
                     if key.upper() == const.RSVD_KEY_LIBVERSION:
-                        key += self.arancino.id+"___"
+                        key += self.arancino.id + const.RSVD_CHARS
 
                     rsp = self.datastore_rsvd.get(key)
 
@@ -804,7 +806,7 @@ class SerialHandler(ArancinoLineReader):
                 # if it's the reserverd key __LIBVERSION__,
                 # then add port id to associate the device and the running version of the library
                 if key.upper() == const.RSVD_KEY_LIBVERSION:
-                    key += self.arancino.id + "___"
+                    key += self.arancino.id + const.RSVD_CHARS
 
                 # first get from standard datastore
                 rsp = self.datastore.get(key)
@@ -886,7 +888,25 @@ class SerialHandler(ArancinoLineReader):
             raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
 
         if len(keys) > 0:
+            
+            ### uncomment below to apply a filter to exclude reserved keys from returned array
+            ''' 
+            
+            keys_filtered = []
+            
+            for val in keys:
+                if not (val.startswith(const.RSVD_CHARS) and val.endswith(const.RSVD_CHARS)) :
+                    keys_filtered.append(val)
+
+            if len(keys) > 0:
+                return const.RSP_OK + const.CHR_SEP + const.CHR_SEP.join(keys_filtered) + const.CHR_EOT
+            
+            else:
+                return const.RSP_OK + const.CHR_EOT
+            '''
+            ### remove the following line when apply the patch above
             return const.RSP_OK + const.CHR_SEP + const.CHR_SEP.join(keys) + const.CHR_EOT
+
         else:
             return const.RSP_OK + const.CHR_EOT
 
@@ -1168,7 +1188,7 @@ class SerialHandler(ArancinoLineReader):
 
                 
                 #before flush, save all Reserved Keys
-                rsvd_keys = self.datastore.keys("___*___")
+                rsvd_keys = self.datastore.keys(const.RSVD_CHARS + "*" + const.RSVD_CHARS)
                 rsvd_keys_value = {}
                 for k in rsvd_keys:
                     rsvd_keys_value[k] = self.datastore.get(k)
