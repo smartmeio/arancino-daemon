@@ -19,6 +19,33 @@ under the License
 '''
 
 from setuptools import setup, find_packages
+from setuptools.command.install import install
+from subprocess import check_call, call
+
+class ArancinoPostInstallCommand(install):
+    """
+    Customized setuptools install command used as 
+    post-install script to install Arancino services
+    """
+    def run(self):
+        print("INSTALL PRE")
+
+        install.run(self)
+
+        #call(["systemctl","enable","redis-persistent"])
+        #call(["systemctl","enable","redis-volatile"])
+        #call(["systemctl","enable","arancino"])
+
+        print("INSTALL POST")
+
+        #move redis configuration files:
+        print("CALL PWD")
+        call(["pwd"])
+        print("CALL LS")
+        call(["ls","-alh"])
+        print("INSTALL END")
+
+
 
 
 with open("README.md", "r") as fh:
@@ -59,6 +86,7 @@ setup(
 
     packages=find_packages(exclude=["test"]),
 
+    #data_files=[('/arancino/extras/', ['post-install.sh','extras/arancino.service', 'extras/redis-persistent.conf', 'extras/redis-persistent.service', 'extras/redis-volatile.conf', 'extras/redis-volatile.service'])],
     data_files=[('/arancino/extras/', ['extras/arancino.service', 'extras/redis-persistent.conf', 'extras/redis-persistent.service', 'extras/redis-volatile.conf', 'extras/redis-volatile.service'])],
 
     install_requires=['pyserial>=3.4', 'redis>=2.10.6'],
@@ -66,4 +94,8 @@ setup(
     include_package_data=True,
 
     zip_safe=False,
+
+    cmdclass={
+        'install': ArancinoPostInstallCommand,
+    },
 )
