@@ -6,7 +6,9 @@ After=network.target redis-persistent.service redis-volatile.service
 Type=simple
 User=root
 Group=root
-ExecStart=<PATH TO ARANCINO MODULE>/start.py
+#ExecStart=<PATH TO ARANCINO MODULE>/start.py
+ExecStart=/usr/bin/python3 /usr/local/lib/python3.5/dist-packages/arancino/start.py
+ExecStop=/usr/kill $MAINPID
 Restart=on-failure
 RestartSec=3
 #on-abort

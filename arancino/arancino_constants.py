@@ -17,7 +17,7 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 '''
-
+from enum import Enum
 
 #Definitions for Serial Protocol
 
@@ -154,3 +154,13 @@ COMPATIBILITY_MATRIX_LIB = {
     "1.0.0" : ["1.0.0"],
 }
 '''
+
+class RedisInstancesType(Enum):
+    VOLATILE = 1
+    PERSISTENT = 2
+    VOLATILE_PERSISTENT = 3
+    DEFAULT = 3
+
+    @classmethod
+    def has_value(cls, value):
+        return value in cls._value2member_map_ 

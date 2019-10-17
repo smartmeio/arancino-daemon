@@ -20,7 +20,10 @@ under the License
 
 from setuptools import setup, find_packages
 from setuptools.command.install import install
+from setuptools.command.develop import develop
+from setuptools.command.egg_info import egg_info
 from subprocess import check_call, call
+from os import system
 
 class ArancinoPostInstallCommand(install):
     """
@@ -28,23 +31,26 @@ class ArancinoPostInstallCommand(install):
     post-install script to install Arancino services
     """
     def run(self):
-        print("INSTALL PRE")
 
-        install.run(self)
-
-        #call(["systemctl","enable","redis-persistent"])
-        #call(["systemctl","enable","redis-volatile"])
-        #call(["systemctl","enable","arancino"])
-
-        print("INSTALL POST")
-
-        #move redis configuration files:
-        print("CALL PWD")
         call(["pwd"])
-        print("CALL LS")
         call(["ls","-alh"])
-        print("INSTALL END")
 
+        #### ARANCINO PRE INSTALL
+        print("START ARANCINO PRE INSTALL")
+        call(["chmod","+x","./extras/pre-install.sh"])
+        call(["./extras/pre-install.sh"])       
+        print("END ARANCINO PRE INSTALL")
+        
+        #### ARANCINO INSTALL
+        print("START ARANCINO INSTALL")
+        install.run(self)
+        print("POST ARANCINO INSTALL")
+        
+        #### ARANCINO POST INSTALL
+        print("START ARANCINO POST INSTALL")
+        call(["chmod","+x","./extras/post-install.sh"])
+        call(["./extras/post-install.sh"])
+        print("END ARANCINO POST INSTALL")
 
 
 
@@ -86,8 +92,8 @@ setup(
 
     packages=find_packages(exclude=["test"]),
 
-    #data_files=[('/arancino/extras/', ['post-install.sh','extras/arancino.service', 'extras/redis-persistent.conf', 'extras/redis-persistent.service', 'extras/redis-volatile.conf', 'extras/redis-volatile.service'])],
-    data_files=[('/arancino/extras/', ['extras/arancino.service', 'extras/redis-persistent.conf', 'extras/redis-persistent.service', 'extras/redis-volatile.conf', 'extras/redis-volatile.service'])],
+    data_files=[('/arancino/extras/', ['extras/pre-install.sh','extras/post-install.sh','extras/arancino.service', 'extras/redis-persistent.conf', 'extras/redis-persistent.service', 'extras/redis-volatile.conf', 'extras/redis-volatile.service'])],
+    #data_files=[('/arancino/extras/', ['extras/arancino.service', 'extras/redis-persistent.conf', 'extras/redis-persistent.service', 'extras/redis-volatile.conf', 'extras/redis-volatile.service'])],
 
     install_requires=['pyserial>=3.4', 'redis>=2.10.6'],
 

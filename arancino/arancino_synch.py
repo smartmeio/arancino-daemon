@@ -25,8 +25,8 @@ import arancino.arancino_constants as const
 class ArancinoSynch:
 
 
-    def __init__(self):
-        self.__ds = ArancinoDataStore()
+    def __init__(self, ads):
+        self.__ds = ads#ArancinoDataStore()
         self.__datastore = self.__ds.getDataStore()
         self.__devicestore = self.__ds.getDeviceStore()
 

@@ -103,7 +103,7 @@ class SerialMonitor (threading.Thread):
         self._stop_event = threading.Event()
 
         self.arancinoDs = ArancinoDataStore()
-        self.arancinoSy = ArancinoSynch()
+        self.arancinoSy = ArancinoSynch(self.arancinoDs)
         self.arancinoDy = ArancinoPortsDiscovery()
 
         self.datastore = self.arancinoDs.getDataStore()

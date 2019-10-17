@@ -23,16 +23,26 @@ import redis
 
 class ArancinoDataStore():
 
+    redis_dts = None
+    redis_dvs = None
+    redis_dts_rsvd = None
+
     def __init__(self):
+        
+        redisconf = conf.getRedisInstancesType()
+        
+        self.redis_dts = redisconf[0]
+        self.redis_dvs = redisconf[1]
+        self.redis_dts_rsvd = redisconf[2]
 
         #data store
-        self.__redis_pool_dts = redis.ConnectionPool(host=conf.redis_dts['host'], port=conf.redis_dts['port'], db=conf.redis_dts['db'], decode_responses=conf.redis_dts['dcd_resp'])
+        self.__redis_pool_dts = redis.ConnectionPool(host=self.redis_dts['host'], port=self.redis_dts['port'], db=self.redis_dts['db'], decode_responses=self.redis_dts['dcd_resp'])
 
         #device store
-        self.__redis_pool_dvs = redis.ConnectionPool(host=conf.redis_dvs['host'], port=conf.redis_dvs['port'], db=conf.redis_dvs['db'], decode_responses=conf.redis_dvs['dcd_resp'])
+        self.__redis_pool_dvs = redis.ConnectionPool(host=self.redis_dvs['host'], port=self.redis_dvs['port'], db=self.redis_dvs['db'], decode_responses=self.redis_dvs['dcd_resp'])
 
         #data store (reserved keys)
-        self.__redis_pool_dts_rsvd = redis.ConnectionPool(host=conf.redis_dts_rsvd['host'], port=conf.redis_dts_rsvd['port'], db=conf.redis_dts_rsvd['db'], decode_responses=conf.redis_dts_rsvd['dcd_resp'])
+        self.__redis_pool_dts_rsvd = redis.ConnectionPool(host=self.redis_dts_rsvd['host'], port=self.redis_dts_rsvd['port'], db=self.redis_dts_rsvd['db'], decode_responses=self.redis_dts_rsvd['dcd_resp'])
 
     def getDataStore(self):
         """
