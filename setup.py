@@ -44,7 +44,7 @@ class ArancinoPostInstallCommand(install):
         #### ARANCINO INSTALL
         print("START ARANCINO INSTALL")
         install.run(self)
-        print("POST ARANCINO INSTALL")
+        print("END ARANCINO INSTALL")
         
         #### ARANCINO POST INSTALL
         print("START ARANCINO POST INSTALL")
@@ -108,7 +108,7 @@ setup(
 		'extras/redis-volatile.conf',
 		'extras/redis-volatile.service'])],
 
-    install_requires=['pyserial>=3.4', 'redis>=2.10.6'],
+    install_requires=['pyserial>=3.4', 'redis>=2.10.6', 'setuptools==41.4.0'],
 
     include_package_data=True,
 

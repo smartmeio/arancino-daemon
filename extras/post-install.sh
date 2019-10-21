@@ -5,12 +5,14 @@ chown 644 extras/arancino.service
 chown 644 extras/redis-persistent.service
 chown 644 extras/redis-volatile.service
 
-#move services files to systemd directory
-cp extras/*.service /etc/systemd/system/
+#copy arancino service file to /ectc/systemd directory
+cp extras/arancino.service /etc/systemd/system/
 
-#move redis conf files
+#copy redis services files to /lib/systemd directory
+cp extras/redis-*.service /lib/systemd/system/
+
+#copy redis conf files
 cp extras/*.conf /etc/redis/
-
 
 #daemon reload
 systemctl daemon-reload
