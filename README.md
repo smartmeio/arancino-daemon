@@ -1,6 +1,6 @@
 # Arancino: serial module for Arancino Library
 
-Receives commands from Arancino Library (uC) trough the Arancino Cortex Protocol over serial connection
+Receives commands from Arancino Library (uC) trough the Arancino Cortex Protocol over serial connection. It's designed to run under Arancino OS.
 
 
 ## Prerequisites
@@ -185,8 +185,10 @@ $ python3 <PATH TO ARANCINO MODULE>/start.py
 
 #### Change `ExecStart` directive
 
-During installation the file _arancino.services_ was copied in _<PATH TO ARANCINO MODULE>/extras/_.
-Move it into _systemd_ directory and change the `ExecStart` directive to execute the _start.py_ script.
+During installation the file _arancino.services_ is copied in _<PATH TO ARANCINO MODULE>/extras/_ and then moved it into _systemd_ directory. 
+The `ExecStart` directive refers to the executable script: the _start.py_ script. 
+In Arancino OS the <PATH TO ARANCINO MODULE> is `/usr/local/lib/Python3.5/dist-packages/arancino/`
+
 
 ```shell
 $ sudo cp <PATH TO ARANCINO MODULE>/extras/arancino.service /etc/systemd/system/
@@ -206,16 +208,7 @@ RestartSec=3
 
 #### Run arancino as _daemon_ with _systemctl_
 
-Finally enabled and start the Aracnino service:
-
-```shell
-
-$ systemctl enable arancino.service
-$ systemctl start arancino.service
-
-```
-
-Run `ps` or `systemctl status` to check if Arancino daemon is up and running:
+The pypi installation will finally enable and start the Aracnino service. You can run `ps` or `systemctl status` to check if Arancino daemon is up and running:
 
 ```shell
 
