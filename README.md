@@ -94,22 +94,13 @@ The configuration are the following:
 ### REDIS-ARANCINO CONFIGURATION --> PRODUCTION ###
 
 #datastore
-redis_dts = {'host': 'localhost',
-         'port': 6379,
-         'dcd_resp': True,
-         'db': 0}
+redis_dts = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 0}
 
 #devicestore
-redis_dvs = {'host': 'localhost',
-         'port': 6380,
-         'dcd_resp': True,
-         'db': 0}
+redis_dvs = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 0}
 
 #datastore persistent
-redis_dts_rsvd = {'host': 'localhost',
-         'port': 6380,
-         'dcd_resp': True,
-         'db': 1}
+redis_dts_rsvd = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 1}
 
 ```
 
@@ -125,22 +116,28 @@ Usually you don't need to change Redis configuration in Production environment, 
 ### REDIS CONFIGURATION --> DEVELOPMENT/TEST ###
 
 #datastore
-redis_dts = {'host': 'localhost',
-         'port': 6379,
-         'dcd_resp': True,
-         'db': 0}
+redis_dts = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 0}
 
 #devicestore
-redis_dvs = {'host': 'localhost',
-         'port': 6379,
-         'dcd_resp': True,
-         'db': 1}
+redis_dvs = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 1}
 
 #datastore persistent
-redis_dts_rsvd = {'host': 'localhost',
-         'port': 6379,
-         'dcd_resp': True,
-         'db': 2}
+redis_dts_rsvd = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 2}
+
+```
+
+To switch redis configuration please use `redis_instance` variable with the appropriate value from `RedisInstancesType`:
+```python
+RedisInstancesType.VOLATILE_PERSISTENT
+RedisInstancesType.VOLATILE
+RedisInstancesType.PERSISTENT
+```
+
+i.e.:
+```python
+### PRODUCTION CONFIGURATION
+
+redis_instance = const.RedisInstancesType.VOLATILE_PERSISTENT
 
 ```
 
