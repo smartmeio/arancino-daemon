@@ -37,8 +37,8 @@ class ArancinoPostInstallCommand(install):
 
         #### ARANCINO PRE INSTALL
         print("START ARANCINO PRE INSTALL")
-        call(["chmod","+x","./extras/pre-install.sh"])
-        call(["./extras/pre-install.sh"])       
+        call(["chmod","+x","extras/pre-install.sh"])
+        call(["extras/pre-install.sh"])       
         print("END ARANCINO PRE INSTALL")
         
         #### ARANCINO INSTALL
@@ -48,8 +48,8 @@ class ArancinoPostInstallCommand(install):
         
         #### ARANCINO POST INSTALL
         print("START ARANCINO POST INSTALL")
-        call(["chmod","+x","./extras/post-install.sh"])
-        call(["./extras/post-install.sh"])
+        call(["chmod","+x","extras/post-install.sh"])
+        call(["extras/post-install.sh"])
         print("END ARANCINO POST INSTALL")
 
 
@@ -92,8 +92,21 @@ setup(
 
     packages=find_packages(exclude=["test"]),
 
-    data_files=[('/arancino/extras/', ['extras/pre-install.sh','extras/post-install.sh','extras/arancino.service', 'extras/redis-persistent.conf', 'extras/redis-persistent.service', 'extras/redis-volatile.conf', 'extras/redis-volatile.service'])],
-    #data_files=[('/arancino/extras/', ['extras/arancino.service', 'extras/redis-persistent.conf', 'extras/redis-persistent.service', 'extras/redis-volatile.conf', 'extras/redis-volatile.service'])],
+    # Specify which Python versions you support. In contrast to the
+    # 'Programming Language' classifiers above, 'pip install' will check this
+    # and refuse to install the project if the version does not match. If you
+    # do not support Python 2, you can simplify this to '>=3.5' or similar, see
+    # https://packaging.python.org/guides/distributing-packages-using-setuptools/#python-requires
+    python_requires='>3',
+
+    data_files=[('arancino',
+		['extras/pre-install.sh',
+		'extras/post-install.sh',
+		'extras/arancino.service',
+		'extras/redis-persistent.conf',
+		'extras/redis-persistent.service',
+		'extras/redis-volatile.conf',
+		'extras/redis-volatile.service'])],
 
     install_requires=['pyserial>=3.4', 'redis>=2.10.6'],
 
