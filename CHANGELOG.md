@@ -10,6 +10,8 @@
 * Introduced check on versions compatibility with Arancino Library running on connected devices #11.
 * Pypi packet is now only for Unix not Windows #38.
 * Pypi packet run `pre-install` and `post-install` scripts to configure the module.
+* Baudrates is configurable via configuration file #42
+* Redis instance type is configurable via configuration file
 
 #### v 0.1.5 - 2019.07.23
 * Fix Arancino Service
