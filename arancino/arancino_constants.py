@@ -164,3 +164,10 @@ class RedisInstancesType(Enum):
     @classmethod
     def has_value(cls, value):
         return value in cls._value2member_map_ 
+
+
+class SerialBaudrates(Enum):
+    _57600      = 57600
+    _128000     = 128000
+    _1151200    = 1151200
+    _4000000    = 4000000

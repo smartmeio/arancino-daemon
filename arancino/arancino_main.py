@@ -258,7 +258,7 @@ class SerialMonitor (threading.Thread):
                 LOG.info("Connecting to Port: " + arancino.alias + " " + arancino.port.device + " - " + arancino.id)
 
                 #serialConnector = SerialConnector( self.datastore, self.devicestore,  arancino=arancino, baudrate = 4000000)
-                serialConnector = SerialConnector(self.arancinoContext, arancino=arancino, baudrate=4000000)
+                serialConnector = SerialConnector(self.arancinoContext, arancino=arancino, baudrate=conf.getSerialBaudrate())
 
 
                 serialConnector.start()
@@ -378,7 +378,7 @@ class ArancinoLineReader(LineReader):
 
 class SerialConnector:
 
-    def __init__(self, arancinoContext, arancino, baudrate=250000):
+    def __init__(self, arancinoContext, arancino, baudrate):
 
         self.arancino = arancino
         self.log_prefix = "[" + self.arancino.port.device + " - " + self.arancino.id + "]: "
