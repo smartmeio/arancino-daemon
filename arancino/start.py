@@ -18,16 +18,16 @@ License for the specific language governing permissions and limitations
 under the License
 '''
 #BACUKP
-#import arancino.arancino_main as arancino
-#arancino.start()
+import arancino.arancino_main as arancino
+arancino.start()
 
 #PACKAGE - PROD
 from arancino.arancino_main import Arancino 
 import arancino.arancino_constants as Const
 
 #DEBUG - DEV
-#from arancino_main import Arancino
-#import arancino_constants as Const
+from arancino_main import Arancino
+import arancino_constants as Const
 
 a = Arancino()
 a.start()

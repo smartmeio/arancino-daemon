@@ -29,10 +29,22 @@ from serial.threaded.__init__ import *
 import arancino.arancino_conf as conf
 import arancino.arancino_constants as const
 from arancino.arancino_datastore import ArancinoDataStore
-from arancino.arancino_exceptions import InvalidArgumentsNumberException, InvalidCommandException, RedisGenericException, NonCompatibilityException
+from arancino.arancino_exceptions import InvalidArgumentsNumberException, InvalidCommandException, RedisGenericException, NonCompatibilityException, RedisPersistentKeyExistsInStadardDatastoreException, RedisStandardKeyExistsInPersistentDatastoreException
 from arancino.arancino_port import ArancinoPortsDiscovery
 from arancino.arancino_synch import ArancinoSynch
 
+global count_ERR, count_ERR_NULL, count_ERR_SET, count_ERR_CMD_NOT_FND, count_ERR_CMD_NOT_RCV, count_ERR_CMD_PRM_NUM, count_ERR_REDIS, count_ERR_REDIS_KEY_EXISTS_IN_STD, count_ERR_REDIS_KEY_EXISTS_IN_PERS, count_ERR_NON_COMPATIBILITY
+
+count_ERR = 0
+count_ERR_NULL = 0 
+count_ERR_SET = 0
+count_ERR_CMD_NOT_FND = 0  
+count_ERR_CMD_NOT_RCV = 0 
+count_ERR_CMD_PRM_NUM = 0 
+count_ERR_REDIS = 0
+count_ERR_REDIS_KEY_EXISTS_IN_STD = 0 
+count_ERR_REDIS_KEY_EXISTS_IN_PERS = 0 
+count_ERR_NON_COMPATIBILITY = 0
 
 class Arancino():
 
@@ -84,7 +96,6 @@ class Arancino():
         self.serialMonitor.stop()
 
 
-
 class SerialMonitor (threading.Thread):
 
     kill_now = False
@@ -96,6 +107,9 @@ class SerialMonitor (threading.Thread):
     arancinoDs = None
     arancinoDy = None
     arancinoSy = None
+
+    thread_start = None
+    thread_start_reset = None
 
     def __init__(self, name):
 
@@ -114,6 +128,7 @@ class SerialMonitor (threading.Thread):
         self.devicestore = self.arancinoDs.getDeviceStore()
         self.datastore_rsvd = self.arancinoDs.getDataStoreRsvd()
 
+        self.conf = conf
 
         self.arancinoContext = {
             "commands_list": const.getCommandsList(),
@@ -125,8 +140,6 @@ class SerialMonitor (threading.Thread):
             "arancino_datastore": self.arancinoDs,
             "compatibility_array" : const.COMPATIBILITY_MATRIX_MOD[conf.version]
         }
-
-
 
     # public function
     def stop(self):
@@ -159,18 +172,20 @@ class SerialMonitor (threading.Thread):
 
         LOG.info("Serial Ports Connection Closed")
         LOG.info("Exiting completed, Bye!")
-
+        
+        self.__printStats()
+        
         self._stop_event.set()
+        
         sys.exit(0)
 
     def run(self):
         # Polls every 10 seconds if there's new serial port to connect to
 
-        thread_start = time.time()
-        thread_start_reset = time.time()
+        self.thread_start = time.time()
+        self.thread_start_reset = time.time()
 
-        while not self.kill_now:
-
+        while not self.kill_now:            
             self.ports_plugged = self.arancinoDy.getPluggedArancinoPorts(self.ports_plugged, self.ports_connected)
 
             #LOG.info("Plugged Serial Ports Retrieved: " + str(len(self.ports_plugged)))
@@ -180,11 +195,11 @@ class SerialMonitor (threading.Thread):
             LOG.debug('Connected Serial Ports: ' + str(len(self.ports_connected)) + ' => ' + ' '.join('[' + str(connector.arancino.port.device) + ' - ' + str(key) + ']' for key, connector in self.ports_connected.items()))
 
             #log that every hour
-            if (time.time()-thread_start_reset) >= 3600:
+            if (time.time()-self.thread_start_reset) >= 3600:
                 LOG.info('Plugged Serial Ports Retrieved: ' + str(len(self.ports_plugged)) + ' => ' + ' '.join('[' + str(arancino.port.device) + ' - ' + str(key) + ']' for key, arancino in self.ports_plugged.items()))
                 LOG.info('Connected Serial Ports: ' + str(len(self.ports_connected)) + ' => ' + ' '.join('[' + str(connector.arancino.port.device) + ' - ' + str(key) + ']' for key, connector in self.ports_connected.items()))
-                LOG.info('Uptime: ' + str(timedelta(seconds=int(time.time() - thread_start))))
-                thread_start_reset = time.time()
+                LOG.info('Uptime: ' + str(timedelta(seconds=int(time.time() - self.thread_start))))
+                self.thread_start_reset = time.time()
 
             # first synchronization in cycle
             self.arancinoSy.synchPorts(self.ports_plugged)
@@ -208,6 +223,9 @@ class SerialMonitor (threading.Thread):
 
             # second synchronization in cycle
             self.arancinoSy.synchPorts(self.ports_plugged)
+
+            # print stats
+            self.__printStats()
 
             time.sleep(conf.cycle_time)
 
@@ -240,7 +258,6 @@ class SerialMonitor (threading.Thread):
             LOG.exception(ex)
 
         return ports_to_connect
-
 
     def __connectPorts(self, ports_to_connect, connected):
         """
@@ -293,7 +310,6 @@ class SerialMonitor (threading.Thread):
 
         return disabled_ports
 
-
     def __stopPorts(self, ports_to_stop, plugged, connected):
         """
         Cycles all the connected ports and puts the disabled ones into
@@ -327,6 +343,49 @@ class SerialMonitor (threading.Thread):
 
         except Exception as ex:
             LOG.exception(ex)
+
+    def __printStats(self):
+        stats = open(conf.get_stats_file_path(),"w")
+        stats.write("################################ ARANCINO STATS ################################\n")
+        stats.write("\n")
+        stats.write("PROCESS UPTIME: " + self.__processUptime( (time.time() - self.thread_start) ) + "\n")
+        stats.write("\n")
+        stats.write("Generic Error - - - - - - - - - - - - - - - - - - - - - - - - - - - - " + str(count_ERR).zfill(10) + "\n")
+        stats.write("Command Not Found - - - - - - - - - - - - - - - - - - - - - - - - - - " + str(count_ERR_CMD_NOT_FND).zfill(10) + "\n")
+        stats.write("Invalid Parameter Number Error- - - - - - - - - - - - - - - - - - - - " + str(count_ERR_CMD_PRM_NUM).zfill(10) + "\n")
+        stats.write("Generic Redis Error - - - - - - - - - - - - - - - - - - - - - - - - - " + str(count_ERR_REDIS).zfill(10) + "\n")
+        stats.write("Key exists in the Standard Data Store Error - - - - - - - - - - - - - " + str(count_ERR_REDIS_KEY_EXISTS_IN_STD).zfill(10) + "\n")
+        stats.write("Key exists in the Persistent Data Store  Error- - - - - - - - - - - - " + str(count_ERR_REDIS_KEY_EXISTS_IN_PERS).zfill(10) + "\n")
+        stats.write("Non compatibility between Arancino Module and Library Error - - - - - " + str(count_ERR_NON_COMPATIBILITY).zfill(10) + "\n")
+        stats.write("\n")
+        stats.write("################################################################################\n")
+        stats.close()
+
+    def __processUptime(self, total_seconds):
+        # https://thesmithfam.org/blog/2005/11/19/python-uptime-script/
+
+        # Helper vars:
+        MINUTE  = 60
+        HOUR    = MINUTE * 60
+        DAY     = HOUR * 24
+    
+        # Get the days, hours, etc:
+        days    = int( total_seconds / DAY )
+        hours   = int( ( total_seconds % DAY ) / HOUR )
+        minutes = int( ( total_seconds % HOUR ) / MINUTE )
+        seconds = int( total_seconds % MINUTE )
+    
+        # Build up the pretty string (like this: "N days, N hours, N minutes, N seconds")
+        string = ""
+        if days > 0:
+            string += str(days) + " " + (days == 1 and "day" or "days" ) + ", "
+        if len(string) > 0 or hours > 0:
+            string += str(hours) + " " + (hours == 1 and "hour" or "hours" ) + ", "
+        if len(string) > 0 or minutes > 0:
+            string += str(minutes) + " " + (minutes == 1 and "minute" or "minutes" ) + ", "
+        string += str(seconds) + " " + (seconds == 1 and "second" or "seconds" )
+    
+        return string
 
 
 class ArancinoLineReader(LineReader):
@@ -489,8 +548,9 @@ class SerialHandler(ArancinoLineReader):
         except Exception as ex:
             LOG.exception(self.log_prefix + str(ex))
 
-
     def data_received(self, data):
+
+        global count_ERR, count_ERR_NULL, count_ERR_SET, count_ERR_CMD_NOT_FND, count_ERR_CMD_NOT_RCV, count_ERR_CMD_PRM_NUM, count_ERR_REDIS, count_ERR_REDIS_KEY_EXISTS_IN_STD, count_ERR_REDIS_KEY_EXISTS_IN_PERS, count_ERR_NON_COMPATIBILITY
 
         #print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ')
         datadec = data.decode()
@@ -508,22 +568,37 @@ class SerialHandler(ArancinoLineReader):
 
             except NonCompatibilityException as ex:
                 LOG.error(self.log_prefix + str(ex) + " => " + self._partial)
+                count_ERR_NON_COMPATIBILITY += 1
                 response = ex.error_code + const.CHR_EOT
 
             except InvalidArgumentsNumberException as ex:
                 LOG.error(self.log_prefix + str(ex) + " => " + self._partial)
+                count_ERR_CMD_PRM_NUM += 1
                 response = ex.error_code + const.CHR_EOT
 
             except InvalidCommandException as ex:
                 LOG.warning(self.log_prefix + str(ex) + " => " + self._partial)
+                count_ERR_CMD_NOT_FND += 1
+                response = ex.error_code + const.CHR_EOT
+
+            except RedisStandardKeyExistsInPersistentDatastoreException as ex:
+                LOG.warning(self.log_prefix + str(ex) + " => " + self._partial)
+                count_ERR_REDIS_KEY_EXISTS_IN_PERS += 1
+                response = ex.error_code + const.CHR_EOT
+
+            except RedisPersistentKeyExistsInStadardDatastoreException as ex:
+                LOG.warning(self.log_prefix + str(ex) + " => " + self._partial)
+                count_ERR_REDIS_KEY_EXISTS_IN_STD += 1
                 response = ex.error_code + const.CHR_EOT
 
             except RedisGenericException as ex:
                 LOG.error(self.log_prefix + str(ex) + " => " + self._partial)
+                count_ERR_REDIS += 1
                 response = ex.error_code + const.CHR_EOT
 
             except Exception as ex:
                 LOG.error(self.log_prefix + str(ex))
+                count_ERR += 1
                 response = const.ERR + const.CHR_EOT
 
             finally:
@@ -648,7 +723,6 @@ class SerialHandler(ArancinoLineReader):
         else:
             raise InvalidArgumentsNumberException("Invalid arguments number for command " + const.CMD_SYS_START + ". Received: " + str(n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
-
     # SET STANDARD (to standard device store)
     def __OPTS_SET_STD(self, args):
         # wraps __OPTS_SET
@@ -694,7 +768,7 @@ class SerialHandler(ArancinoLineReader):
                     
                     # check if key exist in other data store
                     if( self.datastore_rsvd.exists(key) == 1):
-                        raise RedisGenericException("Duplicate Key In Persistent Data Store: ", const.ERR_REDIS_KEY_EXISTS_IN_PERS)
+                        raise RedisStandardKeyExistsInPersistentDatastoreException("Duplicate Key In Persistent Data Store: ", const.ERR_REDIS_KEY_EXISTS_IN_PERS)
                     else:
                         # store the value at key
                         rsp = self.datastore.set(key, value)
@@ -706,7 +780,7 @@ class SerialHandler(ArancinoLineReader):
                         
                         # check if key exist in other data store
                         if( self.datastore.exists(key) == 1):
-                            raise RedisGenericException("Duplicate Key In Standard Data Store: ", const.ERR_REDIS_KEY_EXISTS_IN_STD)
+                            raise RedisPersistentKeyExistsInStadardDatastoreException("Duplicate Key In Standard Data Store: ", const.ERR_REDIS_KEY_EXISTS_IN_STD)
                         else:
                             # write to the dedicate data store (dedicated to persistent keys)
                             rsp = self.datastore_rsvd.set(key, value)
@@ -1222,7 +1296,6 @@ def start():
 
 # logger
 LOG = conf.logger
-
 
 # list of commands
 #####commands_list = const.getCommandsList()
