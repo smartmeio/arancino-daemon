@@ -21,6 +21,7 @@ under the License
 import logging, sys, os
 from logging.handlers import RotatingFileHandler
 import arancino.arancino_constants as const
+import arancino.arancino_log_formatter as formatter
 
 #version
 version = "1.0.0"
@@ -45,15 +46,18 @@ def getRedisInstancesType():
         redis_dts = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 0}
         redis_dvs = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 1}
         redis_dts_rsvd = {'host': 'localhost', 'port': 6379, 'dcd_resp': True,'db': 2}
+    
     elif redis_instance.value == const.RedisInstancesType.PERSISTENT.value:
         redis_dts = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 0}
         redis_dvs = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 1}
         redis_dts_rsvd = {'host': 'localhost', 'port': 6380, 'dcd_resp': True,'db': 2}
+    
     elif redis_instance.value == const.RedisInstancesType.VOLATILE_PERSISTENT.value: 
         redis_dts = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 0}
         redis_dvs = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 0}
         redis_dts_rsvd = {'host': 'localhost', 'port': 6380, 'dcd_resp': True,'db': 1}
-    else: 
+    
+    else: # DEFAULT is VOLATILE_PERSISTENT
         redis_dts = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 0}
         redis_dvs = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 0}
         redis_dts_rsvd = {'host': 'localhost', 'port': 6380, 'dcd_resp': True,'db': 1}
@@ -109,7 +113,7 @@ def get_stats_file_path():
 
 def __get_console_handler():
    console_handler = logging.StreamHandler(sys.stdout)
-   console_handler.setFormatter(__format)
+   console_handler.setFormatter(formatter.CustomConsoleFormatter())
    return console_handler
 
 def __get_file_handler():
@@ -119,14 +123,13 @@ def __get_file_handler():
 
 def __get_error_file_handler():
     file_handler_error = RotatingFileHandler(os.path.join(__dirlog, __error_filename), mode='a', maxBytes=100*1024, backupCount=5)
-    #file_handler_error = logging.FileHandler(LOG_FILE_ERROR, mode='w')
     file_handler_error.setFormatter(__format)
     file_handler_error.setLevel(logging.ERROR)
     return file_handler_error
 
 logger = logging.getLogger(__name)
 
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 #logger.addHandler(__get_console_handler())
 logger.addHandler(__get_file_handler())
 logger.addHandler(__get_error_file_handler())

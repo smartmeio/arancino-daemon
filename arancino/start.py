@@ -17,10 +17,6 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 '''
-#BACUKP
-#import arancino.arancino_main as arancino
-#arancino.start()
-
 #PACKAGE - PROD
 from arancino.arancino_main import Arancino 
 import arancino.arancino_constants as Const

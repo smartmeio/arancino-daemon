@@ -1289,7 +1289,6 @@ class SerialHandler(ArancinoLineReader):
                     n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
 
-
 def start():
     arancino = Arancino()
     arancino.start()
