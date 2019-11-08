@@ -185,6 +185,8 @@ class SerialMonitor (threading.Thread):
         self.thread_start = time.time()
         self.thread_start_reset = time.time()
 
+        LOG.info("Starting!")
+
         while not self.kill_now:            
             self.ports_plugged = self.arancinoDy.getPluggedArancinoPorts(self.ports_plugged, self.ports_connected)
 
