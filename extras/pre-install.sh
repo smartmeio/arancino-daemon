@@ -9,3 +9,9 @@ systemctl stop redis-persistent
 systemctl disable arancino
 systemctl disable redis-volatile
 systemctl disable redis-persistent
+
+# unset envinronment vars
+unset ARANCINO
+unset ARANCINOCONF
+unset ARANCINOLOG
+unset ARANCINOENV

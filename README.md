@@ -1,6 +1,6 @@
 # Arancino: serial module for Arancino Library
 
-Receives commands from Arancino Library (uC) trough the Arancino Cortex Protocol over serial connection. It's designed to run under Arancino OS.
+Receives commands from Arancino Library (uC) trough the Arancino Cortex Protocol over serial connection. It's designed to run under Arancino OS and can manage multiple serial connections.
 
 
 ## Prerequisites
@@ -10,8 +10,21 @@ Receives commands from Arancino Library (uC) trough the Arancino Cortex Protocol
 
 ## Setup
 
-### Install only using CLI
-Use directly the command line and _pip_ by specifying the repository url as argument:
+### Install Arancino Module using CLI
+There are two repositories, one for release packages and one for development (snapshot), both are available in [packages.smartme.io](https://packages.smartme.io).
+
+#### Install from Development Repository
+To install a develpment version of the Arancino Module please go to smartme.io [packages repository](https://packages.smartme.io) and then browse [pypi-snapshot/arancino](https://packages.smartme.io/#browse/browse:pypi-snapshot) to your desiderd package. Select the _tar.gz_ file and finally from the _Summary_ tab find the _Path_ field and copy the package url. It looks like this: https://packages.smartme.io/repository/pypi-snapshot/packages/arancino/VERS.YYYY-MM-DD-HH-MM-SS-BRANCH-COMMIT/arancino-VERS.YYYY-MM-DD-HH-MM-SS-BRANCH-COMMIT.tar.gz.
+Open a terminal window in Arancino OS and run the following (pasting the preovious copied url)
+
+```shell
+
+$ sudo pip3 install https://packages.smartme.io/repository/pypi-snapshot/packages/arancino/VERS.YYYY-MM-DD-HH-MM-SS-BRANCH-COMMIT/arancino-VERS.YYYY-MM-DD-HH-MM-SS-BRANCH-COMMIT.tar.gz
+
+```
+
+#### Install from Release Repository
+To install a release package is quite more simple, just use the Release Repository Packages url:
 
 ```shell
 
@@ -19,35 +32,12 @@ $ sudo pip3 install arancino --extra-index-url https://packages.smartme.io/repos
 
 ```
 
-or
-
-```
-
-$ sudo pip3 install arancino --extra-index-url https://packages.smartme.io/repository/pypi-staging/simple
-
-```
-
-### Install by configuring PyPi source list
-Add Smartme.IO repository as pypi source. There are two repositories, one for release packages and one for development (snapshot). Open your `pip.conf` and add the following lines:
-
-```shell
-
-$ sudo vi <HOME>/.config/pip/pip.conf
-
-.....
-
-[global]
---extra-index-url = https://packages.smartme.io/repository/pypi/simple
-                    https://packages.smartme.io/repository/pypi-snapshot/simple
-
-```
-
-Install Arancino Module:
-
-```shell
-$ sudo pip3 install arancino
-
-```
+NOTE:
+> In the latest versions of Arancino OS file system is in Read Only mode, turn it in Read Write mode with the following command:
+> 
+> ```shell
+> $ rootrw
+> ```
 
 
 Give exec grant
@@ -60,123 +50,140 @@ $ chmod +x <PATH TO ARANCINO MODULE>/start.py
 
 ## Configuration
 
-All available configurations can be setted up in the _<PATH TO ARANCINO MODULE>/arancino_conf.py_ file.
+All available configurations can be setted up in the configuration file: `/etc/arancino/config/arancino.cfg`.
 
 
 ### Log Configuration
-Arancino Module uses python logging system and has three different handlers, one handler logs into the console and the others into files, one of which is dedicate only for errors. It's possible to change the log levels, following the standard python logging library: `ERROR`, `WARNING`, `INFO`, `DEBUG`.
+Arancino Module uses python logging system and writes logs to three files in `/var/log/arancino/`. To manage logs go to `[log]` section of the configuration file.
 
-Following the Production and Dev/Test configurations (Console is disabled):
+#### Log Files
+You can change the logs file name changing the following properties
 
-```python
-# PRODUCTION ENVIRONMENT
-logger.setLevel(logging.INFO)
-#logger.addHandler(__get_console_handler())
-logger.addHandler(__get_file_handler())
-logger.addHandler(__get_error_file_handler())
+```ini
+log = arancino.log
+error = arancino.error.log
+stats = arancino.stats.log
 ```
 
-```python
-# DEVELOPMENT/TEST ENVIRONMENT
-logger.setLevel(logging.DEBUG)
-logger.addHandler(__get_console_handler())
-logger.addHandler(__get_file_handler())
-logger.addHandler(__get_error_file_handler())
+#### Log Level
+Log level is `INFO` by default. All available levels are:
+
+- ERROR
+- WARNING
+- INFO
+- DEBUG
+
+and can be changed in the following property:
+
+```ini
+level = INFO
 ```
 
+#### Console
+Sometimes could be useful to have logs in the console during development or test. By default console is disabled in production, and can be enabled changing the following property:
+```ini
+console = False
+```
 
 ### Redis Configuration
-In __Arancino OS__ by default there are two running instances of Redis with two databases each one. The first instance is volatile and the second one is persistent. The volatile one is used to store application data of the Arancino firmware (e.g date read by a sensor like Temperature, Humidity etc...) (first instance first database) it is called _datastore_, The Persistent one is used to store devices informations (second instance first database) and configuration data for Arancino Firmware (second instance second database) they are called _devicestore_ and _datastore_persistant_. 
 
-The configuration are the following:
-
-```python
-### REDIS-ARANCINO CONFIGURATION --> PRODUCTION ###
-
-#datastore
-redis_dts = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 0}
-
-#devicestore
-redis_dvs = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 0}
-
-#datastore persistent
-redis_dts_rsvd = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 1}
-
-```
-
-- `host`: the host which Redis is running on.
-- `port`: the port which Redis is listening on.
-- `dcd_resp`: boolean value, True => decode response. 
-- `db`: the database number.
+> In __Arancino OS__ by default there are two running instances of Redis with two databases each one. The first instance is volatile and the second one is persistent. The volatile one is used to store application data of the Arancino firmware (e.g date read by a sensor like Temperature, Humidity etc...) (first instance first database) it is called _datastore_, The Persistent one is used to store devices informations (second instance first database) and configuration data for Arancino Firmware (second instance second database) they are called _devicestore_ and _datastore_persistant_. 
 
 
-Usually you don't need to change Redis configuration in Production environment, but it's useful to change this if you are in Development or Test environment and you don't have a second Redis instance. Default Redis port is __6379__ with __16__ databases. To apply default Redis configuration please change all the `ports` to __6379__ (the default port) and number the `db` from __0__ to __2__:
+Port, host and others are configured inside the _arancino_conf.py_. 
 
-```python
-### REDIS CONFIGURATION --> DEVELOPMENT/TEST ###
-
-#datastore
-redis_dts = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 0}
-
-#devicestore
-redis_dvs = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 1}
-
-#datastore persistent
-redis_dts_rsvd = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 2}
-
-```
-
-To switch redis configuration please use `redis_instance` variable with the appropriate value from `RedisInstancesType`:
-```python
-RedisInstancesType.VOLATILE_PERSISTENT
-RedisInstancesType.VOLATILE
-RedisInstancesType.PERSISTENT
-```
-
-i.e.:
-```python
-### PRODUCTION CONFIGURATION
-
-redis_instance = const.RedisInstancesType.VOLATILE_PERSISTENT
-
-```
+Usually you don't need to change Redis configuration in Production environment, but it's useful to change this if you are in Development or Test environment and you don't have a second Redis instance. The default (Production) configuration in Arancino OS are the following:
 
 
-### Arancino Port Configuration
-Arancino Port rappresent an abstraction of a device plugged in to Arancino Board and/or the built-in microcontroller. The following configuration is used by Arancino Module to manage a __new device__ when it's plugged to Arancino Board:
+|Parameters         |Data Store         |Device Store       |Persistent Device Store        |
+|-------------------|-------------------|-------------------|-------------------------------|
+|Host               |localhost          |localhost          |localhost                      |
+|Port               |6379               |6380               |6380                           |
+|Decode Response    |True               |True               |True                           |
+|Database Number    |0                  |0                  |1                              |
 
-```python
-port = {
-    'enabled': True,
-    'auto_connect': False,
-    'hide': False
-}
-```
+During development we assume that is only one Redis instance running in volatile mode, and the configuration is:
 
-- `enabled`: when `True` the plugged device is immediately connected and starts the communication, when `False` it remains __plugged__ but doesn't communicate. This option is stored into the _devicestore_ and can be changed directly by `redis-cli` or similar to enable or disable the device. 
-- `auto_connect`: NOT USED AT MOMENT
-- `hide`: NOT USED AT MOMENT: this option only concerns the UI. it's will be used to hide one or more device from the main device UI.
+|Parameters         |Data Store         |Device Store       |Persistent Device Store        |
+|-------------------|-------------------|-------------------|-------------------------------|
+|Host               |localhost          |localhost          |localhost                      |
+|Port               |6379               |6379               |6379                           |
+|Decode Response    |True               |True               |True                           |
+|Database Number    |0                  |1                  |2                              |
+
+
+
+[//]: # (### Environment)
+
+[//]: # (If you want to switch from `prod` to `dev` configuration, and viceversa open _arancino.cfg_ and change `env` property in `[general]` section:)
+
+[//]: # (```ini)
+[//]: # (# Environment type: DEV, PROD. DEV automatically sets: redis.instance_type = VOLATILE, )
+[//]: # (# log.level = DEBUG, general.cycle_time = 5 and enables the console handlers)
+[//]: # (env = PROD)
+[//]: # (```)
 
 ### Polling Cycle
-The polling cycle time determines the interval between one scan and another of new devices. If a new device is plugged it will be discovered and connected (if `enabled` is `True`) at least after the time setted in `cycle_time`. The value is expressed in seconds.
+The polling cycle time determines the interval between one scan and another of new devices. If a new device is plugged it will be discovered and connected (if `enabled` is `True` in [Arancino Ports](#arancino-ports) configuration) at least after the time setted in `cycle_time`. The value is expressed in seconds. To change this time, change `cycle_time` property in `[general]` section.
 
-
-
-```python
+```ini
 #cycle interval time
 cycle_time = 10
 ```
 
-## Run
+### Arancino Ports
+Arancino Module scans serial ports for new devices to connect to. If a new device is plugged Arancino Module applies the configuration of the `[port]` section of the configuration file.
 
-To run Arancino use the `start.py' script. If you don't want to run as _root_ please change the owner of log dir, and then run Arancino:
+```ini
+# default 'arancino port' configuration status
+[port]
 
-```shell
+# automatically connect a new discovered device
+enabled = True
 
-$ sudo chown -R <USER> /var/log/arancino/
-$ python3 <PATH TO ARANCINO MODULE>/start.py
+# NOT USED
+auto_connect = False
 
+# set to true to make it not visible in the main device view in the UI
+hide = False
 
+# default baudarate
+baudrate = 4000000
+```
+
+### Environmental Variables
+Arancino Module sets up three environmental variables during installation. They referes to Arancino OS file system:
+
+```ini
+ARANCINO=/etc/arancino
+ARANCINO_CONF=${ARANCINO}/config
+ARANCINO_LOG=/var/log/arancino
+```
+
+To run locally Arancino Module please set up the same variables and change the values by your environment
+
+#### Visual Studio Code
+Followin the `launch.json` of visual studio code
+
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Arancino Run",
+            "type": "python",
+            "request": "launch",
+            "env": {
+                "ARANCINO": "${cwd}",
+                "ARANCINOCONF": "${cwd}/config",
+                "ARANCINOLOG": "${cwd}/log",
+                "ARANCINOENV": "DEV",
+            },
+            "program": "${cwd}/arancino/start.py",
+            "console": "integratedTerminal",
+        }
+    ]
+}
 ```
 
 ## Extras

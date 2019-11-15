@@ -10,7 +10,7 @@ Group=root
 ExecStart=/usr/bin/python3 /usr/local/lib/python3.5/dist-packages/arancino/start.py
 ExecStop=/usr/kill $MAINPID
 Restart=on-failure
-RestartSec=3
+RestartSec=15
 #on-abort
 
 [Install]

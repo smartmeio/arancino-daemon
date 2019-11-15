@@ -22,9 +22,14 @@ import logging, sys, os
 from logging.handlers import RotatingFileHandler
 import arancino.arancino_constants as const
 import arancino.arancino_log_formatter as formatter
+import configparser
+
+Config = configparser.ConfigParser()
+Config.read(os.path.join(os.environ.get('ARANCINOCONF','/etc/arancino/config'),"arancino.cfg"))
 
 #version
-version = "1.0.0"
+#version = "1.0.0"
+version = Config.get("metadata", "version")
 
 # global variables
 global redis_instance, serial_baudrate 
@@ -66,26 +71,27 @@ def getRedisInstancesType():
 
 
 # redis instance type
-redis_instance = const.RedisInstancesType.VOLATILE_PERSISTENT
-#redis_instance = const.RedisInstancesType.VOLATILE
+redis_instance = const.RedisInstancesType[Config["redis"].get("instance_type")]
 
 # serial baud rate
-serial_baudrate = const.SerialBaudrates._4000000
+#serial_baudrate = const.SerialBaudrates._4000000
+serial_baudrate = Config["port"].getint("baudrate")
 
 def getSerialBaudrate():
     
     global serial_baudrate
     
-    return serial_baudrate.value
+    return serial_baudrate
+    #return serial_baudrate.value
 
 #cycle interval time
-cycle_time = 10
+cycle_time = Config["general"].getint("cycle_time")#int(Config.get("general","cycle_time"))
 
 # default arancino port configuration
 port = {
-    'enabled': True,
-    'auto_connect': False,
-    'hide': False
+    'enabled': Config["port"].getboolean("enabled"),#True,
+    'auto_connect': Config["port"].getboolean("auto_connect"),#False,
+    'hide': Config["port"].getboolean("hide")#False
 }
 
 # allowed vid and pid to connect to
@@ -98,15 +104,13 @@ hwid = [
 '''
 
 # logger configuration
-__name = 'Arancino Serial'
-__filename = 'arancino.log'
-__error_filename = 'arancino.error.log'
-__stats_filename = 'arancino.stats.log'
-__dirlog = "/var/log/arancino"
+__name = Config["log"].get("name")              #'Arancino Serial'
+__filename = Config["log"].get("log")           #'arancino.log'
+__error_filename = Config["log"].get("error")   #'arancino.error.log'
+__stats_filename = Config["log"].get("stats")   #'arancino.stats.log'
+#__dirlog = Config["log"].get("path")           #'/var/log/arancino'
+__dirlog = os.environ.get('ARANCINOLOG','/var/log/arancino')
 __format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-if not os.path.exists(__dirlog):
-    os.makedirs(__dirlog)
 
 def get_stats_file_path():
     return os.path.join(__dirlog, __stats_filename)
@@ -128,8 +132,9 @@ def __get_error_file_handler():
     return file_handler_error
 
 logger = logging.getLogger(__name)
-
-logger.setLevel(logging.DEBUG)
-#logger.addHandler(__get_console_handler())
+logger.setLevel( logging.getLevelName(Config["log"].get("level")) )
 logger.addHandler(__get_file_handler())
 logger.addHandler(__get_error_file_handler())
+
+if Config["log"].get("console"):
+    logger.addHandler(__get_console_handler())

@@ -185,7 +185,7 @@ class SerialMonitor (threading.Thread):
         self.thread_start = time.time()
         self.thread_start_reset = time.time()
 
-        LOG.info("Starting!")
+        LOG.info("Version " + self.conf.version + " Starting!")
 
         while not self.kill_now:            
             self.ports_plugged = self.arancinoDy.getPluggedArancinoPorts(self.ports_plugged, self.ports_connected)
@@ -350,7 +350,8 @@ class SerialMonitor (threading.Thread):
         stats = open(conf.get_stats_file_path(),"w")
         stats.write("################################ ARANCINO STATS ################################\n")
         stats.write("\n")
-        stats.write("PROCESS UPTIME: " + self.__processUptime( (time.time() - self.thread_start) ) + "\n")
+        stats.write("ARANCINO UPTIME: " + self.__processUptime( (time.time() - self.thread_start) ) + "\n")
+        stats.write("ARANCINO VERSION: " + self.conf.version + "\n")
         stats.write("\n")
         stats.write("Generic Error - - - - - - - - - - - - - - - - - - - - - - - - - - - - " + str(count_ERR).zfill(10) + "\n")
         stats.write("Command Not Found - - - - - - - - - - - - - - - - - - - - - - - - - - " + str(count_ERR_CMD_NOT_FND).zfill(10) + "\n")

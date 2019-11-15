@@ -4,17 +4,20 @@
 * Now it uses threading services of `py-serial` instead of `py-serial-asyncio`.
 * Introduced the possibility of set one or more persistent keys by the user in Arancino Library with a new command: `CMD_APP_SET_PERS`.
 * Restored #29 ( Reserved keys are saved when FLUSH command is received).
-* Fixed FLUSH command #39.
-* Fixed a bug which disconnect a device when a `GenericRedisException` and `InvalidCommandException` are raised during the command parsing #37.
-* Logs are reduced and Exceptions/Error are tracked in a separetend file #24: `arancino.error.log`. 
-* Introduced check on versions compatibility with Arancino Library running on connected devices #11.
-* Pypi packet is now only for Unix not Windows #38.
-* Pypi packet run `pre-install` and `post-install` scripts to configure the module.
-* Baudrates is configurable via configuration file #42
-* Redis instance type is configurable via configuration file
+* Fixed FLUSH command. #39
+* Fixed a bug which disconnect a device when a `GenericRedisException` and `InvalidCommandException` are raised during the command parsing. #37
+* Logs are reduced and Exceptions/Error are tracked in a separetend file: `arancino.error.log`. #24
+* Introduced check on versions compatibility with Arancino Library running on connected devices. #11
+* Pypi packet is now only for Unix not Windows. #38
+* Pypi packet runs `pre-install` and `post-install` scripts to configure the module.
+* Baudrates is configurable via configuration file. #42
+* Redis instance type is configurable via configuration file.
+* Stats about uptime and errors on a dedicate file `/var/log/arancino/arancino.stats.log`. #43
+* Colored console log. #44
+* Introduce arancino.cfg ad configuration file
 
 #### v 0.1.5 - 2019.07.23
-* Fix Arancino Service
+* Fix Arancino Service.
 
 #### v 0.1.4 - 2019.04.17
 * Setup.py now includes extras/*

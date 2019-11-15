@@ -67,6 +67,7 @@ target/
 # Log file
 *.log
 *.log.*
+log/
 
 # Icon must end with two \r
 Icon
