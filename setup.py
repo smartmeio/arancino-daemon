@@ -94,8 +94,7 @@ setup(
 	python_requires='>3',
 
 	data_files=[('arancino',
-		['extras/arancino.sh',
-		'extras/pre-install.sh',
+		['extras/pre-install.sh',
 		'extras/post-install.sh',
 		'extras/arancino.service',
 		'extras/redis-persistent.conf',

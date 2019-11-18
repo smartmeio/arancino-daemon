@@ -25,7 +25,7 @@ import arancino.arancino_log_formatter as formatter
 import configparser
 
 Config = configparser.ConfigParser()
-Config.read(os.path.join(os.environ.get('ARANCINOCONF','/etc/arancino/config'),"arancino.cfg"))
+Config.read(os.path.join(os.environ.get('ARANCINOCONF'),"arancino.cfg"))
 
 #version
 #version = "1.0.0"
@@ -39,29 +39,29 @@ def getRedisInstancesType():
     global redis_instance
 
     #if redis_instance not in const.RedisInstancesType:
-    if not const.RedisInstancesType.has_value(redis_instance.value) :
-        redis_instance =  const.RedisInstancesType.DEFAULT
-    
+    if not const.RedisInstancesType.has_value(redis_instance) :
+        redis_instance =  const.RedisInstancesType.DEFAULT.value
+
     '''
     redis_dts: datastore => contains application data (default volatile)
     redis_dvs: devicestore => contains data about connected device (default persistent)
     redis_dts_rsvd: datastore persisten keys => contains application data which must be available after device reboot or application restart (default persistent)
     '''
-    if redis_instance.value == const.RedisInstancesType.VOLATILE.value:
+    if redis_instance == const.RedisInstancesType.VOLATILE.value:
         redis_dts = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 0}
         redis_dvs = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 1}
         redis_dts_rsvd = {'host': 'localhost', 'port': 6379, 'dcd_resp': True,'db': 2}
-    
-    elif redis_instance.value == const.RedisInstancesType.PERSISTENT.value:
+
+    elif redis_instance == const.RedisInstancesType.PERSISTENT.value:
         redis_dts = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 0}
         redis_dvs = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 1}
         redis_dts_rsvd = {'host': 'localhost', 'port': 6380, 'dcd_resp': True,'db': 2}
-    
-    elif redis_instance.value == const.RedisInstancesType.VOLATILE_PERSISTENT.value: 
+
+    elif redis_instance == const.RedisInstancesType.VOLATILE_PERSISTENT.value: 
         redis_dts = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 0}
         redis_dvs = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 0}
         redis_dts_rsvd = {'host': 'localhost', 'port': 6380, 'dcd_resp': True,'db': 1}
-    
+
     else: # DEFAULT is VOLATILE_PERSISTENT
         redis_dts = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 0}
         redis_dvs = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 0}
@@ -109,7 +109,7 @@ __filename = Config["log"].get("log")           #'arancino.log'
 __error_filename = Config["log"].get("error")   #'arancino.error.log'
 __stats_filename = Config["log"].get("stats")   #'arancino.stats.log'
 #__dirlog = Config["log"].get("path")           #'/var/log/arancino'
-__dirlog = os.environ.get('ARANCINOLOG','/var/log/arancino')
+__dirlog = os.environ.get('ARANCINOLOG')
 __format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 def get_stats_file_path():
@@ -121,12 +121,12 @@ def __get_console_handler():
    return console_handler
 
 def __get_file_handler():
-   file_handler = RotatingFileHandler(os.path.join(__dirlog, __filename), mode='a', maxBytes=100*1024, backupCount=5)
+   file_handler = RotatingFileHandler(os.path.join(__dirlog, __filename), mode='a', maxBytes=1000*1024, backupCount=5)
    file_handler.setFormatter(__format)
    return file_handler
 
 def __get_error_file_handler():
-    file_handler_error = RotatingFileHandler(os.path.join(__dirlog, __error_filename), mode='a', maxBytes=100*1024, backupCount=5)
+    file_handler_error = RotatingFileHandler(os.path.join(__dirlog, __error_filename), mode='a', maxBytes=1000*1024, backupCount=5)
     file_handler_error.setFormatter(__format)
     file_handler_error.setLevel(logging.ERROR)
     return file_handler_error

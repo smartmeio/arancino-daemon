@@ -19,7 +19,7 @@ under the License
 '''
 import os
 
-ENV = os.environ.get('ARANCINOENV','PROD')
+ENV = os.environ.get('ARANCINOENV')
 
 if ENV == "PROD":
     # PROD

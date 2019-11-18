@@ -1,13 +1,17 @@
 #!/bin/bash
 
+# loads vars from file
+source extras/arancino.env
+
 # create logs dir
-mkdir -p /var/log/arancino
+#mkdir -p /var/log/arancino
+mkdir -p $ARANCINOLOG
 
 # create arancino dir
-mkdir -p /etc/arancino/config
+#mkdir -p /etc/arancino/config
+mkdir -p $ARANCINOCONF
 
 #change permissions to services files
-chown 644 extras/arancino.sh
 chown 644 extras/arancino.service
 chown 644 extras/redis-persistent.service
 chown 644 extras/redis-volatile.service
@@ -22,13 +26,8 @@ cp extras/redis-*.service /lib/systemd/system/
 #copy redis conf files
 cp extras/*.conf /etc/redis/
 
-#copy arancino env vars to /etc/profile.d/
-cp extras/arancino.sh /etc/profile.d/
-
-source /etc/profile
-
-#copy arancino config file to /etc/arancino/config
-cp config/arancino.cfg /etc/arancino/config/
+#copy arancino config file to /etc/arancino/config <== ARANCINOCONF
+cp config/arancino.cfg $ARANCINOCONF
 
 #daemon reload
 systemctl daemon-reload
