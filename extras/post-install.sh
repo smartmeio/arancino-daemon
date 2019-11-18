@@ -1,5 +1,5 @@
 #!/bin/bash
-
+pwd
 # loads vars from file
 source extras/arancino.env
 

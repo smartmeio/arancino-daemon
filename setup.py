@@ -32,10 +32,11 @@ class ArancinoPostInstallCommand(install):
     post-install script to install Arancino services
     """
     def run(self):
+        call(["chmod","+x","extras/pre-install.sh"])
+        call(["chmod","+x","extras/post-install.sh"])
 
         #### ARANCINO PRE INSTALL
         print("START ARANCINO PRE INSTALL")
-        call(["chmod","+x","extras/pre-install.sh"])
         call(["extras/pre-install.sh"])       
         print("END ARANCINO PRE INSTALL")
         
@@ -46,70 +47,72 @@ class ArancinoPostInstallCommand(install):
         
         #### ARANCINO POST INSTALL
         print("START ARANCINO POST INSTALL")
-        call(["chmod","+x","extras/post-install.sh"])
         call(["extras/post-install.sh"])
         print("END ARANCINO POST INSTALL")
 
 
 setup(
 
-	name='arancino',
+    name='arancino',
 
-	version='1.0.0',
+    version='1.0.0',
 
-	description='Arancino Module for Arancino Library',
+    description='Arancino Module for Arancino Library',
 
-	long_description='Receives commands from Arancino Library (uC) trough the Arancino Cortex Protocol over serial connection. It is designed to run under Arancino OS and can manage multiple serial connections.',
+    long_description='Receives commands from Arancino Library (uC) trough the Arancino Cortex Protocol over serial connection. It is designed to run under Arancino OS and can manage multiple serial connections.',
 
-	long_description_content_type="text/markdown",
+    long_description_content_type="text/markdown",
 
-	author='Sergio Tomasello @ SmartMe.IO',
+    author='Sergio Tomasello',
 
-	author_email='sergio@smartme.io',
+    author_email='sergio@smartme.io',
 
-	license='Apache License, Version 2.0',
+    license='Apache License, Version 2.0',
 
-	url='http://www.arancino.cc',
+    url='http://www.arancino.cc',
 
-	classifiers=[	'Development Status :: 4 - Beta',
-					'License :: OSI Approved :: Apache Software License',
-					'Programming Language :: Python :: 3',
-					'Environment :: Console',
-					'Operating System :: Unix'
-				],
+    classifiers=[    'Development Status :: 4 - Beta',
+                    'License :: OSI Approved :: Apache Software License',
+                    'Programming Language :: Python :: 3',
+                    'Environment :: Console',
+                    'Operating System :: Unix'
+                ],
 
-	platforms=['Unix'],
+    platforms=['Unix'],
 
-	scripts=[],
+    scripts=[],
 
-	provides=['arancino'],
+    provides=['arancino'],
 
-	packages=find_packages(exclude=["test"]),
+    packages=find_packages(exclude=["test"]),
 
-	# Specify which Python versions you support. In contrast to the
-	# 'Programming Language' classifiers above, 'pip install' will check this
-	# and refuse to install the project if the version does not match. If you
-	# do not support Python 2, you can simplify this to '>=3.5' or similar, see
-	# https://packaging.python.org/guides/distributing-packages-using-setuptools/#python-requires
-	python_requires='>3',
+    python_requires='>3',
 
-	data_files=[('arancino',
-		['extras/pre-install.sh',
-		'extras/post-install.sh',
-		'extras/arancino.service',
-		'extras/redis-persistent.conf',
-		'extras/redis-persistent.service',
-		'extras/redis-volatile.conf',
-		'extras/redis-volatile.service',
-		'config/arancino.cfg'])],
+    # data_files=[('arancino',
+    #     ['extras/pre-install.sh',
+    #     'extras/post-install.sh',
+    #     'extras/arancino.service',
+    #     'extras/redis-persistent.conf',
+    #     'extras/redis-persistent.service',
+    #     'extras/redis-volatile.conf',
+    #     'extras/redis-volatile.service',
+    #     'config/arancino.cfg'])],
 
-	install_requires=['pyserial>=3.4', 'redis>=2.10.6', 'setuptools==41.4.0'],
+    package_data={'arancino':['LICENSE','README.md','extras/*.*','config/*.*']},
 
-	include_package_data=True,
+    install_requires=['pyserial>=3.4', 'redis>=2.10.6', 'setuptools==41.4.0'],
 
-	zip_safe=False,
+    include_package_data=True,
 
-	cmdclass={
-		'install': ArancinoPostInstallCommand,
-	},
+    zip_safe=False,
+
+    cmdclass={
+        'install': ArancinoPostInstallCommand,
+    },
+
+    entry_points={
+        'console_scripts': [
+            'arancino=arancino.arancino:run'
+        ]
+    }
 )

@@ -152,22 +152,22 @@ baudrate = 4000000
 ```
 
 ### Environmental Variables
-Arancino Module sets up three environmental variables during installation. They referes to Arancino OS file system:
+Arancino Module sets up 4 environmental variables during installation. Some of they referes to Arancino OS file system. These variables are setted up by systemd arancino service:
 
 ```ini
 ARANCINO=/etc/arancino
-ARANCINO_CONF=${ARANCINO}/config
-ARANCINO_LOG=/var/log/arancino
+ARANCINOCONF=/etc/arancino/config
+ARANCINOLOG=/var/log/arancino
+ARANCINOENV=PROD
 ```
 
-To run locally Arancino Module please set up the same variables and change the values by your environment
+To run locally Arancino Module please set up the same variables and change the values based on your environment
 
 #### Visual Studio Code
-Followin the `launch.json` of visual studio code
+Following a _configuration_ for `launch.json` of Visual Studio Code
 
 ```json
-{
-    "version": "0.2.0",
+
     "configurations": [
         {
             "name": "Arancino Run",
@@ -183,37 +183,20 @@ Followin the `launch.json` of visual studio code
             "console": "integratedTerminal",
         }
     ]
-}
 ```
 
 ## Extras
 
-### Arancino as System Daemon 
+### Arancino as System Daemon in Arancino OS
 
-#### Change `ExecStart` directive
+During installation a systemd service for Arancino will be set up. The Arancino service, as explained above, will set up some environment variables. These are visibile only to Arancino. To start Arancino, systemd make a call to `/usr/local/bin/arancino/` which is the binary distributed during installation.
 
-During installation the file _arancino.services_ is copied in _<PATH TO ARANCINO MODULE>/extras/_ and then moved it into _systemd_ directory. 
-The `ExecStart` directive refers to the executable script: the _start.py_ script. 
-In Arancino OS the <PATH TO ARANCINO MODULE> is `/usr/local/lib/Python3.5/dist-packages/arancino/`
-
-
-```shell
-$ sudo cp <PATH TO ARANCINO MODULE>/extras/arancino.service /etc/systemd/system/
-$ sudo vi /etc/systemd/system/arancino.service 
-
-...
-[Service]
-Type=simple
-User=root
-Group=root
-=====> ExecStart=<PATH TO ARANCINO MODULE>/start.py <=====
-Restart=on-failure
-RestartSec=3
-...
-
-``` 
-
-#### Run arancino as _daemon_ with _systemctl_
+**Note**
+> Please don't run directly `arancino` from the terminal 
+> ```shell
+> $ aracino
+> ```
+> This will doesn't work because making a direct call will not set environmental variables.
 
 The pypi installation will finally enable and start the Aracnino service. You can run `ps` or `systemctl status` to check if Arancino daemon is up and running:
 
@@ -221,6 +204,25 @@ The pypi installation will finally enable and start the Aracnino service. You ca
 
 $ systemctl status arancino
 
+● arancino.service - Arancino
+   Loaded: loaded (/etc/systemd/system/arancino.service; enabled; vendor preset: enabled)
+   Active: active (running) since Tue 2019-11-19 11:23:18 UTC; 33min ago
+ Main PID: 31125 (arancino)
+   CGroup: /system.slice/arancino.service
+           └─31125 /usr/bin/python3 /usr/local/bin/arancino
+
+```
+
+#### Start Arancino
+
+```shell
+$ sudo systemctl start arancino
+```
+
+#### Stop Arancino
+
+```shell
+$ sudo systemctl stop arancino
 ```
 
 ### Redis daemons configuration

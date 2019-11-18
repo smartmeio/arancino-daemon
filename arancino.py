@@ -17,18 +17,21 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 '''
-import os
+def run():
+    import os
 
-ENV = os.environ.get('ARANCINOENV')
+    ENV = os.environ.get('ARANCINOENV')
 
-if ENV == "PROD":
-    # PROD
-    from arancino.arancino_main import Arancino 
-    import arancino.arancino_constants as Const
-else:
-    # DEV
-    from arancino_main import Arancino
-    import arancino_constants as Const
+    if ENV == "PROD":
+        # PROD
+        from arancino.arancino_main import Arancino 
+        import arancino.arancino_constants as Const
+    else:
+        # DEV
+        from arancino.arancino_main import Arancino
+        import arancino.arancino_constants as Const
 
-a = Arancino()
-a.start()
+    a = Arancino()
+    a.start()
+
+run()
