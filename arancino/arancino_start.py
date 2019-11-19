@@ -28,8 +28,8 @@ def run():
         import arancino.arancino_constants as Const
     else:
         # DEV
-        from arancino.arancino_main import Arancino
-        import arancino.arancino_constants as Const
+        from arancino_main import Arancino
+        import arancino_constants as Const
 
     a = Arancino()
     a.start()

@@ -112,7 +112,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'arancino=arancino.arancino:run'
+            'arancino=arancino.arancino_start:run'
         ]
     }
 )

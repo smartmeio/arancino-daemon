@@ -15,9 +15,9 @@ Environment="ARANCINOENV=PROD"
 
 #ExecStart=/usr/bin/python3 /usr/local/lib/python3.5/dist-packages/arancino/start.py
 ExecStart=/usr/local/bin/arancino
-ExecStop=/usr/kill $MAINPID
 Restart=on-failure
 RestartSec=15
+TimeoutStopSec=20
 #on-abort
 
 [Install]
