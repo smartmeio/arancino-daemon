@@ -25,6 +25,7 @@ from setuptools.command.egg_info import egg_info
 from subprocess import check_call, call
 from os import system
 import os
+import configparser
 
 class ArancinoPostInstallCommand(install):
     """
@@ -51,11 +52,16 @@ class ArancinoPostInstallCommand(install):
         print("END ARANCINO POST INSTALL")
 
 
+Config = configparser.ConfigParser()
+Config.read(os.path.join("config","arancino.cfg"))
+
+version = Config.get("metadata", "version")
+
 setup(
 
     name='arancino',
 
-    version='1.0.0',
+    version=version,
 
     description='Arancino Module for Arancino Library',
 
