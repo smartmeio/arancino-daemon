@@ -967,22 +967,21 @@ class SerialHandler(ArancinoLineReader):
         if len(keys) > 0:
             
             ### uncomment below to apply a filter to exclude reserved keys from returned array
-            ''' 
-            
+             
             keys_filtered = []
             
             for val in keys:
                 if not (val.startswith(const.RSVD_CHARS) and val.endswith(const.RSVD_CHARS)) :
                     keys_filtered.append(val)
 
-            if len(keys) > 0:
+            if len(keys_filtered) > 0:
                 return const.RSP_OK + const.CHR_SEP + const.CHR_SEP.join(keys_filtered) + const.CHR_EOT
             
             else:
                 return const.RSP_OK + const.CHR_EOT
-            '''
-            ### remove the following line when apply the patch above
-            return const.RSP_OK + const.CHR_SEP + const.CHR_SEP.join(keys) + const.CHR_EOT
+            
+            ### comment the following line when apply the patch above (exclude reserved keys)
+            #return const.RSP_OK + const.CHR_SEP + const.CHR_SEP.join(keys) + const.CHR_EOT
 
         else:
             return const.RSP_OK + const.CHR_EOT

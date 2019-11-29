@@ -52,16 +52,16 @@ class ArancinoPostInstallCommand(install):
         print("END ARANCINO POST INSTALL")
 
 
-Config = configparser.ConfigParser()
-Config.read(os.path.join("config","arancino.cfg"))
-
-version = Config.get("metadata", "version")
+#Config = configparser.ConfigParser()
+#Config.read(os.path.join("config","arancino.cfg"))
+#version = Config.get("metadata", "version")
 
 setup(
 
     name='arancino',
 
     version=version,
+    version='1.0.0',
 
     description='Arancino Module for Arancino Library',
 
@@ -77,7 +77,7 @@ setup(
 
     url='http://www.arancino.cc',
 
-    classifiers=[    'Development Status :: 4 - Beta',
+    classifiers=[   'Development Status :: 4 - Beta',
                     'License :: OSI Approved :: Apache Software License',
                     'Programming Language :: Python :: 3',
                     'Environment :: Console',
