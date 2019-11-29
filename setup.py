@@ -54,13 +54,12 @@ class ArancinoPostInstallCommand(install):
 
 #Config = configparser.ConfigParser()
 #Config.read(os.path.join("config","arancino.cfg"))
-#version = Config.get("metadata", "version")
+#cfg_version = Config.get("metadata", "version")
 
 setup(
 
     name='arancino',
 
-    version=version,
     version='1.0.0',
 
     description='Arancino Module for Arancino Library',
