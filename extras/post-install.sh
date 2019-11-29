@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# loads vars from file
-source extras/arancino.env
-
 # create logs dir
 #mkdir -p /var/log/arancino
 mkdir -p $ARANCINOLOG
