@@ -93,17 +93,17 @@ setup(
 
     python_requires='>3',
 
-    # data_files=[('arancino',
-    #     ['extras/pre-install.sh',
-    #     'extras/post-install.sh',
-    #     'extras/arancino.service',
-    #     'extras/redis-persistent.conf',
-    #     'extras/redis-persistent.service',
-    #     'extras/redis-volatile.conf',
-    #     'extras/redis-volatile.service',
-    #     'config/arancino.cfg'])],
+    data_files=[('arancino',
+        ['extras/pre-install.sh',
+        'extras/post-install.sh',
+        'extras/arancino.service',
+        'extras/redis-persistent.conf',
+        'extras/redis-persistent.service',
+        'extras/redis-volatile.conf',
+        'extras/redis-volatile.service',
+        'config/arancino.cfg'])],
 
-    package_data={'arancino':['LICENSE','README.md','extras/*.*','config/*.*']},
+    #package_data={'arancino':['LICENSE','README.md','extras/*.*','config/*.*']},
 
     install_requires=['pyserial>=3.4', 'redis>=2.10.6', 'setuptools==41.4.0'],
 
