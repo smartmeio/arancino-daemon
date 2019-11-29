@@ -46,3 +46,7 @@ systemctl enable arancino
 systemctl start redis-volatile
 systemctl start redis-persistent
 systemctl start arancino
+
+#reset main mcu
+echo 0 > /sys/class/gpio/gpio25/value
+echo 1 > /sys/class/gpio/gpio25/value
