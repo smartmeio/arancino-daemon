@@ -39,7 +39,7 @@ def getRedisInstancesType():
     global redis_instance
 
     #if redis_instance not in const.RedisInstancesType:
-    if not const.RedisInstancesType.has_value(redis_instance) :
+    if not const.RedisInstancesType.has_value(redis_instance.value) :
         redis_instance =  const.RedisInstancesType.DEFAULT.value
 
     '''
@@ -47,17 +47,17 @@ def getRedisInstancesType():
     redis_dvs: devicestore => contains data about connected device (default persistent)
     redis_dts_rsvd: datastore persisten keys => contains application data which must be available after device reboot or application restart (default persistent)
     '''
-    if redis_instance == const.RedisInstancesType.VOLATILE.value:
+    if redis_instance == const.RedisInstancesType.VOLATILE:
         redis_dts = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 0}
         redis_dvs = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 1}
         redis_dts_rsvd = {'host': 'localhost', 'port': 6379, 'dcd_resp': True,'db': 2}
 
-    elif redis_instance == const.RedisInstancesType.PERSISTENT.value:
+    elif redis_instance == const.RedisInstancesType.PERSISTENT:
         redis_dts = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 0}
         redis_dvs = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 1}
         redis_dts_rsvd = {'host': 'localhost', 'port': 6380, 'dcd_resp': True,'db': 2}
 
-    elif redis_instance == const.RedisInstancesType.VOLATILE_PERSISTENT.value: 
+    elif redis_instance == const.RedisInstancesType.VOLATILE_PERSISTENT: 
         redis_dts = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 0}
         redis_dvs = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 0}
         redis_dts_rsvd = {'host': 'localhost', 'port': 6380, 'dcd_resp': True,'db': 1}
