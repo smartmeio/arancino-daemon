@@ -17,7 +17,7 @@ Environment="ARANCINOENV=PROD"
 ExecStart=/usr/local/bin/arancino
 Restart=on-failure
 RestartSec=15
-TimeoutStopSec=20
+TimeoutStopSec=10
 #on-abort
 
 [Install]

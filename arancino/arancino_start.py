@@ -22,16 +22,14 @@ def run():
 
     ENV = os.environ.get('ARANCINOENV')
 
-    if ENV == "PROD":
-        # PROD
-        from arancino.arancino_main import Arancino 
-        import arancino.arancino_constants as Const
-    else:
-        # DEV
-        from arancino_main import Arancino
-        import arancino_constants as Const
+    #if ENV == "PROD":
+    # PROD
+    from arancino.arancino_main import Arancino 
+    import arancino.arancino_constants as Const
+    # else:
+    #     # DEV
+    #     from arancino.arancino_main import Arancino 
+    #     import arancino.arancino_constants as Const
 
     a = Arancino()
     a.start()
-
-run()
