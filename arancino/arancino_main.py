@@ -23,9 +23,9 @@ import signal
 import sys
 import time
 from datetime import timedelta
-
-from serial.threaded.__init__ import *
-
+import threading
+# from serial.threaded.__init__ import *
+import serial
 import arancino.arancino_conf as conf
 import arancino.arancino_constants as const
 from arancino.arancino_datastore import ArancinoDataStore
@@ -148,12 +148,7 @@ class SerialMonitor (threading.Thread):
     # private function, makes the real stop. invoked by the thread.
     def __stop(self):
         ''' EXIT PROCEDURE START'''
-        LOG.debug("Closing Redis Connection...")
-
-        self.datastore.connection_pool.disconnect()
-        self.devicestore.connection_pool.disconnect()
-
-        LOG.info("Redis Connection Closed")
+        
         LOG.debug("Closing Serial Ports Connection...")
 
         # Close each serial connection
@@ -162,6 +157,7 @@ class SerialMonitor (threading.Thread):
             # ports_plugged[id]
             arancino = self.ports_plugged[id]
             to_stop.append(arancino)
+            LOG.info(str(p_connected))
 
         if to_stop is not None and len(to_stop) > 0:
             self.__stopPorts(to_stop, self.ports_plugged, self.ports_connected)
@@ -171,6 +167,14 @@ class SerialMonitor (threading.Thread):
         self.arancinoSy.synchPorts(self.ports_plugged)
 
         LOG.info("Serial Ports Connection Closed")
+
+        LOG.debug("Closing Redis Connection...")
+
+        self.datastore.connection_pool.disconnect()
+        self.devicestore.connection_pool.disconnect()
+    
+        LOG.info("Redis Connection Closed")
+        
         LOG.info("Exiting completed, Bye!")
         
         self.__printStats()
@@ -217,13 +221,11 @@ class SerialMonitor (threading.Thread):
                 if ports_to_connect:
                     self.__connectPorts(ports_to_connect, self.ports_connected)
 
+            #to_stop = self.__getDisabledPorts(self.ports_plugged, self.ports_connected)
+            #if to_stop is not None and len(to_stop) > 0:
+            #    self.__stopPorts(to_stop, self.ports_plugged, self.ports_connected)
 
-            to_stop = self.__getDisabledPorts(self.ports_plugged, self.ports_connected)
-            if to_stop is not None and len(to_stop) > 0:
-                self.__stopPorts(to_stop, self.ports_plugged, self.ports_connected)
-
-
-            # second synchronization in cycle
+            # second synchronization in cycle     
             self.arancinoSy.synchPorts(self.ports_plugged)
 
             # print stats
@@ -268,7 +270,7 @@ class SerialMonitor (threading.Thread):
         serial number of the port as key for the List
 
         :param ports_to_connect: List of ArancinoPort
-        :return ports_connected: List of SerialConnector and SerialTransport
+        :return ports_connected: Dictionary of SerialConnector
         """
 
         try:
@@ -278,7 +280,6 @@ class SerialMonitor (threading.Thread):
 
                 #serialConnector = SerialConnector( self.datastore, self.devicestore,  arancino=arancino, baudrate = 4000000)
                 serialConnector = SerialConnector(self.arancinoContext, arancino=arancino, baudrate=conf.getSerialBaudrate())
-
 
                 serialConnector.start()
                 #connected[arancino.id] = [serialConnector, None]  # SerialConnector and SerialTransport
@@ -322,6 +323,7 @@ class SerialMonitor (threading.Thread):
 
         """
         try:
+
             for arancino in ports_to_stop:
                 connector = connected[arancino.id]
                 #todo da capire come gestire il transport
@@ -330,7 +332,6 @@ class SerialMonitor (threading.Thread):
 
                 #connector = port[const.IDX_SERIAL_CONNECTOR]
                 #connector = port
-                connector.close()
 
                 arancino.connected = False
                 arancino.plugged = (arancino.id in self.arancinoDy.getPluggedArancinoPorts(plugged, connected))
@@ -338,6 +339,7 @@ class SerialMonitor (threading.Thread):
                 # if id in connected:
                 #     port = connected.pop(arancino.id)
                 #     del port
+                connector.close()
 
                 del connector
                 #del transport
@@ -390,18 +392,17 @@ class SerialMonitor (threading.Thread):
     
         return string
 
+# -------------------------------------------------------------------------------------
+# vecchia
+# class ArancinoLineReader(LineReader):
 
-class ArancinoLineReader(LineReader):
-
-    def write(self, text):
-        self.transport.write(text.encode(self.ENCODING, self.UNICODE_HANDLING))
+#     def write(self, text):
+#         self.transport.write(text.encode(self.ENCODING, self.UNICODE_HANDLING))
 
 
 # class ArancinoReaderThread(ReaderThread):
-#
 #     # def __init__(self):
 #     #     super.__init__(daemon=True)
-#
 #     def run(self):
 #         """Reader loop"""
 #         if not hasattr(self.serial, 'cancel_read'):
@@ -455,8 +456,8 @@ class SerialConnector:
             self.serial = serial.serial_for_url(self.arancino.port.device, baudrate=self.baudrate, timeout=None)
             #self.arancinoReaderTh = ArancinoReaderThread(self.serial, lambda: SerialHandler(self.arancinoContext, self.arancino))
 
-            self.arancinoReaderTh = ReaderThread(self.serial, lambda: SerialHandler(self.arancinoContext, self.arancino))
-
+            # self.arancinoReaderTh = ReaderThread(self.serial, lambda: ArancinoSerialHandler(self.arancinoContext, self.arancino))
+            self.arancinoSerialHandler = ArancinoSerialHandler(self.serial, self.arancinoContext, self.arancino)
         except Exception as ex:
             LOG.exception(self.log_prefix + str(ex))
 
@@ -467,21 +468,21 @@ class SerialConnector:
                 ===> while self.alive and self.serial.is_open
             exiting the while it calls the .join() and close the thread
             '''
-            self.arancinoReaderTh.serial.close()
+            self.arancinoSerialHandler.offListen()
 
         except Exception as ex:
             LOG.exception(self.log_prefix + str(ex))
 
     def start(self):
         try:
-            self.arancinoReaderTh.start()
+            self.arancinoSerialHandler.start()
         except Exception as ex:
             LOG.exception(self.log_prefix + str(ex))
 
+class ArancinoSerialHandler(threading.Thread):
 
-class SerialHandler(ArancinoLineReader):
-
-    def __init__(self, arancinoContext, arancino=None):
+    def __init__(self,serial, arancinoContext, arancino=None):
+        threading.Thread.__init__(self)
 
         self.arancinoContext = arancinoContext
         self.datastore = arancinoContext["arancino_datastore"].getDataStore()
@@ -500,56 +501,28 @@ class SerialHandler(ArancinoLineReader):
 
         self._partial = ""
         self.log_prefix = "[" + self.arancino.port.device + " - " + self.arancino.id + "]: "
+        self.serial = serial
+        self.listen = True
 
-    def connection_made(self, transport):
-        try:
-            super(SerialHandler, self).connection_made(transport)
-            self.transport = transport
-            LOG.info(self.log_prefix + "Port opened: " + transport.serial.name)
-            LOG.debug(self.log_prefix + "Port opened: " + str(transport))
-            transport.serial.rts = False
-            #todo verificare la gestioen dell'oggetto transport
-
-            #self.ports_connected[self.arancino.id][const.IDX_SERIAL_TRANSPORT] = transport
-        except Exception as ex:
-            LOG.exception(self.log_prefix + str(ex))
-
-    def connection_lost(self, exc):
-        '''
-        When a connection_lost is triggered means the connection to the serial port is lost or interrupted.
-        In this case ArancinoPort (from plugged_ports) must be updated and status information stored into
-        the device store.
-        '''
-        try:
-            # sets connected metadata status to False.
-            self.arancino.connected = False
-
-            # using arancino discovery utility, gets the the all plugged ports and the check if the current arancino port is
-            # plugged or not, if yes plugged metadata status is True, otherwise, False
-            self.arancino.plugged = (self.arancino.id in self.arancinoDy.getPluggedArancinoPorts(self.ports_plugged, self.ports_connected))
-
-            # call arancino synch utility to synchronize with the datastore.
-            self.arancinoSy.synchPort(self.arancino)
-
-            LOG.info(self.log_prefix + "Port closed " + self.transport.serial.name)
-            LOG.debug(self.log_prefix + "Port closed " + str(self.transport))
-
-            connected_port = self.ports_connected.pop(self.arancino.id)
-            #serial_connector = connected_port[const.IDX_SERIAL_CONNECTOR]
-            #serial_connector = connected_port
-            #serial_transport = connected_port[const.IDX_SERIAL_TRANSPORT]
-
-            #todo verificare se è corretto commentare la transporto.close()e anche verificare l'oggetto serial_transport
-            #serial_transport.close()
-            #serial_connector.close()
-            connected_port.close()
-
-            #del serial_transport
-            #del serial_connector
-            del connected_port
-
-        except Exception as ex:
-            LOG.exception(self.log_prefix + str(ex))
+    def offListen(self):
+        self.listen = False
+        
+    def run(self):
+        while self.listen:
+            # Ricezione dati
+            try:
+                # read all that is there
+                data = self.serial.read(1)
+                # leggo e lancio il comando e invio la response al microControllore.
+                self.data_received(data)
+                #print("data recived Andrea-- " + str(data))
+            except serial.SerialException as e:
+                # probably some I/O problem such as disconnected USB serial
+                # adapters -> exit
+                self.offListen()
+                LOG.error(str(e) + " arancino id: " + self.arancino.id)
+            
+        self.connection_lost()
 
     def data_received(self, data):
 
@@ -607,7 +580,10 @@ class SerialHandler(ArancinoLineReader):
             finally:
                 # send response back
                 #self.transport.write(response.encode())
-                self.write(response)
+                try:
+                    self.serial.write(response.encode())
+                except serial.serialutil.SerialException as e:
+                    LOG.error(self.log_prefix + " " + str(e))
 
                 LOG.debug(self.log_prefix + "Sent Response: " + str(response))
 
@@ -618,7 +594,45 @@ class SerialHandler(ArancinoLineReader):
             LOG.debug('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ')
 
         else:
-            LOG.debug('Partial Command Received: ' + datadec.strip('\n').strip('\t'))
+            pass
+            # LOG. .debug('Partial Command Received: ' + datadec.strip('\n').strip('\t'))
+    
+    def connection_lost(self):
+        '''
+        When a connection_lost is triggered means the connection to the serial port is lost or interrupted.
+        In this case ArancinoPort (from plugged_ports) must be updated and status information stored into
+        the device store.
+        '''
+        try:
+            # sets connected metadata status to False.
+            self.arancino.connected = False
+
+            # using arancino discovery utility, gets the the all plugged ports and the check if the current arancino port is
+            # plugged or not, if yes plugged metadata status is True, otherwise, False
+            self.arancino.plugged = (self.arancino.id in self.arancinoDy.getPluggedArancinoPorts(self.ports_plugged, self.ports_connected))
+
+            # call arancino synch utility to synchronize with the datastore.
+            self.arancinoSy.synchPort(self.arancino)
+
+            # LOG.info(self.log_prefix + "Port closed " + self.transport.serial.name)
+            # LOG.debug(self.log_prefix + "Port closed " + str(self.transport))
+
+            connected_port = self.ports_connected.pop(self.arancino.id)
+            #serial_connector = connected_port[const.IDX_SERIAL_CONNECTOR]
+            #serial_connector = connected_port
+            #serial_transport = connected_port[const.IDX_SERIAL_TRANSPORT]
+
+            #todo verificare se è corretto commentare la transporto.close()e anche verificare l'oggetto serial_transport
+            #serial_transport.close()
+            #serial_connector.close()
+            connected_port.close()
+
+            #del serial_transport
+            #del serial_connector
+            del connected_port
+    
+        except Exception as ex:
+            LOG.exception(self.log_prefix + str(ex))
 
     def __parseCommands(self, command):
         #decode the received commands
@@ -1270,7 +1284,8 @@ class SerialHandler(ArancinoLineReader):
                     rsvd_keys_value[k] = self.datastore.get(k)
                 
                 #flush
-                rsp = self.datastore.flushdb()
+                # Andrea comment
+                # rsp = self.datastore.flushdb()
                 
                 #finally set them all again
                 for k, v in rsvd_keys_value.items():
@@ -1289,6 +1304,822 @@ class SerialHandler(ArancinoLineReader):
             raise InvalidArgumentsNumberException(
                 "Invalid arguments number for command " + const.CMD_APP_FLUSH + ". Received: " + str(
                     n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
+
+
+
+
+#----------------------------------------------------------------------------------------------------
+# vecchia
+# class SerialHandler(ArancinoLineReader):
+
+#     def __init__(self, arancinoContext, arancino=None):
+
+#         self.arancinoContext = arancinoContext
+#         self.datastore = arancinoContext["arancino_datastore"].getDataStore()
+#         self.devicestore = arancinoContext["arancino_datastore"].getDeviceStore()
+#         self.datastore_rsvd = arancinoContext["arancino_datastore"].getDataStoreRsvd()
+#         self.ports_connected = arancinoContext["ports_connected"]
+#         self.ports_plugged = arancinoContext["ports_plugged"]
+#         self.arancinoSy = arancinoContext["arancino_synch"]
+#         self.arancinoDy = arancinoContext["arancino_discovery"]
+#         self.arancinoDs = arancinoContext["arancino_datastore"]
+#         self.commands_list = arancinoContext["commands_list"]
+#         self.reserved_keys_list = arancinoContext["reserved_keys_list"]
+#         self.compatibility_array = arancinoContext["compatibility_array"]
+
+#         self.arancino = arancino
+
+#         self._partial = ""
+#         self.log_prefix = "[" + self.arancino.port.device + " - " + self.arancino.id + "]: "
+
+#     def connection_made(self, transport):
+#         try:
+#             super(SerialHandler, self).connection_made(transport)
+#             self.transport = transport
+#             LOG.info(self.log_prefix + "Port opened: " + transport.serial.name)
+#             LOG.debug(self.log_prefix + "Port opened: " + str(transport))
+#             transport.serial.rts = False
+#             #todo verificare la gestioen dell'oggetto transport
+
+#             #self.ports_connected[self.arancino.id][const.IDX_SERIAL_TRANSPORT] = transport
+#         except Exception as ex:
+#             LOG.exception(self.log_prefix + str(ex))
+
+#     def connection_lost(self, exc):
+#         '''
+#         When a connection_lost is triggered means the connection to the serial port is lost or interrupted.
+#         In this case ArancinoPort (from plugged_ports) must be updated and status information stored into
+#         the device store.
+#         '''
+#         try:
+#             # sets connected metadata status to False.
+#             self.arancino.connected = False
+
+#             # using arancino discovery utility, gets the the all plugged ports and the check if the current arancino port is
+#             # plugged or not, if yes plugged metadata status is True, otherwise, False
+#             self.arancino.plugged = (self.arancino.id in self.arancinoDy.getPluggedArancinoPorts(self.ports_plugged, self.ports_connected))
+
+#             # call arancino synch utility to synchronize with the datastore.
+#             self.arancinoSy.synchPort(self.arancino)
+
+#             LOG.info(self.log_prefix + "Port closed " + self.transport.serial.name)
+#             LOG.debug(self.log_prefix + "Port closed " + str(self.transport))
+
+#             connected_port = self.ports_connected.pop(self.arancino.id)
+#             #serial_connector = connected_port[const.IDX_SERIAL_CONNECTOR]
+#             #serial_connector = connected_port
+#             #serial_transport = connected_port[const.IDX_SERIAL_TRANSPORT]
+
+#             #todo verificare se è corretto commentare la transporto.close()e anche verificare l'oggetto serial_transport
+#             #serial_transport.close()
+#             #serial_connector.close()
+#             connected_port.close()
+
+#             #del serial_transport
+#             #del serial_connector
+#             del connected_port
+
+#         except Exception as ex:
+#             LOG.exception(self.log_prefix + str(ex))
+
+#     def data_received(self, data):
+
+#         global count_ERR, count_ERR_NULL, count_ERR_SET, count_ERR_CMD_NOT_FND, count_ERR_CMD_NOT_RCV, count_ERR_CMD_PRM_NUM, count_ERR_REDIS, count_ERR_REDIS_KEY_EXISTS_IN_STD, count_ERR_REDIS_KEY_EXISTS_IN_PERS, count_ERR_NON_COMPATIBILITY
+
+#         #print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ')
+#         datadec = data.decode()
+#         self._partial += datadec
+
+#         if self._partial.endswith(const.CHR_EOT) is True:
+#             # now command is completed and can be used
+#             LOG.debug(self.log_prefix + "Received Command: " + self._partial.strip('\n').strip('\t'))
+
+#             try:
+#                 # parse and check command
+#                 cmd = self.__parseCommands(self._partial)
+#                 # then execute it
+#                 response = self.__execCommand(cmd)
+
+#             except NonCompatibilityException as ex:
+#                 LOG.error(self.log_prefix + str(ex) + " => " + self._partial)
+#                 count_ERR_NON_COMPATIBILITY += 1
+#                 response = ex.error_code + const.CHR_EOT
+
+#             except InvalidArgumentsNumberException as ex:
+#                 LOG.error(self.log_prefix + str(ex) + " => " + self._partial)
+#                 count_ERR_CMD_PRM_NUM += 1
+#                 response = ex.error_code + const.CHR_EOT
+
+#             except InvalidCommandException as ex:
+#                 LOG.warning(self.log_prefix + str(ex) + " => " + self._partial)
+#                 count_ERR_CMD_NOT_FND += 1
+#                 response = ex.error_code + const.CHR_EOT
+
+#             except RedisStandardKeyExistsInPersistentDatastoreException as ex:
+#                 LOG.warning(self.log_prefix + str(ex) + " => " + self._partial)
+#                 count_ERR_REDIS_KEY_EXISTS_IN_PERS += 1
+#                 response = ex.error_code + const.CHR_EOT
+
+#             except RedisPersistentKeyExistsInStadardDatastoreException as ex:
+#                 LOG.warning(self.log_prefix + str(ex) + " => " + self._partial)
+#                 count_ERR_REDIS_KEY_EXISTS_IN_STD += 1
+#                 response = ex.error_code + const.CHR_EOT
+
+#             except RedisGenericException as ex:
+#                 LOG.error(self.log_prefix + str(ex) + " => " + self._partial)
+#                 count_ERR_REDIS += 1
+#                 response = ex.error_code + const.CHR_EOT
+
+#             except Exception as ex:
+#                 LOG.error(self.log_prefix + str(ex))
+#                 count_ERR += 1
+#                 response = const.ERR + const.CHR_EOT
+
+#             finally:
+#                 # send response back
+#                 #self.transport.write(response.encode())
+#                 self.write(response)
+
+#                 LOG.debug(self.log_prefix + "Sent Response: " + str(response))
+
+
+#             # clear the handy variable
+#             self._partial = ""
+
+#             LOG.debug('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ')
+
+#         else:
+#             LOG.debug('Partial Command Received: ' + datadec.strip('\n').strip('\t'))
+
+#     def __parseCommands(self, command):
+#         #decode the received commands
+#         #cmd = command.decode().strip()
+
+#         #splits command by separator char
+#         cmd = command.strip(const.CHR_EOT).split(const.CHR_SEP)
+
+#         if len(cmd) > 0:
+#             if cmd[0] in self.commands_list:
+#                 #comando presente
+#                 return cmd
+#             else:
+#                 raise InvalidCommandException("Command does not exist: " + cmd[0] + " - Skipped", const.ERR_CMD_NOT_FND)
+#         else:
+#             raise InvalidCommandException("No command received", const.ERR_CMD_NOT_RCV)
+
+#         return cmd
+
+#     def __execCommand(self, cmd):
+
+#         idx = len(cmd)
+#         parameters = cmd[1:idx]
+#         try:
+#             # START
+#             if cmd[0] == const.CMD_SYS_START:
+#                 return self.__OPTS_START(parameters)
+#             # SET
+#             elif cmd[0] == const.CMD_APP_SET_STD:
+#                 return self.__OPTS_SET_STD(parameters)
+#             # SET PERSISTENT
+#             elif cmd[0] == const.CMD_APP_SET_PERS:
+#                 return self.__OPTS_SET_PERS(parameters)
+#             # GET
+#             elif cmd[0] == const.CMD_APP_GET:
+#                 return self.__OPTS_GET(parameters)
+#             # DEL
+#             elif cmd[0] == const.CMD_APP_DEL:
+#                 return self.__OPTS_DEL(parameters)
+#             # KEYS
+#             elif cmd[0] == const.CMD_APP_KEYS:
+#                 return self.__OPTS_KEYS(parameters)
+#             # HSET
+#             elif cmd[0] == const.CMD_APP_HSET:
+#                 return self.__OPTS_HSET(parameters)
+#             # HGET
+#             elif cmd[0] == const.CMD_APP_HGET:
+#                 return self.__OPTS_HGET(parameters)
+#             # HGETALL
+#             elif cmd[0] == const.CMD_APP_HGETALL:
+#                 return self.__OPTS_HGETALL(parameters)
+#             # HKEYS
+#             elif cmd[0] == const.CMD_APP_HKEYS:
+#                 return self.__OPTS_HKEYS(parameters)
+#             # HVALS
+#             elif cmd[0] == const.CMD_APP_HVALS:
+#                 return self.__OPTS_HVALS(parameters)
+#             # HDEL
+#             elif cmd[0] == const.CMD_APP_HDEL:
+#                 return self.__OPTS_HDEL(parameters)
+#             # PUB
+#             elif cmd[0] == const.CMD_APP_PUB:
+#                 return self.__OPTS_PUB(parameters)
+#             # FLUSH
+#             elif cmd[0] == const.CMD_APP_FLUSH:
+#                 return self.__OPTS_FLUSH(parameters)
+#             # Default
+#             else:
+#                 return const.ERR_CMD_NOT_FND + const.CHR_SEP
+
+#         except Exception as ex:
+#             # generic error handler which raise back exception
+#             raise ex
+
+#     # START
+#     def __OPTS_START(self, args):
+#         '''
+#         Microcontroller sends START command to start communication
+
+#         MCU → START@
+
+#         MCU ← 100@ (OK)
+#         '''
+
+#         n_args_required = 1
+#         n_args_received = len(args)
+
+#         if n_args_received == n_args_required:
+            
+#             # first argument in the START comamnd is the version of the library
+#             value_libvers = args[0]
+#             key_libvers = const.RSVD_KEY_LIBVERSION + self.arancino.id + const.RSVD_CHARS
+
+#             # store the reserved key
+#             self.datastore.set(key_libvers, value_libvers)
+
+#             # and then check if it's compatible. if the library is not compatible, disconnect the board and 
+#             if value_libvers not in self.compatibility_array:
+#                 # TODO disconnect the device. If the device is not disconnected, it will try to START every 2,5 seconds.
+#                 raise NonCompatibilityException("Module version " + conf.version + " can not work with Library version " + value_libvers + " on the device: " + self.arancino.port.device + " - " + self.arancino.id, const.ERR_NON_COMPATIBILITY)
+            
+#             else:
+#                 return const.RSP_OK + const.CHR_EOT
+
+#         else:
+#             raise InvalidArgumentsNumberException("Invalid arguments number for command " + const.CMD_SYS_START + ". Received: " + str(n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
+
+#     # SET STANDARD (to standard device store)
+#     def __OPTS_SET_STD(self, args):
+#         # wraps __OPTS_SET
+#         return self.__OPTS_SET(args, "STD")
+
+#     # SET PERSISTENT (to persistent keys device store)
+#     def __OPTS_SET_PERS(self, args,):
+#         # wraps __OPTS_SET
+#         return self.__OPTS_SET(args, "PERS")
+
+#     # SET
+#     def __OPTS_SET(self, args, type):
+
+#         '''
+#         Set key to hold the string value. If key already holds a value,
+#         it is overwritten, regardless of its type. Any previous time to live
+#         associated with the key is discarded on successful SET operation.
+#             https://redis.io/commands/set
+
+#         MCU → SET#<key>#<value>@
+
+#         MCU ← 100@ (OK)
+#         MCU ← 202@ (KO)
+#         MCU ← 206@ (KO)
+#         MCU ← 207@ (KO)
+#         MCU ← 208@ (KO)
+#         '''
+
+#         n_args_required = 2
+#         n_args_received = len(args)
+
+#         if n_args_received == n_args_required:
+
+#             key = args[0]
+#             value = args[1]
+#             rsp = False
+            
+#             try:
+#                 #Keys must be unique among data stores
+
+#                 # STANDARD DATA STORE (even with reserved key by arancino)
+#                 if type == 'STD':
+                    
+#                     # check if key exist in other data store
+#                     if( self.datastore_rsvd.exists(key) == 1):
+#                         raise RedisStandardKeyExistsInPersistentDatastoreException("Duplicate Key In Persistent Data Store: ", const.ERR_REDIS_KEY_EXISTS_IN_PERS)
+#                     else:
+#                         # store the value at key
+#                         rsp = self.datastore.set(key, value)
+
+
+#                 else:
+#                     # PERSISTENT DATA STORE
+#                     if type == 'PERS':
+                        
+#                         # check if key exist in other data store
+#                         if( self.datastore.exists(key) == 1):
+#                             raise RedisPersistentKeyExistsInStadardDatastoreException("Duplicate Key In Standard Data Store: ", const.ERR_REDIS_KEY_EXISTS_IN_STD)
+#                         else:
+#                             # write to the dedicate data store (dedicated to persistent keys)
+#                             rsp = self.datastore_rsvd.set(key, value)
+
+#                 if rsp:
+#                     # return ok response
+#                     return const.RSP_OK + const.CHR_EOT
+#                 else:
+#                     # return the error code
+#                     return const.ERR_SET + const.CHR_EOT
+
+#             except Exception as ex:
+#                 raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
+
+
+#             # try:
+
+#             #     # STANDARD DATA STORE (even with reserved key by arancino)
+#             #     if type == 'STD':
+
+#             #         # if it's the reserverd key __LIBVERSION__,
+#             #         # then add port id to associate the device and the running version of the library
+#             #         if key.upper() == const.RSVD_KEY_LIBVERSION:
+#             #             key += self.arancino.id + const.RSVD_CHARS
+
+#             #         # check if key exist in the other data store
+#             #         exist = self.datastore_rsvd.exists(key)
+#             #         if( exist == 1):
+#             #             raise RedisGenericException("Duplicate Key In Persistent Data Store: ", const.ERR_REDIS_KEY_EXISTS_IN_PERS)
+#             #         else:
+#             #             rsp = self.datastore.set(key, value)
+
+#             #     # PERSISTENT DATA STORE
+#             #     else:
+#             #         if type == 'PERS':
+
+#             #             # check if key exist in the other data store
+#             #             exist = self.datastore.exists(key)
+#             #             if( exist == 1):
+#             #                 raise RedisGenericException("Duplicate Key In Standard Data Store: ", const.ERR_REDIS_KEY_EXISTS_IN_STD)
+#             #             else:
+#             #                 # write to the dedicate data store (dedicated to persistent keys)
+#             #                 rsp = self.datastore_rsvd.set(key, value)
+
+#             # except Exception as ex:
+#             #     raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
+
+#             # if rsp:
+#             #     # return ok response
+#             #     return const.RSP_OK + const.CHR_EOT
+#             # else:
+#             #     # return the error code
+#             #     return const.ERR_SET + const.CHR_EOT
+
+#         else:
+#             raise InvalidArgumentsNumberException("Invalid arguments number for command " + const.CMD_APP_SET + ". Received: " + str(n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
+
+#     # GET
+#     def __OPTS_GET(self, args):
+
+#         '''
+#         Get the value of key. If the key does not exist the special value nil is returned.
+#         An error is returned if the value stored at key is not a string,
+#         because GET only handles string values.
+#             https://redis.io/commands/get
+
+#         MCU → GET#<key>@
+
+#         MCU ← 100#<value>@ (OK)
+#         MCU ← 201@ (KO)
+#         '''
+
+#         n_args_required = 1
+#         n_args_received = len(args)
+
+#         if n_args_received == n_args_required:
+
+#             key = args[0]
+#             rsp = None
+
+#             try:
+#                 '''
+#                 # It's a reserved key.
+#                 if key.startswith(const.RSVD_CHARS) and key.endswith(const.RSVD_CHARS):
+
+#                     # if it's the reserverd key __LIBVERSION__,
+#                     # then add port id to associate the device and the running version of the library
+#                     if key.upper() == const.RSVD_KEY_LIBVERSION:
+#                         key += self.arancino.id + const.RSVD_CHARS
+
+#                     rsp = self.datastore_rsvd.get(key)
+
+#                 # It's an application key.
+#                 else:
+#                     rsp = self.datastore.get(key)
+#                 '''
+#                 # if it's the reserverd key __LIBVERSION__,
+#                 # then add port id to associate the device and the running version of the library
+#                 if key.upper() == const.RSVD_KEY_LIBVERSION:
+#                     key += self.arancino.id + const.RSVD_CHARS
+
+#                 # first get from standard datastore
+#                 rsp = self.datastore.get(key)
+
+#                 # then try get from reserved datastore
+#                 if rsp is None:
+#                     rsp = self.datastore_rsvd.get(key)
+
+#             except Exception as ex:
+#                 raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
+
+#             if rsp is not None:
+#                 # return the value
+#                 return const.RSP_OK + const.CHR_SEP + str(rsp) + const.CHR_EOT
+#             else:
+#                 # return the error code
+#                 return const.ERR_NULL + const.CHR_EOT
+
+#         else:
+#             raise InvalidArgumentsNumberException(
+#                 "Invalid arguments number for command " + const.CMD_APP_GET + ". Received: " + str(
+#                     n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
+
+#     # DEL
+#     def __OPTS_DEL(self, args):
+
+#         '''
+#         Removes the specified keys. A key is ignored if it does not exist.
+#             https://redis.io/commands/del
+
+#         MCU → DEL#<key-1>[#<key-2>#<key-n>]@
+
+#         MCU ← 100#<num-of-deleted-keys>@
+#         '''
+
+#         n_args_required = 1
+#         n_args_received = len(args)
+
+#         if n_args_received >= n_args_required:
+
+#             try:
+
+#                 #TODO delete user-reserved keys
+
+#                 num = self.datastore.delete(*args)
+
+#             except Exception as ex:
+#                 raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
+
+#             return const.RSP_OK + const.CHR_SEP + str(num) + const.CHR_EOT
+
+#         else:
+#             raise InvalidArgumentsNumberException(
+#                 "Invalid arguments number for command " + const.CMD_APP_DEL + ". Received: " + str(
+#                     n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
+
+#     # KEYS
+#     def __OPTS_KEYS(self, args):
+
+#         '''
+#         Returns all keys matching pattern.
+#             https://redis.io/commands/keys
+
+#         MCU → KEYS[#<pattern>]@
+
+#         MCU ← 100[#<key-1>#<key-2>#<key-n>]@
+#         '''
+
+#         if len(args) == 0:
+#             pattern = '*'  # w/o pattern
+#         else:
+#             pattern = args[0]  # w/ pattern
+
+#         try:
+
+#             keys = self.datastore.keys(pattern)
+
+#         except Exception as ex:
+#             raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
+
+#         if len(keys) > 0:
+            
+#             ### uncomment below to apply a filter to exclude reserved keys from returned array
+             
+#             keys_filtered = []
+            
+#             for val in keys:
+#                 if not (val.startswith(const.RSVD_CHARS) and val.endswith(const.RSVD_CHARS)) :
+#                     keys_filtered.append(val)
+
+#             if len(keys_filtered) > 0:
+#                 return const.RSP_OK + const.CHR_SEP + const.CHR_SEP.join(keys_filtered) + const.CHR_EOT
+            
+#             else:
+#                 return const.RSP_OK + const.CHR_EOT
+            
+#             ### comment the following line when apply the patch above (exclude reserved keys)
+#             #return const.RSP_OK + const.CHR_SEP + const.CHR_SEP.join(keys) + const.CHR_EOT
+
+#         else:
+#             return const.RSP_OK + const.CHR_EOT
+
+#     # HSET
+#     def __OPTS_HSET(self, args):
+
+#         '''
+#         Sets field in the hash stored at key to value.
+#         If key does not exist, a new key holding a hash is created.
+#         If field already exists in the hash, it is overwritten.
+#             https://redis.io/commands/hset
+
+#         MCU → HSET#<key>#<field>#<value>@
+
+#         MCU ← 101@
+#         MCU ← 102@
+#         '''
+
+#         n_args_required = 3
+#         n_args_received = len(args)
+
+#         if n_args_received == n_args_required:
+
+#             key = args[0]
+#             field = args[1]
+#             value = args[2]
+
+#             try:
+
+#                 rsp = self.datastore.hset(key, field, value)
+
+#             except Exception as ex:
+#                 raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
+
+#             if rsp == 1:
+#                 return const.RSP_HSET_NEW + const.CHR_EOT
+#             else: #0
+#                 return const.RSP_HSET_UPD + const.CHR_EOT
+
+#         else:
+#             raise InvalidArgumentsNumberException(
+#                 "Invalid arguments number for command " + const.CMD_APP_HSET + ". Received: " + str(
+#                     n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
+
+#     # HGET
+#     def __OPTS_HGET(self, args):
+#         '''
+#         Returns the value associated with field in the hash stored at key.
+#             https://redis.io/commands/hget
+
+#         MCU → HGET#<key>#<field>@
+
+#         MCU ← 100#<value>@
+#         MCU ← 201@
+
+#         '''
+
+#         n_args_required = 2
+#         n_args_received = len(args)
+
+#         if n_args_received == n_args_required:
+
+#             key = args[0]
+#             field = args[1]
+
+#             try:
+
+#                 value = self.datastore.hget(key, field)
+
+#             except Exception as ex:
+#                 raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
+
+#             if value is not None:
+#                 # return the value
+#                 return const.RSP_OK + const.CHR_SEP + str(value) + const.CHR_EOT
+#             else:
+#                 # return the error code
+#                 return const.ERR_NULL + const.CHR_EOT
+
+#         else:
+#             raise InvalidArgumentsNumberException(
+#                 "Invalid arguments number for command " + const.CMD_APP_HGET + ". Found: " + str(
+#                     n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
+
+#     # HGETALL
+#     def __OPTS_HGETALL(self, args):
+
+#         '''
+#         Returns all fields and values of the hash stored at key.
+#         In the returned value, every field name is followed by its value,
+#         so the length of the reply is twice the size of the hash.
+#             https://redis.io/commands/hgetall
+
+#         MCU → HGETALL#<key>@
+
+#         MCU ← 100[#<field-1>#<value-1>#<field-2>#<value-2>]@
+#         '''
+
+#         n_args_required = 1
+#         n_args_received = len(args)
+
+#         if n_args_received == n_args_required:
+
+#             key = args[0]
+
+#             rsp_str = ""
+
+#             try:
+
+#                 data = self.datastore.hgetall(key) #{'field-1': 'value-1', 'field-2': 'value-2'}
+
+#             except Exception as ex:
+#                 raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
+
+#             for field in data:
+#                 rsp_str += const.CHR_SEP + field + const.CHR_SEP + data[field]
+
+#             return const.RSP_OK + rsp_str + const.CHR_EOT
+
+#         else:
+#             raise InvalidArgumentsNumberException(
+#                 "Invalid arguments number for command " + const.CMD_APP_HGETALL + ". Received: " + str(
+#                     n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
+
+#     # HKEYS
+#     def __OPTS_HKEYS(self, args):
+
+#         '''
+#         Returns all field names in the hash stored at key.
+#             https://redis.io/commands/hkeys
+
+#         MCU → HKEYS#<key>@
+
+#         MCU ← 100[#<field-1>#<field-2>]@
+#         '''
+#         n_args_required = 1
+#         n_args_received = len(args)
+
+#         if n_args_received == n_args_required:
+
+#             key = args[0]
+
+#             try:
+
+#                 fields = self.datastore.hkeys(key)
+
+#             except Exception as ex:
+#                 raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
+
+#             if len(fields) > 0:
+#                 return const.RSP_OK + const.CHR_SEP + const.CHR_SEP.join(fields) + const.CHR_EOT
+#             else:
+#                 return const.RSP_OK + const.CHR_EOT
+
+#         else:
+#             raise InvalidArgumentsNumberException(
+#                 "Invalid arguments number for command " + const.CMD_APP_HKEYS + ". Received: " + str(
+#                     n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
+
+#     # HVALS
+#     def __OPTS_HVALS(self, args):
+#         '''
+#         Returns all values in the hash stored at key.
+#             https://redis.io/commands/hvals
+
+#         MCU → HVALS#<key>
+
+#         MCU ← 100[#<value-1>#<value-2>]@
+#         '''
+#         n_args_required = 1
+#         n_args_received = len(args)
+
+#         if n_args_received == n_args_required:
+#             key = args[0]
+
+#             try:
+
+#                 values = self.datastore.hvals(key)
+
+#             except Exception as ex:
+#                 raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
+
+#             if len(values) > 0:
+#                 return const.RSP_OK + const.CHR_SEP + const.CHR_SEP.join(values) + const.CHR_EOT
+#             else:
+#                 return const.RSP_OK + const.CHR_EOT
+
+#         else:
+#             raise InvalidArgumentsNumberException(
+#                 "Invalid arguments number for command " + const.CMD_APP_HVALS + ". Received: " + str(
+#                     n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
+
+#     # HDEL
+#     def __OPTS_HDEL(self, args):
+#         '''
+#         Removes the specified fields from the hash stored at key.
+#         Specified fields that do not exist within this hash are ignored.
+#         If key does not exist, it is treated as an empty hash and this command returns 0.
+#             https://redis.io/commands/hdel
+
+#         MCU → HDEL#<key>#<field>[#<field-2>#<field-n>]@
+
+#         MCU ← 100#<num-of-deleted-keys>@
+#         '''
+
+#         n_args_required = 2
+#         n_args_received = len(args)
+
+#         if n_args_received >= n_args_required:
+#             idx = len(args)
+#             key = args[0]
+#             fields = args[1:idx]
+
+#             try:
+
+#                 num = self.datastore.hdel(key, *fields)
+
+#             except Exception as ex:
+#                 raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
+
+#             return const.RSP_OK + const.CHR_SEP + str(num) + const.CHR_EOT
+
+#         else:
+#             raise InvalidArgumentsNumberException(
+#                 "Invalid arguments number for command " + const.CMD_APP_HDEL + ". Received: " + str(
+#                     n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
+
+#     # PUB
+#     def __OPTS_PUB(self, args):
+#         '''
+#         Posts a message to the given channel. Return the number of clients
+#         that received the message.
+#             https://redis.io/commands/publish
+
+#         MCU → PUB#<channel>#<message>@
+
+#         MCU ← 100#<num-of-reached-clients>@
+#         '''
+
+#         n_args_required = 2
+#         n_args_received = len(args)
+
+#         if n_args_received >= n_args_required:
+#             channel = args[0]
+#             message = args[1]
+
+#             try:
+
+#                 num = self.datastore.publish(channel, message)
+
+#             except Exception as ex:
+#                 raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
+
+#             return const.RSP_OK + const.CHR_SEP + str(num) + const.CHR_EOT
+
+#         else:
+#             raise InvalidArgumentsNumberException(
+#                 "Invalid arguments number for command " + const.CMD_APP_PUB + ". Received: " + str(
+#                     n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
+
+#     # FLUSH
+#     def __OPTS_FLUSH(self, args):
+#         '''
+#         Delete all the keys of the currently application DB.
+#         This command never fails.
+#             https://redis.io/commands/flushdb
+
+#         MCU → FLUSH@
+
+#         MCU ← 100@
+#         '''
+
+#         n_args_required = 0
+#         n_args_received = len(args)
+
+#         if n_args_received >= n_args_required:
+
+#             try:
+
+                
+#                 #before flush, save all Reserved Keys
+#                 rsvd_keys = self.datastore.keys(const.RSVD_CHARS + "*" + const.RSVD_CHARS)
+#                 rsvd_keys_value = {}
+#                 for k in rsvd_keys:
+#                     rsvd_keys_value[k] = self.datastore.get(k)
+                
+#                 #flush
+#                 rsp = self.datastore.flushdb()
+                
+#                 #finally set them all again
+#                 for k, v in rsvd_keys_value.items():
+#                     self.datastore.set(k, v)
+                
+#                 # flush directly the datastore; reserved keys are stored separately
+#                 #rsp = self.datastore.flushdb()
+
+
+#             except Exception as ex:
+#                 raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
+
+#             return const.RSP_OK + const.CHR_EOT
+
+#         else:
+#             raise InvalidArgumentsNumberException(
+#                 "Invalid arguments number for command " + const.CMD_APP_FLUSH + ". Received: " + str(
+#                     n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)
 
 
 def start():
