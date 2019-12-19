@@ -37,19 +37,25 @@ class ArancinoPostInstallCommand(install):
         call(["chmod","+x","extras/post-install.sh"])
 
         #### ARANCINO PRE INSTALL
+        print("--------------------------------------")
         print("START ARANCINO PRE INSTALL")
         call(["extras/pre-install.sh"])       
         print("END ARANCINO PRE INSTALL")
+        print("--------------------------------------")
         
         #### ARANCINO INSTALL
+        print("--------------------------------------")
         print("START ARANCINO INSTALL")
         install.run(self)
         print("END ARANCINO INSTALL")
+        print("--------------------------------------")
         
         #### ARANCINO POST INSTALL
+        print("--------------------------------------")
         print("START ARANCINO POST INSTALL")
         call(["extras/post-install.sh"])
         print("END ARANCINO POST INSTALL")
+        print("--------------------------------------")
 
 
 #Config = configparser.ConfigParser()

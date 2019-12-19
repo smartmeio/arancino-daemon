@@ -179,7 +179,7 @@ Following a _configuration_ for `launch.json` of Visual Studio Code
                 "ARANCINOLOG": "${cwd}/log",
                 "ARANCINOENV": "DEV",
             },
-            "program": "${cwd}/arancino/arancino_start.py",
+            "program": "${cwd}/start.sh",
             "console": "integratedTerminal",
         }
     ]
