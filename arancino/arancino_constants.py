@@ -17,6 +17,7 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 '''
+from enum import Enum
 
 #Definitions for Serial Protocol
 
@@ -29,6 +30,8 @@ CMD_SYS_START   = 'START' #Start Commmand
 
 CMD_APP_GET     = 'GET'     #Get value at key
 CMD_APP_SET     = 'SET'     #Set value at key
+CMD_APP_SET_STD = 'SET'     #Set value at key (Standard as SET above)
+CMD_APP_SET_PERS= 'SETPERS' #Set value at key (Persistent for User)
 CMD_APP_DEL     = 'DEL'     #Delete one or multiple keys
 CMD_APP_KEYS    = 'KEYS'    #Get keys by a pattern
 CMD_APP_HGET    = 'HGET'    #
@@ -53,11 +56,16 @@ ERR_CMD_NOT_FND = '203'     #Command Not Found
 ERR_CMD_NOT_RCV = '204'     #Command Not Received
 ERR_CMD_PRM_NUM = '205'     #Invalid parameter number
 ERR_REDIS       = '206'     #Generic Redis Error
+ERR_REDIS_KEY_EXISTS_IN_STD         = '207'     #Key exists in the Standard Data Store
+ERR_REDIS_KEY_EXISTS_IN_PERS        = '208'     #Key exists in the Persistent Data Store
+ERR_NON_COMPATIBILITY               = '209'     #Non compatibility between Arancino Module and Library
 
 #Complete list of available commands
 __COMMANDLIST = [ CMD_SYS_START,
                 CMD_APP_GET,
                 CMD_APP_SET,
+                CMD_APP_SET_STD,
+                CMD_APP_SET_PERS,
                 CMD_APP_DEL,
                 CMD_APP_KEYS,
                 CMD_APP_HGET,
@@ -69,10 +77,13 @@ __COMMANDLIST = [ CMD_SYS_START,
                 CMD_APP_PUB,
                 CMD_APP_FLUSH]
 
+#Characters for Reserverd keys def
+RSVD_CHARS = "___"
+
 #Reserved keys
-RSVD_KEY_MONITOR = "___MONITOR___"
-RSVD_KEY_LIBVERSION = "___LIBVERS___"
-RSVD_KEY_MODVERSION = "___MODVERS___"
+RSVD_KEY_MONITOR    = RSVD_CHARS + "MONITOR" + RSVD_CHARS
+RSVD_KEY_LIBVERSION = RSVD_CHARS + "LIBVERS" + RSVD_CHARS
+RSVD_KEY_MODVERSION = RSVD_CHARS + "MODVERS" + RSVD_CHARS
 
 #Reseverd keys list
 __RESERVEDKEYSLIST  = [ RSVD_KEY_MONITOR,
@@ -116,5 +127,47 @@ P_INTERFACE       = "P_INTERFACE"       # String
 
 
 # ports_plugged positionals
-IDX_SERIAL_CONNECTOR = 0
-IDX_SERIAL_TRANSPORT = 1
+#IDX_SERIAL_CONNECTOR = 0
+#IDX_SERIAL_TRANSPORT = 1
+
+
+# compatibilty matrix of Aracnino Module and Arancino Library
+
+COMPATIBILITY_MATRIX_MOD = {
+    #MODULE : #LIBRARY
+#    "0.0.1" : ["0.0.1"],
+#    "0.0.2" : ["0.0.1","0.0.2"],
+#    "0.1.0" : ["0.1.0"],
+#    "0.1.1" : ["0.1.0"],
+#    "0.1.2" : ["0.1.0"],
+#    "0.1.3" : ["0.1.0"],
+#    "0.1.4" : ["0.1.0"],
+#    "0.1.5" : ["0.1.0"],
+    "1.0.0" : ["1.0.0.RC1","1.0.0"],
+}
+'''
+COMPATIBILITY_MATRIX_LIB = {
+    #LIBRARY: #MODULE
+    "0.0.1" : ["0.0.1","0.0.2"],
+    "0.0.2" : ["0.0.2"],
+    "0.1.0" : ["0.1.0","0.1.1","0.1.2","0.1.3","0.1.4","0.1.5"],
+    "1.0.0" : ["1.0.0"],
+}
+'''
+
+class RedisInstancesType(Enum):
+    VOLATILE = 1
+    PERSISTENT = 2
+    VOLATILE_PERSISTENT = 3
+    DEFAULT = 3
+
+    @classmethod
+    def has_value(cls, value):
+        return value in cls._value2member_map_ 
+
+
+class SerialBaudrates(Enum):
+    _57600      = 57600
+    _128000     = 128000
+    _1151200    = 1151200
+    _4000000    = 4000000

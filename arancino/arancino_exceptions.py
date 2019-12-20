@@ -48,3 +48,32 @@ class RedisGenericException(Exception):
         # Now for your custom code...
         self.error_code = error_code
 
+
+class RedisPersistentKeyExistsInStadardDatastoreException(Exception):
+    def __init__(self, message, error_code):
+
+        # Call the base class constructor with the parameters it needs
+        super(RedisPersistentKeyExistsInStadardDatastoreException, self).__init__(message)
+
+        # Now for your custom code...
+        self.error_code = error_code
+
+
+class RedisStandardKeyExistsInPersistentDatastoreException(Exception):
+    def __init__(self, message, error_code):
+
+        # Call the base class constructor with the parameters it needs
+        super(RedisStandardKeyExistsInPersistentDatastoreException, self).__init__(message)
+
+        # Now for your custom code...
+        self.error_code = error_code
+
+
+class NonCompatibilityException(Exception):
+    def __init__(self, message, error_code):
+
+        # Call the base class constructor with the parameters it needs
+        super(NonCompatibilityException, self).__init__(message)
+
+        # Now for your custom code...
+        self.error_code = error_code

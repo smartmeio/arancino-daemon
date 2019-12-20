@@ -19,24 +19,66 @@ under the License
 '''
 
 from setuptools import setup, find_packages
+from setuptools.command.install import install
+from setuptools.command.develop import develop
+from setuptools.command.egg_info import egg_info
+from subprocess import check_call, call
+from os import system
+import os
+import configparser
+
+class ArancinoPostInstallCommand(install):
+    """
+    Customized setuptools install command used as 
+    post-install script to install Arancino services
+    """
+    def run(self):
+        call(["chmod","+x","extras/pre-install.sh"])
+        call(["chmod","+x","extras/post-install.sh"])
+
+        #### ARANCINO PRE INSTALL
+        print("--------------------------------------")
+        print("START ARANCINO PRE INSTALL")
+        call(["extras/pre-install.sh"])       
+        print("END ARANCINO PRE INSTALL")
+        print("--------------------------------------")
+        
+        #### ARANCINO INSTALL
+        print("--------------------------------------")
+        print("START ARANCINO INSTALL")
+        install.run(self)
+        print("END ARANCINO INSTALL")
+        print("--------------------------------------")
+        
+        #### ARANCINO POST INSTALL
+        print("--------------------------------------")
+        print("START ARANCINO POST INSTALL")
+        call(["extras/post-install.sh"])
+        print("END ARANCINO POST INSTALL")
+        print("--------------------------------------")
 
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+#Config = configparser.ConfigParser()
+#Config.read(os.path.join("config","arancino.cfg"))
+#cfg_version = Config.get("metadata", "version")
 
 setup(
 
     name='arancino',
 
+<<<<<<< HEAD
     version='0.1.5',
+=======
+    version='1.0.0',
+>>>>>>> dev
 
     description='Arancino Module for Arancino Library',
 
-    long_description=long_description,
+    long_description='Receives commands from Arancino Library (uC) trough the Arancino Cortex Protocol over serial connection. It is designed to run under Arancino OS and can manage multiple serial connections.',
 
     long_description_content_type="text/markdown",
 
-    author='Sergio Tomasello @ SmartMe.IO',
+    author='Sergio Tomasello',
 
     author_email='sergio@smartme.io',
 
@@ -44,14 +86,14 @@ setup(
 
     url='http://www.arancino.cc',
 
-    classifiers=['Development Status :: 4 - Beta',
-                 'License :: OSI Approved :: Apache Software License',
-                 'Programming Language :: Python :: 3',
-                 'Environment :: Console',
-                 'Operating System :: Unix'
-                 ],
+    classifiers=[   'Development Status :: 4 - Beta',
+                    'License :: OSI Approved :: Apache Software License',
+                    'Programming Language :: Python :: 3',
+                    'Environment :: Console',
+                    'Operating System :: Unix'
+                ],
 
-    platforms=['Any'],
+    platforms=['Unix'],
 
     scripts=[],
 
@@ -59,11 +101,33 @@ setup(
 
     packages=find_packages(exclude=["test"]),
 
-    data_files=[('/arancino/extras/', ['extras/arancino.service', 'extras/redis-persistent.conf', 'extras/redis-persistent.service', 'extras/redis-volatile.conf', 'extras/redis-volatile.service'])],
+    python_requires='>3',
 
-    install_requires=['pyserial>=3.4', 'pyserial-asyncio>=0.4', 'redis>=2.10.6'],
+    data_files=[('arancino',
+        ['extras/pre-install.sh',
+        'extras/post-install.sh',
+        'extras/arancino.service',
+        'extras/redis-persistent.conf',
+        'extras/redis-persistent.service',
+        'extras/redis-volatile.conf',
+        'extras/redis-volatile.service',
+        'config/arancino.cfg'])],
+
+    #package_data={'arancino':['LICENSE','README.md','extras/*.*','config/*.*']},
+
+    install_requires=['pyserial>=3.4', 'redis>=2.10.6', 'setuptools==41.4.0'],
 
     include_package_data=True,
 
     zip_safe=False,
+
+    cmdclass={
+        'install': ArancinoPostInstallCommand,
+    },
+
+    entry_points={
+        'console_scripts': [
+            'arancino=arancino.arancino_start:run'
+        ]
+    }
 )
