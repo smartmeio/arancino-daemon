@@ -66,11 +66,7 @@ setup(
 
     name='arancino',
 
-<<<<<<< HEAD
-    version='0.1.5',
-=======
     version='1.0.0',
->>>>>>> dev
 
     description='Arancino Module for Arancino Library',
 

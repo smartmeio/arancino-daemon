@@ -1,6 +1,6 @@
 # Changelog
 
-#### v 1.0.0 - 2019.MM.DD
+#### v 1.0.0 - 2019.12.20
 * Now it standard (sync and stable) `py-serial` serial connection instead of `py-serial-asyncio`.
 * Introduced the possibility of set one or more persistent keys by the user in Arancino Library with a new command: `CMD_APP_SET_PERS`.
 * Restored #29 (Reserved keys are saved when FLUSH command is received).
