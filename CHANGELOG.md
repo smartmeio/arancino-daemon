@@ -1,9 +1,9 @@
 # Changelog
 
 #### v 1.0.0 - 2019.MM.DD
-* Now it uses threading services of `py-serial` instead of `py-serial-asyncio`.
+* Now it standard (sync and stable) `py-serial` serial connection instead of `py-serial-asyncio`.
 * Introduced the possibility of set one or more persistent keys by the user in Arancino Library with a new command: `CMD_APP_SET_PERS`.
-* Restored #29 ( Reserved keys are saved when FLUSH command is received).
+* Restored #29 (Reserved keys are saved when FLUSH command is received).
 * Fixed FLUSH command. #39
 * Fixed a bug which disconnect a device when a `GenericRedisException` and `InvalidCommandException` are raised during the command parsing. #37
 * Logs are reduced and Exceptions/Error are tracked in a separetend file: `arancino.error.log`. #24
@@ -14,7 +14,7 @@
 * Redis instance type is configurable via configuration file.
 * Stats about uptime and errors on a dedicate file `/var/log/arancino/arancino.stats.log`. #43
 * Colored console log. #44
-* Introduce arancino.cfg ad configuration file
+* Introduce arancino.cfg as configuration file
 
 #### v 0.1.5 - 2019.07.23
 * Fix Arancino Service.
