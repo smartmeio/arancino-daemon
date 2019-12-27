@@ -79,9 +79,9 @@ package_staging:
 
 
     #### prendo la versione direttamente dal file setup.py
-    - DEVVER="$(cat setup.py | grep version=)"    #prendo dal file arancino.cfg la versione: eg. => version='1.0.1',
-    - NEWVERTMP=${DEVVER%??}                      #taglio gli ultimi due caratteri => ', => version='1.0.1
-    - NEWVER="$NEWVERTMP.$VER',"                 #concateno le stringhe ed aggiunto i due caratteri tolti => version='1.0.1.12345678-20190318-170022-dev-a12def33',
+    - DEVVER="$(cat setup.py | grep version= -m1)"    #prendo dal file arancino.cfg la versione: eg. => version='1.0.1',   Attenzione prendo la prima occorenza (-m1), attenzione a come viene composto il file setup.py
+    - NEWVERTMP=${DEVVER%??}                          #taglio gli ultimi due caratteri => ', => version='1.0.1
+    - NEWVER="$NEWVERTMP.$VER',"                      #concateno le stringhe ed aggiunto i due caratteri tolti => version='1.0.1.12345678-20190318-170022-dev-a12def33',
     
     - sed -i "s/$DEVVER/$NEWVER/g" setup.py       #nel file setup.py sostituisco la versione: version='1.0.1', => version='1.0.1.20190318-170022-dev-a12def33',
 
