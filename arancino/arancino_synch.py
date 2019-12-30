@@ -51,7 +51,7 @@ class ArancinoSynch:
             Status Metadata are: Plugged, Connected,...
 
         Comfiguration Metadata are ever synchronized from device store to the in memory data structure (plugged ports),
-            meanwhile Status Port are synchronized from data structure to the device store.
+            meanwhile Status Metadata are synchronized from data structure to the device store.
 
             Configuration Metadata are: Enabled, Alias,...
 
@@ -87,12 +87,20 @@ class ArancinoSynch:
             the first time a port is plugged and all ports data are stored into device store. 
             Boolean and Integer object types and None will be stored as String automatically
 
-            Data are stored using the port id as key in hash of redis, the defined above keys as fields, and values as values
+            Data are stored using the port id as Redis Key in Redis Hash, the defined above keys as Redis Fields, and values as Redis Values
+            
+            Eg:
+            
+            | Key - Port Id                     | Metadata Key - Field      | Metadata Value - Value |
+            |-----------------------------------|---------------------------|------------------------|
+            | 1ABDF7C5504E4B53382E314AFF0C1B2D  | M_ENABLED                 | True                   |
+            | 1ABDF7C5504E4B53382E314AFF0C1B2D  | P_DEVICE                  | /dev/tty.ACM0          |
+
+            
             '''
             self.__devicestore.hset(arancino.id, const.M_ENABLED, str(arancino.enabled))
             self.__devicestore.hset(arancino.id, const.M_AUTO_CONNECT, str(arancino.auto_connect))
             self.__devicestore.hset(arancino.id, const.M_ALIAS, str(arancino.alias))
-            self.__devicestore.hset(arancino.id, const.P_NAME, str(arancino.port.name))
             self.__devicestore.hset(arancino.id, const.P_DESCRIPTION, str(arancino.port.description))
             self.__devicestore.hset(arancino.id, const.P_HWID, str(arancino.port.hwid))
             self.__devicestore.hset(arancino.id, const.P_VID, str(hex(arancino.port.vid)))
@@ -111,6 +119,7 @@ class ArancinoSynch:
         self.__devicestore.hset(arancino.id, const.P_DEVICE, str(arancino.port.device))
         self.__devicestore.hset(arancino.id, const.P_LOCATION, str(arancino.port.location))
         self.__devicestore.hset(arancino.id, const.P_INTERFACE, str(arancino.port.interface))
+        self.__devicestore.hset(arancino.id, const.P_NAME, str(arancino.port.name))
         # TODO manage datetime
         # self.devicestore.hset(id, const.M_DATETIME, strftime("%Y-%m-%d %H:%M:%S", localtime()))
 
