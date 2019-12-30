@@ -24,6 +24,7 @@ import sys
 import time
 from datetime import timedelta
 import threading
+import semantic_version as semver
 # from serial.threaded.__init__ import *
 import serial
 import arancino.arancino_conf as conf
@@ -680,16 +681,36 @@ class ArancinoSerialHandler(threading.Thread):
             value_libvers = args[0]
             key_libvers = const.RSVD_KEY_LIBVERSION + self.arancino.id + const.RSVD_CHARS
 
+            # convert
+            semver_value_libvers = semver.Version(value_libvers)
+
             # store the reserved key
             self.datastore.set(key_libvers, value_libvers)
 
             # and then check if it's compatible. if the library is not compatible, disconnect the board and 
-            if value_libvers not in self.compatibility_array:
-                # TODO disconnect the device. If the device is not disconnected, it will try to START every 2,5 seconds.
-                raise NonCompatibilityException("Module version " + conf.version + " can not work with Library version " + value_libvers + " on the device: " + self.arancino.port.device + " - " + self.arancino.id, const.ERR_NON_COMPATIBILITY)
+            # if value_libvers not in self.compatibility_array:
+            #     # TODO disconnect the device. If the device is not disconnected, it will try to START every 2,5 seconds.
+            #     raise NonCompatibilityException("Module version " + conf.version + " can not work with Library version " + value_libvers + " on the device: " + self.arancino.port.device + " - " + self.arancino.id, const.ERR_NON_COMPATIBILITY)
+            # else:
+            #     return const.RSP_OK + const.CHR_EOT
             
-            else:
-                return const.RSP_OK + const.CHR_EOT
+            # if library version is >= of v (one at least) then compatibility is ok
+            # eg1: compatibility_array = ["1.*.*", "2.1.*"] and value_libevers = "1.0.0"
+            # "1.0.0" >= "2.1.*" ---> False (KO: go foward)
+            # "1.0.0" >= "1.*.*" ---> True (OK: can return)
+            #
+            #
+            # eg3: compatibility_array = ["0.1.*", "0.2.*"] and value_libevers = "1.0.0"
+            # "1.0.0" >= "0.1.*" ---> False (KO: go foward)
+            # "1.0.0" >= "0.2.*" ---> False (KO: go foward and raise exception)
+            
+            for compatible_ver in self.compatibility_array:
+                semver_compatible_ver = semver.SimpleSpec(compatible_ver)
+                if semver_value_libvers in semver_compatible_ver:
+                    return const.RSP_OK + const.CHR_EOT
+            
+            # TODO disconnect the device. If the device is not disconnected, it will try to START every 2,5 seconds.
+            raise NonCompatibilityException("Module version " + conf.version + " can not work with Library version " + value_libvers + " on the device: " + self.arancino.port.device + " - " + self.arancino.id, const.ERR_NON_COMPATIBILITY)
 
         else:
             raise InvalidArgumentsNumberException("Invalid arguments number for command " + const.CMD_SYS_START + ". Received: " + str(n_args_received) + "; Required: " + str(n_args_required) + ".", const.ERR_CMD_PRM_NUM)

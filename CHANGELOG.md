@@ -1,6 +1,10 @@
 # Changelog
 
-#### v 1.0.0 - 2019.MM.DD
+#### v 1.0.1 - 2019.12.30
+* Fix a bug while checks compatibility that prevent a new version library to be released without adding it in the compatibility array. Now it uses '*' while check version number.
+* Fix a bug that will not update the P_NAME Status Metadata in the Device Store (Redis).
+
+#### v 1.0.0 - 2019.12.20
 * Now it standard (sync and stable) `py-serial` serial connection instead of `py-serial-asyncio`.
 * Introduced the possibility of set one or more persistent keys by the user in Arancino Library with a new command: `CMD_APP_SET_PERS`.
 * Restored #29 (Reserved keys are saved when FLUSH command is received).
