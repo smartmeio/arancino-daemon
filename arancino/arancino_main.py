@@ -280,7 +280,7 @@ class SerialMonitor (threading.Thread):
                 LOG.info("Connecting to Port: " + arancino.alias + " " + arancino.port.device + " - " + arancino.id)
 
                 #serialConnector = SerialConnector( self.datastore, self.devicestore,  arancino=arancino, baudrate = 4000000)
-                serialConnector = SerialConnector(self.arancinoContext, arancino=arancino, baudrate=conf.getSerialBaudrate())
+                serialConnector = SerialConnector(self.arancinoContext, arancino=arancino, serial_baudrate=conf.getSerialBaudrate(), reset_baudrate=conf.getResetBaudrate())
 
                 serialConnector.start()
                 #connected[arancino.id] = [serialConnector, None]  # SerialConnector and SerialTransport
@@ -396,14 +396,16 @@ class SerialMonitor (threading.Thread):
 
 class SerialConnector:
 
-    def __init__(self, arancinoContext, arancino, baudrate):
+    def __init__(self, arancinoContext, arancino, serial_baudrate, reset_baudrate=300):
 
         self.arancino = arancino
         self.log_prefix = "[" + self.arancino.port.device + " - " + self.arancino.id + "]: "
         try:
 
+            self.reset(reset_baudrate)
+            
             self.name = "ArancinoSerialConnector-" + self.arancino.port.device
-            self.baudrate = baudrate
+            self.baudrate = serial_baudrate
 
             self.arancinoContext = arancinoContext
             #self.datastore = arancinoContext["arancino_datastore"].getDataStore()
@@ -434,6 +436,18 @@ class SerialConnector:
         except Exception as ex:
             LOG.exception(self.log_prefix + str(ex))
 
+    def reset(self, baudrate=300):
+        try:
+            # touch to reset
+            ser = serial.Serial()
+            ser.baudrate = baudrate
+            ser.port = self.arancino.port.device
+            ser.open()
+            ser.close()
+            del ser
+            time.sleep(3)
+        except Exception as ex:
+            LOG.exception(self.log_prefix + str(ex))
 
 class ArancinoSerialHandler(threading.Thread):
 
