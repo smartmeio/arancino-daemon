@@ -2,6 +2,8 @@
 
 #### v 1.1.0 2020.MM.DD
 * Reset each microcontroller before connecting #
+* Change project structure for a more OOP software
+* Improve logger formatter 
 
 #### v 1.0.1 - 2019.12.30
 * Fix a bug while checks compatibility that prevent a new version library to be released without adding it in the compatibility array. Now it uses '*' while check version number.
