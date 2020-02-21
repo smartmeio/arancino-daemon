@@ -2,7 +2,7 @@
 from threading import Thread
 from datetime import timedelta
 from arancino.ArancinoUtils import ArancinoLogger, ArancinoConfig
-from arancino.discovery.ArancinoDiscovery import ArancinoSerialDiscovery
+from arancino.discovery.ArancinoSerialDiscovery import ArancinoSerialDiscovery
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
 import signal
 import time
@@ -98,6 +98,7 @@ class ArancinoMain(Thread):
             #self.__printStats()
 
             time.sleep(int(self.__cycle_time))
+            #time.sleep(int(1000))
 
 
         self.__exit()

@@ -45,6 +45,15 @@ class ArancinoCommandExecutor:
             cmd_args = arancino_command.getArguments()
 
 
+            # retrieve the number of arguments required for the command
+            n_args_required = self.__get_args_nr_by_cmd_id(cmd_id)
+            n_args = len(cmd_args)
+
+            if n_args_required != n_args:
+                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+
+
+
             # START
             if cmd_id == ArancinoCommandIdentifiers.CMD_SYS_START['id']:
                 raw_response = self.__OPTS_START(cmd_args)
@@ -735,3 +744,17 @@ class ArancinoCommandExecutor:
             raise InvalidArgumentsNumberException(
                 "Invalid arguments number for command " + ArancinoCommandIdentifiers.CMD_APP_FLUSH['id'] + ". Received: " + str(
                     n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+
+
+    def __get_args_nr_by_cmd_id(self, cmd_id):
+        '''
+        Get the number of Argument for the specified Command Identifier.
+
+        :param cmd_id: {String} the Command identifier.
+        :return: {Integer} the number of arguments for the specified Command Identifier.
+        '''
+
+        command = ArancinoCommandIdentifiers.COMMANDS_DICT[cmd_id]
+        num = command["args"]
+
+        return num

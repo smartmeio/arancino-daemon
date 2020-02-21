@@ -22,7 +22,7 @@ under the License
 class ArancinoException(Exception):
     def __init__(self, message, error_code):
         # Call the base class constructor with the parameters it needs
-        super(ArancinoException, self).__init__(message)
+        super(ArancinoException, self).__init__(message, error_code)
 
         # Now for your custom code...
         self.error_code = error_code
@@ -31,57 +31,57 @@ class InvalidArgumentsNumberException(ArancinoException):
     def __init__(self, message, error_code):
 
         # Call the base class constructor with the parameters it needs
-        super(InvalidArgumentsNumberException, self).__init__(message)
+        super(InvalidArgumentsNumberException, self).__init__(message, error_code)
 
         # Now for your custom code...
-        self.error_code = error_code
+        #self.error_code = error_code
 
 
 class InvalidCommandException(ArancinoException):
     def __init__(self, message, error_code):
 
         # Call the base class constructor with the parameters it needs
-        super(InvalidCommandException, self).__init__(message)
+        super(InvalidCommandException, self).__init__(message, error_code)
 
         # Now for your custom code...
-        self.error_code = error_code
+        #self.error_code = error_code
 
 
 class RedisGenericException(ArancinoException):
     def __init__(self, message, error_code):
 
         # Call the base class constructor with the parameters it needs
-        super(RedisGenericException, self).__init__(message)
+        super(RedisGenericException, self).__init__(message, error_code)
 
         # Now for your custom code...
-        self.error_code = error_code
+        #self.error_code = error_code
 
 
 class RedisPersistentKeyExistsInStadardDatastoreException(ArancinoException):
     def __init__(self, message, error_code):
 
         # Call the base class constructor with the parameters it needs
-        super(RedisPersistentKeyExistsInStadardDatastoreException, self).__init__(message)
+        super(RedisPersistentKeyExistsInStadardDatastoreException, self).__init__(message, error_code)
 
         # Now for your custom code...
-        self.error_code = error_code
+        #self.error_code = error_code
 
 
 class RedisStandardKeyExistsInPersistentDatastoreException(ArancinoException):
     def __init__(self, message, error_code):
 
         # Call the base class constructor with the parameters it needs
-        super(RedisStandardKeyExistsInPersistentDatastoreException, self).__init__(message)
+        super(RedisStandardKeyExistsInPersistentDatastoreException, self).__init__(message, error_code)
 
         # Now for your custom code...
-        self.error_code = error_code
+        #self.error_code = error_code
 
 
 class NonCompatibilityException(ArancinoException):
     def __init__(self, message, error_code):
 
         # Call the base class constructor with the parameters it needs
-        super(NonCompatibilityException, self).__init__(message)
+        super(NonCompatibilityException, self).__init__(message, error_code)
 
         # Now for your custom code...
-        self.error_code = error_code
+        #self.error_code = error_code

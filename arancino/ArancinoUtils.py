@@ -23,8 +23,11 @@ import configparser
 import logging
 import sys
 import os
+import json
 from logging.handlers import RotatingFileHandler
 from arancino.ArancinoConstants import RedisInstancesType
+from arancino.filter.ArancinoPortFilter import FilterTypes
+
 
 class Singleton:
 
@@ -43,57 +46,6 @@ class Singleton:
 
     def __instancecheck__(self, inst):
         return isinstance(inst, self._cls)
-
-
-
-# class ArancinoConfig:
-#     __instance = None
-#
-#
-#     @staticmethod
-#     def __getInstance():
-#       """ Static access method. """
-#       if ArancinoConfig.__instance == None:
-#          ArancinoConfig()
-#       return ArancinoConfig.__instance
-#
-#     def __init__(self):
-#         """ Virtually private constructor. """
-#         if ArancinoConfig.__instance != None:
-#             raise Exception("This class is a singleton!")
-#         else:
-#             ArancinoConfig.__instance = self
-#             Config = configparser.ConfigParser()
-#             Config.read(os.path.join(os.environ.get('ARANCINOCONF'), "arancino.cfg"))
-#
-#             # CONFIG METADATA SECTION
-#             self.__metadata_version = Config.get("metadata", "version")
-#
-#             # CONFIG GENERAL SECTION
-#             self.__general_env = Config.get("general", "env")
-#             self.__general_cycle_time = Config.get("general", "cycle_time")
-#             self.__general_allowed_hwid = Config.get("general", "allowed_hwid")
-#
-#             # CONFIG REDIS SECTION
-#             self.__redis_instance_type = Config.get("redis", "instance_type")
-#             # TODO calcolare i parametri di connessione.
-#
-#             # CONFIG PORT SECTION
-#             self.__port_enabled = Config.get("port", "enabled")
-#             self.__port_auto_connect = Config.get("port", "auto_connect")
-#             self.__port_hide = Config.get("port", "hide")
-#             self.__port_serial_baudrate = Config.get("port", "serial_baudrate")
-#             self.__port_reset_baudrate = Config.get("port", "reset_baudrate")
-#
-#
-#             # CONFIG LOG SECTION
-#             self.__log_level = Config.get("log", "level")
-#             self.__log_name = Config.get("log", "name")
-#             self.__log_console = Config.get("log", "console")
-#
-#             self.__log_log = Config.get("log", "log")
-#             self.__log_error = Config.get("log", "error")
-#             self.__log_stats = Config.get("log", "stats")
 
 
 @Singleton
@@ -116,13 +68,20 @@ class ArancinoConfig:
         self.__redis_instance_type = Config.get("redis", "instance_type")
         # TODO calcolare i parametri di connessione.
 
-        # CONFIG PORT SECTION
-        self.__port_enabled = Config.get("port", "enabled")
-        self.__port_auto_connect = Config.get("port", "auto_connect")
-        self.__port_hide = Config.get("port", "hide")
-        self.__port_serial_baudrate = Config.get("port", "serial_baudrate")
-        self.__port_reset_baudrate = Config.get("port", "reset_baudrate")
+        # CONFIG SERIAL PORT SECTION
+        self.__port_serial_enabled = Config.get("port.serial", "enabled")
+        self.__port_serial_auto_connect = Config.get("port.serial", "auto_connect")
+        self.__port_serial_hide = Config.get("port.serial", "hide")
+        self.__port_serial_comm_baudrate = Config.get("port.serial", "comm_baudrate")
+        self.__port_serial_reset_baudrate = Config.get("port.serial", "reset_baudrate")
+        self.__port_serial_filter_type = Config.get("port.serial", "filter_type")
+        self.__port_serial_filter_list = Config.get("port.serial", "filter_list")
 
+        # CONFIG TEST PORT SECTION
+        self.__port_test_enabled = Config.get("port.test", "enabled")
+        self.__port_test_hide = Config.get("port.test", "hide")
+        self.__port_test_filter_type = Config.get("port.test", "filter_type")
+        self.__port_test_filter_list = Config.get("port.test", "filter_list")
 
         # CONFIG LOG SECTION
         self.__log_level = Config.get("log", "level")
@@ -135,9 +94,11 @@ class ArancinoConfig:
 
         self.__dirlog = os.environ.get('ARANCINOLOG')
 
+    ######## METADATA ########
     def get_metadata_version(self):
         return self.__metadata_version
 
+    ######## GENERAL ########
     def get_general_env(self):
         return self.__general_env
 
@@ -147,13 +108,14 @@ class ArancinoConfig:
     def get_general_allowed_hwid(self):
         return self.__general_allowed_hwid
 
+    ######## REDIS ########
     def get_redis_instance_type(self):
 
         # redis instance type
         #if not RedisInstancesType.has_value(self.__redis_instance_type):
         #    redis_instance = RedisInstancesType.DEFAULT.value
 
-        if not self.__redis_instance_type in RedisInstancesType.__members__:
+        if self.__redis_instance_type not in RedisInstancesType.__members__:
             redis_instance = RedisInstancesType.DEFAULT.value
         else:
             redis_instance = RedisInstancesType[self.__redis_instance_type]
@@ -185,21 +147,48 @@ class ArancinoConfig:
 
         return redis_dts, redis_dvs, redis_dts_rsvd
 
-    def get_port_enabled(self):
-        return self.__port_enabled
+    ######## SERIAL PORT ########
+    def get_port_serial_enabled(self):  #TODO non usata, deve essere usata nel discovery serial
+        return self.__port_serial_enabled
 
-    def get_port_auto_connect(self):
-        return self.__port_auto_connect
+    def get_port_serial_auto_connect(self): # TODO non usata, deve essere usata nel discovery serial
+        return self.__port_serial_auto_connect
 
-    def get_port_hide(self):
-        return self.__port_hide
+    def get_port_serial_hide(self): # TODO non usata, deve essere usata nel discovery serial
+        return self.__port_serial_hide
 
-    def get_port_serial_baudrate(self):
-        return self.__port_serial_baudrate
+    def get_port_serial_comm_baudrate(self):
+        return self.__port_serial_comm_baudrate
 
-    def get_port_reset_baudrate(self):
-        return self.__port_reset_baudrate
+    def get_port_serial_reset_baudrate(self): # TODO non usata, deve essere usata nel discovery serial
+        return self.__port_serial_reset_baudrate
 
+    def get_port_serial_filter_type(self):
+        if self.__port_serial_filter_type not in FilterTypes.__members__:
+            return FilterTypes.DEFAULT.value
+        else:
+            return FilterTypes[self.__port_serial_filter_type]
+
+    def get_port_serial_filter_list(self):
+        return json.loads(self.__port_serial_filter_list.upper())
+
+    ######## TEST PORT ########
+    def get_port_test_enabled(self):  #TODO non usata, deve essere usata nel discovery serial
+        return self.__port_test_enabled
+
+    def get_port_test_hide(self): #TODO non usata, deve essere usata nel discovery serial
+        return self.__port_test_hide
+
+    def get_port_test_filter_type(self):
+        if self.__port_test_filter_type not in FilterTypes.__members__:
+            return FilterTypes.DEFAULT.value
+        else:
+            return FilterTypes[self.__port_test_filter_type]
+
+    def get_port_test_filter_list(self):
+        return json.loads(self.__port_test_filter_list.upper())
+
+    ######## LOG ########
     def get_log_level(self):
         return self.__log_level
 

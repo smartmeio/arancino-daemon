@@ -38,7 +38,7 @@ class ArancinoComamnd:
             self.__constructorA(raw_command=raw_command)
 
         elif isinstance(cmd_id, str) and isinstance(cmd_args, list):
-            self.__constructorB(cmd_id=None, cmd_args=None)
+            self.__constructorB(cmd_id=cmd_id, cmd_args=cmd_args)
 
 
     def __constructorA(self, raw_command=None):
@@ -179,7 +179,7 @@ class ArancinoResponse:
             self.__constructorA(raw_response=raw_response)
 
         elif isinstance(rsp_id, str) and isinstance(rsp_args, list):
-            self.__constructorB(rsp_id=None, rsp_args=None)
+            self.__constructorB(rsp_id=rsp_id, rsp_args=rsp_args)
 
 
     def __constructorA(self, raw_response=None):

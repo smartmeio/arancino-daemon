@@ -129,7 +129,7 @@ class ArancinoCommandIdentifiers:
     # Init commands
     __CMD_SYS_START = 'START'
     # CMD_SYS_START = [__CMD_SYS_START, 0]
-    CMD_SYS_START = {"id": __CMD_SYS_START, "args": 10}
+    CMD_SYS_START = {"id": __CMD_SYS_START, "args": 1}
     "Start Commmand"
 
     # Simple Operation Commands

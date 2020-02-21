@@ -23,6 +23,7 @@ import threading
 from arancino.ArancinoConstants import *
 from arancino.ArancinoUtils import *
 from arancino.port.ArancinoPort import PortTypes
+import time
 
 LOG = ArancinoLogger.Instance().getLogger()
 
@@ -66,12 +67,13 @@ class ArancinoSerialHandler(threading.Thread):
                     # clear the handy variable and start again
                     self.__partial_command = ""
 
-
             except Exception as ex:
                 # probably some I/O problem such as disconnected USB serial
-                LOG.exception("{}I/O Error while reading data from serial port: {}".format(self.__log_prefix, str(ex)))
+                LOG.error("{}I/O Error while reading data from serial port: {}".format(self.__log_prefix, str(ex)))
 
                 self.__stop = True
+                break
+
 
         self.__connection_lost()
 

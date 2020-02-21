@@ -109,10 +109,8 @@ class ArancinoSerialPort(ArancinoPort):
             # call the Command Executor and get a raw response
             raw_response = self._executor.exec(acmd)
 
-
             # create the Arancino Response object
             arsp = ArancinoResponse(raw_response=raw_response)
-            LOG.debug("{} Sending: {}: {}".format(self.__log_prefix, arsp.getId(), str(arsp.getArguments())))
 
 
         # All Arancino Application Exceptions contains an Error Code
@@ -129,6 +127,7 @@ class ArancinoSerialPort(ArancinoPort):
             try:
                 # send the response back.
                 self.__serial_port.write(arsp.getRaw().encode())
+                LOG.debug("{} Sending: {}: {}".format(self.__log_prefix, arsp.getId(), str(arsp.getArguments())))
 
             except SerialException as ex:
                 LOG.error("{} Error while transmitting a Response: {}".format(self.__log_prefix), str(ex))
@@ -177,8 +176,8 @@ class ArancinoSerialPort(ArancinoPort):
             # for p in ports:
             #     if p.device == device:
                     # sets Port Metadata
-            self._m_p_vid = str(hex(p.vid))
-            self._m_p_pid = str(hex(p.pid))
+            self._m_p_vid = "0x{:04X}".format(p.vid)   #str(hex(p.vid))
+            self._m_p_pid = "0x{:04X}".format(p.pid)
             self._m_p_name = p.name
             self._m_p_description = p.description
             self._m_p_hwid = p.hwid

@@ -1,15 +1,23 @@
 
 
 from serial.tools import list_ports as list
+
+from arancino.ArancinoUtils import ArancinoConfig
+from arancino.filter.ArancinoPortFilter import FilterTypes
+from arancino.filter.ArancinoSerialPortFilter import ArancinoSerialPortFilter
 from arancino.port.ArancinoSerialPort import *
+
+CONF = ArancinoConfig.Instance()
 
 class ArancinoSerialDiscovery:
 
     def __init__(self):
-        pass
+        self.__filter = ArancinoSerialPortFilter()
+        self.__filter_type = CONF.get_port_serial_filter_type()
+        self.__filter_list = CONF.get_port_serial_filter_list()
+
 
     # TODO: this can be an abstract method
-    #def get_available_ports(self, prev_plugged, connected):
     def getAvailablePorts(self):
         """
         Using python-serial library, it scans the serial ports applies filters and then
@@ -18,15 +26,15 @@ class ArancinoSerialDiscovery:
         """
 
         ports = list.comports()
-        ports = self.__filterPorts(ports)
-        #ports = self.__transform_in_arancino_ports(ports, connected)
+        ports = self.__preFilterPorts(ports)
         ports = self.__transformInArancinoPorts(ports)
+        ports = self.__postFilterPorts(ports=ports, filter_type=self.__filter_type, filter_list=self.__filter_list)
         return ports
 
-    # TODO: this can be an abstract method
-    def __filterPorts(self, ports):
+
+    def __preFilterPorts(self, ports):
         """
-        Filters Serial Ports with valid Serial Number, VID and PID
+        Pre Filter Serial Ports with valid Serial Number, VID and PID
         :param ports: List of ListPortInfo
         :return ports_filterd: List
         """
@@ -39,8 +47,19 @@ class ArancinoSerialDiscovery:
         return ports_filterd
 
 
+    def __postFilterPorts(self, ports={}, filter_type=FilterTypes.ALL, filter_list=[]):
+
+        if filter_type == FilterTypes.ONLY:
+            return self.__filter.filterOnly(ports, filter_list)
+
+        elif filter_type == FilterTypes.EXCLUDE:
+            return self.__filter.filterExclude(ports, filter_list)
+
+        elif filter_type == FilterTypes.ALL:
+            return self.__filter.filterAll(ports, filter_list)
+
+
     def __transformInArancinoPorts(self, ports):
-    #def __transform_in_arancino_ports(self, ports, connected):
         """
         This methods creates a new structure starting from a List of ListPortInfo.
         A base element of the new structure is composed by some metadata and
@@ -54,12 +73,7 @@ class ArancinoSerialDiscovery:
 
         for port in ports:
 
-            p = ArancinoSerialPort(port_info=port, m_s_plugged=True)
-            #p = ArancinoSerialPort(m_c_enabled=True, m_c_alias="ABCDEF", device="/dev/cu.usbmodem14201", baudrate=4000000, timeout=None, disconnection_handler=disconnection_handler)
-            # TODO this update must be outside thi class
-            #if p.id in connected:
-            #    p.connected = True
-
+            p = ArancinoSerialPort(port_info=port, m_s_plugged=True, baudrate=CONF.get_port_serial_comm_baudrate())
             new_ports_struct[p.getId()] = p
 
         return new_ports_struct
