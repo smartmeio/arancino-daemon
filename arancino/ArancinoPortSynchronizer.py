@@ -32,6 +32,7 @@ class ArancinoPortSynch:
         self.__datastore = ArancinoDataStore.Instance().getDataStore()
         self.__devicestore = ArancinoDataStore.Instance().getDeviceStore()
 
+
     def synchPorts(self, ports):
         """
         :param ports: Dictionary of ArancinoPorts
@@ -41,6 +42,7 @@ class ArancinoPortSynch:
             self.__synchPort(arancino_port)
 
         self.__synchClean(ports)
+
 
     def __synchPort(self, arancino_port):
         """
@@ -60,7 +62,7 @@ class ArancinoPortSynch:
 
         arancino = arancino_port
 
-        if self.__devicestore.exists(arancino.get_id()) == 1:  # the port is already registered in the device store
+        if self.__devicestore.exists(arancino.getId()) == 1:  # the port is already registered in the device store
             '''
             Configuration Metadata
 
@@ -75,13 +77,13 @@ class ArancinoPortSynch:
                 in-memory data structure.
 
             '''
-            enabled = self.__checkValues(self.__devicestore.hget(arancino.get_id(), ArancinoDBKeys.M_ENABLED), "BOOL")
-            auto_connect = self.__checkValues(self.__devicestore.hget(arancino.get_id(), ArancinoDBKeys.M_AUTO_CONNECT), "BOOL")
-            alias = self.__devicestore.hget(arancino.get_id(), ArancinoDBKeys.M_ALIAS)
+            enabled = self.__checkValues(self.__devicestore.hget(arancino.getId(), ArancinoDBKeys.M_ENABLED), "BOOL")
+            auto_connect = self.__checkValues(self.__devicestore.hget(arancino.getId(), ArancinoDBKeys.M_AUTO_CONNECT), "BOOL")
+            alias = self.__devicestore.hget(arancino.getId(), ArancinoDBKeys.M_ALIAS)
 
-            arancino.set_enabled(enabled)
-            arancino.set_auto_connect(auto_connect)
-            arancino.set_alias(alias)
+            arancino.setEnabled(enabled)
+            arancino.setAutoConnect(auto_connect)
+            arancino.setAlias(alias)
 
 
 
@@ -102,30 +104,31 @@ class ArancinoPortSynch:
 
 
             '''
-            self.__devicestore.hset(arancino.get_id(), ArancinoDBKeys.M_ENABLED, str(arancino.get_enabled()))
-            self.__devicestore.hset(arancino.get_id(), ArancinoDBKeys.M_AUTO_CONNECT, str(arancino.get_auto_connect()))
-            self.__devicestore.hset(arancino.get_id(), ArancinoDBKeys.M_ALIAS, str(arancino.get_alias()))
-            self.__devicestore.hset(arancino.get_id(), ArancinoDBKeys.P_DESCRIPTION, str(arancino.get_description()))
-            self.__devicestore.hset(arancino.get_id(), ArancinoDBKeys.P_HWID, str(arancino.get_hwid()))
-            self.__devicestore.hset(arancino.get_id(), ArancinoDBKeys.P_VID, str(arancino.get_vid()))
-            self.__devicestore.hset(arancino.get_id(), ArancinoDBKeys.P_PID, str(arancino.get_pid()))
-            self.__devicestore.hset(arancino.get_id(), ArancinoDBKeys.P_SERIALNUMBER, str(arancino.get_serial_number()))
-            self.__devicestore.hset(arancino.get_id(), ArancinoDBKeys.P_MANUFACTURER, str(arancino.get_manufacturer()))
-            self.__devicestore.hset(arancino.get_id(), ArancinoDBKeys.P_PRODUCT, str(arancino.get_product()))
+            self.__devicestore.hset(arancino.getId(), ArancinoDBKeys.M_ENABLED, str(arancino.isEnabled()))
+            self.__devicestore.hset(arancino.getId(), ArancinoDBKeys.M_AUTO_CONNECT, str(arancino.getAutoConnect()))
+            self.__devicestore.hset(arancino.getId(), ArancinoDBKeys.M_ALIAS, str(arancino.getAlias()))
+            self.__devicestore.hset(arancino.getId(), ArancinoDBKeys.P_DESCRIPTION, str(arancino.getDescription()))
+            self.__devicestore.hset(arancino.getId(), ArancinoDBKeys.P_HWID, str(arancino.getHWID()))
+            self.__devicestore.hset(arancino.getId(), ArancinoDBKeys.P_VID, str(arancino.getVID()))
+            self.__devicestore.hset(arancino.getId(), ArancinoDBKeys.P_PID, str(arancino.getPID()))
+            self.__devicestore.hset(arancino.getId(), ArancinoDBKeys.P_SERIALNUMBER, str(arancino.getSerialNumber()))
+            self.__devicestore.hset(arancino.getId(), ArancinoDBKeys.P_MANUFACTURER, str(arancino.getManufacturer()))
+            self.__devicestore.hset(arancino.getId(), ArancinoDBKeys.P_PRODUCT, str(arancino.getProduct()))
 
         '''
         Status Metadata
 
         Updates metadata in the list (from list to redis) every time
         '''
-        self.__devicestore.hset(arancino.get_id(), ArancinoDBKeys.M_PLUGGED, str(arancino.get_plugged()))
-        self.__devicestore.hset(arancino.get_id(), ArancinoDBKeys.M_CONNECTED, str(arancino.get_connected()))
-        self.__devicestore.hset(arancino.get_id(), ArancinoDBKeys.P_DEVICE, str(arancino.get_device()))
-        self.__devicestore.hset(arancino.get_id(), ArancinoDBKeys.P_LOCATION, str(arancino.get_location()))
-        self.__devicestore.hset(arancino.get_id(), ArancinoDBKeys.P_INTERFACE, str(arancino.get_interface()))
-        self.__devicestore.hset(arancino.get_id(), ArancinoDBKeys.P_NAME, str(arancino.get_name()))
+        self.__devicestore.hset(arancino.getId(), ArancinoDBKeys.M_PLUGGED, str(arancino.isPlugged()))
+        self.__devicestore.hset(arancino.getId(), ArancinoDBKeys.M_CONNECTED, str(arancino.isConnected()))
+        self.__devicestore.hset(arancino.getId(), ArancinoDBKeys.P_DEVICE, str(arancino.getDevice()))
+        self.__devicestore.hset(arancino.getId(), ArancinoDBKeys.P_LOCATION, str(arancino.getLocation()))
+        self.__devicestore.hset(arancino.getId(), ArancinoDBKeys.P_INTERFACE, str(arancino.getInterface()))
+        self.__devicestore.hset(arancino.getId(), ArancinoDBKeys.P_NAME, str(arancino.getName()))
         # TODO manage datetime
         # self.devicestore.hset(id, const.M_DATETIME, strftime("%Y-%m-%d %H:%M:%S", localtime()))
+
 
     def __synchClean(self, ports):
         """
@@ -147,6 +150,9 @@ class ArancinoPortSynch:
             for it in diff:
                 self.__devicestore.hset(it, ArancinoDBKeys.M_PLUGGED, str(False))
                 self.__devicestore.hset(it, ArancinoDBKeys.M_CONNECTED, str(False))
+                self.__devicestore.hset(it, ArancinoDBKeys.P_INTERFACE, "")
+                self.__devicestore.hset(it, ArancinoDBKeys.P_LOCATION, "")
+                self.__devicestore.hset(it, ArancinoDBKeys.P_LOCATION, "")
 
 
     def __checkValues(self, value, type):

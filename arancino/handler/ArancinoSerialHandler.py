@@ -20,24 +20,24 @@ under the License
 """
 
 import threading
-from arancino.ArancinoCortex import ArancinoComamnd
 from arancino.ArancinoConstants import *
 from arancino.ArancinoUtils import *
+from arancino.port.ArancinoPort import PortTypes
 
-LOG = ArancinoLogger.Instance().get_logger()
+LOG = ArancinoLogger.Instance().getLogger()
 
 class ArancinoSerialHandler(threading.Thread):
 
-    def __init__(self, name,  serial, id, device, command_received_handler, connection_lost_handler):
+    def __init__(self, name, serial, id, device, commandReceivedHandler, connectionLostHandler):
         threading.Thread.__init__(self)
-        self.__serial = serial      # the serial port
+        self.__serial_port = serial      # the serial port
         self.__name = name          # the name, usually the arancino port id
         self.__id = id
         self.__device = device
-        self.__log_prefix = "[" + self.__id + " => " + self.__device + "] "
+        self.__log_prefix = "[{} - {} at {}]".format(PortTypes.Serial, self.__id, self.__device)
 
-        self.__command_received_handler = command_received_handler  # handler to be called when a raw command is complete and ready to be translated and executed.
-        self.__connection_lost_handler = connection_lost_handler    # handler to be called when a connection is lost or stopped
+        self.__commandReceivedHandler = commandReceivedHandler  # handler to be called when a raw command is complete and ready to be translated and executed.
+        self.__connectionLostHandler = connectionLostHandler    # handler to be called when a connection is lost or stopped
 
         self.__partial_command = ""
         self.__stop = False
@@ -51,7 +51,7 @@ class ArancinoSerialHandler(threading.Thread):
             try:
 
                 # Read bytes one by one
-                data = self.__serial.read(1)
+                data = self.__serial_port.read(1)
 
                 data_dec = data.decode()
                 self.__partial_command += data_dec
@@ -60,7 +60,8 @@ class ArancinoSerialHandler(threading.Thread):
                     # now command is completed and can be used
 
                     # send back the raw command
-                    self.__command_received_handler(self.__partial_command)
+                    if self.__commandReceivedHandler is not None:
+                        self.__commandReceivedHandler(self.__partial_command)
 
                     # clear the handy variable and start again
                     self.__partial_command = ""
@@ -84,7 +85,9 @@ class ArancinoSerialHandler(threading.Thread):
         try:
 
             LOG.warning("{}Connection lost".format(self.__log_prefix))
-            self.__connection_lost_handler()
+            if self.__connectionLostHandler is not None:
+                self.__connectionLostHandler()
+
 
         except Exception as ex:
             LOG.exception("{}Error on connection lost: {}".format(self.__log_prefix, str(ex)))

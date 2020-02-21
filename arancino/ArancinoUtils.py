@@ -133,6 +133,8 @@ class ArancinoConfig:
         self.__log_error = Config.get("log", "error")
         self.__log_stats = Config.get("log", "stats")
 
+        self.__dirlog = os.environ.get('ARANCINOLOG')
+
     def get_metadata_version(self):
         return self.__metadata_version
 
@@ -219,6 +221,9 @@ class ArancinoConfig:
     def get_log_stats_file(self):
         return self.__log_stats
 
+    def get_stats_file_path(self):
+        return os.path.join(self.__dirlog, self.__log_stats)
+
 @Singleton
 class ArancinoLogger:
 
@@ -231,7 +236,7 @@ class ArancinoLogger:
         self.__name = conf.get_log_name()  # 'Arancino Serial'
         self.__filename = conf.get_log_log_file()  # 'arancino.log'
         self.__error_filename = conf.get_log_error_file()  # 'arancino.error.log'
-        self.__stats_filename = conf.get_log_stats_file()  # 'arancino.stats.log'
+        #self.__stats_filename = conf.get_log_stats_file()  # 'arancino.stats.log'
 
         # __dirlog = Config["log"].get("path")           #'/var/log/arancino'
         self.__dirlog = os.environ.get('ARANCINOLOG')
@@ -239,32 +244,29 @@ class ArancinoLogger:
 
         self.__logger = logging.getLogger(self.__name)#CustomLogger(self.__name)#
         self.__logger.setLevel(logging.getLevelName(conf.get_log_level()))
-        self.__logger.addHandler(self.__get_file_handler())
-        self.__logger.addHandler(self.__get_error_file_handler())
+        self.__logger.addHandler(self.__getFileHandler())
+        self.__logger.addHandler(self.__getErrorFileHandler())
 
         if conf.get_log_console():
-            self.__logger.addHandler(self.__get_console_handler())
+            self.__logger.addHandler(self.__getConsoleHandler())
 
-    def __get_console_handler(self):
+    def __getConsoleHandler(self):
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setFormatter(CustomConsoleFormatter())
         return console_handler
 
-    def __get_file_handler(self):
+    def __getFileHandler(self):
         file_handler = RotatingFileHandler(os.path.join(self.__dirlog, self.__filename), mode='a', maxBytes=1000 * 1024, backupCount=5)
         file_handler.setFormatter(self.__format)
         return file_handler
 
-    def __get_error_file_handler(self):
+    def __getErrorFileHandler(self):
         file_handler_error = RotatingFileHandler(os.path.join(self.__dirlog, self.__error_filename), mode='a', maxBytes=1000 * 1024, backupCount=5)
         file_handler_error.setFormatter(self.__format)
         file_handler_error.setLevel(logging.ERROR)
         return file_handler_error
 
-    def get_stats_file_path(self):
-        return os.path.join(self.__dirlog, self.__stats_filename)
-
-    def get_logger(self):
+    def getLogger(self):
         return self.__logger
 
 

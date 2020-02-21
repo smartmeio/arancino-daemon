@@ -48,7 +48,7 @@ class ArancinoComamnd:
         """
         self.__raw = raw_command
 
-        cmd_parsed = self.__parse_command(raw_command)
+        cmd_parsed = self.__parseCommand(raw_command)
 
         self.__id = cmd_parsed[0]       # first element is the Command Identifier
         self.__args = cmd_parsed[1]     # second element is the array of Command Arguments
@@ -60,13 +60,13 @@ class ArancinoComamnd:
         :param cmd_id: {String} Command Identifier
         :param cmd_args: {Array of String} Command Arguments
         """
-        if self.__is_cmd_id_available(cmd_id):
+        if self.__isCmdIdAvailable(cmd_id):
             self.__id = cmd_id
         else:
             raise InvalidCommandException("Command does not exist: " + cmd_id + " - Skipped", ArancinoCommandErrorCodes.ERR_CMD_NOT_FND)
 
         # retrieve the number of arguments required for the command
-        n_args_required = self.__get_args_nr_by_cmd_id(cmd_id)
+        n_args_required = self.__getArgsNumberByCmdId(cmd_id)
         n_args = len(cmd_args)
 
         if n_args_required == n_args:
@@ -78,19 +78,19 @@ class ArancinoComamnd:
         self.__raw = self.__id + ArancinoSpecialChars.CHR_SEP + ArancinoSpecialChars.CHR_SEP.join(self.__args) + ArancinoSpecialChars.CHR_EOT
 
 
-    def get_id(self):
+    def getId(self):
         return self.__id
 
 
-    def get_arguments(self):
+    def getArguments(self):
         return self.__args
 
 
-    def get_raw(self):
+    def getRaw(self):
         return self.__raw
 
 
-    def __parse_command(self, raw_command):
+    def __parseCommand(self, raw_command):
         '''
         From the raw command it separates the Command Identifier and Command Arguments,
             making check about the command id and the number of arguments.
@@ -106,34 +106,44 @@ class ArancinoComamnd:
         cmd = raw_command.strip(ArancinoSpecialChars.CHR_EOT).split(ArancinoSpecialChars.CHR_SEP)
 
         if len(cmd) > 0:
-
-            # get the command id (identifier)
             cmd_id = cmd[0]
+            idx = len(cmd)
+            cmd_args = cmd[1:idx]
 
-            if self.__is_cmd_id_available(cmd_id):
-                # command id is in the list:
-                # now retrieve command arguments
-                idx = len(cmd)
-                cmd_args = cmd[1:idx]
-
-                # retrieve the number of arguments required for the command
-                n_args_required = self.__get_args_nr_by_cmd_id(cmd_id)
-                n_args = len(cmd_args)
-
-                if n_args_required == n_args:
-                    return cmd_id, cmd_args
-
-                else:
-                    raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + n_args + "; Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
-
-            else:
-                raise InvalidCommandException("Command does not exist: " + cmd_id + " - Skipped", ArancinoCommandErrorCodes.ERR_CMD_NOT_FND)
-
+            return cmd_id, cmd_args
         else:
-            raise InvalidCommandException("No command received", ArancinoCommandErrorCodes.ERR_CMD_NOT_RCV)
+            return None
 
 
-    def __is_cmd_id_available(self, cmd_id):
+        # if len(cmd) > 0:
+        #
+        #     # get the command id (identifier)
+        #     cmd_id = cmd[0]
+        #
+        #     if self.__isCmdIdAvailable(cmd_id):
+        #         # command id is in the list:
+        #         # now retrieve command arguments
+        #         idx = len(cmd)
+        #         cmd_args = cmd[1:idx]
+        #
+        #         # retrieve the number of arguments required for the command
+        #         n_args_required = self.__getArgsNumberByCmdId(cmd_id)
+        #         n_args = len(cmd_args)
+        #
+        #         if n_args_required == n_args:
+        #             return cmd_id, cmd_args
+        #
+        #         else:
+        #             raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+        #
+        #     else:
+        #         raise InvalidCommandException("Command does not exist: " + cmd_id + " - Skipped", ArancinoCommandErrorCodes.ERR_CMD_NOT_FND)
+        #
+        # else:
+        #     raise InvalidCommandException("No command received", ArancinoCommandErrorCodes.ERR_CMD_NOT_RCV)
+
+
+    def __isCmdIdAvailable(self, cmd_id):
         '''
         Check if the Command Identifier is in the list of the defined comamnds.
 
@@ -147,7 +157,7 @@ class ArancinoComamnd:
             return False
 
 
-    def __get_args_nr_by_cmd_id(self, cmd_id):
+    def __getArgsNumberByCmdId(self, cmd_id):
         '''
         Get the number of Argument for the specified Command Identifier.
 
@@ -175,14 +185,14 @@ class ArancinoResponse:
     def __constructorA(self, raw_response=None):
         self.__raw = raw_response
 
-        rsp_parsed = self.__parse_response(raw_response)
+        rsp_parsed = self.__parseResponse(raw_response)
 
         self.__id = rsp_parsed[0]  # first element is the Response Code
         self.__args = rsp_parsed[1]  # second element is the array of Response Arguments
 
 
     def __constructorB(self, rsp_id=None, rsp_args=None):
-        if self.__is_rsp_id_available(rsp_id):
+        if self.__isRspIdAvailable(rsp_id):
             self.__id = rsp_id
         else:
             raise InvalidCommandException("Response does not exist: " + rsp_id + " - Skipped", ArancinoCommandErrorCodes.ERR_CMD_NOT_FND)
@@ -191,16 +201,20 @@ class ArancinoResponse:
 
         self.__raw = self.__id + ArancinoSpecialChars.CHR_SEP + ArancinoSpecialChars.CHR_SEP.join(self.__args) + ArancinoSpecialChars.CHR_EOT
 
-    def get_id(self):
+
+    def getId(self):
         return self.__id
 
-    def get_arguments(self):
+
+    def getArguments(self):
         return self.__args
 
-    def get_raw(self):
+
+    def getRaw(self):
         return self.__raw
 
-    def __parse_response(self, raw_response):
+
+    def __parseResponse(self, raw_response):
         '''
         From the Raw Response it separates the Response Identifier and Response Arguments,
             making check about the command id and the number of arguments.
@@ -220,7 +234,7 @@ class ArancinoResponse:
             # get the response id (identifier)
             rsp_id = rsp[0]
 
-            if self.__is_rsp_id_available(rsp_id):
+            if self.__isRspIdAvailable(rsp_id):
                 # Response Code is in the list:
                 # now retrieve command arguments
 
@@ -243,7 +257,8 @@ class ArancinoResponse:
         else:
             raise InvalidCommandException("No command received", ArancinoCommandErrorCodes.ERR_CMD_NOT_RCV)
 
-    def __is_rsp_id_available(self, rsp_id):
+
+    def __isRspIdAvailable(self, rsp_id):
         '''
         Check if the Response Code is in the list of the defined Responses.
 

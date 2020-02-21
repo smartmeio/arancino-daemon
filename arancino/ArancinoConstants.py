@@ -129,7 +129,7 @@ class ArancinoCommandIdentifiers:
     # Init commands
     __CMD_SYS_START = 'START'
     # CMD_SYS_START = [__CMD_SYS_START, 0]
-    CMD_SYS_START = {"id": __CMD_SYS_START, "args": 1}
+    CMD_SYS_START = {"id": __CMD_SYS_START, "args": 10}
     "Start Commmand"
 
     # Simple Operation Commands
@@ -170,23 +170,23 @@ class ArancinoCommandIdentifiers:
 
     __CMD_APP_HGETALL = 'HGETALL'  #
     # CMD_APP_HGETALL = [__CMD_APP_HGETALL, 111111]
-    CMD_APP_HGETALL = {"id": __CMD_APP_HGETALL, "args": 1111111}
+    CMD_APP_HGETALL = {"id": __CMD_APP_HGETALL, "args": 1}
 
     __CMD_APP_HKEYS = 'HKEYS'  #
     # CMD_APP_HKEYS__= [__CMD_APP_HKEYS, 11111]
-    CMD_APP_HKEYS = {"id": __CMD_APP_HKEYS, "args": 1111111}
+    CMD_APP_HKEYS = {"id": __CMD_APP_HKEYS, "args": 1}
 
     __CMD_APP_HVALS = 'HVALS'  #
     # CMD_APP_HVALS = [__CMD_APP_HVALS, 111111]
-    CMD_APP_HVALS = {"id": __CMD_APP_HVALS, "args": 1111111}
+    CMD_APP_HVALS = {"id": __CMD_APP_HVALS, "args": 1}
 
     __CMD_APP_HDEL = 'HDEL'  #
     # CMD_APP_HDEL = [__CMD_APP_HDEL, 1111111]
-    CMD_APP_HDEL = {"id": __CMD_APP_HDEL, "args": 1111111}
+    CMD_APP_HDEL = {"id": __CMD_APP_HDEL, "args": 2}
 
     __CMD_APP_HSET = 'HSET'  #
     # CMD_APP_HSET = [__CMD_APP_HSET, 1111]
-    CMD_APP_HSET = {"id": __CMD_APP_HSET, "args": 1111111}
+    CMD_APP_HSET = {"id": __CMD_APP_HSET, "args": 3}
 
     # Other Commands
     __CMD_APP_PUB = 'PUB'
@@ -275,6 +275,7 @@ COMPATIBILITY_MATRIX_MOD = {
 #    "0.1.3" : ["0.1.0"],
 #    "0.1.4" : ["0.1.0"],
 #    "0.1.5" : ["0.1.0"],
-    "1.0.0" : ["1.0.0.RC1","1.0.0"],    # 1.0.0.RC1 non-standard sem ver 2.0.0
-    "1.0.1" : [">=1.0.0-rc,<=1.*.*"],
+    "1.0.0": ["1.0.0.RC1", "1.0.0"],    # 1.0.0.RC1 non-standard sem ver 2.0.0
+    "1.0.1": [">=1.0.0-rc,<=1.0.1"],
+    "1.1.0": [">=1.0.2"],
 }

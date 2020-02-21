@@ -19,8 +19,15 @@ License for the specific language governing permissions and limitations
 under the License
 """
 
+class ArancinoException(Exception):
+    def __init__(self, message, error_code):
+        # Call the base class constructor with the parameters it needs
+        super(ArancinoException, self).__init__(message)
 
-class InvalidArgumentsNumberException(Exception):
+        # Now for your custom code...
+        self.error_code = error_code
+
+class InvalidArgumentsNumberException(ArancinoException):
     def __init__(self, message, error_code):
 
         # Call the base class constructor with the parameters it needs
@@ -30,7 +37,7 @@ class InvalidArgumentsNumberException(Exception):
         self.error_code = error_code
 
 
-class InvalidCommandException(Exception):
+class InvalidCommandException(ArancinoException):
     def __init__(self, message, error_code):
 
         # Call the base class constructor with the parameters it needs
@@ -40,7 +47,7 @@ class InvalidCommandException(Exception):
         self.error_code = error_code
 
 
-class RedisGenericException(Exception):
+class RedisGenericException(ArancinoException):
     def __init__(self, message, error_code):
 
         # Call the base class constructor with the parameters it needs
@@ -50,7 +57,7 @@ class RedisGenericException(Exception):
         self.error_code = error_code
 
 
-class RedisPersistentKeyExistsInStadardDatastoreException(Exception):
+class RedisPersistentKeyExistsInStadardDatastoreException(ArancinoException):
     def __init__(self, message, error_code):
 
         # Call the base class constructor with the parameters it needs
@@ -60,7 +67,7 @@ class RedisPersistentKeyExistsInStadardDatastoreException(Exception):
         self.error_code = error_code
 
 
-class RedisStandardKeyExistsInPersistentDatastoreException(Exception):
+class RedisStandardKeyExistsInPersistentDatastoreException(ArancinoException):
     def __init__(self, message, error_code):
 
         # Call the base class constructor with the parameters it needs
@@ -70,7 +77,7 @@ class RedisStandardKeyExistsInPersistentDatastoreException(Exception):
         self.error_code = error_code
 
 
-class NonCompatibilityException(Exception):
+class NonCompatibilityException(ArancinoException):
     def __init__(self, message, error_code):
 
         # Call the base class constructor with the parameters it needs

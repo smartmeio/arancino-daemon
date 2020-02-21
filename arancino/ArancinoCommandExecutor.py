@@ -31,83 +31,89 @@ class ArancinoCommandExecutor:
         :return: {ArancinoResponse} The response to send back for the Arancino Command.
         """
 
-        cmd_id = arancino_command.get_id()
-        cmd_args = arancino_command.get_arguments()
+
+
+        raw_response = None
+        response = None
 
         try:
 
-            raw_response = None
-            response = None
+            if arancino_command is None:
+                raise InvalidCommandException("Empty Command Received", ArancinoCommandErrorCodes.ERR_CMD_NOT_FND)
+
+            cmd_id = arancino_command.getId()
+            cmd_args = arancino_command.getArguments()
+
 
             # START
             if cmd_id == ArancinoCommandIdentifiers.CMD_SYS_START['id']:
                 raw_response = self.__OPTS_START(cmd_args)
-
+                return raw_response
             # SET
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_SET_STD['id']:
                 raw_response = self.__OPTS_SET_STD(cmd_args)
-
+                return raw_response
             # SET PERSISTENT
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_SET_PERS['id']:
                 raw_response = self.__OPTS_SET_PERS(cmd_args)
-
+                return raw_response
             # GET
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_GET['id']:
                 raw_response = self.__OPTS_GET(cmd_args)
-
+                return raw_response
             # DEL
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_DEL['id']:
                 raw_response = self.__OPTS_DEL(cmd_args)
-
+                return raw_response
             # KEYS
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_KEYS:
                 raw_response = self.__OPTS_KEYS(cmd_args)
-
+                return raw_response
             # HSET
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HSET['id']:
                 raw_response = self.__OPTS_HSET(cmd_args)
-
+                return raw_response
             # HGET
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HGET['id']:
                 raw_response = self.__OPTS_HGET(cmd_args)
-
+                return raw_response
             # HGETALL
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HGETALL['id']:
                 raw_response = self.__OPTS_HGETALL(cmd_args)
-
+                return raw_response
             # HKEYS
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HKEYS['id']:
                 raw_response = self.__OPTS_HKEYS(cmd_args)
-
+                return raw_response
             # HVALS
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HVALS['id']:
                 raw_response = self.__OPTS_HVALS(cmd_args)
-
+                return raw_response
             # HDEL
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HDEL['id']:
                 raw_response = self.__OPTS_HDEL(cmd_args)
-
+                return raw_response
             # PUB
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_PUB['id']:
                 raw_response = self.__OPTS_PUB(cmd_args)
-
+                return raw_response
             # FLUSH
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_FLUSH['id']:
                 raw_response = self.__OPTS_FLUSH(cmd_args)
-
+                return raw_response
             # Default
             else:
                 # TODO better a new Error code, something like ERR_CMD_NOT_IMPL: becouse if there, the was fount in
                 #   the list, but there are not OPTS to be executed, so the OPTS is not implemented
                 raw_response = ArancinoCommandErrorCodes.ERR_CMD_NOT_FND + ArancinoSpecialChars.CHR_SEP
-
+                return raw_response
             #cmd = ArancinoComamnd(cmd_id=cmd_id, cmd_args=cmd_args)
             #response = ArancinoResponse(raw_response=raw_response)
 
-            return raw_response
+        except ArancinoException as ex:
+            raise ex
 
         except Exception as ex:
-            # generic error handler which raise back exception
             raise ex
 
 
