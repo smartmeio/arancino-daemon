@@ -34,9 +34,9 @@ class ArancinoSerialPort(ArancinoPort):
 
     def __init__(self, port_info=None, device=None, baudrate=9600, m_s_plugged=False, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
 
-        super().__init__(device=device, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_auto_connect=m_c_auto_connect, m_c_alias=m_c_alias, m_c_hide=m_c_hide, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
+        super().__init__(device=device, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
-        self.port_type = PortTypes.Serial
+        self._port_type = PortTypes.Serial
 
         self.__serial_port = None       # type: serial.Serial
         self.__port_info = port_info    # type: serial.tools.ListPortInfo
@@ -66,7 +66,7 @@ class ArancinoSerialPort(ArancinoPort):
         self.__populatePortInfo(device=self._device, port_info=self.__port_info)
 
         # log prefix to be print in each log
-        self.__log_prefix = "[{} - {} at {}]".format(self.port_type, self._id, self._device)
+        self.__log_prefix = "[{} - {} at {}]".format(self._port_type, self._id, self._device)
 
         # Command Executor
         # self.__executor = ArancinoCommandExecutor(self.__id, self.__device)
@@ -126,7 +126,8 @@ class ArancinoSerialPort(ArancinoPort):
 
             try:
                 # send the response back.
-                self.__serial_port.write(arsp.getRaw().encode())
+                self.sendResponse(arsp.getRaw())
+                #self.__serial_port.write(arsp.getRaw().encode())
                 LOG.debug("{} Sending: {}: {}".format(self.__log_prefix, arsp.getId(), str(arsp.getArguments())))
 
             except SerialException as ex:
@@ -206,28 +207,27 @@ class ArancinoSerialPort(ArancinoPort):
 
     # APIs
 
-    def sendResponse(self, response):
+    def sendResponse(self, raw_response):
         """
         Send a Response to the mcu. A Response is bind to a Command. The Response is sent only if the
             Serial Port is Connected.
 
-        :param response: {String} The Response to send back to the MCU.
+        :param raw_response: {String} The Response to send back to the MCU.
         :return: void
         """
 
         if self._m_s_connected:
-            self.__serial_port.write(response.encode())
+            self.__serial_port.write(raw_response.encode())
         else:  # not connected
-            #TODO: LOG or EXCEPTION
-            print("port not connected")
-            pass
+            LOG.warning("{} Cannot Sent a Response: Port is not connected.".format(self.__log_prefix))
+
 
 
     def connect(self):
         try:
             # check if the device is enabled and not already connected
             if self._m_c_enabled:
-                if not self._m_s_connected :
+                if not self._m_s_connected:
                     try:
 
                         LOG.info("{} Connecting...".format(self.__log_prefix))
@@ -239,15 +239,14 @@ class ArancinoSerialPort(ArancinoPort):
                         self.__serial_port.port = self._device
                         self.__serial_port.open()
 
-                        # TODO define a name for Serial Handler Thread
-                        self.__serial_handler = ArancinoSerialHandler("ArancinoSerialHandler", self.__serial_port, self._id, self._device, self.__commandReceivedHandler, self.__connectionLostHandler)
+                        self.__serial_handler = ArancinoSerialHandler("ArancinoSerialHandler-"+self._id, self.__serial_port, self._id, self._device, self.__commandReceivedHandler, self.__connectionLostHandler)
                         self._m_s_connected = True
                         self.__serial_handler.start()
                         LOG.info("{} Connected".format(self.__log_prefix))
 
                     except Exception as ex:
                         # TODO LOG SOMETHING OR NOT?
-                        LOG.error("{} Error while connecting: {}".format(self.__log_prefix), str(ex))
+                        LOG.error("{} Error while connecting: {}".format(self.__log_prefix, str(ex)))
                         raise ex
 
                 else:
@@ -271,24 +270,9 @@ class ArancinoSerialPort(ArancinoPort):
 
                 self.__serial_handler.stop()
 
-
-                # unsets the Port Metadata
-                # self.__m_p_vid = None
-                # self.__m_p_pid = None
-                # self.__m_p_name = None
-                # self.__m_p_description = None
-                # self.__m_p_hwid = None
-                # self.__m_p_serialnumber = None
-                # self.__m_p_location = None
-                # self.__m_p_manufacturer = None
-                # self.__m_p_product = None
-                # self.__m_p_interface = None
-                # self.__id = None
-                # self.__device = None
             else:
-                # TODO LOG or EXCEPTION
                 LOG.debug("{} Already Disconnected".format(self.__log_prefix))
-                pass
+
 
         except Exception as ex:
             raise ex

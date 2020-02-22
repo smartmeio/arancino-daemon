@@ -27,16 +27,29 @@ from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 
 class ArancinoPort(object):
 
-    port_type = None
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, device=None, m_s_plugged=False, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None):
+    def __init__(self, device=None, m_s_plugged=False, m_c_enabled=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None):
 
-        self._device = None          # the plugged tty i.e: /dev/tty.ACM0
+        # BASE ARANCINO METADATA
         self._id = None  # Id is the Serial Number. It will have a value when the Serial Port is connected
+        self._device = None          # the plugged tty i.e: /dev/tty.ACM0
+        self._port_type = None
 
-        # ARANCINO PORT METADATA
+        # BASE ARANCINO STATUS METADATA
+        self._m_s_plugged = m_s_plugged
+        self._m_s_connected = False
+        self._m_s_creation_date = None # TODO devono essere ancora gestite
+        self._m_s_last_usage = None # TODO devono essere ancora gestite
+
+        # BASE ARANCINO CONFIGURATION METADATA
+        self._m_c_enabled = m_c_enabled
+        # self._m_c_auto_connect = m_c_auto_connect # TODO remove
+        self._m_c_alias = m_c_alias
+        self._m_c_hide = m_c_hide
+
+        # SERIAL ARANCINO PORT METADATA
         self._m_p_vid = None
         self._m_p_pid = None
         self._m_p_name = None
@@ -48,18 +61,9 @@ class ArancinoPort(object):
         self._m_p_product = None
         self._m_p_interface = None
 
-        # ARANCINO STATUS METADATA
-        self._m_s_plugged = m_s_plugged
-        self._m_s_connected = False
-
-        # ARANCINO CONFIGURATION METADATA
-        self._m_c_enabled = m_c_enabled
-        self._m_c_auto_connect = m_c_auto_connect
-        self._m_c_alias = m_c_alias
-        self._m_c_hide = m_c_hide
 
         # Command Executor
-        self._executor = None
+        # self._executor = ArancinoCommandExecutor(self._id, self._device)
 
         # CALLBACK FUNCTIONS
         self._received_command_handler = None
@@ -130,19 +134,34 @@ class ArancinoPort(object):
         pass
 
 
-    # Encapsulators
+    # BASE ARANCINO METADATA Encapsulators
 
     def getId(self):
         return self._id
 
+    def getDevice(self):
+        return self._device
+
+    def getPortType(self):
+        return self._port_type
+
+    # BASE ARANCINO STATUS METADATA Encapsulators
+
+    def isPlugged(self):
+        return self._m_s_plugged
+
+
+    def isConnected(self):
+        return self._m_s_connected
+
+
+    # BASE ARANCINO CONFIGURATION METADATA Encapsulators
 
     def isEnabled(self):
         return self._m_c_enabled
 
-
-    def getAutoConnect(self):
-        return self._m_c_auto_connect
-
+    # def getAutoConnect(self):
+    #     return self._m_c_auto_connect
 
     def getAlias(self):
         return self._m_c_alias
@@ -151,6 +170,8 @@ class ArancinoPort(object):
     def isHidden(self):
         return self._m_c_hide
 
+
+    # SERIAL ARANCINO PORT METADATA
 
     def getVID(self):
         return self._m_p_vid
@@ -192,16 +213,9 @@ class ArancinoPort(object):
         return self._m_p_interface
 
 
-    def getDevice(self):
-        return self._device
 
 
-    def isPlugged(self):
-        return self._m_s_plugged
 
-
-    def isConnected(self):
-        return self._m_s_connected
 
 
     def setEnabled(self, enabled):
@@ -245,4 +259,4 @@ class PortTypes:
     Tcp = "TCP"
     Mqtt = "MQTT"
     Bluetooth = "BLUETOOTH"
-    Test = "Test"
+    Test = "TEST"

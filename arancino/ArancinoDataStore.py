@@ -22,6 +22,9 @@ under the License
 from arancino.ArancinoUtils import Singleton, ArancinoConfig
 import redis
 
+
+# TODO make test connection using ping: https://stackoverflow.com/a/12860041/6789137
+
 @Singleton
 class ArancinoDataStore:
 

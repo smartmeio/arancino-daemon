@@ -62,11 +62,9 @@ class ArancinoConfig:
         # CONFIG GENERAL SECTION
         self.__general_env = Config.get("general", "env")
         self.__general_cycle_time = Config.get("general", "cycle_time")
-        self.__general_allowed_hwid = Config.get("general", "allowed_hwid")
 
         # CONFIG REDIS SECTION
         self.__redis_instance_type = Config.get("redis", "instance_type")
-        # TODO calcolare i parametri di connessione.
 
         # CONFIG SERIAL PORT SECTION
         self.__port_serial_enabled = Config.get("port.serial", "enabled")
@@ -82,6 +80,8 @@ class ArancinoConfig:
         self.__port_test_hide = Config.get("port.test", "hide")
         self.__port_test_filter_type = Config.get("port.test", "filter_type")
         self.__port_test_filter_list = Config.get("port.test", "filter_list")
+        self.__port_test_num = Config.get("port.test", "num")
+        self.__port_test_id_template = Config.get("port.test", "id_template")
 
         # CONFIG LOG SECTION
         self.__log_level = Config.get("log", "level")
@@ -104,9 +104,6 @@ class ArancinoConfig:
 
     def get_general_cycle_time(self):
         return self.__general_cycle_time
-
-    def get_general_allowed_hwid(self):
-        return self.__general_allowed_hwid
 
     ######## REDIS ########
     def get_redis_instance_type(self):
@@ -148,19 +145,19 @@ class ArancinoConfig:
         return redis_dts, redis_dvs, redis_dts_rsvd
 
     ######## SERIAL PORT ########
-    def get_port_serial_enabled(self):  #TODO non usata, deve essere usata nel discovery serial
+    def get_port_serial_enabled(self):
         return self.__port_serial_enabled
 
-    def get_port_serial_auto_connect(self): # TODO non usata, deve essere usata nel discovery serial
+    def get_port_serial_auto_connect(self):
         return self.__port_serial_auto_connect
 
-    def get_port_serial_hide(self): # TODO non usata, deve essere usata nel discovery serial
+    def get_port_serial_hide(self):
         return self.__port_serial_hide
 
     def get_port_serial_comm_baudrate(self):
         return self.__port_serial_comm_baudrate
 
-    def get_port_serial_reset_baudrate(self): # TODO non usata, deve essere usata nel discovery serial
+    def get_port_serial_reset_baudrate(self):
         return self.__port_serial_reset_baudrate
 
     def get_port_serial_filter_type(self):
@@ -187,6 +184,12 @@ class ArancinoConfig:
 
     def get_port_test_filter_list(self):
         return json.loads(self.__port_test_filter_list.upper())
+
+    def get_port_test_num(self):
+        return self.__port_test_num
+
+    def get_port_test_id_template(self):
+        return self.__port_test_id_template
 
     ######## LOG ########
     def get_log_level(self):

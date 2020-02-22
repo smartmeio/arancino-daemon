@@ -1,17 +1,19 @@
 
 from threading import Thread
 from datetime import timedelta
-from arancino.ArancinoUtils import ArancinoLogger, ArancinoConfig
+from arancino.ArancinoUtils import ArancinoLogger, ArancinoConfig, Singleton
 from arancino.discovery.ArancinoSerialDiscovery import ArancinoSerialDiscovery
+from arancino.discovery.ArancinoTestDiscovery import ArancinoTestDiscovery
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
 import signal
 import time
 
+
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
 
-
-class ArancinoMain(Thread):
+@Singleton
+class Arancino(Thread):
 
     def __init__(self):
         Thread.__init__(self)
@@ -27,6 +29,8 @@ class ArancinoMain(Thread):
         self.__ports_discovered = {}
 
         self.__serial_discovery = ArancinoSerialDiscovery()
+        self.__test_discovery = ArancinoTestDiscovery()
+
         self.__synchronizer = ArancinoPortSynch()
 
         signal.signal(signal.SIGINT, self.__kill)
@@ -58,15 +62,20 @@ class ArancinoMain(Thread):
 
         while not self.__stop:
 
-            self.__ports_discovered = self.__serial_discovery.getAvailablePorts()
+            serial_ports = self.__serial_discovery.getAvailablePorts()
+            test_ports = self.__test_discovery.getAvailablePorts()
 
-            LOG.debug('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + port.port_type + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))
-            LOG.debug('Connected Ports: ' + str(len(self.__ports_connected)) + ' => ' + ' '.join('[' + port.port_type + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_connected.items()))
+            # works only in python 3.5 and above
+            self.__ports_discovered = {**serial_ports, **test_ports}
+
+
+            LOG.debug('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + port.getPortType() + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))
+            LOG.debug('Connected Ports: ' + str(len(self.__ports_connected)) + ' => ' + ' '.join('[' + port.getPortType() + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_connected.items()))
 
             # log that every hour
             if (time.time() - self.__thread_start_reset) >= 3600:
-                LOG.info('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + port.port_type + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))
-                LOG.info('Connected Ports: ' + str(len(self.__ports_connected)) + ' => ' + ' '.join('[' + port.port_type + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_connected.items()))
+                LOG.info('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + port.getPortType() + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))
+                LOG.info('Connected Ports: ' + str(len(self.__ports_connected)) + ' => ' + ' '.join('[' + port.getPortType() + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_connected.items()))
                 LOG.info('Uptime: ' + str(timedelta(seconds=int(time.time() - self.__thread_start))))
 
                 self.__thread_start_reset = time.time()
@@ -80,7 +89,7 @@ class ArancinoMain(Thread):
                 # this is List (not a Dict) of type ArancinoPort
                 ports_to_connect = self.__retrieveNewPorts(self.__ports_discovered)
                 # LOG.info("Connectable Serial Ports Retrieved: " + str(len(ports_to_connect)))
-                LOG.debug("Connectable Ports Retrieved: " + str(len(ports_to_connect)) + ' => ' + ' '.join('[' + port.port_type + ' - ' + str(port.getId()) + ' at ' + str(port.getDevice()) + ']' for port in ports_to_connect))
+                LOG.debug("Connectable Ports Retrieved: " + str(len(ports_to_connect)) + ' => ' + ' '.join('[' + port.getPortType() + ' - ' + str(port.getId()) + ' at ' + str(port.getDevice()) + ']' for port in ports_to_connect))
 
                 #finally connect the new discovered ports
                 if ports_to_connect:
@@ -221,3 +230,7 @@ class ArancinoMain(Thread):
         string += str(seconds) + " " + (seconds == 1 and "second" or "seconds")
 
         return string
+
+
+    def getConnectedPorts(self):
+        return self.__ports_connected
