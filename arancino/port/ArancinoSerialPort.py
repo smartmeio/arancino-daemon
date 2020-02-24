@@ -61,7 +61,7 @@ class ArancinoSerialPort(ArancinoPort):
         self.__populatePortInfo(device=self._device, port_info=self.__port_info)
 
         # log prefix to be print in each log
-        self.__log_prefix = "[{} - {} at {}]".format(self._port_type, self._id, self._device)
+        self.__log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
 
         # Command Executor
         # self.__executor = ArancinoCommandExecutor(self.__id, self.__device)
@@ -130,6 +130,7 @@ class ArancinoSerialPort(ArancinoPort):
         #  di questo oggetto non ha senso impostare connected = false e via dicendo
 
         self._m_s_connected = False
+        # self._m_s_plugged = False
 
         # free the handler and serial port
         self.__serial_port.close()

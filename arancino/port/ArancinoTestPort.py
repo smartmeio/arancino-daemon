@@ -56,7 +56,7 @@ class ArancinoTestPort(ArancinoPort):
 
         self.__stop = False
 
-        self.__log_prefix = "[{} - {} at {}]".format(self._port_type, self._id, self._device)
+        self.__log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
 
         self._executor = ArancinoCommandExecutor(self._id, self._device)
 
@@ -111,6 +111,7 @@ class ArancinoTestPort(ArancinoPort):
     # NOTA: per farlo astratto, si deve muovere l'handler nella super classe e chiamarlo con un nome generico ed anche il log prefix
     def __connectionLostHandler(self):
         self._m_s_connected = False
+        #self._m_s_plugged = False
 
         del self.__test_handler
 

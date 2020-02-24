@@ -5,6 +5,7 @@ from arancino.ArancinoUtils import ArancinoLogger, ArancinoConfig, Singleton
 from arancino.discovery.ArancinoSerialDiscovery import ArancinoSerialDiscovery
 from arancino.discovery.ArancinoTestDiscovery import ArancinoTestDiscovery
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
+from arancino.port.ArancinoPort import PortTypes
 import signal
 import time
 
@@ -42,11 +43,18 @@ class Arancino(Thread):
         LOG.warning("Process has been killed... ")
         self.__stop = True
 
+
     def __exit(self):
         LOG.info("Starting Exit procedure... ")
         LOG.info("Disconnecting Ports... ")
         for id, port in self.__ports_connected.items():
-            port.disconnect()
+            port.unplug()
+
+        for id, port in self.__ports_discovered.items():
+            port.unplug()
+            self.__synchronizer.synchPort(port)
+
+        #self.__synchronizer.synchClean(self.__ports_discovered)
 
         LOG.info("Bye!")
 
@@ -72,19 +80,21 @@ class Arancino(Thread):
             self.__ports_discovered = {**serial_ports, **test_ports}
 
 
-            LOG.debug('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + port.getPortType().value + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))
-            LOG.debug('Connected Ports: ' + str(len(self.__ports_connected)) + ' => ' + ' '.join('[' + port.getPortType().value + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_connected.items()))
+            LOG.debug('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))
+            LOG.debug('Connected Ports: ' + str(len(self.__ports_connected)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_connected.items()))
 
             # log that every hour
             if (time.time() - self.__thread_start_reset) >= 3600:
-                LOG.info('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + port.getPortType().value + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))
-                LOG.info('Connected Ports: ' + str(len(self.__ports_connected)) + ' => ' + ' '.join('[' + port.getPortType().value + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_connected.items()))
+                LOG.info('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))
+                LOG.info('Connected Ports: ' + str(len(self.__ports_connected)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_connected.items()))
                 LOG.info('Uptime: ' + str(timedelta(seconds=int(time.time() - self.__thread_start))))
 
                 self.__thread_start_reset = time.time()
 
             # first synchronization in loop
-            self.__synchronizer.synchPorts(self.__ports_discovered, self.__ports_connected)
+            self.__synchronizer.synchPorts(self.__ports_discovered, self.__ports_connected, 1)
+            # self.__synchronizer.saveDevices(self.__ports_discovered)
+            # self.__synchronizer.saveConfig(self.__ports_discovered)
 
             # retrieve if there are new ports to connect to
             if self.__ports_discovered:
@@ -92,7 +102,7 @@ class Arancino(Thread):
                 # this is List (not a Dict) of type ArancinoPort
                 ports_to_connect = self.__retrieveNewPorts(self.__ports_discovered)
                 # LOG.info("Connectable Serial Ports Retrieved: " + str(len(ports_to_connect)))
-                LOG.debug("Connectable Ports Retrieved: " + str(len(ports_to_connect)) + ' => ' + ' '.join('[' + port.getPortType().value + ' - ' + str(port.getId()) + ' at ' + str(port.getDevice()) + ']' for port in ports_to_connect))
+                LOG.debug("Connectable Ports Retrieved: " + str(len(ports_to_connect)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(port.getId()) + ' at ' + str(port.getDevice()) + ']' for port in ports_to_connect))
 
                 #finally connect the new discovered ports
                 if ports_to_connect:
@@ -106,7 +116,9 @@ class Arancino(Thread):
             LOG.info('Uptime2:' + str(timedelta(seconds=int(time.time() - self.__thread_start))))
 
             # second synchronization in loop
-            self.__synchronizer.synchPorts(self.__ports_discovered, self.__ports_connected)
+            self.__synchronizer.synchPorts(self.__ports_discovered, self.__ports_connected, 2)
+            # self.__synchronizer.saveConfig(self.__ports_connected)
+            # self.__synchronizer.saveDevices(self.__ports_connected)
 
             # print stats
             #self.__printStats()
@@ -145,6 +157,7 @@ class Arancino(Thread):
             LOG.exception(ex)
 
         return ports_to_connect
+
 
     def __disconnectDisabledPorts(self, connected):
         """
@@ -199,13 +212,14 @@ class Arancino(Thread):
                     LOG.warning("Port is not enabeled, can not connect to: {} {} at {}".format(port.getAlias(), port.getId(), port.getDevice()))
 
         except Exception as ex:
-            LOG.exception(ex)
+            LOG.error(ex)
 
 
     def __disconnectedPortHandler(self, port_id):
 
         port = self.__ports_connected.pop(port_id, None)
         LOG.warning("[{} - {} at {}] Destroying Arancino Port".format(port.getPortType(), port.getId(), port.getDevice()))
+        self.__synchronizer.synchPort(port)
 
         del port
 

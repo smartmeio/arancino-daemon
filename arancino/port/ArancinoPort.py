@@ -73,6 +73,11 @@ class ArancinoPort(object):
         self.setReceivedCommandHandler(receivedCommandHandler)  # this is the handler to be used to receive an ArancinoCommand and exec that command.
         self.setDisconnectionHandler(disconnectionHandler)  # this is the handler to be used whene a disconnection event is triggered
 
+    def unplug(self):
+        self.disconnect()
+        self._m_s_plugged = False
+
+
     @abstractmethod
     def connect(self):
         """
@@ -219,9 +224,9 @@ class ArancinoPort(object):
 
 class PortTypes(Enum):
 
-    SERIAL = "Serial"           # Serial
-    NETWORK = "Network"         # Wi-Fi or Ethernet Http connection
-    TCP = "Tcp"                 # TCP Socket
-    MQTT = "Mqtt"               # Network MQTT
-    BLUETOOTH = "Bluetooth"     # Bluetooth
-    TEST = "Test"               # Fake Port for Test purpose
+    SERIAL = 1        # Serial
+    NETWORK = 2       # Wi-Fi or Ethernet Http connection
+    TCP = 3           # TCP Socket
+    MQTT = 4          # Network MQTT
+    BLUETOOTH = 5     # Bluetooth
+    TEST = 6          # Fake Port for Test purpose
