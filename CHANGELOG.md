@@ -1,11 +1,12 @@
 # Changelog
 
-#### v 1.1.0 2020.MM.DD
+#### v 2.0.0 2020.MM.DD
 * Now Resets each microcontroller before connecting (requires v 1.1.0 Arancino Platform)
 * Changed project structure to a more modular architecture. Arancino Port Type can now be easily estended.
 * Improved logger formatter
 * Introduced new different port filter types.
 * Introduced a new kind of Port called Test Port, used for testing purpose
+* Fix `KEYS` command: now returns even persistent keys
 
 #### v 1.0.1 - 2019.12.30
 * Fix a bug while checks compatibility that prevent a new version library to be released without adding it in the compatibility array. Now it uses '*' while check version number.

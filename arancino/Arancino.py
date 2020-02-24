@@ -8,6 +8,7 @@ from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
 import signal
 import time
 
+# BUG gestire il caso in cui si chiude redis, mentre gira il software. se succede, capita che facendo il kill il software non si interrompe.
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
@@ -38,14 +39,16 @@ class Arancino(Thread):
 
 
     def __kill(self, signum, frame):
-        LOG.warning("Received Kill: Exiting... ")
+        LOG.warning("Process has been killed... ")
         self.__stop = True
 
     def __exit(self):
-
+        LOG.info("Starting Exit procedure... ")
+        LOG.info("Disconnecting Ports... ")
         for id, port in self.__ports_connected.items():
             port.disconnect()
 
+        LOG.info("Bye!")
 
         #TODO close redis connection
 
@@ -69,19 +72,19 @@ class Arancino(Thread):
             self.__ports_discovered = {**serial_ports, **test_ports}
 
 
-            LOG.debug('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + port.getPortType() + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))
-            LOG.debug('Connected Ports: ' + str(len(self.__ports_connected)) + ' => ' + ' '.join('[' + port.getPortType() + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_connected.items()))
+            LOG.debug('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + port.getPortType().value + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))
+            LOG.debug('Connected Ports: ' + str(len(self.__ports_connected)) + ' => ' + ' '.join('[' + port.getPortType().value + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_connected.items()))
 
             # log that every hour
             if (time.time() - self.__thread_start_reset) >= 3600:
-                LOG.info('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + port.getPortType() + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))
-                LOG.info('Connected Ports: ' + str(len(self.__ports_connected)) + ' => ' + ' '.join('[' + port.getPortType() + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_connected.items()))
+                LOG.info('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + port.getPortType().value + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))
+                LOG.info('Connected Ports: ' + str(len(self.__ports_connected)) + ' => ' + ' '.join('[' + port.getPortType().value + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_connected.items()))
                 LOG.info('Uptime: ' + str(timedelta(seconds=int(time.time() - self.__thread_start))))
 
                 self.__thread_start_reset = time.time()
 
             # first synchronization in loop
-            self.__synchronizer.synchPorts(self.__ports_discovered)
+            self.__synchronizer.synchPorts(self.__ports_discovered, self.__ports_connected)
 
             # retrieve if there are new ports to connect to
             if self.__ports_discovered:
@@ -89,19 +92,21 @@ class Arancino(Thread):
                 # this is List (not a Dict) of type ArancinoPort
                 ports_to_connect = self.__retrieveNewPorts(self.__ports_discovered)
                 # LOG.info("Connectable Serial Ports Retrieved: " + str(len(ports_to_connect)))
-                LOG.debug("Connectable Ports Retrieved: " + str(len(ports_to_connect)) + ' => ' + ' '.join('[' + port.getPortType() + ' - ' + str(port.getId()) + ' at ' + str(port.getDevice()) + ']' for port in ports_to_connect))
+                LOG.debug("Connectable Ports Retrieved: " + str(len(ports_to_connect)) + ' => ' + ' '.join('[' + port.getPortType().value + ' - ' + str(port.getId()) + ' at ' + str(port.getDevice()) + ']' for port in ports_to_connect))
 
                 #finally connect the new discovered ports
                 if ports_to_connect:
                     self.__connectPorts(ports_to_connect)
 
 
+            self.__disconnectDisabledPorts(self.__ports_connected)
+
             # TODO: verificare quale dei due é migliore, specialmente il secondo caso: come rappresenta giorni e mesi?
             LOG.info('Uptime1:' + self.__getProcessUptime((time.time() - self.__thread_start)))
             LOG.info('Uptime2:' + str(timedelta(seconds=int(time.time() - self.__thread_start))))
 
             # second synchronization in loop
-            self.__synchronizer.synchPorts(self.__ports_discovered)
+            self.__synchronizer.synchPorts(self.__ports_discovered, self.__ports_connected)
 
             # print stats
             #self.__printStats()
@@ -140,6 +145,25 @@ class Arancino(Thread):
             LOG.exception(ex)
 
         return ports_to_connect
+
+    def __disconnectDisabledPorts(self, connected):
+        """
+        Cycles all the connected ports and puts the disabled ones into
+        disabled_ports List. Finally it returns disabled_ports
+
+        :param connected: Dict of Connected Ports
+        :param discovered: Dict of Discovered Ports
+        :return disabled_ports: a list of Disabled Port
+
+        """
+        try:
+            for id, port in connected.items():
+                if port is not None and not port.isEnabled():
+                    #disabled_ports.append(port)
+                    port.disconnect()
+
+        except Exception as ex:
+            LOG.exception(ex)
 
 
     def __connectPorts(self, ports_to_connect):
@@ -181,7 +205,7 @@ class Arancino(Thread):
     def __disconnectedPortHandler(self, port_id):
 
         port = self.__ports_connected.pop(port_id, None)
-        LOG.warning("[{} - {} at {}] Destroying Arancino Port".format(port.port_type, port.getId(), port.getDevice()))
+        LOG.warning("[{} - {} at {}] Destroying Arancino Port".format(port.getPortType(), port.getId(), port.getDevice()))
 
         del port
 

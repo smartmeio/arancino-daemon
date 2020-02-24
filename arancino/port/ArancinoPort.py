@@ -20,6 +20,7 @@ under the License
 """
 
 from abc import ABCMeta, abstractmethod
+from enum import Enum
 
 from types import FunctionType, MethodType
 from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
@@ -30,36 +31,37 @@ class ArancinoPort(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, device=None, m_s_plugged=False, m_c_enabled=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None):
+    def __init__(self, device=None, m_s_plugged=False, m_c_enabled=True, m_c_alias="", m_c_hide=False, port_type=None, receivedCommandHandler=None, disconnectionHandler=None):
 
-        # BASE ARANCINO METADATA
-        self._id = None  # Id is the Serial Number. It will have a value when the Serial Port is connected
-        self._device = None          # the plugged tty i.e: /dev/tty.ACM0
-        self._port_type = None
+        # BASE METADATA
+        self._id = None                 # Id is the Serial Number. It will have a value when the Serial Port is connected
+        self._device = None             # the plugged tty or ip adddress, i.e: "/dev/tty.ACM0"
+        self._port_type = port_type     # Type of port, i.e: Serial, Network, etc...
 
-        # BASE ARANCINO STATUS METADATA
+        # BASE STATUS METADATA
         self._m_s_plugged = m_s_plugged
         self._m_s_connected = False
         self._m_s_creation_date = None # TODO devono essere ancora gestite
-        self._m_s_last_usage = None # TODO devono essere ancora gestite
+        self._m_s_last_usage_date = None # TODO devono essere ancora gestite
 
-        # BASE ARANCINO CONFIGURATION METADATA
+        # BASE CONFIGURATION METADATA
         self._m_c_enabled = m_c_enabled
         # self._m_c_auto_connect = m_c_auto_connect # TODO remove
         self._m_c_alias = m_c_alias
         self._m_c_hide = m_c_hide
 
         # SERIAL ARANCINO PORT METADATA
-        self._m_p_vid = None
-        self._m_p_pid = None
-        self._m_p_name = None
-        self._m_p_description = None
-        self._m_p_hwid = None
-        self._m_p_serial_number = None
-        self._m_p_location = None
-        self._m_p_manufacturer = None
-        self._m_p_product = None
-        self._m_p_interface = None
+        # self._m_p_vid = None
+        # self._m_p_pid = None
+        # self._m_p_name = None
+        # self._m_p_description = None
+        # self._m_p_hwid = None
+        # self._m_p_serial_number = None
+        # self._m_p_location = None
+        # self._m_p_manufacturer = None
+        # self._m_p_product = None
+        # self._m_p_interface = None
+        # self._m_p_device = None
 
 
         # Command Executor
@@ -134,18 +136,32 @@ class ArancinoPort(object):
         pass
 
 
-    # BASE ARANCINO METADATA Encapsulators
+    # BASE METADATA Encapsulators
 
     def getId(self):
         return self._id
 
+
+    def _setId(self, id):
+        self._id(id)
+
+
     def getDevice(self):
         return self._device
+
+
+    def _setDevice(self, device):
+        self._device = device
+
 
     def getPortType(self):
         return self._port_type
 
-    # BASE ARANCINO STATUS METADATA Encapsulators
+
+    def _setPortType(self, port_type):
+        self._port_type = port_type
+
+    # BASE STATUS METADATA Encapsulators
 
     def isPlugged(self):
         return self._m_s_plugged
@@ -155,10 +171,14 @@ class ArancinoPort(object):
         return self._m_s_connected
 
 
-    # BASE ARANCINO CONFIGURATION METADATA Encapsulators
+    # BASE CONFIGURATION METADATA Encapsulators
 
     def isEnabled(self):
         return self._m_c_enabled
+
+
+    def setEnabled(self, enabled):
+        self._m_c_enabled = enabled
 
     # def getAutoConnect(self):
     #     return self._m_c_auto_connect
@@ -167,67 +187,12 @@ class ArancinoPort(object):
         return self._m_c_alias
 
 
-    def isHidden(self):
-        return self._m_c_hide
-
-
-    # SERIAL ARANCINO PORT METADATA
-
-    def getVID(self):
-        return self._m_p_vid
-
-
-    def getPID(self):
-        return self._m_p_pid
-
-
-    def getName(self):
-        return self._m_p_name
-
-
-    def getDescription(self):
-        return self._m_p_description
-
-
-    def getHWID(self):
-        return self._m_p_hwid
-
-
-    def getSerialNumber(self):
-        return self._m_p_serial_number
-
-
-    def getLocation(self):
-        return self._m_p_location
-
-
-    def getManufacturer(self):
-        return self._m_p_manufacturer
-
-
-    def getProduct(self):
-        return self._m_p_product
-
-
-    def getInterface(self):
-        return self._m_p_interface
-
-
-
-
-
-
-
-    def setEnabled(self, enabled):
-        self._m_c_enabled = enabled
-
-
-    def setAutoConnect(self, auto_connect):
-        self._m_c_auto_connect = auto_connect
-
-
     def setAlias(self, alias):
         self._m_c_alias = alias
+
+
+    def isHidden(self):
+        return self._m_c_hide
 
 
     def setHide(self, hide):
@@ -252,11 +217,11 @@ class ArancinoPort(object):
 
 
 
-class PortTypes:
+class PortTypes(Enum):
 
-    Serial = "SERIAL"
-    Http = "HTTP"
-    Tcp = "TCP"
-    Mqtt = "MQTT"
-    Bluetooth = "BLUETOOTH"
-    Test = "TEST"
+    SERIAL = "Serial"           # Serial
+    NETWORK = "Network"         # Wi-Fi or Ethernet Http connection
+    TCP = "Tcp"                 # TCP Socket
+    MQTT = "Mqtt"               # Network MQTT
+    BLUETOOTH = "Bluetooth"     # Bluetooth
+    TEST = "Test"               # Fake Port for Test purpose

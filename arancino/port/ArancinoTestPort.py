@@ -35,9 +35,9 @@ LOG = ArancinoLogger.Instance().getLogger()
 
 class ArancinoTestPort(ArancinoPort):
     def __init__(self, id=None, device=None, m_s_plugged=True, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None):
-        super().__init__(device=device, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
+        super().__init__(device=device, port_type=PortTypes.TEST, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
-        self._port_type = PortTypes.Test
+        #self._port_type = PortTypes.Test
 
         self._m_p_vid = "TEST"
         self._m_p_pid = "TEST"
@@ -49,9 +49,10 @@ class ArancinoTestPort(ArancinoPort):
         self._m_p_manufacturer = "TEST"
         self._m_p_product = "TEST"
         self._m_p_interface = "TEST"
+        self._m_c_alias = m_c_alias
         self._device = "TEST"
         self._id = id if id  is not None else uuid.uuid1()
-        self._m_c_alias = m_c_alias
+
 
         self.__stop = False
 
@@ -123,6 +124,7 @@ class ArancinoTestPort(ArancinoPort):
             pass
 
 
+    # PORT APIs IMPLEMENTATION
     def connect(self):
         try:
             # check if the device is enabled and not already connected
@@ -158,7 +160,6 @@ class ArancinoTestPort(ArancinoPort):
 
         except Exception as ex:
             raise ex
-
 
     # TODO implement the method in the abstract class:
     # NOTA: per farlo astratto, si deve muovere l'handler nella super classe e chiamarlo con un nome generico ed anche il log prefix

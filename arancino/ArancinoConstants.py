@@ -241,18 +241,23 @@ class ArancinoCommandIdentifiers:
 class ArancinoDBKeys():
     # Keys used in to store port information into devicestore
 
-    # additional metadata keys
-    M_ID = "M_ID"  # String
-    M_ENABLED = "M_ENABLED"  # Boolean
-    M_AUTO_CONNECT = "M_AUTO_CONNECT"  # Boolean
-    M_CONNECTED = "M_CONNECTED"  # Boolean
-    M_PLUGGED = "M_PLUGGED"  # Boolean
-    M_ALIAS = "M_ALIAS"  # Boolean
-    M_DATETIME = "M_DATETIME"  # Datetime #TODO contestualizzare in maniera piu opportuna questo campo: (ultima modifica? ultima rilevazione ?)
-    M_HIDE_DEVICE = "M_HIDE_DEVICE"  # Boolean
+    # BASE ARANCINO METADATA (B)Base
+    B_ID = "B_ID"  # String
+    B_DEVICE = "B_DEVICE"  # String
+    B_PORT_TYPE = "B_PORT_TYPE" # String
 
-    # ports info keys
-    P_DEVICE = "P_DEVICE"  # String
+    # BASE ARANCINO STATUS METADATA (S)Status
+    S_CONNECTED = "S_CONNECTED"  # Boolean
+    S_PLUGGED = "S_PLUGGED"  # Boolean
+    S_CREATION_DATE = "S_CREATION_DATE" #Datetime TODO ???
+    S_LAST_USAGE_DATE = "S_LAST_USAGE_DATE"  # Datetime TODO ???
+
+    # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
+    C_ENABLED = "C_ENABLED"  # Boolean
+    C_ALIAS = "C_ALIAS"  # Boolean
+    C_HIDE_DEVICE = "C_HIDE_DEVICE"  # Boolean
+
+    # SERIAL ARANCINO PORT METADATA (P)Port
     P_NAME = "P_NAME"  # String
     P_DESCRIPTION = "P_DESCRIPTION"  # String
     P_HWID = "P_HWID"  # String
@@ -263,6 +268,7 @@ class ArancinoDBKeys():
     P_MANUFACTURER = "P_MANUFACTURER"  # String
     P_PRODUCT = "P_PRODUCT"  # String
     P_INTERFACE = "P_INTERFACE"  # String
+    P_DEVICE = "P_DEVICE"  # String
 
 
 COMPATIBILITY_MATRIX_MOD = {

@@ -27,6 +27,7 @@ import json
 from logging.handlers import RotatingFileHandler
 from arancino.ArancinoConstants import RedisInstancesType
 from arancino.filter.ArancinoPortFilter import FilterTypes
+import arancino.ArancinoUtils
 
 
 class Singleton:
@@ -51,6 +52,9 @@ class Singleton:
 @Singleton
 class ArancinoConfig:
 
+    # BUG quando vengono letti valori booleani dal file di configurazione, non vengono convertiti nel tipo adatto e rimangono stringhe
+    # stessa cosa per gli altri tipo.
+
     def __init__(self):
 
         Config = configparser.ConfigParser()
@@ -67,17 +71,17 @@ class ArancinoConfig:
         self.__redis_instance_type = Config.get("redis", "instance_type")
 
         # CONFIG SERIAL PORT SECTION
-        self.__port_serial_enabled = Config.get("port.serial", "enabled")
-        self.__port_serial_auto_connect = Config.get("port.serial", "auto_connect")
-        self.__port_serial_hide = Config.get("port.serial", "hide")
+        self.__port_serial_enabled = stringToBool(Config.get("port.serial", "enabled"))
+        #self.__port_serial_auto_connect = Config.get("port.serial", "auto_connect")
+        self.__port_serial_hide = stringToBool(Config.get("port.serial", "hide"))
         self.__port_serial_comm_baudrate = Config.get("port.serial", "comm_baudrate")
         self.__port_serial_reset_baudrate = Config.get("port.serial", "reset_baudrate")
         self.__port_serial_filter_type = Config.get("port.serial", "filter_type")
         self.__port_serial_filter_list = Config.get("port.serial", "filter_list")
 
         # CONFIG TEST PORT SECTION
-        self.__port_test_enabled = Config.get("port.test", "enabled")
-        self.__port_test_hide = Config.get("port.test", "hide")
+        self.__port_test_enabled = stringToBool(Config.get("port.test", "enabled"))
+        self.__port_test_hide = stringToBool(Config.get("port.test", "hide"))
         self.__port_test_filter_type = Config.get("port.test", "filter_type")
         self.__port_test_filter_list = Config.get("port.test", "filter_list")
         self.__port_test_num = Config.get("port.test", "num")
@@ -86,7 +90,7 @@ class ArancinoConfig:
         # CONFIG LOG SECTION
         self.__log_level = Config.get("log", "level")
         self.__log_name = Config.get("log", "name")
-        self.__log_console = Config.get("log", "console")
+        self.__log_console = stringToBool(Config.get("log", "console"))
 
         self.__log_log = Config.get("log", "log")
         self.__log_error = Config.get("log", "error")
@@ -148,8 +152,8 @@ class ArancinoConfig:
     def get_port_serial_enabled(self):
         return self.__port_serial_enabled
 
-    def get_port_serial_auto_connect(self):
-        return self.__port_serial_auto_connect
+    # def get_port_serial_auto_connect(self):
+    #     return self.__port_serial_auto_connect
 
     def get_port_serial_hide(self):
         return self.__port_serial_hide
@@ -304,3 +308,22 @@ class CustomConsoleFormatter(logging.Formatter):
         log_fmt = self.FORMATS.get(record.levelno)
         formatter = logging.Formatter(log_fmt)
         return formatter.format(record)
+
+
+
+def stringToBool(value):
+    '''
+    Convert a string representation of boolean value to an object of type Bool.
+    :param value: {String) Value to convert
+    :return: {Bool} Boolean conversion
+    '''
+    if value is not None:
+        __val = (value.upper() == "TRUE")
+    else:
+        __val = False
+
+    return __val
+
+def stringToDatetime(str):
+    #TODO
+    pass

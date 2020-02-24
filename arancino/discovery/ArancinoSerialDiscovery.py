@@ -73,7 +73,7 @@ class ArancinoSerialDiscovery:
 
         for port in ports:
 
-            p = ArancinoSerialPort(port_info=port, m_s_plugged=True, m_c_enabled=CONF.get_port_serial_enabled(), m_c_auto_connect=CONF.get_port_serial_auto_connect(), m_c_hide=CONF.get_port_serial_hide(), baudrate=CONF.get_port_serial_comm_baudrate())
+            p = ArancinoSerialPort(port_info=port, m_s_plugged=True, m_c_enabled=CONF.get_port_serial_enabled(), m_c_hide=CONF.get_port_serial_hide(), baudrate=CONF.get_port_serial_comm_baudrate())
             new_ports_struct[p.getId()] = p
 
         return new_ports_struct

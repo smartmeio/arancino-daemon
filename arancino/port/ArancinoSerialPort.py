@@ -34,34 +34,29 @@ class ArancinoSerialPort(ArancinoPort):
 
     def __init__(self, port_info=None, device=None, baudrate=9600, m_s_plugged=False, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
 
-        super().__init__(device=device, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
+        super().__init__(device=device, port_type=PortTypes.SERIAL, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
-        self._port_type = PortTypes.Serial
+        # self._port_type = PortTypes.Serial
 
         self.__serial_port = None       # type: serial.Serial
         self.__port_info = port_info    # type: serial.tools.ListPortInfo
-        # self.__device = device          # the plugged tty i.e: /dev/tty.ACM0
-        # self._device = device
-        #
-        # self.__id = None  # Id is the Serial Number. It will have a value when the Serial Port is connected
-
 
         # SERIAL PORT PARAMETER
         self.__baudrate = baudrate
         self.__timeout = timeout
 
-        # ARANCINO PORT METADATA
-        # self.__m_p_vid = None
-        # self.__m_p_pid = None
-        # self.__m_p_name = None
-        # self.__m_p_description = None
-        # self.__m_p_hwid = None
-        # self.__m_p_serial_number = None
-        # self.__m_p_location = None
-        # self.__m_p_manufacturer = None
-        # self.__m_p_product = None
-        # self.__m_p_interface = None
-        #self.__m_p_device = None
+        # SERIAL PORT METADATA
+        self.__m_p_vid = None
+        self.__m_p_pid = None
+        self.__m_p_name = None
+        self.__m_p_description = None
+        self.__m_p_hwid = None
+        self.__m_p_serial_number = None
+        self.__m_p_location = None
+        self.__m_p_manufacturer = None
+        self.__m_p_product = None
+        self.__m_p_interface = None
+        self.__m_p_device = None
 
         self.__populatePortInfo(device=self._device, port_info=self.__port_info)
 
@@ -70,16 +65,6 @@ class ArancinoSerialPort(ArancinoPort):
 
         # Command Executor
         # self.__executor = ArancinoCommandExecutor(self.__id, self.__device)
-
-        # # ARANCINO STATUS METADATA
-        # self.__m_s_plugged = m_s_plugged
-        # self.__m_s_connected = False
-        #
-        # # ARANCINO CONFIGURATION METADATA
-        # self.__m_c_enabled = m_c_enabled
-        # self.__m_c_auto_connect = m_c_auto_connect
-        # self.__m_c_alias = m_c_alias
-        # self.__m_c_hide = m_c_hide
 
         self._executor = ArancinoCommandExecutor(self._id, self._device)
 
@@ -177,16 +162,16 @@ class ArancinoSerialPort(ArancinoPort):
             # for p in ports:
             #     if p.device == device:
                     # sets Port Metadata
-            self._m_p_vid = "0x{:04X}".format(p.vid)   #str(hex(p.vid))
-            self._m_p_pid = "0x{:04X}".format(p.pid)
-            self._m_p_name = p.name
-            self._m_p_description = p.description
-            self._m_p_hwid = p.hwid
-            self._m_p_serial_number = p.serial_number
-            self._m_p_location = p.location
-            self._m_p_manufacturer = p.manufacturer
-            self._m_p_product = p.product
-            self._m_p_interface = p.interface
+            self.__m_p_vid = "0x{:04X}".format(p.vid)   #str(hex(p.vid))
+            self.__m_p_pid = "0x{:04X}".format(p.pid)
+            self.__m_p_name = p.name
+            self.__m_p_description = p.description
+            self.__m_p_hwid = p.hwid
+            self.__m_p_serial_number = p.serial_number
+            self.__m_p_location = p.location
+            self.__m_p_manufacturer = p.manufacturer
+            self.__m_p_product = p.product
+            self.__m_p_interface = p.interface
             self._device = p.device
 
             self._id = p.serial_number
@@ -205,7 +190,7 @@ class ArancinoSerialPort(ArancinoPort):
                 return p
 
 
-    # APIs
+    # PORT APIs IMPLEMENTATION
 
     def sendResponse(self, raw_response):
         """
@@ -220,7 +205,6 @@ class ArancinoSerialPort(ArancinoPort):
             self.__serial_port.write(raw_response.encode())
         else:  # not connected
             LOG.warning("{} Cannot Sent a Response: Port is not connected.".format(self.__log_prefix))
-
 
 
     def connect(self):
@@ -294,3 +278,44 @@ class ArancinoSerialPort(ArancinoPort):
             #LOG.info("{} Connected".format(self.__log_prefix))
             LOG.exception(self.__log_prefix + str(ex))
 
+
+    # SERIAL ARANCINO PORT METADATA
+
+    def getVID(self):
+        return self.__m_p_vid
+
+
+    def getPID(self):
+        return self.__m_p_pid
+
+
+    def getName(self):
+        return self.__m_p_name
+
+
+    def getDescription(self):
+        return self.__m_p_description
+
+
+    def getHWID(self):
+        return self.__m_p_hwid
+
+
+    def getSerialNumber(self):
+        return self.__m_p_serial_number
+
+
+    def getLocation(self):
+        return self.__m_p_location
+
+
+    def getManufacturer(self):
+        return self.__m_p_manufacturer
+
+
+    def getProduct(self):
+        return self.__m_p_product
+
+
+    def getInterface(self):
+        return self.__m_p_interface

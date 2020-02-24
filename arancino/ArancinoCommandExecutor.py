@@ -75,7 +75,7 @@ class ArancinoCommandExecutor:
                 raw_response = self.__OPTS_DEL(cmd_args)
                 return raw_response
             # KEYS
-            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_KEYS:
+            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_KEYS['id']:
                 raw_response = self.__OPTS_KEYS(cmd_args)
                 return raw_response
             # HSET
@@ -416,6 +416,9 @@ class ArancinoCommandExecutor:
         try:
 
             keys = self.__datastore.keys(pattern)
+            keys_pers = self.__datastore_rsvd.keys(pattern)
+
+            keys = keys + keys_pers
 
         except Exception as ex:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)

@@ -25,6 +25,7 @@ from arancino.ArancinoUtils import *
 from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoCortex import ArancinoCommandIdentifiers as cmdId
 from arancino.ArancinoConstants import ArancinoSpecialChars as specChars
+from random import randrange
 import time
 
 LOG = ArancinoLogger.Instance().getLogger()
@@ -37,7 +38,7 @@ class ArancinoTestHandler(threading.Thread):
         self.__name = name          # the name, usually the arancino port id
         self.__id = id
         self.__device = device
-        self.__log_prefix = "[{} - {} at {}]".format(PortTypes.Serial, self.__id, self.__device)
+        self.__log_prefix = "[{} - {} at {}]".format(PortTypes.SERIAL, self.__id, self.__device)
 
         self.__commandReceivedHandler = commandReceivedHandler  # handler to be called when a raw command is complete and ready to be translated and executed.
         self.__connectionLostHandler = connectionLostHandler    # handler to be called when a connection is lost or stopped
@@ -67,7 +68,7 @@ class ArancinoTestHandler(threading.Thread):
                     else:
                         count += 1  # go to the next command
 
-                    time.sleep(1)
+                    time.sleep(randrange(3))
 
                 except Exception as ex:
                     # probably some I/O problem such as disconnected USB serial
@@ -106,5 +107,11 @@ class ArancinoTestHandler(threading.Thread):
         list = []
         list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + "1.0.0" + specChars.CHR_EOT)
         list.append(cmdId.CMD_APP_SET["id"] + specChars.CHR_SEP + "TEST_KEY" + specChars.CHR_SEP + "TEST_VAL" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_SET_PERS["id"] + specChars.CHR_SEP + "TEST_PERS_KEY" + specChars.CHR_SEP + "TEST_PERS_VAL" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_GET["id"] + specChars.CHR_SEP + "TEST_KEY" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_GET["id"] + specChars.CHR_SEP + "TEST_PERS_KEY" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_KEYS["id"] + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+
         # TODO: add all command to test
         return list
+
