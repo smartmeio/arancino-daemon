@@ -1,4 +1,5 @@
 
+import threading
 from threading import Thread
 from datetime import timedelta
 from arancino.ArancinoUtils import ArancinoLogger, ArancinoConfig, Singleton
@@ -14,33 +15,50 @@ import time
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
 
-@Singleton
+
+#@Singleton
 class Arancino(Thread):
+    _instance = None
+    _lock = threading.Lock()
+    _init = None
+
+    def __new__(cls):
+        if Arancino._instance is None:
+            with Arancino._lock:
+                if Arancino._instance is None:
+                    Arancino._instance = super(Arancino, cls).__new__(cls)
+        return Arancino._instance
+
+
+
 
     def __init__(self):
-        Thread.__init__(self)
+        if Arancino._instance is not None and not Arancino._init:
+            Thread.__init__(self)
 
-        self.__stop = False
-        self.__cycle_time = CONF.get_general_cycle_time()
-        self.__version = CONF.get_metadata_version()
+            self.__stop = False
+            self.__cycle_time = CONF.get_general_cycle_time()
+            self.__version = CONF.get_metadata_version()
 
-        self.__thread_start = None
-        self.__thread_start_reset = None
+            self.__thread_start = None
+            self.__thread_start_reset = None
 
-        self.__ports_connected = {}
-        self.__ports_discovered = {}
+            self.__ports_connected = {}
+            self.__ports_discovered = {}
 
-        self.__serial_discovery = ArancinoSerialDiscovery()
-        self.__test_discovery = ArancinoTestDiscovery()
+            self.__serial_discovery = ArancinoSerialDiscovery()
+            self.__test_discovery = ArancinoTestDiscovery()
 
-        self.__synchronizer = ArancinoPortSynch()
+            self.__synchronizer = ArancinoPortSynch()
 
-        signal.signal(signal.SIGINT, self.__kill)
-        signal.signal(signal.SIGTERM, self.__kill)
+            # signal.signal(signal.SIGINT, self.__kill)
+            # signal.signal(signal.SIGTERM, self.__kill)
+
+            Arancino._init = True
 
 
     def __kill(self, signum, frame):
-        LOG.warning("Process has been killed... ")
+        LOG.warning("Killing the Process... ")
         self.__stop = True
 
 
@@ -61,6 +79,10 @@ class Arancino(Thread):
         #TODO close redis connection
 
         exit(0)
+
+
+    def stop(self):
+        self.__kill(None, None)
 
 
     def run(self):

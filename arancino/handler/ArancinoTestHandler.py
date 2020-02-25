@@ -38,7 +38,7 @@ class ArancinoTestHandler(threading.Thread):
         self.__name = name          # the name, usually the arancino port id
         self.__id = id
         self.__device = device
-        self.__log_prefix = "[{} - {} at {}]".format(PortTypes.SERIAL, self.__id, self.__device)
+        self.__log_prefix = "[{} - {} at {}]".format(PortTypes(PortTypes.TEST).name, self.__id, self.__device)
 
         self.__commandReceivedHandler = commandReceivedHandler  # handler to be called when a raw command is complete and ready to be translated and executed.
         self.__connectionLostHandler = connectionLostHandler    # handler to be called when a connection is lost or stopped
