@@ -18,7 +18,7 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 """
-
+import semantic_version
 import serial, time
 from serial import SerialException
 
@@ -37,23 +37,9 @@ class ArancinoTestPort(ArancinoPort):
     def __init__(self, id=None, device=None, m_s_plugged=True, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None):
         super().__init__(device=device, port_type=PortTypes.TEST, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
-        #self._port_type = PortTypes.Test
-
-        self._m_p_vid = "TEST"
-        self._m_p_pid = "TEST"
-        self._m_p_name = "TEST"
-        self._m_p_description = "TEST"
-        self._m_p_hwid = "TEST"
-        self._m_p_serial_number = "TEST"
-        self._m_p_location = "TEST"
-        self._m_p_manufacturer = "TEST"
-        self._m_p_product = "TEST"
-        self._m_p_interface = "TEST"
-        self._m_c_alias = m_c_alias
-        self._device = "TEST"
-        self._id = id if id  is not None else uuid.uuid1()
-
-
+        # set the version internally
+        self._setLibVersion(semantic_version.Version('1.0.0'))
+        self._id = id if id is not None else uuid.uuid1()
         self.__stop = False
 
         self.__log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)

@@ -51,8 +51,8 @@ class Arancino(Thread):
 
             self.__synchronizer = ArancinoPortSynch()
 
-            # signal.signal(signal.SIGINT, self.__kill)
-            # signal.signal(signal.SIGTERM, self.__kill)
+            signal.signal(signal.SIGINT, self.__kill)
+            signal.signal(signal.SIGTERM, self.__kill)
 
             Arancino._init = True
 
@@ -133,9 +133,8 @@ class Arancino(Thread):
 
             self.__disconnectDisabledPorts(self.__ports_connected)
 
-            # TODO: verificare quale dei due é migliore, specialmente il secondo caso: come rappresenta giorni e mesi?
             LOG.info('Uptime1:' + self.__getProcessUptime((time.time() - self.__thread_start)))
-            LOG.info('Uptime2:' + str(timedelta(seconds=int(time.time() - self.__thread_start))))
+            #LOG.info('Uptime2:' + str(timedelta(seconds=int(time.time() - self.__thread_start))))
 
             # second synchronization in loop
             self.__synchronizer.synchPorts(self.__ports_discovered, self.__ports_connected, 2)
@@ -227,7 +226,7 @@ class Arancino(Thread):
                     port.connect()
 
                     # move Arancino Port to the self.__ports_connected
-                    self.__ports_connected[port.getId()] = port  # TODO is this passed by value or by reference?
+                    self.__ports_connected[port.getId()] = port
 
 
                 else:

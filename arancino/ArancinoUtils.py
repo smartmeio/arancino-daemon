@@ -19,11 +19,13 @@ License for the specific language governing permissions and limitations
 under the License
 """
 
+
 import configparser
 import logging
 import sys
 import os
 import json
+from datetime import datetime
 from logging.handlers import RotatingFileHandler
 from arancino.ArancinoConstants import RedisInstancesType
 from arancino.filter.ArancinoPortFilter import FilterTypes
@@ -90,7 +92,9 @@ class ArancinoConfig:
         # CONFIG LOG SECTION
         self.__log_level = Config.get("log", "level")
         self.__log_name = Config.get("log", "name")
+
         self.__log_console = stringToBool(Config.get("log", "console"))
+        self.__log_file = stringToBool(Config.get("log", "file"))
 
         self.__log_log = Config.get("log", "log")
         self.__log_error = Config.get("log", "error")
@@ -208,6 +212,9 @@ class ArancinoConfig:
     def get_log_console(self):
         return self.__log_console
 
+    def get_log_file(self):
+        return self.__log_file
+
     def get_log_log_file(self):
         return self.__log_log
 
@@ -240,11 +247,13 @@ class ArancinoLogger:
 
         self.__logger = logging.getLogger(self.__name)#CustomLogger(self.__name)#
         self.__logger.setLevel(logging.getLevelName(conf.get_log_level()))
-        self.__logger.addHandler(self.__getFileHandler())
-        self.__logger.addHandler(self.__getErrorFileHandler())
 
         if conf.get_log_console():
             self.__logger.addHandler(self.__getConsoleHandler())
+
+        if conf.get_log_file():
+            self.__logger.addHandler(self.__getFileHandler())
+            self.__logger.addHandler(self.__getErrorFileHandler())
 
     def __getConsoleHandler(self):
         console_handler = logging.StreamHandler(sys.stdout)
@@ -324,6 +333,39 @@ def stringToBool(value):
 
     return __val
 
-def stringToDatetime(str):
-    #TODO
-    pass
+
+def stringToDatetime(dt_str):
+    dt = datetime.strptime(dt_str, "%Y.%m.%d %H:%M:%S")
+    return dt
+
+
+def datetimeToString(dt):
+    dt_str = dt.strftime("%Y.%m.%d %H:%M:%S")
+    return dt_str
+
+
+
+# from timestampt to datetime
+'''
+from datetime import datetime
+
+timestamp = 1545730073
+dt_object = datetime.fromtimestamp(timestamp)
+
+print("dt_object =", dt_object)
+print("type(dt_object) =", type(dt_object))
+
+'''
+
+# from datetime to timestamp
+'''
+from datetime import datetime
+
+# current date and time
+now = datetime.now()
+
+timestamp = datetime.timestamp(now)
+print("timestamp =", timestamp)
+
+
+'''

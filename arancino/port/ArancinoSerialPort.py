@@ -18,7 +18,7 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 """
-
+import semantic_version
 import serial, time
 from serial import SerialException
 from types import FunctionType, MethodType
@@ -96,6 +96,10 @@ class ArancinoSerialPort(ArancinoPort):
 
             # create the Arancino Response object
             arsp = ArancinoResponse(raw_response=raw_response)
+
+            if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
+                v = semantic_version.Version(acmd.getArguments()[0])
+                self._setLibVersion(v)
 
 
         # All Arancino Application Exceptions contains an Error Code

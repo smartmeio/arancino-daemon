@@ -20,10 +20,11 @@ under the License
 
 #from arancino.arancino_datastore import ArancinoDataStore
 #import arancino.arancino_constants as const
+from datetime import datetime
 
 from arancino.ArancinoDataStore import ArancinoDataStore
 from arancino.ArancinoConstants import ArancinoDBKeys
-from arancino.ArancinoUtils import stringToBool, stringToDatetime
+from arancino.ArancinoUtils import stringToBool, stringToDatetime, datetimeToString
 from arancino.port.ArancinoPort import PortTypes
 
 
@@ -32,116 +33,6 @@ class ArancinoPortSynch:
 
     def __init__(self):
         self.__devicestore = ArancinoDataStore.Instance().getDeviceStore()
-
-
-    # def __merge(self, discovered, connected):
-    #
-    #     #TODO write docs: Creo un dizionario facendo merge delle due list, se lo steso id é presente nelle stesse list,
-    #     # viene preso quello della lista connected in quanto é quello usato
-    #
-    #     merged = {}
-    #     for id, port in discovered.items():
-    #         if id in connected:
-    #             merged[id] = connected[id]  # put the connected port
-    #         else:
-    #             merged[id] = port           # put the discovered port
-    #
-    #     return merged
-    #
-    #
-    # def saveDevices(self, ports):
-    #
-    #     for id, port in ports.items():
-    #
-    #         if not self.__devicestore.exists(port.getId()) == 1:  # the port is already registered in the device store
-    #
-    #             # BASE ARANCINO CONFIGURATION METADATA
-    #             # sets default configuration (from config file arancino.cfg)
-    #             self.__devicestore.hset(port.getId(), ArancinoDBKeys.C_ENABLED, str(port.isEnabled()))
-    #             self.__devicestore.hset(port.getId(), ArancinoDBKeys.C_ALIAS, str(port.getAlias()))
-    #             self.__devicestore.hset(port.getId(), ArancinoDBKeys.C_HIDE_DEVICE, str(port.isHidden()))
-    #
-    #             self.__devicestore.hset(port.getId(), ArancinoDBKeys.B_PORT_TYPE, str(port.getPortType().value))
-    #             self.__devicestore.hset(port.getId(), ArancinoDBKeys.B_ID, str(port.getId()))
-    #
-    #             if port.getPortType() == PortTypes.SERIAL:
-    #                 # SERIAL ARANCINO PORT METADATA
-    #                 # sets data retrieved directly from the plugged port
-    #                 self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_DESCRIPTION, str(port.getDescription()))
-    #                 self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_HWID, str(port.getHWID()))
-    #                 self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_VID, str(port.getVID()))
-    #                 self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_PID, str(port.getPID()))
-    #                 self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_SERIALNUMBER, str(port.getSerialNumber()))
-    #                 self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_MANUFACTURER, str(port.getManufacturer()))
-    #                 self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_PRODUCT, str(port.getProduct()))
-    #                 self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_NAME, str(port.getName()))
-    #             elif port.getPortType() == PortTypes.TEST:
-    #                 # Do Nothing: Test Port doesn't have metadata
-    #                 pass
-    #
-    #         # BASE ARANCINO STATUS METADATA
-    #         self.__devicestore.hset(port.getId(), ArancinoDBKeys.S_PLUGGED, str(port.isPlugged()))
-    #         self.__devicestore.hset(port.getId(), ArancinoDBKeys.S_CONNECTED, str(port.isConnected()))
-    #
-    #         # Port Device can changes (tty or ip address)
-    #         self.__devicestore.hset(port.getId(), ArancinoDBKeys.B_DEVICE, str(port.getDevice()))
-    #         # TODO Last Usage Date
-    #
-    #         if port.getPortType() == PortTypes.SERIAL:
-    #             # SERIAL ARANCINO PORT METADATA
-    #             self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_DEVICE, str(port.getDevice()))
-    #             self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_LOCATION, str(port.getLocation()))
-    #             self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_INTERFACE, str(port.getInterface()))
-    #         elif port.getPortType() == PortTypes.TEST:
-    #             #Do Nothing
-    #             pass
-    #
-    #         # self.devicestore.hset(id, const.M_DATETIME, strftime("%Y-%m-%d %H:%M:%S", localtime()))
-    #
-    #
-    # def loadConfig(self, ports):
-    #     # load config from redis
-    #     for id, port in ports.items():
-    #
-    #         if self.__devicestore.exists(port.getId()) == 1:  # the port is already registered in the device store
-    #
-    #             # BASE CONFIGURATION METADATA
-    #             #enabled = self.__checkValues(self.__devicestore.hget(arancino.getId(), ArancinoDBKeys.M_ENABLED), "BOOL")
-    #             enabled = stringToBool(self.__devicestore.hget(port.getId(), ArancinoDBKeys.C_ENABLED))
-    #             alias = self.__devicestore.hget(port.getId(), ArancinoDBKeys.C_ALIAS)
-    #             hide = self.__devicestore.hget(port.getId(), ArancinoDBKeys.C_HIDE_DEVICE)
-    #
-    #             port.setEnabled(enabled)
-    #             port.setAlias(alias)
-    #             port.setHide(hide)
-    #
-    #
-    # def saveConfig(self, ports):
-    #     # save config into redis
-    #
-    #     for id, port in ports.items():
-    #
-    #         if self.__devicestore.exists(port.getId()) == 1:  # the port is already registered in the device store
-    #
-    #             # BASE CONFIGURATION METADATA
-    #             #enabled = self.__checkValues(self.__devicestore.hget(arancino.getId(), ArancinoDBKeys.M_ENABLED), "BOOL")
-    #             enabled = str(port.isEnabled())
-    #             alias = port.getAlias()
-    #             hide = str(port.isHidden())
-    #
-    #             self.__devicestore.hset(port.getId(), ArancinoDBKeys.C_ENABLED, enabled)
-    #             self.__devicestore.hset(port.getId(), ArancinoDBKeys.C_ALIAS, alias)
-    #             self.__devicestore.hset(port.getId(), ArancinoDBKeys.C_HIDE_DEVICE, hide)
-
-
-    # def synchPorts(self, discovered, connected):
-    #
-    #     ports = self.__merge(discovered, connected)
-    #     for id, port in connected.items():
-    #         self.synchPort(port)
-    #
-    #     self.__synchClean(ports)
-    #     print(ports)
 
 
     def synchPorts(self, discovered, connected, phase):
@@ -177,6 +68,8 @@ class ArancinoPortSynch:
         :param ports: ArancinoPorts
         """
 
+        pipeline = self.__devicestore.pipeline()
+
         if self.__devicestore.exists(port.getId()) == 1:  # the port is already registered in the device store
             '''
             Configuration Metadata
@@ -201,16 +94,15 @@ class ArancinoPortSynch:
             enabled = stringToBool(self.__devicestore.hget(port.getId(), ArancinoDBKeys.C_ENABLED))
             alias = self.__devicestore.hget(port.getId(), ArancinoDBKeys.C_ALIAS)
             hide = self.__devicestore.hget(port.getId(), ArancinoDBKeys.C_HIDE_DEVICE)
+            creation_date_dt = stringToDatetime(self.__devicestore.hget(port.getId(), ArancinoDBKeys.S_CREATION_DATE))
+            last_usage_date_dt = stringToDatetime(self.__devicestore.hget(port.getId(), ArancinoDBKeys.S_LAST_USAGE_DATE))
+
 
             port.setEnabled(enabled)
             port.setAlias(alias)
             port.setHide(hide)
-
-            # OTHER Info
-            # TODO Creation Date
-
-
-
+            port.setCreationDate(creation_date_dt)
+            port.setLastUsageDate(last_usage_date_dt)
 
         else: # Runs only the first time when a new device is plugged.
             '''
@@ -232,27 +124,28 @@ class ArancinoPortSynch:
 
             # BASE ARANCINO CONFIGURATION METADATA
             # sets default configuration (from config file arancino.cfg)
-            self.__devicestore.hset(port.getId(), ArancinoDBKeys.C_ENABLED, str(port.isEnabled()))
-            self.__devicestore.hset(port.getId(), ArancinoDBKeys.C_ALIAS, str(port.getAlias()))
-            self.__devicestore.hset(port.getId(), ArancinoDBKeys.C_HIDE_DEVICE, str(port.isHidden()))
+            pipeline.hset(port.getId(), ArancinoDBKeys.C_ENABLED, str(port.isEnabled()))
+            pipeline.hset(port.getId(), ArancinoDBKeys.C_ALIAS, str(port.getAlias()))
+            pipeline.hset(port.getId(), ArancinoDBKeys.C_HIDE_DEVICE, str(port.isHidden()))
 
-            self.__devicestore.hset(port.getId(), ArancinoDBKeys.B_PORT_TYPE, str(port.getPortType().value))
-            self.__devicestore.hset(port.getId(), ArancinoDBKeys.B_ID, str(port.getId()))
+            pipeline.hset(port.getId(), ArancinoDBKeys.B_PORT_TYPE, str(port.getPortType().value))
+            pipeline.hset(port.getId(), ArancinoDBKeys.B_ID, str(port.getId()))
 
-            self.__devicestore.hset(port.getId(), ArancinoDBKeys.B_ID, str(port.isPlugged()))
+            pipeline.hset(port.getId(), ArancinoDBKeys.S_PLUGGED, str(port.isPlugged()))
+            pipeline.hset(port.getId(), ArancinoDBKeys.S_CREATION_DATE, datetimeToString(datetime.now()))
 
 
             if port.getPortType() == PortTypes.SERIAL:
                 # SERIAL ARANCINO PORT METADATA
                 # sets data retrieved directly from the plugged port
-                self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_DESCRIPTION, str(port.getDescription()))
-                self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_HWID, str(port.getHWID()))
-                self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_VID, str(port.getVID()))
-                self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_PID, str(port.getPID()))
-                self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_SERIALNUMBER, str(port.getSerialNumber()))
-                self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_MANUFACTURER, str(port.getManufacturer()))
-                self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_PRODUCT, str(port.getProduct()))
-                self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_NAME, str(port.getName()))
+                pipeline.hset(port.getId(), ArancinoDBKeys.P_DESCRIPTION, str(port.getDescription()))
+                pipeline.hset(port.getId(), ArancinoDBKeys.P_HWID, str(port.getHWID()))
+                pipeline.hset(port.getId(), ArancinoDBKeys.P_VID, str(port.getVID()))
+                pipeline.hset(port.getId(), ArancinoDBKeys.P_PID, str(port.getPID()))
+                pipeline.hset(port.getId(), ArancinoDBKeys.P_SERIALNUMBER, str(port.getSerialNumber()))
+                pipeline.hset(port.getId(), ArancinoDBKeys.P_MANUFACTURER, str(port.getManufacturer()))
+                pipeline.hset(port.getId(), ArancinoDBKeys.P_PRODUCT, str(port.getProduct()))
+                pipeline.hset(port.getId(), ArancinoDBKeys.P_NAME, str(port.getName()))
             elif port.getPortType() == PortTypes.TEST:
                 # Do Nothing: Test Port doesn't have metadata
                 pass
@@ -265,23 +158,26 @@ class ArancinoPortSynch:
         # runs every time
 
         # BASE ARANCINO STATUS METADATA
-        self.__devicestore.hset(port.getId(), ArancinoDBKeys.S_PLUGGED, str(port.isPlugged()))
-        self.__devicestore.hset(port.getId(), ArancinoDBKeys.S_CONNECTED, str(port.isConnected()))
+        pipeline.hset(port.getId(), ArancinoDBKeys.S_PLUGGED, str(port.isPlugged()))
+        pipeline.hset(port.getId(), ArancinoDBKeys.S_CONNECTED, str(port.isConnected()))
 
         # Port Device can changes (tty or ip address)
-        self.__devicestore.hset(port.getId(), ArancinoDBKeys.B_DEVICE, str(port.getDevice()))
-        # TODO Last Usage Date
+        pipeline.hset(port.getId(), ArancinoDBKeys.B_DEVICE, str(port.getDevice()))
+        pipeline.hset(port.getId(), ArancinoDBKeys.B_LIB_VER, str(port.getLibVersion()))
+        pipeline.hset(port.getId(), ArancinoDBKeys.S_LAST_USAGE_DATE, datetimeToString(datetime.now()))
+
 
         if port.getPortType() == PortTypes.SERIAL:
             # SERIAL ARANCINO PORT METADATA
-            self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_DEVICE, str(port.getDevice()))
-            self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_LOCATION, str(port.getLocation()))
-            self.__devicestore.hset(port.getId(), ArancinoDBKeys.P_INTERFACE, str(port.getInterface()))
+            pipeline.hset(port.getId(), ArancinoDBKeys.P_DEVICE, str(port.getDevice()))
+            pipeline.hset(port.getId(), ArancinoDBKeys.P_LOCATION, str(port.getLocation()))
+            pipeline.hset(port.getId(), ArancinoDBKeys.P_INTERFACE, str(port.getInterface()))
         elif port.getPortType() == PortTypes.TEST:
             #Do Nothing
             pass
 
-        # self.devicestore.hset(id, const.M_DATETIME, strftime("%Y-%m-%d %H:%M:%S", localtime()))
+        # pipeline.hset(id, const.M_DATETIME, strftime("%Y-%m-%d %H:%M:%S", localtime()))
+        pipeline.execute()
 
 
     def synchClean(self, ports):
@@ -329,49 +225,3 @@ class ArancinoPortSynch:
                 pc.setEnabled(port.isEnabled())
                 pc.setAlias(port.getAlias())
                 pc.setHide(port.isHidden())
-
-
-
-
-
-
-'''
-from datetime import datetime
-
-# datetime object containing current date and time
-now = datetime.now()
- 
-print("now =", now)
-
-# dd/mm/YY H:M:S
-dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-print("date and time =", dt_string)	
-
-
-'''
-
-
-# from timestampt to datetime
-'''
-from datetime import datetime
-
-timestamp = 1545730073
-dt_object = datetime.fromtimestamp(timestamp)
-
-print("dt_object =", dt_object)
-print("type(dt_object) =", type(dt_object))
-
-'''
-
-# from datetime to timestamp
-'''
-from datetime import datetime
-
-# current date and time
-now = datetime.now()
-
-timestamp = datetime.timestamp(now)
-print("timestamp =", timestamp)
-
-
-'''

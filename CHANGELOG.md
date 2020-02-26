@@ -3,10 +3,16 @@
 #### v 2.0.0 2020.MM.DD
 * Now Resets each microcontroller before connecting (requires v 1.1.0 Arancino Platform)
 * Changed project structure to a more modular architecture. Arancino Port Type can now be easily estended.
-* Improved logger formatter
+* Improved logger formatter.
 * Introduced new different port filter types.
 * Introduced a new kind of Port called Test Port, used for testing purpose
-* Fix `KEYS` command: now returns even persistent keys
+* Fix `KEYS` command: now returns even persistent keys.
+* Metadata are now different for each Port Type, but they have a common set of metadata. Even the Device Store changed.
+* New Metadatas: creation date, last usage date, port type, library version
+* The key `___LIBVERS_<PORT_ID>___` stored in the Data Store are now part of common set of port metadata.
+* Use Redis `MULTI` and `EXEC` trough `pipeline` in *Synch* process to reduce the back-and-forth overhead between the client and server. 
+* Log Console Handler and Log File Handler can be enabled directly from `arancino.cfg`
+  
 
 #### v 1.0.1 - 2019.12.30
 * Fix a bug while checks compatibility that prevent a new version library to be released without adding it in the compatibility array. Now it uses '*' while check version number.

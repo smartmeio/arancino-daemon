@@ -37,32 +37,19 @@ class ArancinoPort(object):
         self._id = None                 # Id is the Serial Number. It will have a value when the Serial Port is connected
         self._device = None             # the plugged tty or ip adddress, i.e: "/dev/tty.ACM0"
         self._port_type = port_type     # Type of port, i.e: Serial, Network, etc...
+        self._library_version = None
+        self._m_b_creation_date = None
+        self._m_b_last_usage_date = None
 
         # BASE STATUS METADATA
         self._m_s_plugged = m_s_plugged
         self._m_s_connected = False
-        self._m_s_creation_date = None # TODO devono essere ancora gestite
-        self._m_s_last_usage_date = None # TODO devono essere ancora gestite
+
 
         # BASE CONFIGURATION METADATA
         self._m_c_enabled = m_c_enabled
-        # self._m_c_auto_connect = m_c_auto_connect # TODO remove
         self._m_c_alias = m_c_alias
         self._m_c_hide = m_c_hide
-
-        # SERIAL ARANCINO PORT METADATA
-        # self._m_p_vid = None
-        # self._m_p_pid = None
-        # self._m_p_name = None
-        # self._m_p_description = None
-        # self._m_p_hwid = None
-        # self._m_p_serial_number = None
-        # self._m_p_location = None
-        # self._m_p_manufacturer = None
-        # self._m_p_product = None
-        # self._m_p_interface = None
-        # self._m_p_device = None
-
 
         # Command Executor
         # self._executor = ArancinoCommandExecutor(self._id, self._device)
@@ -165,6 +152,31 @@ class ArancinoPort(object):
 
     def _setPortType(self, port_type):
         self._port_type = port_type
+
+
+    def getLibVersion(self):
+        return self._library_version
+
+
+    def _setLibVersion(self, library_version):
+        self._library_version = library_version
+
+
+    def getCreationDate(self):
+        return self._m_b_creation_date
+
+
+    def setCreationDate(self, creation_date):
+        self._m_b_creation_date = creation_date
+
+
+    def getLastUsageDate(self):
+        self._m_b_last_usage_date
+
+
+    def setLastUsageDate(self, last_usage_date):
+        self._m_b_last_usage_date = last_usage_date
+
 
     # BASE STATUS METADATA Encapsulators
 

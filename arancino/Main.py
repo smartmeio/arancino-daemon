@@ -27,7 +27,6 @@ def __runArancinoApi():
 if __name__ == '__main__':
     __runArancino()
 
-    signal.signal(signal.SIGKILL, __kill)
     signal.signal(signal.SIGINT, __kill)
     signal.signal(signal.SIGTERM, __kill)
 
