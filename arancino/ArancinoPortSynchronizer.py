@@ -133,6 +133,7 @@ class ArancinoPortSynch:
 
             pipeline.hset(port.getId(), ArancinoDBKeys.S_PLUGGED, str(port.isPlugged()))
             pipeline.hset(port.getId(), ArancinoDBKeys.S_CREATION_DATE, datetimeToString(datetime.now()))
+            pipeline.hset(port.getId(), ArancinoDBKeys.S_LAST_USAGE_DATE, datetimeToString(datetime.now()))
 
 
             if port.getPortType() == PortTypes.SERIAL:
@@ -164,7 +165,9 @@ class ArancinoPortSynch:
         # Port Device can changes (tty or ip address)
         pipeline.hset(port.getId(), ArancinoDBKeys.B_DEVICE, str(port.getDevice()))
         pipeline.hset(port.getId(), ArancinoDBKeys.B_LIB_VER, str(port.getLibVersion()))
-        pipeline.hset(port.getId(), ArancinoDBKeys.S_LAST_USAGE_DATE, datetimeToString(datetime.now()))
+
+        if port.getLastUsageDate() is not None:
+            pipeline.hset(port.getId(), ArancinoDBKeys.S_LAST_USAGE_DATE, datetimeToString(port.getLastUsageDate()))
 
 
         if port.getPortType() == PortTypes.SERIAL:

@@ -35,7 +35,7 @@ class ArancinoPort(object):
 
         # BASE METADATA
         self._id = None                 # Id is the Serial Number. It will have a value when the Serial Port is connected
-        self._device = None             # the plugged tty or ip adddress, i.e: "/dev/tty.ACM0"
+        self._device = device           # the plugged tty or ip adddress, i.e: "/dev/tty.ACM0"
         self._port_type = port_type     # Type of port, i.e: Serial, Network, etc...
         self._library_version = None
         self._m_b_creation_date = None
@@ -171,7 +171,7 @@ class ArancinoPort(object):
 
 
     def getLastUsageDate(self):
-        self._m_b_last_usage_date
+        return self._m_b_last_usage_date
 
 
     def setLastUsageDate(self, last_usage_date):

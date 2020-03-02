@@ -234,30 +234,30 @@ class ArancinoLogger:
         self.__logger = None
 
         # logger configuration
-        conf = ArancinoConfig.Instance()
+        CONF = ArancinoConfig.Instance()
 
-        self.__name = conf.get_log_name()  # 'Arancino Serial'
-        self.__filename = conf.get_log_log_file()  # 'arancino.log'
-        self.__error_filename = conf.get_log_error_file()  # 'arancino.error.log'
+        self.__name = CONF.get_log_name()  # 'Arancino Serial'
+        self.__filename = CONF.get_log_log_file()  # 'arancino.log'
+        self.__error_filename = CONF.get_log_error_file()  # 'arancino.error.log'
         #self.__stats_filename = conf.get_log_stats_file()  # 'arancino.stats.log'
 
         # __dirlog = Config["log"].get("path")           #'/var/log/arancino'
         self.__dirlog = os.environ.get('ARANCINOLOG')
-        self.__format = CustomConsoleFormatter()  #logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        self.__format = CustomConsoleFormatter(level='DEBUG')  #logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
         self.__logger = logging.getLogger(self.__name)#CustomLogger(self.__name)#
-        self.__logger.setLevel(logging.getLevelName(conf.get_log_level()))
+        self.__logger.setLevel(logging.getLevelName(CONF.get_log_level()))
 
-        if conf.get_log_console():
+        if CONF.get_log_console():
             self.__logger.addHandler(self.__getConsoleHandler())
 
-        if conf.get_log_file():
+        if CONF.get_log_file():
             self.__logger.addHandler(self.__getFileHandler())
             self.__logger.addHandler(self.__getErrorFileHandler())
 
     def __getConsoleHandler(self):
         console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setFormatter(CustomConsoleFormatter())
+        console_handler.setFormatter(self.__format)
         return console_handler
 
     def __getFileHandler(self):
@@ -294,29 +294,38 @@ class CustomConsoleFormatter(logging.Formatter):
     """Logging Formatter to add colors and count warning / errors"""
     """Based on https://stackoverflow.com/questions/1343227/can-pythons-logging-format-be-modified-depending-on-the-message-log-level"""
 
-    grey = "\x1b[38;21m"
-    yellow = "\x1b[33;21m"
-    red = "\x1b[31;21m"
-    blue = '\x1b[94:21m'
-    bold_red = "\x1b[31;1m"
-    reset = "\x1b[0m"
-    #format_pre = "%(asctime)s - %(name)s - "
-    #format_pre = "%(asctime)s - %(name)s : %(threadName)s.%(filename)s.%(funcName)s:%(lineno)d - "
-    format_pre = "%(asctime)s - %(name)s : %(threadName)s.%(filename)s: - "
-    format_post ="%(levelname)s - %(message)s"
 
-    FORMATS = {
-        logging.DEBUG: format_pre + grey + format_post + reset,
-        logging.INFO: format_pre + blue + format_post + reset,
-        logging.WARNING: format_pre + yellow + format_post + reset,
-        logging.ERROR: format_pre + red + format_post + reset,
-        logging.CRITICAL: format_pre + bold_red + format_post + reset
-    }
+    def __init__(self, level="INFO"):
+        self.__level = level
+
+        format_pre = "%(asctime)s - %(name)s : %(filename)s: - "
+        format_post = "%(levelname)s - %(message)s"
+
+        grey = "\x1b[38;21m"
+        yellow = "\x1b[33;21m"
+        red = "\x1b[31;21m"
+        blue = '\x1b[94:21m'
+        bold_red = "\x1b[31;1m"
+        reset = "\x1b[0m"
+
+        #format_pre = "%(asctime)s - %(name)s - "
+        if self.__level.upper() == 'DEBUG':
+            format_pre = "%(asctime)s - %(name)s : %(threadName)s.%(filename)s.%(funcName)s:%(lineno)d - "
+
+
+        self.FORMATS = {
+            logging.DEBUG: format_pre + grey + format_post + reset,
+            logging.INFO: format_pre + blue + format_post + reset,
+            logging.WARNING: format_pre + yellow + format_post + reset,
+            logging.ERROR: format_pre + red + format_post + reset,
+            logging.CRITICAL: format_pre + bold_red + format_post + reset
+        }
 
     def format(self, record):
         log_fmt = self.FORMATS.get(record.levelno)
         formatter = logging.Formatter(log_fmt)
         return formatter.format(record)
+
 
 
 
@@ -343,6 +352,33 @@ def datetimeToString(dt):
     dt_str = dt.strftime("%Y.%m.%d %H:%M:%S")
     return dt_str
 
+
+def getProcessUptime(total_seconds):
+    # https://thesmithfam.org/blog/2005/11/19/python-uptime-script/
+
+    # Helper vars:
+    MINUTE = 60
+    HOUR = MINUTE * 60
+    DAY = HOUR * 24
+
+    # Get the days, hours, etc:
+    days = int(total_seconds / DAY)
+    hours = int((total_seconds % DAY) / HOUR)
+    minutes = int((total_seconds % HOUR) / MINUTE)
+    seconds = int(total_seconds % MINUTE)
+
+    # Build up the pretty string (like this: "N days, N hours, N minutes, N seconds")
+    string = ""
+    if days > 0:
+        string += str(days) + " " + (days == 1 and "day" or "days") + ", "
+    if len(string) > 0 or hours > 0:
+        string += str(hours) + " " + (hours == 1 and "hour" or "hours") + ", "
+    if len(string) > 0 or minutes > 0:
+        string += str(minutes) + " " + (minutes == 1 and "minute" or "minutes") + ", "
+    string += str(seconds) + " " + (seconds == 1 and "second" or "seconds")
+
+    return string
+    #return string
 
 
 # from timestampt to datetime

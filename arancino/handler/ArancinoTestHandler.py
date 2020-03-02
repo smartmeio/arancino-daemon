@@ -33,7 +33,7 @@ LOG = ArancinoLogger.Instance().getLogger()
 class ArancinoTestHandler(threading.Thread):
 
     def __init__(self, name, id, device, commandReceivedHandler, connectionLostHandler):
-        threading.Thread.__init__(self)
+        threading.Thread.__init__(self,name=name)
 
         self.__name = name          # the name, usually the arancino port id
         self.__id = id
@@ -95,12 +95,12 @@ class ArancinoTestHandler(threading.Thread):
             if self.__connectionLostHandler is not None:
                 self.__connectionLostHandler()
 
-
         except Exception as ex:
             LOG.exception("{}Error on connection lost: {}".format(self.__log_prefix, str(ex)))
 
     def stop(self):
         self.__stop = True
+
 
 
     def __getCommnandsList(self):

@@ -1,8 +1,8 @@
 
 import threading
 from threading import Thread
-from datetime import timedelta
-from arancino.ArancinoUtils import ArancinoLogger, ArancinoConfig, Singleton
+from datetime import datetime, timedelta
+from arancino.ArancinoUtils import ArancinoLogger, ArancinoConfig, Singleton, getProcessUptime
 from arancino.discovery.ArancinoSerialDiscovery import ArancinoSerialDiscovery
 from arancino.discovery.ArancinoTestDiscovery import ArancinoTestDiscovery
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
@@ -22,6 +22,7 @@ class Arancino(Thread):
     _lock = threading.Lock()
     _init = None
 
+
     def __new__(cls):
         if Arancino._instance is None:
             with Arancino._lock:
@@ -30,11 +31,9 @@ class Arancino(Thread):
         return Arancino._instance
 
 
-
-
     def __init__(self):
         if Arancino._instance is not None and not Arancino._init:
-            Thread.__init__(self)
+            Thread.__init__(self, name='Arancino')
 
             self.__stop = False
             self.__cycle_time = CONF.get_general_cycle_time()
@@ -51,8 +50,11 @@ class Arancino(Thread):
 
             self.__synchronizer = ArancinoPortSynch()
 
-            signal.signal(signal.SIGINT, self.__kill)
-            signal.signal(signal.SIGTERM, self.__kill)
+            # signal.signal(signal.SIGINT, self.__kill)
+            # signal.signal(signal.SIGTERM, self.__kill)
+
+            self.__uptime_str = ""
+            self.__uptime_sec = 0
 
             Arancino._init = True
 
@@ -78,7 +80,7 @@ class Arancino(Thread):
 
         #TODO close redis connection
 
-        exit(0)
+        #exit(0)
 
 
     def stop(self):
@@ -94,6 +96,9 @@ class Arancino(Thread):
         LOG.info("Arancino version {} Starts!".format(self.__version))
 
         while not self.__stop:
+            self.__uptime_sec = (time.time() - self.__thread_start)
+            self.__uptime_str = getProcessUptime(self.__uptime_sec)
+            LOG.info('Uptime :' + self.__uptime_str)
 
             serial_ports = self.__serial_discovery.getAvailablePorts()
             test_ports = self.__test_discovery.getAvailablePorts()
@@ -109,7 +114,8 @@ class Arancino(Thread):
             if (time.time() - self.__thread_start_reset) >= 3600:
                 LOG.info('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))
                 LOG.info('Connected Ports: ' + str(len(self.__ports_connected)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_connected.items()))
-                LOG.info('Uptime: ' + str(timedelta(seconds=int(time.time() - self.__thread_start))))
+                #LOG.info('Uptime: ' + str(timedelta(seconds=int(time.time() - self.__thread_start))))
+                LOG.info('Uptime :' + self.__uptime_str)
 
                 self.__thread_start_reset = time.time()
 
@@ -133,7 +139,7 @@ class Arancino(Thread):
 
             self.__disconnectDisabledPorts(self.__ports_connected)
 
-            LOG.info('Uptime1:' + self.__getProcessUptime((time.time() - self.__thread_start)))
+
             #LOG.info('Uptime2:' + str(timedelta(seconds=int(time.time() - self.__thread_start))))
 
             # second synchronization in loop
@@ -223,6 +229,7 @@ class Arancino(Thread):
                 if port.isEnabled():
 
                     port.setDisconnectionHandler(self.__disconnectedPortHandler)
+                    port.setReceivedCommandHandler(self.__commandReceived)
                     port.connect()
 
                     # move Arancino Port to the self.__ports_connected
@@ -234,6 +241,12 @@ class Arancino(Thread):
 
         except Exception as ex:
             LOG.error(ex)
+
+
+    def __commandReceived(self, port_id, acmd):
+        port = self.__ports_connected[port_id]
+        port.setLastUsageDate(datetime.now())
+
 
 
     def __disconnectedPortHandler(self, port_id):
@@ -249,7 +262,7 @@ class Arancino(Thread):
         stats = open(CONF.get_stats_file_path(), "w")
         stats.write("################################ ARANCINO STATS ################################\n")
         stats.write("\n")
-        stats.write("ARANCINO UPTIME: " + self.__getProcessUptime((time.time() - self.__thread_start)) + "\n")
+        stats.write("ARANCINO UPTIME: " + getProcessUptime((time.time() - self.__thread_start)) + "\n")
         stats.write("ARANCINO VERSION: " + self.__version + "\n")
         stats.write("\n")
         # stats.write("Generic Error - - - - - - - - - - - - - - - - - - - - - - - - - - - - " + str(count_ERR).zfill(10) + "\n")
@@ -264,32 +277,14 @@ class Arancino(Thread):
         stats.close()
 
 
-    def __getProcessUptime(self, total_seconds):
-        # https://thesmithfam.org/blog/2005/11/19/python-uptime-script/
 
-        # Helper vars:
-        MINUTE = 60
-        HOUR = MINUTE * 60
-        DAY = HOUR * 24
-
-        # Get the days, hours, etc:
-        days = int(total_seconds / DAY)
-        hours = int((total_seconds % DAY) / HOUR)
-        minutes = int((total_seconds % HOUR) / MINUTE)
-        seconds = int(total_seconds % MINUTE)
-
-        # Build up the pretty string (like this: "N days, N hours, N minutes, N seconds")
-        string = ""
-        if days > 0:
-            string += str(days) + " " + (days == 1 and "day" or "days") + ", "
-        if len(string) > 0 or hours > 0:
-            string += str(hours) + " " + (hours == 1 and "hour" or "hours") + ", "
-        if len(string) > 0 or minutes > 0:
-            string += str(minutes) + " " + (minutes == 1 and "minute" or "minutes") + ", "
-        string += str(seconds) + " " + (seconds == 1 and "second" or "seconds")
-
-        return string
 
 
     def getConnectedPorts(self):
         return self.__ports_connected
+
+    def getDiscoveredPorts(self):
+        return self.__ports_discovered
+
+    def getUptime(self):
+        return self.__uptime_sec
