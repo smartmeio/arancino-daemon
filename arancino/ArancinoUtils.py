@@ -27,6 +27,9 @@ import os
 import json
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
+
+import semantic_version
+
 from arancino.ArancinoConstants import RedisInstancesType
 from arancino.filter.ArancinoPortFilter import FilterTypes
 import arancino.ArancinoUtils
@@ -63,7 +66,7 @@ class ArancinoConfig:
         Config.read(os.path.join(os.environ.get('ARANCINOCONF'), "arancino.cfg"))
 
         # CONFIG METADATA SECTION
-        self.__metadata_version = Config.get("metadata", "version")
+        self.__metadata_version = semantic_version.Version(Config.get("metadata", "version"))
 
         # CONFIG GENERAL SECTION
         self.__general_env = Config.get("general", "env")
@@ -74,7 +77,6 @@ class ArancinoConfig:
 
         # CONFIG SERIAL PORT SECTION
         self.__port_serial_enabled = stringToBool(Config.get("port.serial", "enabled"))
-        #self.__port_serial_auto_connect = Config.get("port.serial", "auto_connect")
         self.__port_serial_hide = stringToBool(Config.get("port.serial", "hide"))
         self.__port_serial_comm_baudrate = Config.get("port.serial", "comm_baudrate")
         self.__port_serial_reset_baudrate = Config.get("port.serial", "reset_baudrate")

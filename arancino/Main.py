@@ -37,7 +37,7 @@ def __runArancinoApi():
 
         response["arancino"]["arancino"] = {}
         response["arancino"]["arancino"]["uptime"] = [ara_upt, getProcessUptime(int(ara_upt))]
-        response["arancino"]["arancino"]["version"] = c.get_metadata_version()
+        response["arancino"]["arancino"]["version"] = str(c.get_metadata_version())
 
         response["arancino"]["arancino"]["ports"] = {}
         response["arancino"]["arancino"]["ports"]["connected"] = {}
@@ -81,11 +81,10 @@ def __runArancinoApi():
         return response
 
 
-
-
     @app.route('/ports/connected')
     def get_ports_connected():
         return get_ports_by_status(status='connected')
+
 
     @app.route('/ports/discovered')
     def get_ports_discovered():
@@ -127,6 +126,7 @@ def __runArancinoApi():
                     response["arancino"]["arancino"]["ports"][status][type.name][id][keys.C_HIDE_DEVICE] = port.isHidden()
 
         return response
+
 
     app.run(host='0.0.0.0', port=1475, debug=False, use_reloader=False)
 
