@@ -25,7 +25,7 @@ def __runArancinoApi():
     from flask import Flask
     app = Flask(__name__)
 
-    @app.route('/')
+    @app.route('/', methods=['GET'])
     def hello():
         sys_upt = uptime()
         ara_upt = m.getUptime()
@@ -65,7 +65,7 @@ def __runArancinoApi():
         return response
 
 
-    @app.route('/ports')
+    @app.route('/ports', methods=['GET'])
     def get_ports():
         response = {"arancino": {}}
         response["arancino"]["arancino"] = {}
@@ -81,14 +81,23 @@ def __runArancinoApi():
         return response
 
 
-    @app.route('/ports/connected')
+    @app.route('/ports/connected', methods=['GET'])
     def get_ports_connected():
         return get_ports_by_status(status='connected')
 
 
-    @app.route('/ports/discovered')
+    @app.route('/ports/discovered', methods=['GET'])
     def get_ports_discovered():
         return get_ports_by_status(status='discovered')
+
+
+    @app.route('/ports/<port_id>', methods=['GET'])
+    def port(port_id):
+        response = {"arancino": {}}
+        response["arancino"]["arancino"] = {}
+        response["arancino"]["arancino"]["port"] = {}
+        response["arancino"]["arancino"]["port"] = get_port_by_id(port_id)
+        return response
 
 
     def get_ports_by_status(status='discovered'):
@@ -109,21 +118,59 @@ def __runArancinoApi():
                     if type.name not in response["arancino"]["arancino"]["ports"][status]:
                         response["arancino"]["arancino"]["ports"][status][type.name] = {}
 
+
                     response["arancino"]["arancino"]["ports"][status][type.name][id] = {}
-                    # BASE ARANCINO METADATA (B)Base
-                    response["arancino"]["arancino"]["ports"][status][type.name][id][keys.B_ID] = id
-                    response["arancino"]["arancino"]["ports"][status][type.name][id][keys.B_DEVICE] = port.getDevice()
-                    response["arancino"]["arancino"]["ports"][status][type.name][id][keys.B_PORT_TYPE] = type.name
-                    response["arancino"]["arancino"]["ports"][status][type.name][id][keys.B_LIB_VER] = str(port.getLibVersion())
-                    # BASE ARANCINO STATUS METADATA (S)Status
-                    response["arancino"]["arancino"]["ports"][status][type.name][id][keys.S_CONNECTED] = port.isConnected()
-                    response["arancino"]["arancino"]["ports"][status][type.name][id][keys.S_PLUGGED] = port.isPlugged()
-                    response["arancino"]["arancino"]["ports"][status][type.name][id][keys.S_CREATION_DATE] = port.getCreationDate()
-                    response["arancino"]["arancino"]["ports"][status][type.name][id][keys.S_LAST_USAGE_DATE] = port.getLastUsageDate()
-                    # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
-                    response["arancino"]["arancino"]["ports"][status][type.name][id][keys.C_ENABLED] = port.isEnabled()
-                    response["arancino"]["arancino"]["ports"][status][type.name][id][keys.C_ALIAS] = port.getAlias()
-                    response["arancino"]["arancino"]["ports"][status][type.name][id][keys.C_HIDE_DEVICE] = port.isHidden()
+                    response["arancino"]["arancino"]["ports"][status][type.name][id] = get_port(port)
+                    # # BASE ARANCINO METADATA (B)Base
+                    # response["arancino"]["arancino"]["ports"][status][type.name][id][keys.B_ID] = id
+                    # response["arancino"]["arancino"]["ports"][status][type.name][id][keys.B_DEVICE] = port.getDevice()
+                    # response["arancino"]["arancino"]["ports"][status][type.name][id][keys.B_PORT_TYPE] = type.name
+                    # response["arancino"]["arancino"]["ports"][status][type.name][id][keys.B_LIB_VER] = str(port.getLibVersion())
+                    # # BASE ARANCINO STATUS METADATA (S)Status
+                    # response["arancino"]["arancino"]["ports"][status][type.name][id][keys.S_CONNECTED] = port.isConnected()
+                    # response["arancino"]["arancino"]["ports"][status][type.name][id][keys.S_PLUGGED] = port.isPlugged()
+                    # response["arancino"]["arancino"]["ports"][status][type.name][id][keys.S_CREATION_DATE] = port.getCreationDate()
+                    # response["arancino"]["arancino"]["ports"][status][type.name][id][keys.S_LAST_USAGE_DATE] = port.getLastUsageDate()
+                    # # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
+                    # response["arancino"]["arancino"]["ports"][status][type.name][id][keys.C_ENABLED] = port.isEnabled()
+                    # response["arancino"]["arancino"]["ports"][status][type.name][id][keys.C_ALIAS] = port.getAlias()
+                    # response["arancino"]["arancino"]["ports"][status][type.name][id][keys.C_HIDE_DEVICE] = port.isHidden()
+
+        return response
+
+
+    def get_port(port=None):
+        response = {}
+        #response["port"] = {}
+        if port is not None:
+            # BASE ARANCINO METADATA (B)Base
+            response[keys.B_ID] = port.getId()
+            response[keys.B_DEVICE] = port.getDevice()
+            response[keys.B_PORT_TYPE] = port.getPortType().name
+            response[keys.B_LIB_VER] = str(port.getLibVersion())
+            # BASE ARANCINO STATUS METADATA (S)Status
+            response[keys.S_CONNECTED] = port.isConnected()
+            response[keys.S_PLUGGED] = port.isPlugged()
+            response[keys.S_CREATION_DATE] = port.getCreationDate()
+            response[keys.S_LAST_USAGE_DATE] = port.getLastUsageDate()
+            # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
+            response[keys.C_ENABLED] = port.isEnabled()
+            response[keys.C_ALIAS] = port.getAlias()
+            response[keys.C_HIDE_DEVICE] = port.isHidden()
+        return response
+
+
+    def get_port_by_id(port_id=None):
+        response = {}
+
+        if port_id is not None:
+            conn = m.getConnectedPorts()
+            if port_id in conn:
+                return get_port(conn[port_id])
+
+            disc = m.getDiscoveredPorts()
+            if port_id in disc:
+                return get_port(disc[port_id])
 
         return response
 
