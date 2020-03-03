@@ -18,7 +18,7 @@ class ArancinoSerialDiscovery:
 
 
     # TODO: this can be an abstract method
-    def getAvailablePorts(self):
+    def getAvailablePorts(self, collection):
         """
         Using python-serial library, it scans the serial ports applies filters and then
             returns a Dictionary of ArancinoPort
@@ -29,7 +29,14 @@ class ArancinoSerialDiscovery:
         ports = self.__preFilterPorts(ports)
         ports = self.__transformInArancinoPorts(ports)
         ports = self.__postFilterPorts(ports=ports, filter_type=self.__filter_type, filter_list=self.__filter_list)
-        return ports
+
+        for id, port in ports.items():
+            if id not in collection:
+                collection[id] = port
+            else:
+                del collection[id]
+
+        return collection
 
 
     def __preFilterPorts(self, ports):

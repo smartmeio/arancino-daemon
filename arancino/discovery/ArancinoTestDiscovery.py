@@ -19,19 +19,22 @@ class ArancinoTestDiscovery:
 
 
     # TODO: this can be an abstract method
-    def getAvailablePorts(self):
+    def getAvailablePorts(self, collection):
         """
         Create Arancino Port for test purpose
         """
 
-        ports = {}
+        #ports = {}
         num = CONF.get_port_test_num()
         tmpl_id = CONF.get_port_test_id_template()
 
         for count in range(1, int(num)+1):
             id = tmpl_id + str(count)
+            if id not in collection:
+                port = ArancinoTestPort(id=id, device="There", m_s_plugged=True, m_c_enabled=CONF.get_port_test_enabled(), m_c_auto_connect=True, m_c_alias=id, m_c_hide=CONF.get_port_test_hide())
+                #ports[id] = port
+                collection[id] = port
+            else:
+                del collection[id]
 
-            port = ArancinoTestPort(id=id, device="There", m_s_plugged=True, m_c_enabled=CONF.get_port_test_enabled(), m_c_auto_connect=True, m_c_alias=id, m_c_hide=CONF.get_port_test_hide())
-            ports[id] = port
-
-        return ports
+        return collection#ports

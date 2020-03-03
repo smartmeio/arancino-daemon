@@ -94,6 +94,9 @@ class Arancino(Thread):
         self.__thread_start = time.time()
         self.__thread_start_reset = time.time()
 
+        serial_ports = {}
+        test_ports = {}
+
         LOG.info("Arancino version {} Starts!".format(self.__version))
 
         while not self.__stop:
@@ -101,8 +104,8 @@ class Arancino(Thread):
             self.__uptime_str = getProcessUptime(self.__uptime_sec)
             LOG.info('Uptime :' + self.__uptime_str)
 
-            serial_ports = self.__serial_discovery.getAvailablePorts()
-            test_ports = self.__test_discovery.getAvailablePorts()
+            serial_ports = self.__serial_discovery.getAvailablePorts(serial_ports)
+            test_ports = self.__test_discovery.getAvailablePorts(test_ports)
 
             # works only in python 3.5 and above
             self.__ports_discovered = {**serial_ports, **test_ports}
@@ -152,7 +155,7 @@ class Arancino(Thread):
             #self.__printStats()
 
             time.sleep(int(self.__cycle_time))
-            #time.sleep(int(1000))
+            #time.sleep(int(30))
 
 
         self.__exit()
