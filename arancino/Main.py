@@ -30,9 +30,8 @@ def __runArancinoApi():
     app = Flask(__name__)
     #api = Api(app, prefix="/api/v1" )
 
-    USER_DATA = {
-        "root": "SuperSecretPwd"
-    }
+    from arancino.ArancinoDataStore import ArancinoDataStore
+    __devicestore = ArancinoDataStore.Instance().getDeviceStore()
 
     @auth.verify_password
     def verify(username, password):
@@ -68,13 +67,13 @@ def __runArancinoApi():
         response["arancino"]["arancino"]["ports"] = {}
         response["arancino"]["arancino"]["ports"]["connected"] = {}
         response["arancino"]["arancino"]["ports"]["discovered"] = {}
-        response["arancino"]["arancino"]["ports"]["connected"]["num"] = len(m.getConnectedPorts())
-        response["arancino"]["arancino"]["ports"]["discovered"]["num"] = len(m.getDiscoveredPorts())
+        # response["arancino"]["arancino"]["ports"]["connected"]["num"] = len(m.getConnectedPorts())
+        # response["arancino"]["arancino"]["ports"]["discovered"]["num"] = len(m.getDiscoveredPorts())
 
         for type in PortTypes:
 
-            #response["arancino"]["arancino"]["ports"]["connected"][type.name] = []
-            #response["arancino"]["arancino"]["ports"]["discovered"][type.name] = []
+            # response["arancino"]["arancino"]["ports"]["connected"][type.name] = []
+            # response["arancino"]["arancino"]["ports"]["discovered"][type.name] = []
 
             for id, port in m.getConnectedPorts().items():
                 if type == port.getPortType():
@@ -98,8 +97,8 @@ def __runArancinoApi():
         response["arancino"]["arancino"]["ports"] = {}
         response["arancino"]["arancino"]["ports"]["discovered"] = {}
         response["arancino"]["arancino"]["ports"]["connected"] = {}
-        #response["arancino"]["arancino"]["ports"]["connected"]["num"] = len(m.getConnectedPorts())
-        #response["arancino"]["arancino"]["ports"]["discovered"]["num"] = len(m.getDiscoveredPorts())
+        # response["arancino"]["arancino"]["ports"]["connected"]["num"] = len(m.getConnectedPorts())
+        # response["arancino"]["arancino"]["ports"]["discovered"]["num"] = len(m.getDiscoveredPorts())
 
         response["arancino"]["arancino"]["ports"]["discovered"] = get_ports_discovered()
         response["arancino"]["arancino"]["ports"]["connected"] = api_get_ports_connected()
@@ -142,6 +141,29 @@ def __runArancinoApi():
         port = retrieve_port_by_id(port_id)
         port.reset()
         return "ok"
+
+    @app.route('/ports/<port_id>/enable', methods=['POST'])
+    @auth.login_required
+    def api_enable(port_id=None):
+        port = retrieve_port_by_id(port_id)
+        return change_status(port, True)
+
+    @app.route('/ports/<port_id>/disable', methods=['POST'])
+    @auth.login_required
+    def api_disable(port_id=None):
+        port = retrieve_port_by_id(port_id)
+        return change_status(port, False)
+
+
+    def change_status(port, status):
+        new_status = status
+        curr_status = port.isEnabled()
+        if new_status == curr_status:
+            return "nothing to change"
+        else:
+            __devicestore.hset(port.getId(), keys.C_ENABLED, str(new_status))
+            return "ok, done"
+
 
 
     def get_response_for_ports_by_status(status='discovered'):
