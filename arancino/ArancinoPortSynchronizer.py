@@ -161,6 +161,7 @@ class ArancinoPortSynch:
         pipeline.hset(port.getId(), ArancinoDBKeys.S_PLUGGED, str(port.isPlugged()))
         pipeline.hset(port.getId(), ArancinoDBKeys.S_CONNECTED, str(port.isConnected()))
 
+
         # Port Device can changes (tty or ip address)
         pipeline.hset(port.getId(), ArancinoDBKeys.B_DEVICE, str(port.getDevice()))
         pipeline.hset(port.getId(), ArancinoDBKeys.B_LIB_VER, str(port.getLibVersion()))
@@ -199,7 +200,7 @@ class ArancinoPortSynch:
                 items = ports
 
             diff = set(keys).difference(items)
-
+            pipeline = self.__devicestore.pipeline()
             # every unplugged ports
             for it in diff:
 
@@ -210,20 +211,34 @@ class ArancinoPortSynch:
 
 
                     if port_type == PortTypes.SERIAL:
-                        self.__devicestore.hset(it, ArancinoDBKeys.S_PLUGGED, str(False))
-                        self.__devicestore.hset(it, ArancinoDBKeys.S_CONNECTED, str(False))
-                        self.__devicestore.hset(it, ArancinoDBKeys.P_INTERFACE, "")
-                        self.__devicestore.hset(it, ArancinoDBKeys.P_LOCATION, "")
+                        pipeline.hset(it, ArancinoDBKeys.S_PLUGGED, str(False))
+                        pipeline.hset(it, ArancinoDBKeys.S_CONNECTED, str(False))
+                        pipeline.hset(it, ArancinoDBKeys.P_INTERFACE, "")
+                        pipeline.hset(it, ArancinoDBKeys.P_LOCATION, "")
                     elif port_type == PortTypes.TEST:
                         # do nothing
                         pass
 
+            # diff = set(keys).difference(diff)
+            # for it in diff:
+            #     port = items[it]
+            #     pipeline.hset(port.getId(), ArancinoDBKeys.C_ENABLED, str(port.isEnabled()))
+            #     pipeline.hset(port.getId(), ArancinoDBKeys.C_ALIAS, port.getAlias())
+            #     pipeline.hset(port.getId(), ArancinoDBKeys.C_HIDE_DEVICE, str(port.isHidden()))
 
-    def __synchConfig(self, ports, connected):
+            pipeline.execute()
 
-        for id, port in ports.items():
-            if id in connected:
+    def __synchConfig(self, discovered, connected):
+
+        for id, port in discovered.items():
+            if id in connected:  # serve per prendere le configuazioni dalle porte discovered
                 pc = connected[id]
                 pc.setEnabled(port.isEnabled())
                 pc.setAlias(port.getAlias())
                 pc.setHide(port.isHidden())
+            # else:
+            #     pipeline = self.__devicestore.pipeline()
+            #     pipeline.hset(port.getId(), ArancinoDBKeys.C_ENABLED, str(port.isEnabled()))
+            #     pipeline.hset(port.getId(), ArancinoDBKeys.C_ALIAS, port.getAlias() )
+            #     pipeline.hset(port.getId(), ArancinoDBKeys.C_HIDE_DEVICE, str(port.isHidden()))
+            #     pipeline.execute()
