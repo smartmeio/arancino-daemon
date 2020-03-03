@@ -7,6 +7,7 @@ from arancino.discovery.ArancinoSerialDiscovery import ArancinoSerialDiscovery
 from arancino.discovery.ArancinoTestDiscovery import ArancinoTestDiscovery
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
 from arancino.port.ArancinoPort import PortTypes
+
 import signal
 import time
 

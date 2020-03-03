@@ -3,6 +3,7 @@ from arancino.ArancinoUtils import ArancinoConfig, getProcessUptime
 from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoConstants import ArancinoDBKeys as keys
 import arancino.ArancinoRestApi as api
+from arancino.utils.pam import pamAuthentication
 import signal
 import json
 from threading import Thread
@@ -35,14 +36,23 @@ def __runArancinoApi():
 
     @auth.verify_password
     def verify(username, password):
-        if not (username and password):
-            return False
-        return USER_DATA.get(username) == password
+        # if not (username and password):
+        #     return False
+        # return USER_DATA.get(username) == password
+
+        users_list = c.get_general_users()
+        if username in users_list:
+            if pamAuthentication(username, password):
+                return True
+            else:
+                return False
+        else:
+            False
+
 
 
     @app.route('/', methods=['GET'])
-    @auth.login_required
-    def hello():
+    def api_hello():
         sys_upt = uptime()
         ara_upt = m.getUptime()
         response = {"arancino": {}}
@@ -82,7 +92,7 @@ def __runArancinoApi():
 
 
     @app.route('/ports', methods=['GET'])
-    def get_ports():
+    def api_get_ports():
         response = {"arancino": {}}
         response["arancino"]["arancino"] = {}
         response["arancino"]["arancino"]["ports"] = {}
@@ -92,17 +102,17 @@ def __runArancinoApi():
         #response["arancino"]["arancino"]["ports"]["discovered"]["num"] = len(m.getDiscoveredPorts())
 
         response["arancino"]["arancino"]["ports"]["discovered"] = get_ports_discovered()
-        response["arancino"]["arancino"]["ports"]["connected"] = get_ports_connected()
+        response["arancino"]["arancino"]["ports"]["connected"] = api_get_ports_connected()
 
         return response
 
 
     @app.route('/ports/connected', methods=['GET'])
-    def get_ports_connected():
+    def api_get_ports_connected():
         response = {"arancino": {}}
         response["arancino"]["arancino"] = {}
         response["arancino"]["arancino"]["ports"] = {}
-        response["arancino"]["arancino"]["ports"]["connected"] = get_ports_by_status(status='connected')
+        response["arancino"]["arancino"]["ports"]["connected"] = get_response_for_ports_by_status(status='connected')
         return  response
 
 
@@ -111,21 +121,30 @@ def __runArancinoApi():
         response = {"arancino": {}}
         response["arancino"]["arancino"] = {}
         response["arancino"]["arancino"]["ports"] = {}
-        response["arancino"]["arancino"]["ports"]["discovered"] = get_ports_by_status(status='discovered')
+        response["arancino"]["arancino"]["ports"]["discovered"] = get_response_for_ports_by_status(status='discovered')
         return response
 
 
     @app.route('/ports/<port_id>', methods=['GET'])
-    def port(port_id):
+    def api_get_port(port_id):
+
         response = {"arancino": {}}
         response["arancino"]["arancino"] = {}
         response["arancino"]["arancino"]["port"] = {}
-        response["arancino"]["arancino"]["port"] = get_port_by_id(port_id)
+        response["arancino"]["arancino"]["port"] = get_response_for_port_by_id(port_id)
 
         return response
 
 
-    def get_ports_by_status(status='discovered'):
+    @app.route('/ports/<port_id>/reset', methods=['POST'])
+    @auth.login_required
+    def api_reset(port_id=None):
+        port = retrieve_port_by_id(port_id)
+        port.reset()
+        return "ok"
+
+
+    def get_response_for_ports_by_status(status='discovered'):
         response = {}
         for type in PortTypes:
 
@@ -141,18 +160,18 @@ def __runArancinoApi():
                         response[type.name] = []
 
                     p = {}
-                    p[id] = get_port(port)
+                    p[id] = get_response_for_port(port)
 
                     response[type.name].append(p)
 
                     # response[type.name][id] = {}
-                    # response[type.name][id] = get_port(port)
+                    # response[type.name][id] = get_response_for_port(port)
 
 
         return response
 
 
-    def get_port(port=None):
+    def get_response_for_port(port=None):
         response = {}
 
         if port is not None:
@@ -177,20 +196,26 @@ def __runArancinoApi():
         return response
 
 
-    def get_port_by_id(port_id=None):
+    def get_response_for_port_by_id(port_id=None):
         response = {}
-
-        if port_id is not None:
-            conn = m.getConnectedPorts()
-            if port_id in conn:
-                return get_port(conn[port_id])
-
-            disc = m.getDiscoveredPorts()
-            if port_id in disc:
-                return get_port(disc[port_id])
+        port = retrieve_port_by_id(port_id)
+        if port is not None:
+            return get_response_for_port(port)
 
         return response
 
+
+    def retrieve_port_by_id(port_id=None):
+        port = None
+        if port_id is not None:
+            conn = m.getConnectedPorts()
+            disc = m.getDiscoveredPorts()
+            if port_id in conn:
+                port = conn[port_id]
+            elif port_id in disc:
+                port = disc[port_id]
+
+        return port
 
     app.run(host='0.0.0.0', port=1475, debug=False, use_reloader=False)
 

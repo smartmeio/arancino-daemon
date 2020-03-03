@@ -40,7 +40,6 @@ class ArancinoPortSynch:
         :param discovered: Dictionary of ArancinoPorts
         """
 
-
         if phase == 1:
             for id, port in discovered.items():
                 self.synchPort(port)
