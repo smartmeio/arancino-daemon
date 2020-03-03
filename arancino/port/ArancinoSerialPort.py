@@ -269,7 +269,10 @@ class ArancinoSerialPort(ArancinoPort):
 
     def reset(self):
         try:
-            LOG.debug("{} Resetting...".format(self.__log_prefix))
+
+            LOG.info("{} Resetting...".format(self.__log_prefix))
+            self.disconnect()
+            self.setEnabled(False)
             # touch to reset
             ser = serial.Serial()
             ser.baudrate = 300 # TODO make it an attribute
@@ -278,7 +281,8 @@ class ArancinoSerialPort(ArancinoPort):
             ser.close()
             del ser
             time.sleep(3)
-            LOG.debug("{} Reset".format(self.__log_prefix))
+            self.setEnabled(True)
+            LOG.info("{} Reset".format(self.__log_prefix))
         except Exception as ex:
             #LOG.info("{} Connected".format(self.__log_prefix))
             LOG.exception(self.__log_prefix + str(ex))
