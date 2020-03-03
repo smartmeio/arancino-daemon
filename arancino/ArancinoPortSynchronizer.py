@@ -93,7 +93,7 @@ class ArancinoPortSynch:
             #enabled = self.__checkValues(self.__devicestore.hget(arancino.getId(), ArancinoDBKeys.M_ENABLED), "BOOL")
             enabled = stringToBool(self.__devicestore.hget(port.getId(), ArancinoDBKeys.C_ENABLED))
             alias = self.__devicestore.hget(port.getId(), ArancinoDBKeys.C_ALIAS)
-            hide = self.__devicestore.hget(port.getId(), ArancinoDBKeys.C_HIDE_DEVICE)
+            hide = stringToBool(self.__devicestore.hget(port.getId(), ArancinoDBKeys.C_HIDE_DEVICE))
             creation_date_dt = stringToDatetime(self.__devicestore.hget(port.getId(), ArancinoDBKeys.S_CREATION_DATE))
             last_usage_date_dt = stringToDatetime(self.__devicestore.hget(port.getId(), ArancinoDBKeys.S_LAST_USAGE_DATE))
 
