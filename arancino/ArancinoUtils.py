@@ -72,6 +72,7 @@ class ArancinoConfig:
         self.__general_env = Config.get("general", "env")
         self.__general_cycle_time = Config.get("general", "cycle_time")
         self.__general_users = Config.get("general", "users")
+        self.__general_firmware_path = Config.get("general", "firmware_path")
 
         # CONFIG REDIS SECTION
         self.__redis_instance_type = Config.get("redis", "instance_type")
@@ -118,6 +119,9 @@ class ArancinoConfig:
 
     def get_general_users(self):
         return json.loads(self.__general_users)
+
+    def get_general_firmware_path(self):
+        return self.__general_firmware_path
 
     ######## REDIS ########
     def get_redis_instance_type(self):

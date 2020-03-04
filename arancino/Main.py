@@ -1,3 +1,5 @@
+import os
+
 from arancino.Arancino import Arancino
 from arancino.ArancinoUtils import ArancinoConfig, getProcessUptime
 from arancino.port.ArancinoPort import PortTypes
@@ -11,7 +13,8 @@ from socket import gethostname, gethostbyname
 from platform import system, release
 from uptime import uptime
 from flask_httpauth import HTTPBasicAuth
-from flask import Flask
+from flask import Flask, jsonify, request
+
 auth = HTTPBasicAuth()
 
 m = Arancino()
@@ -161,9 +164,14 @@ def __runArancinoApi():
         if new_status == curr_status:
             return "nothing to change"
         else:
+            # Note: per la natura del PortSynchronizer, e della gestione a due liste delle porte (discovered e connected)
+            #   l'unico modo al momento per impostare una configuazione (ENABLED, ALIAS, HIDE) é passare da REDIS.
+            #   perché ad ogni run, nel sync phase 1 a partire dalle discovered vengono lette le config da REDIS ed applicate
+            #   nel SyncConfig alle connected. quindi anche se dalla rest api eseguo un port.setEnabled(), questo
+            #   verrebbe ignorato.
+
             __devicestore.hset(port.getId(), keys.C_ENABLED, str(new_status))
             return "ok, done"
-
 
 
     def get_response_for_ports_by_status(status='discovered'):
@@ -238,6 +246,45 @@ def __runArancinoApi():
                 port = disc[port_id]
 
         return port
+
+    ALLOWED_EXTENSIONS = set(['bin', 'hex','pdf'])
+
+    def allowed_file(filename):
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+    @app.route('/ports/<port_id>/upload', methods=['POST'])
+    @auth.login_required
+    def upload_file(port_id):
+        # check if the post request has the file part
+        if 'firmware' not in request.files:
+            resp = jsonify({'message': 'No file part in the request'})
+            resp.status_code = 400
+            return resp
+        file = request.files['firmware']
+        if file.filename == '':
+            resp = jsonify({'message': 'No file selected for uploading'})
+            resp.status_code = 400
+            return resp
+        if file and allowed_file(file.filename):
+            #filename = secure_filename(file.filename)
+            path = os.path.join(c.get_general_firmware_path(), port_id)
+            os.makedirs(path)
+            file.save(os.path.join(path, file.filename))
+
+            #TODO: flash firmware.
+            #   implement an upload method in ArancinoPort
+            #       1. disconnect
+            #       2. call runbossac (for serial port) at tty of the port
+            #       3. it shoul reconnect automacically.
+
+            resp = jsonify({'message': 'File successfully uploaded'})
+            resp.status_code = 201
+            return resp
+        else:
+            # TODO: change allowed file types dinamically
+            resp = jsonify({'message': 'Allowed file types are txt, pdf, png, jpg, jpeg, gif'})
+            resp.status_code = 400
+            return resp
 
     app.run(host='0.0.0.0', port=1475, debug=False, use_reloader=False)
 
