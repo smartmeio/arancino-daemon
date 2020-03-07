@@ -1,5 +1,9 @@
-import os
 
+# TODO: essendoci piu tipi di porte, esisteranno piu tipi di librerie e di conseguenza piu matrici di compatibilità.
+#   si deve quindi definire una matrice di compatibilità per tipo di porta, ed il controllo di compatibilità deve essere
+#   effettuato in base al tipo di porta e considerando la matrice relativa.
+
+import os
 from arancino.Arancino import Arancino
 from arancino.ArancinoUtils import ArancinoConfig, getProcessUptime
 from arancino.port.ArancinoPort import PortTypes
@@ -32,6 +36,7 @@ def __runArancinoApi():
 
     app = Flask(__name__)
     #api = Api(app, prefix="/api/v1" )
+    ALLOWED_EXTENSIONS = set(c.get_port_firmware_file_types())
 
     from arancino.ArancinoDataStore import ArancinoDataStore
     __devicestore = ArancinoDataStore.Instance().getDeviceStore()
@@ -52,11 +57,10 @@ def __runArancinoApi():
             False
 
 
-
     @app.route('/', methods=['GET'])
     def api_hello():
         sys_upt = uptime()
-        ara_upt = m.getUptime()
+        ara_upt = m._api_getUptime()
         response = {"arancino": {}}
         response["arancino"]["system"] = {}
         response["arancino"]["system"]["os"] = [system(), release()]
@@ -78,13 +82,13 @@ def __runArancinoApi():
             # response["arancino"]["arancino"]["ports"]["connected"][type.name] = []
             # response["arancino"]["arancino"]["ports"]["discovered"][type.name] = []
 
-            for id, port in m.getConnectedPorts().items():
+            for id, port in m._api_getConnectedPorts().items():
                 if type == port.getPortType():
                     if type.name not in response["arancino"]["arancino"]["ports"]["connected"]:
                         response["arancino"]["arancino"]["ports"]["connected"][type.name] = []
                     response["arancino"]["arancino"]["ports"]["connected"][type.name].append(id)
 
-            for id, port in m.getDiscoveredPorts().items():
+            for id, port in m._api_getDiscoveredPorts().items():
                 if type == port.getPortType():
                     if type.name not in response["arancino"]["arancino"]["ports"]["discovered"]:
                         response["arancino"]["arancino"]["ports"]["discovered"][type.name] = []
@@ -141,37 +145,72 @@ def __runArancinoApi():
     @app.route('/ports/<port_id>/reset', methods=['POST'])
     @auth.login_required
     def api_reset(port_id=None):
-        port = retrieve_port_by_id(port_id)
-        port.reset()
-        return "ok"
+        #port = retrieve_port_by_id(port_id)
+        #port.reset()
+        resp = m._api_resetPort(port_id)
+        return resp
+
 
     @app.route('/ports/<port_id>/enable', methods=['POST'])
     @auth.login_required
     def api_enable(port_id=None):
-        port = retrieve_port_by_id(port_id)
-        return change_status(port, True)
+        resp = m._api_enablePort(port_id)
+        return resp
 
     @app.route('/ports/<port_id>/disable', methods=['POST'])
     @auth.login_required
     def api_disable(port_id=None):
-        port = retrieve_port_by_id(port_id)
-        return change_status(port, False)
+        resp = m._api_disablePort(port_id)
+        return resp
 
+    @app.route('/ports/<port_id>/upload', methods=['POST'])
+    @auth.login_required
+    def upload_file(port_id):
 
-    def change_status(port, status):
-        new_status = status
-        curr_status = port.isEnabled()
-        if new_status == curr_status:
-            return "nothing to change"
+        # check if the post request has the file part
+        if 'firmware' not in request.files:
+            resp = jsonify({'message': 'No file part in the request'})
+            resp.status_code = 400
+            return resp
+        file = request.files['firmware']
+        if file.filename == '':
+            resp = jsonify({'message': 'No file selected for uploading'})
+            resp.status_code = 400
+            return resp
+        if file and allowed_file(file.filename):
+            #filename = secure_filename(file.filename)
+            path = os.path.join(c.get_port_firmware_path(), port_id)
+
+            if not os.path.isdir(path):
+                os.makedirs(path)
+
+            file_fw = os.path.join(path, file.filename)
+            file.save(file_fw)
+
+            #m.pause()
+            #port = retrieve_connected_port_by_id(port_id)
+
+            #change_status(port, False)
+            #resp = port.upload(file_fw)
+
+            #TODO: flash firmware.
+            #   implement an upload method in ArancinoPort
+            #       1. disconnect
+            #       2. call runbossac (for serial port) at tty of the port
+            #       3. it shoul reconnect automacically.
+
+            resp = m._api_uploadFirmwareToPort(port_id, file_fw)
+
+            resp = jsonify({'message': resp})
+            resp.status_code = 201
+            #change_status(port, True)
+            #m.resume()
+            return resp
         else:
-            # Note: per la natura del PortSynchronizer, e della gestione a due liste delle porte (discovered e connected)
-            #   l'unico modo al momento per impostare una configuazione (ENABLED, ALIAS, HIDE) é passare da REDIS.
-            #   perché ad ogni run, nel sync phase 1 a partire dalle discovered vengono lette le config da REDIS ed applicate
-            #   nel SyncConfig alle connected. quindi anche se dalla rest api eseguo un port.setEnabled(), questo
-            #   verrebbe ignorato.
-
-            __devicestore.hset(port.getId(), keys.C_ENABLED, str(new_status))
-            return "ok, done"
+            # TODO: change allowed file types dinamically
+            resp = jsonify({'message': 'Allowed file types are {}'.format(str(ALLOWED_EXTENSIONS))})
+            resp.status_code = 400
+            return resp
 
 
     def get_response_for_ports_by_status(status='discovered'):
@@ -180,9 +219,9 @@ def __runArancinoApi():
 
             list = {}
             if status.upper() == 'DISCOVERED':
-                list = m.getDiscoveredPorts()
+                list = m._api_getDiscoveredPorts()
             elif status.upper() == 'CONNECTED':
-                list = m.getConnectedPorts()
+                list = m._api_getConnectedPorts()
 
             for id, port in list.items():
                 if type == port.getPortType():
@@ -196,7 +235,6 @@ def __runArancinoApi():
 
                     # response[type.name][id] = {}
                     # response[type.name][id] = get_response_for_port(port)
-
 
         return response
 
@@ -215,7 +253,7 @@ def __runArancinoApi():
             # BASE ARANCINO STATUS METADATA (S)Status
             response[keys.S_CONNECTED] = port.isConnected()
             response[keys.S_PLUGGED] = port.isPlugged()
-            response[keys.S_CREATION_DATE] = port.getCreationDate()
+            response[keys.B_CREATION_DATE] = port.getCreationDate()
             response[keys.S_LAST_USAGE_DATE] = port.getLastUsageDate()
 
             # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
@@ -238,53 +276,46 @@ def __runArancinoApi():
     def retrieve_port_by_id(port_id=None):
         port = None
         if port_id is not None:
-            conn = m.getConnectedPorts()
-            disc = m.getDiscoveredPorts()
+            port = retrieve_connected_port_by_id(port_id)
+            if port is None:
+                port = retrieve_discovered_port_by_id(port_id)
+            else:
+                pass
+
+            # conn = m.getConnectedPorts()
+            # disc = m.getDiscoveredPorts()
+            # if port_id in conn:
+            #     port = conn[port_id]
+            # elif port_id in disc:
+            #     port = disc[port_id]
+
+        return port
+
+
+    def retrieve_connected_port_by_id(port_id=None):
+        port = None
+
+        if port_id is not None:
+            conn = m._api_getConnectedPorts()
             if port_id in conn:
                 port = conn[port_id]
-            elif port_id in disc:
+
+        return port
+
+
+    def retrieve_discovered_port_by_id(port_id=None):
+        port = None
+
+        if port_id is not None:
+            disc = m._api_getDiscoveredPorts()
+            if port_id in disc:
                 port = disc[port_id]
 
         return port
 
-    ALLOWED_EXTENSIONS = set(['bin', 'hex','pdf'])
 
     def allowed_file(filename):
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-    @app.route('/ports/<port_id>/upload', methods=['POST'])
-    @auth.login_required
-    def upload_file(port_id):
-        # check if the post request has the file part
-        if 'firmware' not in request.files:
-            resp = jsonify({'message': 'No file part in the request'})
-            resp.status_code = 400
-            return resp
-        file = request.files['firmware']
-        if file.filename == '':
-            resp = jsonify({'message': 'No file selected for uploading'})
-            resp.status_code = 400
-            return resp
-        if file and allowed_file(file.filename):
-            #filename = secure_filename(file.filename)
-            path = os.path.join(c.get_general_firmware_path(), port_id)
-            os.makedirs(path)
-            file.save(os.path.join(path, file.filename))
-
-            #TODO: flash firmware.
-            #   implement an upload method in ArancinoPort
-            #       1. disconnect
-            #       2. call runbossac (for serial port) at tty of the port
-            #       3. it shoul reconnect automacically.
-
-            resp = jsonify({'message': 'File successfully uploaded'})
-            resp.status_code = 201
-            return resp
-        else:
-            # TODO: change allowed file types dinamically
-            resp = jsonify({'message': 'Allowed file types are txt, pdf, png, jpg, jpeg, gif'})
-            resp.status_code = 400
-            return resp
 
     app.run(host='0.0.0.0', port=1475, debug=False, use_reloader=False)
 
@@ -301,7 +332,3 @@ def run():
 
 if __name__ == '__main__':
     run()
-
-
-# TODO: il modulo ha la versione scritta su file di config e caricata dalla Classe ArancinoConfig come semplice stringa.
-#  andrebbe usato la libreria semantic_versioning cosi come fatto per la Arancino Library di ogni porta.

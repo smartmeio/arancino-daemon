@@ -25,16 +25,17 @@ from types import FunctionType, MethodType
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.handler.ArancinoSerialHandler import ArancinoSerialHandler
 from arancino.ArancinoCortex import *
-from arancino.ArancinoUtils import ArancinoLogger
+from arancino.ArancinoUtils import ArancinoLogger, ArancinoConfig
 from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 
 LOG = ArancinoLogger.Instance().getLogger()
+CONF = ArancinoConfig.Instance()
 
 class ArancinoSerialPort(ArancinoPort):
 
     def __init__(self, port_info=None, device=None, baudrate=9600, m_s_plugged=False, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
 
-        super().__init__(device=device, port_type=PortTypes.SERIAL, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
+        super().__init__(device=device, port_type=PortTypes.SERIAL, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=CONF.get_port_test_upload_command(), receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
         # self._port_type = PortTypes.Serial
 
@@ -255,7 +256,7 @@ class ArancinoSerialPort(ArancinoPort):
         try:
             # check if the device is already
             if self._m_s_connected:
-                self._m_s_connected = False
+                #self._m_s_connected = False
 
                 self.__serial_handler.stop()
 
@@ -287,6 +288,18 @@ class ArancinoSerialPort(ArancinoPort):
             #LOG.info("{} Connected".format(self.__log_prefix))
             LOG.exception(self.__log_prefix + str(ex))
 
+
+    def upload(self, firmware):
+        # TODO exec run bossac
+        # import subprocess
+        #
+        # self.disconnect()
+        #
+        # cp = subprocess.run(['ls', firmware])
+        # print(cp.stdout)
+        # print(cp.returncode)
+        # print(cp.stderr)
+        return "ok"
 
     # SERIAL ARANCINO PORT METADATA
 

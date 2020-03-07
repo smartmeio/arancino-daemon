@@ -34,7 +34,12 @@ class ArancinoSerialDiscovery:
             if id not in collection:
                 collection[id] = port
             else:
+                pass#del collection[id]
+
+        for id, port in collection.items():
+            if id not in ports:
                 del collection[id]
+
 
         return collection
 

@@ -1,13 +1,8 @@
-from arancino.ArancinoSerialPort import ArancinoSerialPort
-from arancino.ArancinoCortex import *
 from arancino.ArancinoExceptions import *
-from arancino.ArancinoUtils import *
-from arancino.ArancinoDataStore import *
-from arancino.ArancinoConstants import *
-from arancino.ArancinoDiscovery import ArancinoSerialDiscovery
+
 
 def exec_command_handler(id, cmd):
-    print("NOW EXEC: [" + id + "]: " + cmd.get_raw())
+    print("NOW EXEC: [" + id + "]: " + cmd.getRaw())
 
 def disconnection_handler(id):
     print("disconnect: " + id)
@@ -18,7 +13,7 @@ try:
     #port = ArancinoSerialPort(m_c_enabled=True, m_c_alias="ABCDEF", device="/dev/cu.usbmodem14201", baudrate=4000000, timeout=None, disconnection_handler=disconnection_handler)
     #port.connect()
     #print("TEST")
-    #import time
+    import time
     #time.sleep(5)
     #port.disconnect()
     # time.sleep(3)
@@ -54,26 +49,44 @@ try:
     #     ap = ArancinoSerialPort()
     #     arancino_ports[p.serial_n]
 
-    from arancino.ArancinoMain import ArancinoMain
+    from arancino.Arancino import Arancino
 
-    m = ArancinoMain()
-    m.start()
+    a = Arancino()
+    a.start()
+
+    # time.sleep(15)
+    # p = m.getConnectedPorts()
+    #
+    # import json
+    # j = json.dumps(p)
+    # print(j)
+
+    #m2 = Arancino()
+
+    #a = ArancinoApi("ArancinoAPI")
+    #a.start()
 
 
 
 # CONF[DONE]
 # LOGGER[DONE]
 # LOG[DONE]
-# SYNCH[TODO]
-# DISCOVERY[TODO]
-# FILTER PORT[TODO]
-# EXEC COMMAND[TODO]
+# SYNCH[DONE]
+# DISCOVERY[DONE]
+# FILTER PORT[DONE]
+# EXEC COMMAND[DONE]
 # RESPONSE[DONE]
 # SEND RESPONSE[OK]
 # REDIS CONNECTION[OK]
-# ORCHESTRATOR[TODO]
+# ORCHESTRATOR[DONE]
+# TEST PORT [DONE]
+# DISCOVERY ABSTRACT [TODO]
 # REST API [TODO]
 # COMPATIBILITY CHECK[OK]
+# RIPENSARE GLI ATTRIBUTI DELLE PORTE
+
+
+
 except InvalidArgumentsNumberException as ex:
     # TODO
     print(ex)

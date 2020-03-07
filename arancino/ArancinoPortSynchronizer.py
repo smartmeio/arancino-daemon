@@ -93,7 +93,7 @@ class ArancinoPortSynch:
             enabled = stringToBool(self.__devicestore.hget(port.getId(), ArancinoDBKeys.C_ENABLED))
             alias = self.__devicestore.hget(port.getId(), ArancinoDBKeys.C_ALIAS)
             hide = stringToBool(self.__devicestore.hget(port.getId(), ArancinoDBKeys.C_HIDE_DEVICE))
-            creation_date_dt = stringToDatetime(self.__devicestore.hget(port.getId(), ArancinoDBKeys.S_CREATION_DATE))
+            creation_date_dt = stringToDatetime(self.__devicestore.hget(port.getId(), ArancinoDBKeys.B_CREATION_DATE))
             last_usage_date_dt = stringToDatetime(self.__devicestore.hget(port.getId(), ArancinoDBKeys.S_LAST_USAGE_DATE))
 
 
@@ -103,7 +103,7 @@ class ArancinoPortSynch:
             port.setCreationDate(creation_date_dt)
             port.setLastUsageDate(last_usage_date_dt)
 
-        else: # Runs only the first time when a new device is plugged.
+        else:  # Runs only the first time when a new device is plugged.
             '''
             The port does not exist in the device store and must be registered. This runs only
             the first time a port is plugged and all ports data are stored into device store.
@@ -131,7 +131,7 @@ class ArancinoPortSynch:
             pipeline.hset(port.getId(), ArancinoDBKeys.B_ID, str(port.getId()))
 
             pipeline.hset(port.getId(), ArancinoDBKeys.S_PLUGGED, str(port.isPlugged()))
-            pipeline.hset(port.getId(), ArancinoDBKeys.S_CREATION_DATE, datetimeToString(datetime.now()))
+            pipeline.hset(port.getId(), ArancinoDBKeys.B_CREATION_DATE, datetimeToString(datetime.now()))
             pipeline.hset(port.getId(), ArancinoDBKeys.S_LAST_USAGE_DATE, datetimeToString(datetime.now()))
 
 
@@ -242,3 +242,158 @@ class ArancinoPortSynch:
             #     pipeline.hset(port.getId(), ArancinoDBKeys.C_ALIAS, port.getAlias() )
             #     pipeline.hset(port.getId(), ArancinoDBKeys.C_HIDE_DEVICE, str(port.isHidden()))
             #     pipeline.execute()
+
+
+    ##################################################################
+
+    # def readPortsConfig(self, ports):
+    #
+    #     for id, port in ports.items():
+    #         self.readPortConfig(port)
+
+
+    def readPortConfig(self, port):
+
+        id = port.getId()
+        is_enabled = stringToBool(self.__devicestore.hget(id, ArancinoDBKeys.C_ENABLED))
+        is_hidden = stringToBool(self.__devicestore.hget(id, ArancinoDBKeys.C_HIDE_DEVICE))
+        alias = self.__devicestore.hget(id, ArancinoDBKeys.C_ALIAS)
+
+        port.setEnabled(is_enabled)
+        port.setHide(is_hidden)
+        port.setAlias(alias)
+
+        return port
+
+    # def writePortsConfig(self, ports):
+    #
+    #     for id, port in ports.items():
+    #         self.writePortConfig(port)
+
+    def writePortConfig(self, port):
+
+        id = port.getId()
+        is_enabled = str(port.isEnabled())
+        is_hidden = str(port.isHidden())
+        alias = port.getAlias()
+
+        pipeline = self.__devicestore.pipeline()
+        pipeline.hset(id, ArancinoDBKeys.C_ENABLED, is_enabled)
+        pipeline.hset(id, ArancinoDBKeys.C_HIDE_DEVICE, is_hidden)
+        pipeline.hset(id, ArancinoDBKeys.C_ALIAS, alias)
+        pipeline.execute()
+
+
+
+    # def writePortsBase(self, ports):
+    #
+    #     for id, port in ports.items():
+    #
+    #         self.writePortBase(port)
+
+    def writePortBase(self, port):
+
+        id = port.getId()
+        port_type = port.getPortType().value
+        liv_ver = str(port.getLibVersion())
+        creation_date = datetimeToString(port.getCreationDate())
+
+        pipeline = self.__devicestore.pipeline()
+        pipeline.hset(id, ArancinoDBKeys.B_ID, id)
+        pipeline.hset(id, ArancinoDBKeys.B_PORT_TYPE, port_type)
+        pipeline.hset(id, ArancinoDBKeys.B_LIB_VER, liv_ver)
+        pipeline.hset(id, ArancinoDBKeys.B_CREATION_DATE, creation_date)
+        pipeline.execute()
+
+
+    def writePortLink(self, port):
+        id = port.getId()
+        device = port.getDevice()
+
+        pipeline = self.__devicestore.pipeline()
+        pipeline.hset(id, ArancinoDBKeys.B_DEVICE, device)
+        pipeline.execute()
+
+
+    # def writePortsStatus(self, ports):
+    #
+    #     for id, port in ports.items():
+    #         self.writePortStatus(port)
+
+    def writePortStatus(self, port):
+
+        id = port.getId()
+        is_plugged = str(port.isPlugged())
+        is_connected = str(port.isConnected())
+
+        pipeline = self.__devicestore.pipeline()
+        pipeline.hset(id, ArancinoDBKeys.S_PLUGGED, is_plugged)
+        pipeline.hset(id, ArancinoDBKeys.S_CONNECTED, is_connected)
+
+        pipeline.execute()
+
+    def writePortsInfo(self, ports):
+        for id, port in ports.items():
+            self.writePortInfo(port)
+
+    def writePortInfo(self, port):
+        pipeline = self.__devicestore.pipeline()
+        if port.getPortType() == PortTypes.SERIAL:
+            # SERIAL ARANCINO PORT METADATA
+            # sets data retrieved directly from the plugged port
+
+            desc = port.getDescription()
+            hwid = str(port.getHWID())
+            vid = str(port.getVID())
+            pid = str(port.getPID())
+            serial_number = str(port.getSerialNumber())
+            manufacturer = str(port.getManufacturer())
+            product = str(port.getProduct())
+            name = str(port.getName())
+            location = str(port.getLocation())
+            interface = str(port.getInterface())
+
+            pipeline.hset(port.getId(), ArancinoDBKeys.P_DESCRIPTION, desc)
+            pipeline.hset(port.getId(), ArancinoDBKeys.P_HWID, hwid)
+            pipeline.hset(port.getId(), ArancinoDBKeys.P_VID, vid)
+            pipeline.hset(port.getId(), ArancinoDBKeys.P_PID, pid)
+            pipeline.hset(port.getId(), ArancinoDBKeys.P_SERIALNUMBER, serial_number)
+            pipeline.hset(port.getId(), ArancinoDBKeys.P_MANUFACTURER, manufacturer)
+            pipeline.hset(port.getId(), ArancinoDBKeys.P_PRODUCT, product)
+            pipeline.hset(port.getId(), ArancinoDBKeys.P_NAME, name)
+            pipeline.hset(port.getId(), ArancinoDBKeys.P_LOCATION, location)
+            pipeline.hset(port.getId(), ArancinoDBKeys.P_INTERFACE, interface)
+
+
+        elif port.getPortType() == PortTypes.TEST:
+            # Do Nothing: Test Port doesn't have metadata
+            pass
+
+        pipeline.execute()
+
+    def readPortChanges(self, port):
+        id = port.getId()
+        last_usage_date = stringToDatetime(self.__devicestore.hget(id, ArancinoDBKeys.S_LAST_USAGE_DATE)) if self.__devicestore.hget(id, ArancinoDBKeys.S_LAST_USAGE_DATE) is not "" else None
+        creation_date = stringToDatetime(self.__devicestore.hget(id, ArancinoDBKeys.B_CREATION_DATE))
+
+        port.setLastUsageDate(last_usage_date)
+        port.setCreationDate(creation_date)
+
+        return port
+
+    def writePortChanges(self, port):
+        id = port.getId()
+        last_usage_date = datetimeToString(port.getLastUsageDate()) if port.getLastUsageDate() is not None and not "" else ""
+
+        pipeline = self.__devicestore.pipeline()
+        pipeline.hset(id, ArancinoDBKeys.S_LAST_USAGE_DATE, last_usage_date)
+        pipeline.execute()
+
+
+    def portExists(self, port=None, port_id=None):
+        if port:
+            return self.__devicestore.exists(port.getId())
+        elif port_id:
+            return self.__devicestore.exists(port_id)
+        else:
+            raise Exception("No port specified")

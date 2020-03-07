@@ -31,7 +31,7 @@ class ArancinoPort(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, device=None, m_s_plugged=False, m_c_enabled=True, m_c_alias="", m_c_hide=False, port_type=None, receivedCommandHandler=None, disconnectionHandler=None):
+    def __init__(self, device=None, m_s_plugged=False, m_c_enabled=True, m_c_alias="", m_c_hide=False, port_type=None, upload_cmd=None, receivedCommandHandler=None, disconnectionHandler=None):
 
         # BASE METADATA
         self._id = None                 # Id is the Serial Number. It will have a value when the Serial Port is connected
@@ -39,17 +39,20 @@ class ArancinoPort(object):
         self._port_type = port_type     # Type of port, i.e: Serial, Network, etc...
         self._library_version = None
         self._m_b_creation_date = None
-        self._m_b_last_usage_date = None
+
 
         # BASE STATUS METADATA
         self._m_s_plugged = m_s_plugged
         self._m_s_connected = False
-
+        self._m_s_last_usage_date = None
 
         # BASE CONFIGURATION METADATA
         self._m_c_enabled = m_c_enabled
         self._m_c_alias = m_c_alias
         self._m_c_hide = m_c_hide
+
+        # OTHER
+        self._upload_cmd = upload_cmd
 
         # Command Executor
         # self._executor = ArancinoCommandExecutor(self._id, self._device)
@@ -59,6 +62,9 @@ class ArancinoPort(object):
         self._disconnection_handler = None
         self.setReceivedCommandHandler(receivedCommandHandler)  # this is the handler to be used to receive an ArancinoCommand and exec that command.
         self.setDisconnectionHandler(disconnectionHandler)  # this is the handler to be used whene a disconnection event is triggered
+
+
+        self.__first_time = True
 
     def unplug(self):
         self.disconnect()
@@ -103,6 +109,10 @@ class ArancinoPort(object):
         """
         pass
 
+
+    @abstractmethod
+    def upload(self, firmware):
+        pass
 
     @abstractmethod
     def __commandReceivedHandler(self, raw_command):
@@ -171,11 +181,11 @@ class ArancinoPort(object):
 
 
     def getLastUsageDate(self):
-        return self._m_b_last_usage_date
+        return self._m_s_last_usage_date
 
 
     def setLastUsageDate(self, last_usage_date):
-        self._m_b_last_usage_date = last_usage_date
+        self._m_s_last_usage_date = last_usage_date
 
 
     # BASE STATUS METADATA Encapsulators
@@ -214,6 +224,14 @@ class ArancinoPort(object):
 
     def setHide(self, hide):
         self._m_c_hide = hide
+
+
+    def isFirstTimeLoaded(self):
+        if(self.__first_time):
+            self.__first_time = False
+            return True
+        else:
+            return False
 
 
     # Set Handlers

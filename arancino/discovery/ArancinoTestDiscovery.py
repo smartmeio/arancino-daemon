@@ -21,20 +21,38 @@ class ArancinoTestDiscovery:
     # TODO: this can be an abstract method
     def getAvailablePorts(self, collection):
         """
-        Create Arancino Port for test purpose
+        Create Arancino Port for test purpose.
+            It simulates a disovery service and create a number of Test Ports as by setted in the port.test section of arancino.cfg.
+            Usually this function is called periodically and a list of Test Port is passed as argument.
         """
 
         #ports = {}
         num = CONF.get_port_test_num()
         tmpl_id = CONF.get_port_test_id_template()
-
-        for count in range(1, int(num)+1):
+        test_ports = []
+        for count in range(1, int(num)+1):  # Generates port ids
             id = tmpl_id + str(count)
+            test_ports.append(id)
+
+            # if the id is not in passed list of ports, then create a Test Port and put it in the list.
             if id not in collection:
                 port = ArancinoTestPort(id=id, device="There", m_s_plugged=True, m_c_enabled=CONF.get_port_test_enabled(), m_c_auto_connect=True, m_c_alias=id, m_c_hide=CONF.get_port_test_hide())
                 #ports[id] = port
                 collection[id] = port
             else:
+                pass #del collection[id]
+
+
+        # get each port in the collection
+        for id, port in collection.items():  # if the
+
+            # if a port in the collection is not in the list of the test_port (the created one) means that the port was unplegged.
+            if id not in test_ports:
                 del collection[id]
 
+
         return collection#ports
+
+
+
+    #def __discoveryPorts(self):

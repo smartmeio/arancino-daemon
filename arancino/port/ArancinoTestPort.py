@@ -26,16 +26,17 @@ from arancino.handler.ArancinoTestHandler import ArancinoTestHandler
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.handler.ArancinoSerialHandler import ArancinoSerialHandler
 from arancino.ArancinoCortex import *
-from arancino.ArancinoUtils import ArancinoLogger
+from arancino.ArancinoUtils import ArancinoLogger, ArancinoConfig
 from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 import uuid
 
 
 LOG = ArancinoLogger.Instance().getLogger()
+CONF = ArancinoConfig.Instance()
 
 class ArancinoTestPort(ArancinoPort):
     def __init__(self, id=None, device=None, m_s_plugged=True, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None):
-        super().__init__(device=device, port_type=PortTypes.TEST, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
+        super().__init__(device=device, port_type=PortTypes.TEST, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=CONF.get_port_test_upload_command(), receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
         # set the version internally
         self._setLibVersion(semantic_version.Version('1.0.0'))
@@ -156,7 +157,7 @@ class ArancinoTestPort(ArancinoPort):
 
             # check if the device is already
             if self._m_s_connected:
-                self._m_s_connected = False
+                # self._m_s_connected = False
 
                 self.__test_handler.stop()
 
@@ -168,8 +169,48 @@ class ArancinoTestPort(ArancinoPort):
             raise ex
 
     def reset(self):
-        # Do nothing
-        pass
+        LOG.info("{} Starting Reset".format(self.__log_prefix))
+        LOG.info("{} Reset Success!".format(self.__log_prefix))
+
+    def upload(self, firmware):
+        LOG.info("{} Starting Upload".format(self.__log_prefix))
+        import subprocess
+
+        cmd = self._upload_cmd.format(firmware=firmware, port=self)
+        cmd_arr = cmd.split(" ")
+        LOG.info("{} Ready to run upload command'$> {}'".format(self.__log_prefix, cmd))
+
+        stdout = None
+        stderr = None
+        rtcode = 0
+        try:
+            self.setEnabled(False)
+            self.disconnect()
+            while self.isConnected():
+                pass
+
+
+            proc = subprocess.Popen(cmd_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = proc.communicate()
+            stdout = stdout.decode("utf-8")
+            stderr = stderr.decode("utf-8")
+            rtcode = proc.returncode
+
+            if rtcode != 0:
+                LOG.error("{} Return code: {} - {}".format(self.__log_prefix, str(rtcode), stderr))
+            else:
+                LOG.info("{} Upload Success!".format(self.__log_prefix))
+                LOG.info("{} {}".format(self.__log_prefix, stdout))
+
+
+        except Exception as ex:
+            rtcode = -1
+            stderr = str(ex)
+            LOG.error("{} Something goes wrong while uploadig: {}".format(self.__log_prefix, str(ex)))
+
+        finally:
+            self.setEnabled(True)
+            return rtcode, stdout, stderr
 
     def sendRespose(self, raw_response):
         # Do nothing

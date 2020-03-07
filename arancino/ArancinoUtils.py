@@ -72,10 +72,13 @@ class ArancinoConfig:
         self.__general_env = Config.get("general", "env")
         self.__general_cycle_time = Config.get("general", "cycle_time")
         self.__general_users = Config.get("general", "users")
-        self.__general_firmware_path = Config.get("general", "firmware_path")
 
         # CONFIG REDIS SECTION
         self.__redis_instance_type = Config.get("redis", "instance_type")
+
+        # CONFIG PORT SECTION
+        self.__port_firmware_path = Config.get("port", "firmware_path")
+        self.__port_firmware_file_types = Config.get("port", "firmware_file_types")
 
         # CONFIG SERIAL PORT SECTION
         self.__port_serial_enabled = stringToBool(Config.get("port.serial", "enabled"))
@@ -84,6 +87,7 @@ class ArancinoConfig:
         self.__port_serial_reset_baudrate = Config.get("port.serial", "reset_baudrate")
         self.__port_serial_filter_type = Config.get("port.serial", "filter_type")
         self.__port_serial_filter_list = Config.get("port.serial", "filter_list")
+        self.__port_serial_upload_command = Config.get("port.serial", "upload_command")
 
         # CONFIG TEST PORT SECTION
         self.__port_test_enabled = stringToBool(Config.get("port.test", "enabled"))
@@ -92,6 +96,7 @@ class ArancinoConfig:
         self.__port_test_filter_list = Config.get("port.test", "filter_list")
         self.__port_test_num = Config.get("port.test", "num")
         self.__port_test_id_template = Config.get("port.test", "id_template")
+        self.__port_test_upload_command = Config.get("port.test", "upload_command")
 
         # CONFIG LOG SECTION
         self.__log_level = Config.get("log", "level")
@@ -120,8 +125,6 @@ class ArancinoConfig:
     def get_general_users(self):
         return json.loads(self.__general_users)
 
-    def get_general_firmware_path(self):
-        return self.__general_firmware_path
 
     ######## REDIS ########
     def get_redis_instance_type(self):
@@ -162,6 +165,15 @@ class ArancinoConfig:
 
         return redis_dts, redis_dvs, redis_dts_rsvd
 
+
+    ####### PORT #######
+    def get_port_firmware_path(self):
+        return self.__port_firmware_path
+
+    def get_port_firmware_file_types(self):
+        return json.loads(self.__port_firmware_file_types)
+
+
     ######## SERIAL PORT ########
     def get_port_serial_enabled(self):
         return self.__port_serial_enabled
@@ -187,6 +199,9 @@ class ArancinoConfig:
     def get_port_serial_filter_list(self):
         return json.loads(self.__port_serial_filter_list.upper())
 
+    def get_port_serial_upload_command(self):
+        return self.__port_serial_upload_command
+
     ######## TEST PORT ########
     def get_port_test_enabled(self):  #TODO non usata, deve essere usata nel discovery serial
         return self.__port_test_enabled
@@ -208,6 +223,10 @@ class ArancinoConfig:
 
     def get_port_test_id_template(self):
         return self.__port_test_id_template
+
+    def get_port_test_upload_command(self):
+        return self.__port_test_upload_command
+
 
     ######## LOG ########
     def get_log_level(self):

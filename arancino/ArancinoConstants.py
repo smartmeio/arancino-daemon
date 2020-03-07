@@ -246,11 +246,12 @@ class ArancinoDBKeys():
     B_DEVICE = "B_DEVICE"  # String
     B_PORT_TYPE = "B_PORT_TYPE" # String
     B_LIB_VER = "B_LIB_VER"  # String
+    B_CREATION_DATE = "S_CREATION_DATE"  # Datetime
 
     # BASE ARANCINO STATUS METADATA (S)Status
     S_CONNECTED = "S_CONNECTED"  # Boolean
     S_PLUGGED = "S_PLUGGED"  # Boolean
-    S_CREATION_DATE = "S_CREATION_DATE" #Datetime
+
     S_LAST_USAGE_DATE = "S_LAST_USAGE_DATE"  # Datetime
 
     # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
