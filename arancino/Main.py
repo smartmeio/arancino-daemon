@@ -125,7 +125,7 @@ def __runArancinoApi():
     @app.route('/ports/<port_id>', methods=['GET'])
     def api_get_port(port_id):
 
-        result = api.getPort()
+        result = api.getPort(port_id)
         response = jsonify(result)
 
         # TODO set HTTP STATUS CODE
