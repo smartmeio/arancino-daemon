@@ -156,7 +156,7 @@ def __runArancinoApi():
     @app.route('/ports/<port_id>/disable', methods=['POST'])
     @auth.login_required
     def api_disable(port_id=None):
-        result = m.disablePort(port_id)
+        result = api.disablePort(port_id)
         response = jsonify(result)
         # TODO set HTTP STATUS CODE
 

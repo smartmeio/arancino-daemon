@@ -9,6 +9,8 @@ from uptime import uptime
 from socket import gethostname, gethostbyname
 from platform import system, release
 
+from arancino.port.ArancinoPort import PortTypes
+
 API_CODE = ArancinoApiResponseCode()
 DB_KEYS = ArancinoDBKeys()
 CONF = ArancinoConfig.Instance()
@@ -255,6 +257,21 @@ class ArancinoApi():
             response[DB_KEYS.C_ENABLED] = port.isEnabled()
             response[DB_KEYS.C_ALIAS] = port.getAlias()
             response[DB_KEYS.C_HIDE_DEVICE] = port.isHidden()
+
+            if port.getPortType() == PortTypes.SERIAL:
+                response[DB_KEYS.P_VID] = port.getVid()
+                response[DB_KEYS.P_PID] = port.getPid()
+                response[DB_KEYS.P_NAME] = port.getName()
+                response[DB_KEYS.P_DESCRIPTION] = port.getDescription()
+                response[DB_KEYS.P_HWID] = port.getHWID()
+                response[DB_KEYS.P_SERIALNUMBER] = port.getSerialNumber()
+                response[DB_KEYS.P_LOCATION] = port.getLocation()
+                response[DB_KEYS.P_MANUFACTURER] = port.getManufacturer()
+                response[DB_KEYS.P_PRODUCT] = port.getProduct()
+                response[DB_KEYS.P_INTERFACE] = port.getInterface()
+
+            elif port.getPortType() == PortTypes.TEST:
+                pass
 
         return response
 

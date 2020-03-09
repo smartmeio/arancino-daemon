@@ -196,7 +196,7 @@ class Arancino(Thread):
 
 
             time.sleep(int(self.__cycle_time))
-            time.sleep(10)
+
 
         self.__exit()
 
