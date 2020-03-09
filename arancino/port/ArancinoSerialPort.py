@@ -276,7 +276,7 @@ class ArancinoSerialPort(ArancinoPort):
             self.setEnabled(False)
             # touch to reset
             ser = serial.Serial()
-            ser.baudrate = 300 # TODO make it an attribute
+            ser.baudrate = 300  # TODO make it an attribute
             ser.port = self._device
             ser.open()
             ser.close()
@@ -284,6 +284,7 @@ class ArancinoSerialPort(ArancinoPort):
             time.sleep(3)
             self.setEnabled(True)
             LOG.info("{} Reset".format(self.__log_prefix))
+            return True
         except Exception as ex:
             #LOG.info("{} Connected".format(self.__log_prefix))
             LOG.exception(self.__log_prefix + str(ex))

@@ -2,11 +2,13 @@
 import threading
 from threading import Thread
 from datetime import datetime, timedelta
-from arancino.ArancinoUtils import ArancinoLogger, ArancinoConfig, Singleton, getProcessUptime
+from arancino.ArancinoUtils import ArancinoLogger, ArancinoConfig, getProcessUptime
 from arancino.discovery.ArancinoSerialDiscovery import ArancinoSerialDiscovery
 from arancino.discovery.ArancinoTestDiscovery import ArancinoTestDiscovery
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
 from arancino.port.ArancinoPort import PortTypes
+from arancino.ArancinoConstants import ArancinoApiResponseCode
+
 
 import signal
 import time
@@ -15,7 +17,7 @@ import time
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
-
+API_CODE = ArancinoApiResponseCode()
 
 #@Singleton
 class Arancino(Thread):
@@ -151,6 +153,7 @@ class Arancino(Thread):
                         # read new configuration
                         self.__synchronizer.readPortConfig(p_conn)
                         self.__synchronizer.writePortChanges(p_conn)
+
                         # if disabled then disconnect.
                         if not p_conn.isEnabled():
                             p_conn.disconnect()
@@ -193,6 +196,7 @@ class Arancino(Thread):
 
 
             time.sleep(int(self.__cycle_time))
+            time.sleep(10)
 
         self.__exit()
 
@@ -289,7 +293,6 @@ class Arancino(Thread):
         port.setLastUsageDate(datetime.now())
 
 
-
     def __disconnectedPortHandler(self, port_id):
 
         port = self.__ports_connected.pop(port_id, None)
@@ -302,26 +305,6 @@ class Arancino(Thread):
         del port
 
 
-    # def __printStats(self):
-    #     stats = open(CONF.get_stats_file_path(), "w")
-    #     stats.write("################################ ARANCINO STATS ################################\n")
-    #     stats.write("\n")
-    #     stats.write("ARANCINO UPTIME: " + getProcessUptime((time.time() - self.__thread_start)) + "\n")
-    #     stats.write("ARANCINO VERSION: " + self.__version + "\n")
-    #     stats.write("\n")
-    #     # stats.write("Generic Error - - - - - - - - - - - - - - - - - - - - - - - - - - - - " + str(count_ERR).zfill(10) + "\n")
-    #     # stats.write("Command Not Found - - - - - - - - - - - - - - - - - - - - - - - - - - " + str(count_ERR_CMD_NOT_FND).zfill(10) + "\n")
-    #     # stats.write("Invalid Parameter Number Error- - - - - - - - - - - - - - - - - - - - " + str(count_ERR_CMD_PRM_NUM).zfill(10) + "\n")
-    #     # stats.write("Generic Redis Error - - - - - - - - - - - - - - - - - - - - - - - - - " + str(count_ERR_REDIS).zfill(10) + "\n")
-    #     # stats.write("Key exists in the Standard Data Store Error - - - - - - - - - - - - - " + str(count_ERR_REDIS_KEY_EXISTS_IN_STD).zfill(10) + "\n")
-    #     # stats.write("Key exists in the Persistent Data Store  Error- - - - - - - - - - - - " + str(count_ERR_REDIS_KEY_EXISTS_IN_PERS).zfill(10) + "\n")
-    #     # stats.write("Non compatibility between Arancino Module and Library Error - - - - - " + str(count_ERR_NON_COMPATIBILITY).zfill(10) + "\n")
-    #     stats.write("\n")
-    #     stats.write("################################################################################\n")
-    #     stats.close()
-
-
-
     ##### API UTILS ######
 
     def __findPort(self, port_id):
@@ -332,23 +315,6 @@ class Arancino(Thread):
         else:
             return None
 
-    def __change_enabled_status(self, port, status):
-        new_status = status
-        curr_status = port.isEnabled()
-        if new_status == curr_status:
-            return "nothing to change"
-        else:
-            # Note: per la natura del PortSynchronizer, e della gestione a due liste delle porte (discovered e connected)
-            #   l'unico modo al momento per impostare una configuazione (ENABLED, ALIAS, HIDE) é passare da REDIS.
-            #   perché ad ogni run, nel sync phase 1 a partire dalle discovered vengono lette le config da REDIS ed applicate
-            #   nel SyncConfig alle connected. quindi anche se dalla rest api eseguo un port.setEnabled(), questo
-            #   verrebbe ignorato.
-
-            #__devicestore.hset(port.getId(), keys.C_ENABLED, str(new_status))
-            port.setEnabled(status)
-            self.__synchronizer.writePortConfig(port)
-            return "ok, done"
-
     def __pauseArancinoThread(self):
         self.__pause = True
         self.__cycle_time = 1
@@ -357,7 +323,43 @@ class Arancino(Thread):
         self.__cycle_time = CONF.get_general_cycle_time()
         self.__pause = False
 
-    ##### API #####
+    def __apiCreateErrorMessage(self, error_code=0, user_message=None, internal_message=None):
+
+        if user_message is None:
+            user_message = API_CODE.USER_MESSAGE(error_code)
+
+        if internal_message is None:
+            internal_message = API_CODE.INTERNAL_MESSAGE(error_code)
+
+        return {
+            "arancino": {
+                "errors": [
+                    {
+                        "userMessage": user_message,
+                        "internalMessage": internal_message,
+                        "returnCode": error_code
+                    }]
+            }
+        }
+
+    def __apiCreateOkMessage(self, response_code=0, user_message=None, internal_message=None):
+
+        if user_message is None:
+            user_message = API_CODE.USER_MESSAGE(response_code)
+
+        if internal_message is None:
+            internal_message = API_CODE.INTERNAL_MESSAGE(response_code)
+
+        return {
+            "arancino": {
+                "messages": [
+                    {
+                        "userMessage": user_message,
+                        "internalMessage": internal_message,
+                        "returnCode": response_code
+                    }]
+            }
+        }
 
     def _api_getUptime(self):
         return self.__uptime_sec
@@ -368,43 +370,174 @@ class Arancino(Thread):
     def _api_getDiscoveredPorts(self):
         return self.__ports_discovered
 
+    ##### API #####
+
     def _api_uploadFirmwareToPort(self, port_id, firmware):
 
-        port = self.__findPort(port_id)
-        if port:
-            self.__pause()
-            resp = port.upload(firmware)
-            self.__resume()
-            return resp
-        else:
-            return "Port not found"
+        try:
+            port = self.__findPort(port_id)
+            if port:
+
+                self.__pauseArancinoThread()
+                result = port.upload(firmware)
+                self.__resumeArancinoThread()
+
+                if result:
+
+                    rtn_cod = result[0]
+                    std_out = result[1]
+                    std_err = result[2]
+
+                    if rtn_cod != 0:
+                        return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_UPLOAD, internal_message=std_err)
+                    else:
+                        return self.__apiCreateOkMessage(response_code=API_CODE.OK_UPLOAD, internal_message=std_out)
+
+                else:  # when it is None means that no uploaded procedure is provided.
+                    return self.__apiCreateOkMessage(response_code=API_CODE.OK_RESET_NOT_PROVIDED)
+
+            else:
+                return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND)
+        except Exception as ex:
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_UPLOAD, internal_message=str(ex))
 
     def _api_resetPort(self, port_id):
 
-        port = self.__findPort(port_id)
-        if port:
-            self.__pauseArancinoThread()
-            port.reset()
-            self.__resumeArancinoThread()
-            # TODO create a rturn
-            return "ok"
-        else:
-            return "Port not found"
+        try:
+            port = self.__findPort(port_id)
+
+            if port:
+
+                self.__pauseArancinoThread()
+                result = port.reset()
+                self.__resumeArancinoThread()
+
+                if result:
+                    return self.__apiCreateOkMessage(response_code=API_CODE.OK_RESET)
+                else:  # when it is None means that no reset procedure is provided.
+                    return self.__apiCreateOkMessage(response_code=API_CODE.OK_RESET_NOT_PROVIDED)
+            else:
+                return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND)
+        except Exception as ex:
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_RESET, internal_message=str(ex))
 
     def _api_enablePort(self, port_id):
 
         port = self.__findPort(port_id)
+
         if port:
-            return self.__change_enabled_status(port, True)
+
+            new_status = True
+            curr_status = port.isEnabled()
+
+            if new_status == curr_status:
+                return self.__apiCreateOkMessage(response_code=API_CODE.OK_ALREADY_ENABLED)
+
+            else:
+                port.setEnabled(new_status)
+                self.__synchronizer.writePortConfig(port)
+
+                while not port.isConnected():
+                    time.sleep(1)
+
+                return self.__apiCreateOkMessage(response_code=API_CODE.OK_ENABLED)
+
         else:
-            return "Port not found"
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND)
 
     def _api_disablePort(self, port_id):
 
+        # TODO: in realta sono due operazioni: 1) disable 2) disconnect. Forse é il caso di dare due messaggi nella
+        #   response, visto che il pacchetto JSON di ritorno prevede un array di messaggi e/o errori
         port = self.__findPort(port_id)
-        if port:
-            return self.__change_enabled_status(port, False)
-        else:
-            return "Port not found"
 
-# TODO create structured return messages
+        if port:
+
+            new_status = False
+            curr_status = port.isEnabled()
+
+            if new_status == curr_status:
+                return self.__apiCreateOkMessage(response_code=API_CODE.OK_ALREADY_DISABLED)
+
+            else:
+                port.setEnabled(new_status)
+                self.__synchronizer.writePortConfig(port)
+
+                while port.isConnected():
+                    time.sleep(1)
+
+                return self.__apiCreateOkMessage(response_code=API_CODE.OK_DISABLED)
+
+        else:
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND)
+    #
+    # def _api_connectPort(self, port_id):
+    #
+    #     port = self.__findPort(port_id)
+    #
+    #     if port:
+    #
+    #         new_status = True
+    #         curr_status = port.isConnected()
+    #
+    #         if new_status == curr_status:
+    #             return self.__apiCreateOkMessage(response_code=API_CODE.OK_ALREADY_CONNECTED)
+    #
+    #         else:
+    #
+    #             if port.isEnabled():
+    #                 port.setDisconnectionHandler(self.__disconnectedPortHandler)
+    #                 port.setReceivedCommandHandler(self.__commandReceived)
+    #                 port.connect()
+    #
+    #                 # move Arancino Port to the self.__ports_connected
+    #                 self.__ports_connected[id] = port
+    #
+    #                 return self.__apiCreateOkMessage(response_code=API_CODE.OK_DISCONNECTED)
+    #
+    #             else:
+    #                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_CAN_NOT_CONNECT_PORT_DISABLED)
+    #
+    #     else:
+    #         return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND)
+    #
+    # def _api_disconnectPort(self, port_id):
+    #
+    #     port = self.__findPort(port_id)
+    #
+    #     if port:
+    #
+    #         new_status = False
+    #         curr_status = port.isConnected()
+    #
+    #         if new_status == curr_status:
+    #             return self.__apiCreateOkMessage(response_code=API_CODE.OK_ALREADY_DISCONNECTED)
+    #
+    #         else:
+    #             port.disconnect()
+    #
+    #             while port.isConnected():
+    #                 time.sleep(1)
+    #
+    #             return self.__apiCreateOkMessage(response_code=API_CODE.OK_DISCONNECTED)
+    #
+    #     else:
+    #         return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND)
+
+
+
+# RESET PORT
+
+
+# (1) ERROR CANNOT FIND PORT : RESET, UPLOAD, ENABLE, DISABLE
+'''
+{
+  "errors": [
+   {
+    "userMessage": "Sorry, Can not find specified port",
+    "internalMessage": "Port not found",
+    "errorCode": 1
+   }
+  ]
+}
+'''

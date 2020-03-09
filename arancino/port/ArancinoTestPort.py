@@ -123,11 +123,11 @@ class ArancinoTestPort(ArancinoPort):
                         LOG.info("{} Connecting...".format(self.__log_prefix))
 
                         # first resetting
-                        self.reset()
+                        #self.reset()
 
                         self.__test_handler = ArancinoTestHandler("ArancinoTestHandler-"+self._id, self._id, self._device, self.__commandReceivedHandler, self.__connectionLostHandler)
-                        self._m_s_connected = True
                         self.__test_handler.start()
+                        self._m_s_connected = True
                         LOG.info("{} Connected".format(self.__log_prefix))
 
 
@@ -169,8 +169,9 @@ class ArancinoTestPort(ArancinoPort):
             raise ex
 
     def reset(self):
-        LOG.info("{} Starting Reset".format(self.__log_prefix))
-        LOG.info("{} Reset Success!".format(self.__log_prefix))
+        return False
+        # LOG.info("{} Starting Reset".format(self.__log_prefix))
+        # LOG.info("{} Reset Success!".format(self.__log_prefix))
 
     def upload(self, firmware):
         LOG.info("{} Starting Upload".format(self.__log_prefix))

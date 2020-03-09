@@ -7,8 +7,9 @@ import os
 from arancino.Arancino import Arancino
 from arancino.ArancinoUtils import ArancinoConfig, getProcessUptime
 from arancino.port.ArancinoPort import PortTypes
-from arancino.ArancinoConstants import ArancinoDBKeys as keys
+from arancino.ArancinoConstants import ArancinoDBKeys as DB_KEYS
 import arancino.ArancinoRestApi as api
+from arancino.ArancinoConstants import ArancinoApiResponseCode as API_CODE
 from arancino.utils.pam import pamAuthentication
 import signal
 import json
@@ -61,83 +62,124 @@ def __runArancinoApi():
     def api_hello():
         sys_upt = uptime()
         ara_upt = m._api_getUptime()
-        response = {"arancino": {}}
-        response["arancino"]["system"] = {}
-        response["arancino"]["system"]["os"] = [system(), release()]
-        response["arancino"]["system"]["network"] = [gethostname(), gethostbyname(gethostname())]
-        response["arancino"]["system"]["uptime"] = [sys_upt, getProcessUptime(int(sys_upt))]
+        # response = {"arancino": {}}
+        # response["arancino"]["system"] = {}
+        # response["arancino"]["system"]["os"] = [system(), release()]
+        # response["arancino"]["system"]["network"] = [gethostname(), gethostbyname(gethostname())]
+        # response["arancino"]["system"]["uptime"] = [sys_upt, getProcessUptime(int(sys_upt))]
+        #
+        # response["arancino"]["arancino"] = {}
+        # response["arancino"]["arancino"]["uptime"] = [ara_upt, getProcessUptime(int(ara_upt))]
+        # response["arancino"]["arancino"]["version"] = str(c.get_metadata_version())
+        #
+        # response["arancino"]["arancino"]["ports"] = {}
+        # response["arancino"]["arancino"]["ports"]["connected"] = {}
+        # response["arancino"]["arancino"]["ports"]["discovered"] = {}
+        # # response["arancino"]["arancino"]["ports"]["connected"]["num"] = len(m.getConnectedPorts())
+        # # response["arancino"]["arancino"]["ports"]["discovered"]["num"] = len(m.getDiscoveredPorts())
+        #
+        # for type in PortTypes:
+        #
+        #     # response["arancino"]["arancino"]["ports"]["connected"][type.name] = []
+        #     # response["arancino"]["arancino"]["ports"]["discovered"][type.name] = []
+        #
+        #     for id, port in m._api_getConnectedPorts().items():
+        #         if type == port.getPortType():
+        #             if type.name not in response["arancino"]["arancino"]["ports"]["connected"]:
+        #                 response["arancino"]["arancino"]["ports"]["connected"][type.name] = []
+        #             response["arancino"]["arancino"]["ports"]["connected"][type.name].append(id)
+        #
+        #     for id, port in m._api_getDiscoveredPorts().items():
+        #         if type == port.getPortType():
+        #             if type.name not in response["arancino"]["arancino"]["ports"]["discovered"]:
+        #                 response["arancino"]["arancino"]["ports"]["discovered"][type.name] = []
+        #             response["arancino"]["arancino"]["ports"]["discovered"][type.name].append(id)
+        #
 
-        response["arancino"]["arancino"] = {}
-        response["arancino"]["arancino"]["uptime"] = [ara_upt, getProcessUptime(int(ara_upt))]
-        response["arancino"]["arancino"]["version"] = str(c.get_metadata_version())
 
-        response["arancino"]["arancino"]["ports"] = {}
-        response["arancino"]["arancino"]["ports"]["connected"] = {}
-        response["arancino"]["arancino"]["ports"]["discovered"] = {}
-        # response["arancino"]["arancino"]["ports"]["connected"]["num"] = len(m.getConnectedPorts())
-        # response["arancino"]["arancino"]["ports"]["discovered"]["num"] = len(m.getDiscoveredPorts())
+        response = {
+            "arancino" : {
+                "system" : {
+                    "os" : [system(), release()],
+                    "network": [gethostname(), gethostbyname(gethostname())],
+                    "uptime": [sys_upt, getProcessUptime(int(sys_upt))]
+                },
+                "arancino" : {
+                    "uptime" : [ara_upt, getProcessUptime(int(ara_upt))],
+                    "version": str(c.get_metadata_version()),
+                    "ports": {
+                        "discovered": get_response_for_ports_by_status(status='discovered'),
+                        "connected": get_response_for_ports_by_status(status='connected')
+                    }
+                }
+            }
+        }
 
-        for type in PortTypes:
-
-            # response["arancino"]["arancino"]["ports"]["connected"][type.name] = []
-            # response["arancino"]["arancino"]["ports"]["discovered"][type.name] = []
-
-            for id, port in m._api_getConnectedPorts().items():
-                if type == port.getPortType():
-                    if type.name not in response["arancino"]["arancino"]["ports"]["connected"]:
-                        response["arancino"]["arancino"]["ports"]["connected"][type.name] = []
-                    response["arancino"]["arancino"]["ports"]["connected"][type.name].append(id)
-
-            for id, port in m._api_getDiscoveredPorts().items():
-                if type == port.getPortType():
-                    if type.name not in response["arancino"]["arancino"]["ports"]["discovered"]:
-                        response["arancino"]["arancino"]["ports"]["discovered"][type.name] = []
-                    response["arancino"]["arancino"]["ports"]["discovered"][type.name].append(id)
 
         return response
 
 
     @app.route('/ports', methods=['GET'])
     def api_get_ports():
-        response = {"arancino": {}}
-        response["arancino"]["arancino"] = {}
-        response["arancino"]["arancino"]["ports"] = {}
-        response["arancino"]["arancino"]["ports"]["discovered"] = {}
-        response["arancino"]["arancino"]["ports"]["connected"] = {}
-        # response["arancino"]["arancino"]["ports"]["connected"]["num"] = len(m.getConnectedPorts())
-        # response["arancino"]["arancino"]["ports"]["discovered"]["num"] = len(m.getDiscoveredPorts())
-
-        response["arancino"]["arancino"]["ports"]["discovered"] = get_ports_discovered()
-        response["arancino"]["arancino"]["ports"]["connected"] = api_get_ports_connected()
+        response = {
+            "arancino": {
+                "arancino": {
+                    "ports": {
+                        "discovered": get_response_for_ports_by_status(status='discovered'),
+                        "connected": get_response_for_ports_by_status(status='connected')
+                    }
+                }
+            }
+        }
 
         return response
 
 
     @app.route('/ports/connected', methods=['GET'])
     def api_get_ports_connected():
-        response = {"arancino": {}}
-        response["arancino"]["arancino"] = {}
-        response["arancino"]["arancino"]["ports"] = {}
-        response["arancino"]["arancino"]["ports"]["connected"] = get_response_for_ports_by_status(status='connected')
-        return  response
+
+        response = {
+            "arancino": {
+                "arancino": {
+                    "ports": {
+                        "connected": get_response_for_ports_by_status(status='connected')
+                    }
+                }
+            }
+        }
+        return response
 
 
     @app.route('/ports/discovered', methods=['GET'])
     def get_ports_discovered():
-        response = {"arancino": {}}
-        response["arancino"]["arancino"] = {}
-        response["arancino"]["arancino"]["ports"] = {}
-        response["arancino"]["arancino"]["ports"]["discovered"] = get_response_for_ports_by_status(status='discovered')
+
+        response = {
+            "arancino": {
+                "arancino": {
+                    "ports": {
+                        "discovered": get_response_for_ports_by_status(status='discovered')
+                    }
+                }
+            }
+        }
+
         return response
 
 
     @app.route('/ports/<port_id>', methods=['GET'])
     def api_get_port(port_id):
 
-        response = {"arancino": {}}
-        response["arancino"]["arancino"] = {}
-        response["arancino"]["arancino"]["port"] = {}
-        response["arancino"]["arancino"]["port"] = get_response_for_port_by_id(port_id)
+        response = {
+            "arancino": {
+                "arancino": {
+                    "port": get_response_for_port_by_id(port_id)
+                }
+            }
+        }
+
+
+        # TODO set HTTP STATUS CODE
+        # resp.status_code = 201
 
         return response
 
@@ -145,22 +187,29 @@ def __runArancinoApi():
     @app.route('/ports/<port_id>/reset', methods=['POST'])
     @auth.login_required
     def api_reset(port_id=None):
-        #port = retrieve_port_by_id(port_id)
-        #port.reset()
-        resp = m._api_resetPort(port_id)
+        result = m._api_resetPort(port_id)
+        resp = jsonify(result)
+        # TODO set HTTP STATUS CODE
+        #resp.status_code = 201
         return resp
 
 
     @app.route('/ports/<port_id>/enable', methods=['POST'])
     @auth.login_required
     def api_enable(port_id=None):
-        resp = m._api_enablePort(port_id)
+        result = m._api_enablePort(port_id)
+        resp = jsonify(result)
+        # TODO set HTTP STATUS CODE
+        #resp.status_code = 201
         return resp
 
     @app.route('/ports/<port_id>/disable', methods=['POST'])
     @auth.login_required
     def api_disable(port_id=None):
-        resp = m._api_disablePort(port_id)
+        result = m._api_disablePort(port_id)
+        resp = jsonify(result)
+        # TODO set HTTP STATUS CODE
+        #resp.status_code = 201
         return resp
 
     @app.route('/ports/<port_id>/upload', methods=['POST'])
@@ -187,24 +236,11 @@ def __runArancinoApi():
             file_fw = os.path.join(path, file.filename)
             file.save(file_fw)
 
-            #m.pause()
-            #port = retrieve_connected_port_by_id(port_id)
-
-            #change_status(port, False)
-            #resp = port.upload(file_fw)
-
-            #TODO: flash firmware.
-            #   implement an upload method in ArancinoPort
-            #       1. disconnect
-            #       2. call runbossac (for serial port) at tty of the port
-            #       3. it shoul reconnect automacically.
-
             resp = m._api_uploadFirmwareToPort(port_id, file_fw)
 
-            resp = jsonify({'message': resp})
+            resp = jsonify(resp)
             resp.status_code = 201
-            #change_status(port, True)
-            #m.resume()
+
             return resp
         else:
             # TODO: change allowed file types dinamically
@@ -245,21 +281,21 @@ def __runArancinoApi():
         if port is not None:
 
             # BASE ARANCINO METADATA (B)Base
-            response[keys.B_ID] = port.getId()
-            response[keys.B_DEVICE] = port.getDevice()
-            response[keys.B_PORT_TYPE] = port.getPortType().name
-            response[keys.B_LIB_VER] = str(port.getLibVersion())
+            response[DB_KEYS.B_ID] = port.getId()
+            response[DB_KEYS.B_DEVICE] = port.getDevice()
+            response[DB_KEYS.B_PORT_TYPE] = port.getPortType().name
+            response[DB_KEYS.B_LIB_VER] = str(port.getLibVersion())
 
             # BASE ARANCINO STATUS METADATA (S)Status
-            response[keys.S_CONNECTED] = port.isConnected()
-            response[keys.S_PLUGGED] = port.isPlugged()
-            response[keys.B_CREATION_DATE] = port.getCreationDate()
-            response[keys.S_LAST_USAGE_DATE] = port.getLastUsageDate()
+            response[DB_KEYS.S_CONNECTED] = port.isConnected()
+            response[DB_KEYS.S_PLUGGED] = port.isPlugged()
+            response[DB_KEYS.B_CREATION_DATE] = port.getCreationDate()
+            response[DB_KEYS.S_LAST_USAGE_DATE] = port.getLastUsageDate()
 
             # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
-            response[keys.C_ENABLED] = port.isEnabled()
-            response[keys.C_ALIAS] = port.getAlias()
-            response[keys.C_HIDE_DEVICE] = port.isHidden()
+            response[DB_KEYS.C_ENABLED] = port.isEnabled()
+            response[DB_KEYS.C_ALIAS] = port.getAlias()
+            response[DB_KEYS.C_HIDE_DEVICE] = port.isHidden()
 
         return response
 

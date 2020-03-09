@@ -64,7 +64,7 @@ class ArancinoReservedChars:
                         RSVD_KEY_MODVERSION]
 
 
-class ArancinoCommandErrorCodes():
+class ArancinoCommandErrorCodes:
     # Error codes
     ERR = '200'
     "Generic Error"
@@ -238,7 +238,7 @@ class ArancinoCommandIdentifiers:
     "[ 'SET', 'GET', ... ]"
 
 
-class ArancinoDBKeys():
+class ArancinoDBKeys:
     # Keys used in to store port information into devicestore
 
     # BASE ARANCINO METADATA (B)Base
@@ -271,6 +271,99 @@ class ArancinoDBKeys():
     P_PRODUCT = "P_PRODUCT"  # String
     P_INTERFACE = "P_INTERFACE"  # String
     P_DEVICE = "P_DEVICE"  # String
+
+
+class ArancinoApiResponseCode:
+
+    def __init__(self):
+        pass
+
+    OK_ALREADY_ENABLED = 1
+    OK_ENABLED = 2
+
+    OK_ALREADY_DISABLED = 3
+    OK_DISABLED = 4
+
+    OK_ALREADY_CONNECTED = 5
+    OK_CONNECTED = 6
+
+    OK_ALREADY_DISCONNECTED = 7
+    OK_DISCONNECTED = 8
+
+    OK_RESET = 9
+    OK_RESET_NOT_PROVIDED = 10
+
+    OK_UPLOAD = 11
+    OK_UPLOAD_NOT_PROVIDED = 12
+
+    ERR_PORT_NOT_FOUND = 20
+    ERR_CAN_NOT_CONNECT_PORT_DISABLED = 21
+    ERR_GENERIC = 22
+    ERR_RESET = 23
+    ERR_UPLOAD = 24
+
+
+    __USER_MESSAGES = {
+        OK_ALREADY_ENABLED: "Selected port is already enabled.",
+        OK_ENABLED: "Port enabled successfully.",
+
+        OK_ALREADY_DISABLED: "Selected port is already disabled.",
+        OK_DISABLED: "Port disabled successfully.",
+
+        OK_ALREADY_CONNECTED: "Selected port is already connected.",
+        OK_CONNECTED: "Port connected successfully.",
+
+        OK_ALREADY_DISCONNECTED: "Selected port is already disconnected.",
+        OK_DISCONNECTED: "Port disconnected successfully.",
+
+        OK_RESET: "Port reset successfully.",
+        OK_RESET_NOT_PROVIDED: "This port does not provide reset operation",
+
+        OK_UPLOAD: "Firmware uploaded successfully.",
+        OK_UPLOAD_NOT_PROVIDED: "This port does not provide uploade operation",
+
+        ERR_PORT_NOT_FOUND: "Sorry, can not find specified port. Probably port was disconnected or unplugged during this operation.",
+        ERR_CAN_NOT_CONNECT_PORT_DISABLED: "Sorry, can not connect a disabled port, first enable it.",
+        ERR_GENERIC: "Sorry, an error was occurred during this operation.",
+        ERR_RESET: "Sorry, an error was occurred during this operation.",
+        ERR_UPLOAD: "Sorry, an error was occurred during this operation."
+    }
+
+    __INTERNAL_MESSAGES = {
+        OK_ALREADY_ENABLED: "Selected port is already enabled.",
+        OK_ENABLED: "Port enabled successfully.",
+
+        OK_ALREADY_DISABLED: "Selected port is already disabled.",
+        OK_DISABLED: "Port disabled successfully.",
+
+        OK_ALREADY_CONNECTED: "Selected port is already connected.",
+        OK_CONNECTED: "Port connected successfully.",
+
+        OK_ALREADY_DISCONNECTED: "Selected port is already disconnected.",
+        OK_DISCONNECTED: "Port disconnected successfully.",
+
+        OK_RESET: "Port reset successfully ",
+        OK_RESET_NOT_PROVIDED: "This port does not provide reset operation",
+
+        OK_UPLOAD: "Firmware uploaded successfully.",
+        OK_UPLOAD_NOT_PROVIDED: "This port does not provide uploade operation",
+
+        ERR_PORT_NOT_FOUND: "Sorry, can not find specified port. Probably port was disconnected or unplugged during this operation.",
+        ERR_CAN_NOT_CONNECT_PORT_DISABLED: "Sorry, can not connect a disabled port, first enable it.",
+        ERR_GENERIC: None,
+        ERR_RESET: None,
+        ERR_UPLOAD: None
+
+    }
+
+    def USER_MESSAGE(self, response_code):
+        return self.__USER_MESSAGES[response_code]
+
+    def INTERNAL_MESSAGE(self, response_code):
+        return self.__INTERNAL_MESSAGES[response_code]
+
+
+
 
 
 COMPATIBILITY_MATRIX_MOD = {

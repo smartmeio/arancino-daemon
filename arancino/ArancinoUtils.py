@@ -32,8 +32,6 @@ import semantic_version
 
 from arancino.ArancinoConstants import RedisInstancesType
 from arancino.filter.ArancinoPortFilter import FilterTypes
-import arancino.ArancinoUtils
-
 
 class Singleton:
 
