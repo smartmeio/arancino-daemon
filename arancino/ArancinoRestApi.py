@@ -259,8 +259,8 @@ class ArancinoApi():
             response[DB_KEYS.C_HIDE_DEVICE] = port.isHidden()
 
             if port.getPortType() == PortTypes.SERIAL:
-                response[DB_KEYS.P_VID] = port.getVid()
-                response[DB_KEYS.P_PID] = port.getPid()
+                response[DB_KEYS.P_VID] = port.getVID()
+                response[DB_KEYS.P_PID] = port.getPID()
                 response[DB_KEYS.P_NAME] = port.getName()
                 response[DB_KEYS.P_DESCRIPTION] = port.getDescription()
                 response[DB_KEYS.P_HWID] = port.getHWID()
@@ -275,8 +275,6 @@ class ArancinoApi():
 
         return response
 
-
-        pass
 
     def __apiCreateErrorMessage(self, error_code=0, user_message=None, internal_message=None):
 
