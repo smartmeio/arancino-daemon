@@ -169,49 +169,14 @@ class ArancinoTestPort(ArancinoPort):
             raise ex
 
     def reset(self):
+        # No reset provided method for this Port
         return False
         # LOG.info("{} Starting Reset".format(self.__log_prefix))
         # LOG.info("{} Reset Success!".format(self.__log_prefix))
 
     def upload(self, firmware):
-        LOG.info("{} Starting Upload".format(self.__log_prefix))
-        import subprocess
-
-        cmd = self._upload_cmd.format(firmware=firmware, port=self)
-        cmd_arr = cmd.split(" ")
-        LOG.info("{} Ready to run upload command'$> {}'".format(self.__log_prefix, cmd))
-
-        stdout = None
-        stderr = None
-        rtcode = 0
-        try:
-            self.setEnabled(False)
-            self.disconnect()
-            while self.isConnected():
-                pass
-
-
-            proc = subprocess.Popen(cmd_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = proc.communicate()
-            stdout = stdout.decode("utf-8")
-            stderr = stderr.decode("utf-8")
-            rtcode = proc.returncode
-
-            if rtcode != 0:
-                LOG.error("{} Return code: {} - {}".format(self.__log_prefix, str(rtcode), stderr))
-            else:
-                LOG.info("{} Upload Success!".format(self.__log_prefix))
-                LOG.info("{} {}".format(self.__log_prefix, stdout))
-
-
-        except Exception as ex:
-            rtcode = -1
-            stderr = str(ex)
-            LOG.error("{} Something goes wrong while uploadig: {}".format(self.__log_prefix, str(ex)))
-
-        finally:
-            self.setEnabled(True)
-            return rtcode, stdout, stderr
+        # No upload provided method for this Port
+        return False
 
     def sendRespose(self, raw_response):
         # Do nothing
