@@ -18,12 +18,15 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 """
+import sys
+import time
 
-from arancino.ArancinoUtils import Singleton, ArancinoConfig
+from arancino.ArancinoUtils import Singleton, ArancinoConfig, ArancinoLogger
 import redis
 
 
-# TODO make test connection using ping: https://stackoverflow.com/a/12860041/6789137
+LOG = ArancinoLogger.Instance().getLogger()
+CONF = ArancinoConfig.Instance()
 
 @Singleton
 class ArancinoDataStore:
@@ -55,6 +58,41 @@ class ArancinoDataStore:
                                                           db=self.__redis_dts_rsvd['db'],
                                                           decode_responses=self.__redis_dts_rsvd['dcd_resp'])
 
+
+
+        self._redis_conn_dts = redis.Redis(connection_pool=self.__redis_pool_dts)
+        self._redis_conn_dvs = redis.Redis(connection_pool=self.__redis_pool_dvs)
+        self._redis_conn_dts_rsvd = redis.Redis(connection_pool=self.__redis_pool_dts_rsvd)
+
+        self.__attempts = 1
+        self.__attempts_tot = CONF.get_redis_connection_attempts()
+
+        while True:
+
+            try:
+                if self.__attempts_tot != -1:
+                    LOG.info("Redis Connection attempts: {}".format(str(self.__attempts)))
+                else:
+                    LOG.info("Redis Connection attempts...")
+
+                self._redis_conn_dts.ping()
+                self._redis_conn_dvs.ping()
+                self._redis_conn_dts_rsvd.ping()
+                break
+
+            except Exception as ex:
+                if self.__attempts_tot != -1:
+                    if self.__attempts == self.__attempts_tot:
+                        LOG.error("Cannot connect to Redis: {}".format(str(ex)))
+                        sys.exit(-1)
+
+                    self.__attempts += 1
+                    time.sleep(3)
+
+        LOG.info("Redis Connection OK")
+
+
+
     def getDataStore(self):
         """
         Gets a redis client from a connection pool. This client is used to
@@ -62,7 +100,7 @@ class ArancinoDataStore:
         :return:
         """
 
-        return redis.Redis(connection_pool=self.__redis_pool_dts)
+        return self._redis_conn_dts
 
 
     def getDeviceStore(self):
@@ -71,7 +109,7 @@ class ArancinoDataStore:
             manage configurations of Arancino Devices.
         :return:
         """
-        return redis.Redis(connection_pool=self.__redis_pool_dvs)
+        return self._redis_conn_dvs
 
 
     def getDataStoreRsvd(self):
@@ -81,7 +119,7 @@ class ArancinoDataStore:
         :return:
         """
 
-        return redis.Redis(connection_pool=self.__redis_pool_dts_rsvd)
+        return self._redis_conn_dts_rsvd
 
 
     def closeAll(self):

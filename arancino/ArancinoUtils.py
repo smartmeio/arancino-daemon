@@ -73,6 +73,7 @@ class ArancinoConfig:
 
         # CONFIG REDIS SECTION
         self.__redis_instance_type = Config.get("redis", "instance_type")
+        self.__redis_connection_attempts = int(Config.get("redis", "connection_attempts"))
 
         # CONFIG PORT SECTION
         self.__port_firmware_path = Config.get("port", "firmware_path")
@@ -162,6 +163,10 @@ class ArancinoConfig:
             redis_dts_rsvd = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 1}
 
         return redis_dts, redis_dvs, redis_dts_rsvd
+
+
+    def get_redis_connection_attempts(self):
+        return self.__redis_connection_attempts
 
 
     ####### PORT #######

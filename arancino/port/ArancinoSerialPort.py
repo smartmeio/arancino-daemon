@@ -246,7 +246,6 @@ class ArancinoSerialPort(ArancinoPort):
             else: # not enabled
                 #TODO LOG or EXCEPTION
                 LOG.warning("{} Port not enabled".format(self.__log_prefix))
-                pass
 
         except Exception as ex:
             raise ex
