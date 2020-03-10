@@ -45,6 +45,8 @@ class ArancinoTestPort(ArancinoPort):
 
         self._executor = ArancinoCommandExecutor(self._id, self._device, self._port_type)
 
+
+
     # TODO implement the method in the abstract class:
     # NOTA: per farlo astratto, si deve muovere l'handler nella super classe e chiamarlo con un nome generico ed anche il log prefix
 

@@ -14,8 +14,6 @@ from arancino.ArancinoDataStore import ArancinoDataStore
 import signal
 import time
 
-# BUG gestire il caso in cui si chiude redis, mentre gira il software. se succede, capita che facendo il kill il software non si interrompe.
-
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
 API_CODE = ArancinoApiResponseCode()
@@ -188,7 +186,7 @@ class Arancino(Thread):
                                 LOG.warning("Port is not enabeled, can not connect to: {} - {} at {}".format(port.getAlias(), port.getId(), port.getDevice()))
 
                 except Exception as ex:
-                    LOG.excetpion(ex)
+                    LOG.exception(ex)
 
             time.sleep(int(self.__cycle_time))
 
