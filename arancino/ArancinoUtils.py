@@ -55,9 +55,6 @@ class Singleton:
 @Singleton
 class ArancinoConfig:
 
-    # BUG quando vengono letti valori booleani dal file di configurazione, non vengono convertiti nel tipo adatto e rimangono stringhe
-    # stessa cosa per gli altri tipo.
-
     def __init__(self):
 
         Config = configparser.ConfigParser()
@@ -206,10 +203,10 @@ class ArancinoConfig:
         return self.__port_serial_upload_command
 
     ######## TEST PORT ########
-    def get_port_test_enabled(self):  #TODO non usata, deve essere usata nel discovery serial
+    def get_port_test_enabled(self):
         return self.__port_test_enabled
 
-    def get_port_test_hide(self): #TODO non usata, deve essere usata nel discovery serial
+    def get_port_test_hide(self):
         return self.__port_test_hide
 
     def get_port_test_filter_type(self):

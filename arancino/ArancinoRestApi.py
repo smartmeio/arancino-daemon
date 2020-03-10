@@ -74,7 +74,7 @@ class ArancinoApi():
 
 
     def disablePort(self, port_id):
-        # TODO: in realta sono due operazioni: 1) disable 2) disconnect. Forse é il caso di dare due messaggi nella
+        # NOTE: in realta sono due operazioni: 1) disable 2) disconnect. Forse é il caso di dare due messaggi nella
         #   response, visto che il pacchetto JSON di ritorno prevede un array di messaggi e/o errori
         try:
             port = self.__arancino.findPort(port_id)

@@ -116,8 +116,6 @@ class ArancinoCommandExecutor:
                 return raw_response
             # Default
             else:
-                # TODO better a new Error code, something like ERR_CMD_NOT_IMPL: becouse if there, the was fount in
-                #   the list, but there are not OPTS to be executed, so the OPTS is not implemented
                 raw_response = ArancinoCommandErrorCodes.ERR_CMD_NOT_FND + ArancinoSpecialChars.CHR_SEP
                 return raw_response
             #cmd = ArancinoComamnd(cmd_id=cmd_id, cmd_args=cmd_args)
@@ -157,7 +155,7 @@ class ArancinoCommandExecutor:
 
             # and then check if it's compatible. if the library is not compatible, disconnect the board and
             # if value_libvers not in self.compatibility_array:
-            #     # TODO disconnect the device. If the device is not disconnected, it will try to START every 2,5 seconds.
+            #     # NOTE: If the device is not disconnected, it will try to START every 2,5 seconds.
             #     raise NonCompatibilityException("Module version " + conf.version + " can not work with Library version " + value_libvers + " on the device: " + self.arancino.port.device + " - " + self.arancino.id, const.ERR_NON_COMPATIBILITY)
             # else:
             #     return const.RSP_OK + const.CHR_EOT
@@ -185,7 +183,7 @@ class ArancinoCommandExecutor:
                 if semver_value_libvers in semver_compatible_ver:
                     return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
 
-            # TODO disconnect the device. If the device is not disconnected, it will try to START every 2,5 seconds.
+            # NOTE: If the device is not disconnected, it will try to START every 2,5 seconds.
             raise NonCompatibilityException(
                 "Module version " + str(self.__conf.get_metadata_version()) + " can not work with Library version " + value_libvers + " on the device: " + self.__port_device + " - " + self.__port_id,
                 ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
