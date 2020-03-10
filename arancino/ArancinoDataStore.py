@@ -73,6 +73,7 @@ class ArancinoDataStore:
         """
         return redis.Redis(connection_pool=self.__redis_pool_dvs)
 
+
     def getDataStoreRsvd(self):
         """
         Gets a redis client from a connection pool. This client is used to
@@ -81,3 +82,9 @@ class ArancinoDataStore:
         """
 
         return redis.Redis(connection_pool=self.__redis_pool_dts_rsvd)
+
+
+    def closeAll(self):
+        self.getDataStore().connection_pool.disconnect()
+        self.getDeviceStore().connection_pool.disconnect()
+        self.getDataStoreRsvd().connection_pool.disconnect()
