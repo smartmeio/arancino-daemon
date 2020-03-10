@@ -38,14 +38,12 @@ class ArancinoTestPort(ArancinoPort):
     def __init__(self, id=None, device=None, m_s_plugged=True, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None):
         super().__init__(device=device, port_type=PortTypes.TEST, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=CONF.get_port_test_upload_command(), receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
-        # set the version internally
-        self._setLibVersion(semantic_version.Version('1.0.0'))
         self._id = id if id is not None else uuid.uuid1()
         self.__stop = False
 
         self.__log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
 
-        self._executor = ArancinoCommandExecutor(self._id, self._device)
+        self._executor = ArancinoCommandExecutor(self._id, self._device, self._port_type)
 
     # TODO implement the method in the abstract class:
     # NOTA: per farlo astratto, si deve muovere l'handler nella super classe e chiamarlo con un nome generico ed anche il log prefix
@@ -74,6 +72,9 @@ class ArancinoTestPort(ArancinoPort):
             # create the Arancino Response object
             arsp = ArancinoResponse(raw_response=raw_response)
 
+            if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
+                v = semantic_version.Version(acmd.getArguments()[0])
+                self._setLibVersion(v)
 
         # All Arancino Application Exceptions contains an Error Code
         except ArancinoException as ex:

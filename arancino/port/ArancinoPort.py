@@ -23,8 +23,6 @@ from abc import ABCMeta, abstractmethod
 from enum import Enum
 
 from types import FunctionType, MethodType
-from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
-
 
 class ArancinoPort(object):
 

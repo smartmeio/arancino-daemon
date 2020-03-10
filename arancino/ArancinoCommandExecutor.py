@@ -4,14 +4,17 @@ import semantic_version as semver
 from arancino.ArancinoExceptions import *
 from arancino.ArancinoDataStore import ArancinoDataStore
 from arancino.ArancinoUtils import ArancinoConfig
+from arancino.port.ArancinoPort import PortTypes
+
 
 class ArancinoCommandExecutor:
 
-    def __init__(self, port_id, port_device):
+    def __init__(self, port_id, port_device, port_type):
 
         # Port Idientifiers
         self.__port_id = port_id
         self.__port_device = port_device
+        self.__port_type = port_type
 
         # Redis Data Stores
         redis = ArancinoDataStore.Instance()
@@ -20,7 +23,8 @@ class ArancinoCommandExecutor:
         self.__datastore_rsvd = redis.getDataStoreRsvd()
 
         self.__conf = ArancinoConfig.Instance()
-        self.__compatibility_array = COMPATIBILITY_MATRIX_MOD
+        self.__compatibility_array_serial = COMPATIBILITY_MATRIX_MOD_SERIAL
+        self.__compatibility_array_test = COMPATIBILITY_MATRIX_MOD_TEST
 
 
     def exec(self, arancino_command):
@@ -168,14 +172,22 @@ class ArancinoCommandExecutor:
             # "1.0.0" >= "0.1.*" ---> False (KO: go forward)
             # "1.0.0" >= "0.2.*" ---> False (KO: go forward and raise exception)
 
-            for compatible_ver in self.__compatibility_array:
+            compatibility_array = {}
+
+            if self.__port_type == PortTypes.SERIAL:
+                compatibility_array = self.__compatibility_array_serial
+            elif self.__port_type == PortTypes.TEST:
+                compatibility_array = self.__compatibility_array_test
+
+
+            for compatible_ver in compatibility_array:
                 semver_compatible_ver = semver.SimpleSpec(compatible_ver)
                 if semver_value_libvers in semver_compatible_ver:
                     return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
 
             # TODO disconnect the device. If the device is not disconnected, it will try to START every 2,5 seconds.
             raise NonCompatibilityException(
-                "Module version " + self.__conf.get_metadata_version() + " can not work with Library version " + value_libvers + " on the device: " + self.__port_device + " - " + self.__port_id,
+                "Module version " + str(self.__conf.get_metadata_version()) + " can not work with Library version " + value_libvers + " on the device: " + self.__port_device + " - " + self.__port_id,
                 ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
 
         else:

@@ -21,7 +21,6 @@ under the License
 import semantic_version
 import serial, time
 from serial import SerialException
-from types import FunctionType, MethodType
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.handler.ArancinoSerialHandler import ArancinoSerialHandler
 from arancino.ArancinoCortex import *
@@ -67,7 +66,7 @@ class ArancinoSerialPort(ArancinoPort):
         # Command Executor
         # self.__executor = ArancinoCommandExecutor(self.__id, self.__device)
 
-        self._executor = ArancinoCommandExecutor(self._id, self._device)
+        self._executor = ArancinoCommandExecutor(self._id, self._device, self._port_type)
 
         # # CALLBACK FUNCTIONS
         #self.setReceivedCommandHandler(receivedCommandHandler)  # this is the handler to be used to receive an ArancinoCommand and exec that command.

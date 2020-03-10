@@ -5,7 +5,7 @@ from serial.tools import list_ports as list
 from arancino.ArancinoUtils import ArancinoConfig
 from arancino.filter.ArancinoPortFilter import FilterTypes
 from arancino.filter.ArancinoSerialPortFilter import ArancinoSerialPortFilter
-from arancino.port.ArancinoSerialPort import *
+from arancino.port.ArancinoSerialPort import ArancinoSerialPort
 
 CONF = ArancinoConfig.Instance()
 

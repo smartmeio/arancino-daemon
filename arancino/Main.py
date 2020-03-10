@@ -1,8 +1,3 @@
-
-# TODO: essendoci piu tipi di porte, esisteranno piu tipi di librerie e di conseguenza piu matrici di compatibilità.
-#   si deve quindi definire una matrice di compatibilità per tipo di porta, ed il controllo di compatibilità deve essere
-#   effettuato in base al tipo di porta e considerando la matrice relativa.
-
 import os
 import signal
 
