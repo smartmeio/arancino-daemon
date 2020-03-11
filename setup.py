@@ -33,8 +33,8 @@ class ArancinoPostInstallCommand(install):
     post-install script to install Arancino services
     """
     def run(self):
-        call(["chmod","+x","extras/pre-install.sh"])
-        call(["chmod","+x","extras/post-install.sh"])
+        call(["chmod", "+x", "extras/pre-install.sh"])
+        call(["chmod", "+x", "extras/post-install.sh"])
 
         #### ARANCINO PRE INSTALL
         print("--------------------------------------")
@@ -66,7 +66,7 @@ setup(
 
     name='arancino',
 
-    version='1.0.1',
+    version='2.0.0',
 
     description='Arancino Module for Arancino Library',
 
@@ -103,15 +103,15 @@ setup(
         ['extras/pre-install.sh',
         'extras/post-install.sh',
         'extras/arancino.service',
-        'extras/redis-persistent.conf',
-        'extras/redis-persistent.service',
-        'extras/redis-volatile.conf',
-        'extras/redis-volatile.service',
+        # 'extras/redis-persistent.conf',
+        # 'extras/redis-persistent.service',
+        # 'extras/redis-volatile.conf',
+        # 'extras/redis-volatile.service',
         'config/arancino.cfg'])],
 
     #package_data={'arancino':['LICENSE','README.md','extras/*.*','config/*.*']},
 
-    install_requires=['pyserial>=3.4', 'redis>=2.10.6', 'setuptools==41.4.0', 'semantic-version==2.8.4', 'uptime==3.0.1'],
+    install_requires=['pyserial>=3.4', 'redis>=2.10.6', 'setuptools==41.4.0', 'semantic-version==2.8.4', 'uptime==3.0.1', 'Flask>=1.1.1', 'Flask_HTTPAuth>=3.3.0'],
 
     include_package_data=True,
 
@@ -123,7 +123,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'arancino=arancino.arancino_start:run'
+            'arancino=arancino.Main:run'
         ]
     }
 )
