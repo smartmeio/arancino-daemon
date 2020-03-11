@@ -1,6 +1,8 @@
 import os
 import signal
+import requests
 
+from arancino.ArancinoUtils import ArancinoLogger
 from arancino.Arancino import Arancino
 from arancino.ArancinoUtils import ArancinoConfig
 from arancino.utils.pam import pamAuthentication
@@ -19,8 +21,19 @@ auth = HTTPBasicAuth()
 m = Arancino()
 c = ArancinoConfig.Instance()
 
+LOG = ArancinoLogger.Instance().getLogger()
+
+def shutdown_server():
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func is None:
+        raise RuntimeError('Not running with the Werkzeug Server')
+    else:
+        LOG.info("HTTP Server is shutting down...")
+        func()
+
 def __kill(signum, frame):
     m.stop()
+    requests.post('http://0.0.0.0:1475/api/v1/shutdown-not-easy-to-find-api')
     #m.join()
 
 def __runArancino():
@@ -159,6 +172,10 @@ def __runArancinoApi():
             response.status_code = 400
             return response
 
+    @app.route('/api/v1/shutdown-not-easy-to-find-api', methods=['POST'])
+    def shutdown():
+        shutdown_server()
+        return 'Server shutting down...'
 
     def allowed_file(filename):
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
