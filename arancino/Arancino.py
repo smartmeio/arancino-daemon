@@ -195,20 +195,21 @@ class Arancino(Thread):
 
 
     def __commandReceived(self, port_id, acmd):
-        port = self.__ports_connected[port_id]
-        port.setLastUsageDate(datetime.now())
+        if port_id in self.__ports_connected:
+            port = self.__ports_connected[port_id]
+            port.setLastUsageDate(datetime.now())
 
 
     def __disconnectedPortHandler(self, port_id):
-
-        port = self.__ports_connected.pop(port_id, None)
-        LOG.warning("[{} - {} at {}] Destroying Arancino Port".format(port.getPortType(), port.getId(), port.getDevice()))
-        #self.__synchronizer.synchPort(port)
-        self.__synchronizer.writePortStatus(port)
-        # TODO pay attention to that DEL: nel caso dell'upload, viene invocato il disconnect che triggera questo
-        #   handler ed infine inoca il DEL. ma nel frattempo tempo essere invocato il run bossa (che impiega diversi secondi)
-        #   e poi tornare alla api il ritorno. Se viene fatto il DEL come si comporta?
-        del port
+        if port_id in self.__ports_connected:
+            port = self.__ports_connected.pop(port_id, None)
+            LOG.warning("[{} - {} at {}] Destroying Arancino Port".format(port.getPortType(), port.getId(), port.getDevice()))
+            #self.__synchronizer.synchPort(port)
+            self.__synchronizer.writePortStatus(port)
+            # TODO pay attention to that DEL: nel caso dell'upload, viene invocato il disconnect che triggera questo
+            #   handler ed infine inoca il DEL. ma nel frattempo tempo essere invocato il run bossa (che impiega diversi secondi)
+            #   e poi tornare alla api il ritorno. Se viene fatto il DEL come si comporta?
+            del port
 
 
     ##### API UTILS ######

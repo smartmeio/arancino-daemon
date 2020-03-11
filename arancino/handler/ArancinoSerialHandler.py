@@ -45,6 +45,7 @@ class ArancinoSerialHandler(threading.Thread):
 
 
     def run(self):
+        time.sleep(1.5)  # do il tempo ad Arancino di inserire la porta in lista
         count = 0
         str_data = ""
         while not self.__stop:

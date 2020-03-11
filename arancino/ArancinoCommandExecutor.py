@@ -23,8 +23,8 @@ class ArancinoCommandExecutor:
         self.__datastore_rsvd = redis.getDataStoreRsvd()
 
         self.__conf = ArancinoConfig.Instance()
-        self.__compatibility_array_serial = COMPATIBILITY_MATRIX_MOD_SERIAL
-        self.__compatibility_array_test = COMPATIBILITY_MATRIX_MOD_TEST
+        self.__compatibility_array_serial = COMPATIBILITY_MATRIX_MOD_SERIAL[str(self.__conf.get_metadata_version())]
+        self.__compatibility_array_test = COMPATIBILITY_MATRIX_MOD_TEST[str(self.__conf.get_metadata_version())]
 
 
     def exec(self, arancino_command):
@@ -185,7 +185,7 @@ class ArancinoCommandExecutor:
 
             # NOTE: If the device is not disconnected, it will try to START every 2,5 seconds.
             raise NonCompatibilityException(
-                "Module version " + str(self.__conf.get_metadata_version()) + " can not work with Library version " + value_libvers + " on the device: " + self.__port_device + " - " + self.__port_id,
+                "Module version " + str(self.__conf.get_metadata_version()) + " can not work with Library version " + value_libvers,
                 ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
 
         else:

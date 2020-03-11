@@ -86,6 +86,7 @@ class ArancinoTestPort(ArancinoPort):
         # Generic Exception uses a generic Error Code
         except Exception as ex:
             arsp = ArancinoResponse(rsp_id=ArancinoCommandErrorCodes.ERR, rsp_args=[])
+            LOG.exception("{} {}".format(self.__log_prefix, str(ex)))
 
         finally:
 
