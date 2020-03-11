@@ -185,6 +185,14 @@ Following a _configuration_ for `launch.json` of Visual Studio Code
     ]
 ```
 
+#### PyCharm
+Please go to _Run_ -> _Edit Configurations_. In the new configuration setup, please ad the following line into 
+the _Environment_ -> _Environment Variables_ field:
+
+```
+ARANCINO=/Users/sergio/Source/git.smartme.io/arancino/arancino-module;ARANCINOCONF=/Users/sergio/Source/git.smartme.io/arancino/arancino-module/config;ARANCINOLOG=/Users/sergio/Source/git.smartme.io/arancino/arancino-module/log;ARANCINOENV=DEV;FLASK_ENV=development
+```
+
 ## Extras
 
 ### Arancino as System Daemon in Arancino OS
@@ -225,23 +233,25 @@ $ sudo systemctl start arancino
 $ sudo systemctl stop arancino
 ```
 
-### Redis daemons configuration
+
+### Arancino Rest API
 _TODO_
  
 
 
-## Compatibility with Arancino Library
+## Compatibility with Arancino Library (for Arancino Serial Port on samd21 microcontrollers)
 
 
 |Module Version   	|       |Library Version   	|
-|---	            |---	|---                |
-| `0.0.1`   	    | `==`  | `0.0.1`           |
-| `0.0.2`  	        | `<=`  | `0.0.2`           |
-| `0.1.0`  	        | `>=`  | `0.1.0`           |
-| `0.1.1`           |       |                   |
-| `0.1.2`           |       |                   |
-| `0.1.3`           |       |                   |
-| `0.1.4`           |       |                   |
-| `0.1.5`           |       |                   |
-| `1.0.0`           | `>=`  | `1.0.0`           |
-|                   |       |                   |
+|---				|---	|---				|
+| `0.0.1`			| `==`	| `0.0.1`			|
+| `0.0.2`			| `<=`	| `0.0.2`			|
+| `0.1.0`			| `>=`	| `0.1.0`			|
+| `0.1.1`			|		|					|
+| `0.1.2`			|		|					|
+| `0.1.3`			|		|					|
+| `0.1.4`			|		|					|
+| `0.1.5`			|		|					|
+| `1.0.0`			| `>=`	| `1.0.0`			|
+| `2.0.0`			| `>=`	| `1.1.0`			|
+|					|		|					|
