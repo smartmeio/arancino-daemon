@@ -15,18 +15,18 @@ echo --------------------------------------
 echo Giving grants 644 and copying services file
 #change permissions to services files
 chown 644 extras/arancino.service
-chown 644 extras/redis-persistent.service
-chown 644 extras/redis-volatile.service
+#chown 644 extras/redis-persistent.service
+#chown 644 extras/redis-volatile.service
 chown 644 config/arancino.cfg
 
 #copy arancino service file to /ectc/systemd directory
 cp extras/arancino.service /etc/systemd/system/
 
 #copy redis services files to /lib/systemd directory
-cp extras/redis-*.service /lib/systemd/system/
+#cp extras/redis-*.service /lib/systemd/system/
 
 #copy redis conf files
-cp extras/*.conf /etc/redis/
+#cp extras/*.conf /etc/redis/
 echo --------------------------------------
 
 echo --------------------------------------
@@ -61,9 +61,9 @@ systemctl start redis-persistent
 systemctl start arancino
 echo --------------------------------------
 
-echo --------------------------------------
-echo Resetting main microcontroller
-#reset main mcu
-echo 0 > /sys/class/gpio/gpio25/value
-echo 1 > /sys/class/gpio/gpio25/value
-echo --------------------------------------
+#echo --------------------------------------
+#echo Resetting main microcontroller
+##reset main mcu
+#echo 0 > /sys/class/gpio/gpio25/value
+#echo 1 > /sys/class/gpio/gpio25/value
+#echo --------------------------------------
