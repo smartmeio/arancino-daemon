@@ -131,11 +131,13 @@ def __runArancinoApi():
             response = jsonify({'message': 'No file part in the request'})
             response.status_code = 400
             return response
+
         file = request.files['firmware']
         if file.filename == '':
             response = jsonify({'message': 'No file selected for uploading'})
             response.status_code = 400
             return response
+
         if file and allowed_file(file.filename):
             #filename = secure_filename(file.filename)
             path = os.path.join(c.get_port_firmware_path(), port_id)
@@ -150,6 +152,7 @@ def __runArancinoApi():
 
             response = jsonify(result[0])
             response.status_code = result[1]
+            return response
 
         else:
             response = jsonify({'message': 'Allowed file types are {}'.format(str(ALLOWED_EXTENSIONS))})

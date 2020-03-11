@@ -1,7 +1,7 @@
 import time
 
 from arancino.Arancino import Arancino
-from arancino.ArancinoUtils import ArancinoConfig, getProcessUptime
+from arancino.ArancinoUtils import ArancinoConfig, getProcessUptime, ArancinoLogger
 from arancino.ArancinoConstants import ArancinoApiResponseCode
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
 from arancino.ArancinoConstants import ArancinoDBKeys
@@ -14,6 +14,7 @@ from arancino.port.ArancinoPort import PortTypes
 API_CODE = ArancinoApiResponseCode()
 DB_KEYS = ArancinoDBKeys()
 CONF = ArancinoConfig.Instance()
+LOG = ArancinoLogger.Instance().getLogger()
 
 class ArancinoApi():
 
@@ -41,6 +42,7 @@ class ArancinoApi():
             else:
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 200
         except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)))
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_RESET, internal_message=str(ex)), 500
 
 
@@ -65,11 +67,12 @@ class ArancinoApi():
                         return self.__apiCreateOkMessage(response_code=API_CODE.OK_UPLOAD, internal_message=[std_out, std_err]), 201
 
                 else:  # when it is None means that no uploaded procedure is provided.
-                    return self.__apiCreateErrorMessage(error_code=API_CODE.OK_RESET_NOT_PROVIDED), 500
+                    return self.__apiCreateErrorMessage(error_code=API_CODE.OK_UPLOAD_NOT_PROVIDED), 500
 
             else:
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 500
         except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)))
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_UPLOAD, internal_message=str(ex)), 500
 
 
@@ -100,6 +103,7 @@ class ArancinoApi():
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 500
 
         except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)))
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
 
 
@@ -129,6 +133,7 @@ class ArancinoApi():
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 500
 
         except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)))
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
 
 
@@ -149,6 +154,7 @@ class ArancinoApi():
             return response, 200
 
         except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)))
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
 
 
@@ -172,6 +178,7 @@ class ArancinoApi():
             return response, 200
 
         except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)))
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
 
 
@@ -195,6 +202,7 @@ class ArancinoApi():
             return response, 200
 
         except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)))
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
 
 
@@ -224,6 +232,7 @@ class ArancinoApi():
             return response, 200
 
         except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)))
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
 
 
@@ -245,8 +254,8 @@ class ArancinoApi():
                         "uptime" : [ara_upt, getProcessUptime(int(ara_upt))],
                         "version": str(CONF.get_metadata_version()),
                         "ports": {
-                            "discovered": d["arancino"]["arancino"]["ports"]["discovered"],
-                            "connected": c["arancino"]["arancino"]["ports"]["connected"]
+                            "discovered": d[0]["arancino"]["arancino"]["ports"]["discovered"],
+                            "connected": c[0]["arancino"]["arancino"]["ports"]["connected"]
                         }
                     }
                 }
@@ -254,6 +263,7 @@ class ArancinoApi():
 
             return response, 200
         except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)))
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
 
 
