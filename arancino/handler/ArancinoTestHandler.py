@@ -20,8 +20,7 @@ under the License
 """
 
 import threading
-from arancino.ArancinoConstants import *
-from arancino.ArancinoUtils import *
+from arancino.utils.ArancinoUtils import *
 from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoCortex import ArancinoCommandIdentifiers as cmdId
 from arancino.ArancinoConstants import ArancinoSpecialChars as specChars

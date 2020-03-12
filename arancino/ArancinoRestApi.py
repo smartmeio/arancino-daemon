@@ -1,7 +1,7 @@
 import time
 
 from arancino.Arancino import Arancino
-from arancino.ArancinoUtils import ArancinoConfig, getProcessUptime, ArancinoLogger
+from arancino.utils.ArancinoUtils import ArancinoConfig, getProcessUptime, ArancinoLogger
 from arancino.ArancinoConstants import ArancinoApiResponseCode
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
 from arancino.ArancinoConstants import ArancinoDBKeys

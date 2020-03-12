@@ -24,7 +24,7 @@ from serial import SerialException
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.handler.ArancinoSerialHandler import ArancinoSerialHandler
 from arancino.ArancinoCortex import *
-from arancino.ArancinoUtils import ArancinoLogger, ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 
 LOG = ArancinoLogger.Instance().getLogger()
@@ -32,7 +32,7 @@ CONF = ArancinoConfig.Instance()
 
 class ArancinoSerialPort(ArancinoPort):
 
-    def __init__(self, port_info=None, device=None, baudrate=9600, m_s_plugged=False, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
+    def __init__(self, port_info=None, device=None, baudrate_comm=9600, baudrate_reset=300, m_s_plugged=False, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
 
         super().__init__(device=device, port_type=PortTypes.SERIAL, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=CONF.get_port_serial_upload_command(), receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
@@ -42,7 +42,8 @@ class ArancinoSerialPort(ArancinoPort):
         self.__port_info = port_info    # type: serial.tools.ListPortInfo
 
         # SERIAL PORT PARAMETER
-        self.__baudrate = baudrate
+        self.__comm_baudrate = baudrate_comm
+        self.__reset_baudrate = baudrate_reset
         self.__timeout = timeout
 
         # SERIAL PORT METADATA
@@ -225,7 +226,7 @@ class ArancinoSerialPort(ArancinoPort):
                         # first resetting
                         self.reset()
 
-                        self.__serial_port = serial.Serial(None, self.__baudrate, timeout=self.__timeout)
+                        self.__serial_port = serial.Serial(None, self.__comm_baudrate, timeout=self.__timeout)
                         self.__serial_port.port = self._device
                         self.__serial_port.open()
 
@@ -275,7 +276,7 @@ class ArancinoSerialPort(ArancinoPort):
             self.setEnabled(False)
             # touch to reset
             ser = serial.Serial()
-            ser.baudrate = 300  # TODO make it an attribute
+            ser.baudrate = self.__reset_baudrate
             ser.port = self._device
             ser.open()
             ser.close()

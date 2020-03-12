@@ -21,7 +21,7 @@ under the License
 
 import threading
 from arancino.ArancinoConstants import *
-from arancino.ArancinoUtils import *
+from arancino.utils.ArancinoUtils import *
 from arancino.port.ArancinoPort import PortTypes
 import time
 

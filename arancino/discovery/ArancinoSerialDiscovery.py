@@ -2,7 +2,7 @@
 
 from serial.tools import list_ports as list
 
-from arancino.ArancinoUtils import ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoConfig
 from arancino.filter.ArancinoPortFilter import FilterTypes
 from arancino.filter.ArancinoSerialPortFilter import ArancinoSerialPortFilter
 from arancino.port.ArancinoSerialPort import ArancinoSerialPort
@@ -85,7 +85,7 @@ class ArancinoSerialDiscovery:
 
         for port in ports:
 
-            p = ArancinoSerialPort(port_info=port, m_s_plugged=True, m_c_enabled=CONF.get_port_serial_enabled(), m_c_hide=CONF.get_port_serial_hide(), baudrate=CONF.get_port_serial_comm_baudrate())
+            p = ArancinoSerialPort(port_info=port, m_s_plugged=True, m_c_enabled=CONF.get_port_serial_enabled(), m_c_hide=CONF.get_port_serial_hide(), baudrate_comm=CONF.get_port_serial_comm_baudrate(), baudrate_reset=CONF.get_port_serial_reset_baudrate())
             new_ports_struct[p.getId()] = p
 
         return new_ports_struct

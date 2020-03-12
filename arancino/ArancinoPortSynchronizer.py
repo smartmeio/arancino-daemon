@@ -20,13 +20,10 @@ under the License
 
 #from arancino.arancino_datastore import ArancinoDataStore
 #import arancino.arancino_constants as const
-import os
-import signal
-from datetime import datetime
 
 from arancino.ArancinoDataStore import ArancinoDataStore
 from arancino.ArancinoConstants import ArancinoDBKeys
-from arancino.ArancinoUtils import stringToBool, stringToDatetime, datetimeToString, ArancinoLogger
+from arancino.utils.ArancinoUtils import stringToBool, stringToDatetime, datetimeToString, ArancinoLogger
 from arancino.port.ArancinoPort import PortTypes
 
 LOG = ArancinoLogger.Instance().getLogger()

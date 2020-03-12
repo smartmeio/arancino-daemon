@@ -79,8 +79,8 @@ class ArancinoConfig:
         # CONFIG SERIAL PORT SECTION
         self.__port_serial_enabled = stringToBool(Config.get("port.serial", "enabled"))
         self.__port_serial_hide = stringToBool(Config.get("port.serial", "hide"))
-        self.__port_serial_comm_baudrate = Config.get("port.serial", "comm_baudrate")
-        self.__port_serial_reset_baudrate = Config.get("port.serial", "reset_baudrate")
+        self.__port_serial_comm_baudrate = int(Config.get("port.serial", "comm_baudrate"))
+        self.__port_serial_reset_baudrate = int(Config.get("port.serial", "reset_baudrate"))
         self.__port_serial_filter_type = Config.get("port.serial", "filter_type")
         self.__port_serial_filter_list = Config.get("port.serial", "filter_list")
         self.__port_serial_upload_command = Config.get("port.serial", "upload_command")

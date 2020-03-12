@@ -22,9 +22,9 @@ import os
 import signal
 import requests
 
-from arancino.ArancinoUtils import ArancinoLogger
+from arancino.utils.ArancinoUtils import ArancinoLogger
 from arancino.Arancino import Arancino
-from arancino.ArancinoUtils import ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoConfig
 from arancino.utils.pam import pamAuthentication
 from threading import Thread
 

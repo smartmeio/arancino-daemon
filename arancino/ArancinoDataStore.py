@@ -21,7 +21,7 @@ under the License
 import sys
 import time
 
-from arancino.ArancinoUtils import Singleton, ArancinoConfig, ArancinoLogger
+from arancino.utils.ArancinoUtils import Singleton, ArancinoConfig, ArancinoLogger
 import redis
 
 

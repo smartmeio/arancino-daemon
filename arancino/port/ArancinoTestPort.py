@@ -19,14 +19,12 @@ License for the specific language governing permissions and limitations
 under the License
 """
 import semantic_version
-import serial, time
 from serial import SerialException
 
 from arancino.handler.ArancinoTestHandler import ArancinoTestHandler
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
-from arancino.handler.ArancinoSerialHandler import ArancinoSerialHandler
 from arancino.ArancinoCortex import *
-from arancino.ArancinoUtils import ArancinoLogger, ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 import uuid
 

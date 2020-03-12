@@ -2,7 +2,7 @@
 
 
 
-from arancino.ArancinoUtils import ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoConfig
 # from arancino.filter import FilterTypes
 
 from arancino.port.ArancinoTestPort import ArancinoTestPort

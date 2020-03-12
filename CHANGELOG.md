@@ -4,7 +4,7 @@
 * Now Resets each microcontroller before connecting (requires `v1.1.0` Arancino Platform)
 * Changed project structure to a more modular architecture. Arancino Port Type can now be easily extended.
 * Improved logger formatter.
-* Introduced new different port filter types.
+* Introduced new different port filter types used in the discovery phase.
 * Introduced a new kind of Port called Test Port, used for testing purpose
 * Fix `KEYS` command: now returns even persistent keys.
 * Metadata are now different for each Port Type, but they have a common set of metadata. Even the Device Store changed.
