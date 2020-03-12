@@ -3,6 +3,9 @@
 #### v 1.1.0 2020.MM.DD
 * Reset each microcontroller before connecting #
 
+#### v 1.0.2 - 2020.03.11
+* Fixed a critical bug that prevented redis-persistent to work properly. #53
+
 #### v 1.0.1 - 2019.12.30
 * Fix a bug while checks compatibility that prevent a new version library to be released without adding it in the compatibility array. Now it uses '*' while check version number.
 * Fix a bug that will not update the P_NAME Status Metadata in the Device Store (Redis).
