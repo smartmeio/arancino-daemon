@@ -145,6 +145,7 @@ COMPATIBILITY_MATRIX_MOD = {
 #    "0.1.5" : ["0.1.0"],
     "1.0.0" : ["1.0.0.RC1","1.0.0"],    # 1.0.0.RC1 non-standard sem ver 2.0.0
     "1.0.1" : [">=1.0.0-rc,<=1.*.*"],
+    "1.0.2" : [">=1.0.0-rc,<=1.*.*"]
 }
 '''
 COMPATIBILITY_MATRIX_LIB = {

@@ -9,6 +9,10 @@ mkdir -p /var/log/arancino
 # create arancino dir
 mkdir -p /etc/arancino/config
 #mkdir -p "$ARANCINOCONF"
+
+mkdir -p /etc/redis/cwd
+chown -R redis:redis /etc/redis/cwd
+
 echo --------------------------------------
 
 echo --------------------------------------
