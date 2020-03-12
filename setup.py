@@ -111,7 +111,7 @@ setup(
 
     #package_data={'arancino':['LICENSE','README.md','extras/*.*','config/*.*']},
 
-    install_requires=['pyserial>=3.4', 'redis>=2.10.6', 'setuptools==41.4.0', 'semantic-version==2.8.4', 'uptime==3.0.1', 'Flask>=1.1.1', 'Flask_HTTPAuth>=3.3.0', 'requests=2.23.0'],
+    install_requires=['pyserial>=3.4', 'redis>=2.10.6', 'setuptools==41.4.0', 'semantic-version==2.8.4', 'uptime==3.0.1', 'Flask>=1.1.1', 'Flask_HTTPAuth>=3.3.0', 'requests==2.23.0'],
 
     include_package_data=True,
 

@@ -105,12 +105,36 @@ class ArancinoTestHandler(threading.Thread):
 
     def __getCommnandsList(self):
         list = []
+        # START
         list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + "1.0.0" + specChars.CHR_EOT)
+
+        # SET
         list.append(cmdId.CMD_APP_SET["id"] + specChars.CHR_SEP + "TEST_KEY" + specChars.CHR_SEP + "TEST_VAL" + specChars.CHR_EOT)
+
+        # SET PERSISTENT
         list.append(cmdId.CMD_APP_SET_PERS["id"] + specChars.CHR_SEP + "TEST_PERS_KEY" + specChars.CHR_SEP + "TEST_PERS_VAL" + specChars.CHR_EOT)
+
+        # GET
         list.append(cmdId.CMD_APP_GET["id"] + specChars.CHR_SEP + "TEST_KEY" + specChars.CHR_EOT)
+
+        # GET of a persistent key
         list.append(cmdId.CMD_APP_GET["id"] + specChars.CHR_SEP + "TEST_PERS_KEY" + specChars.CHR_EOT)
+
+        # KEYS w/ wildcard
         list.append(cmdId.CMD_APP_KEYS["id"] + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+
+        # KEYS w/ specified name and wildcard
+        list.append(cmdId.CMD_APP_KEYS["id"] + specChars.CHR_SEP + "TEST*" + specChars.CHR_EOT)
+
+        # HSET
+
+        # HGET
+
+        # HGETALL
+
+        # HVAL
+
+        # HDEL
 
         # TODO: add all command to test
         return list
