@@ -34,29 +34,29 @@ class ArancinoDataStore:
     def __init__(self):
         conf = ArancinoConfig.Instance()
 
-        redis_instance_type = conf.get_redis_instance_type()
+        redis_instance_type = conf.get_redis_instances_conf()
 
-        self.__redis_dts = redis_instance_type[0]
-        self.__redis_dvs = redis_instance_type[1]
-        self.__redis_dts_rsvd = redis_instance_type[2]
+        self.__redis_dts_std = redis_instance_type[0]   # Standard Data Store
+        self.__redis_dts_dev = redis_instance_type[1]   # Device Data Store
+        self.__redis_dts_per = redis_instance_type[2]   # Persistent Data Store
 
         # data store
-        self.__redis_pool_dts = redis.ConnectionPool(host=self.__redis_dts['host'],
-                                                     port=self.__redis_dts['port'],
-                                                     db=self.__redis_dts['db'],
-                                                     decode_responses=self.__redis_dts['dcd_resp'])
+        self.__redis_pool_dts = redis.ConnectionPool(host=self.__redis_dts_std['host'],
+                                                     port=self.__redis_dts_std['port'],
+                                                     db=self.__redis_dts_std['db'],
+                                                     decode_responses=self.__redis_dts_std['dcd_resp'])
 
         # device store
-        self.__redis_pool_dvs = redis.ConnectionPool(host=self.__redis_dvs['host'],
-                                                     port=self.__redis_dvs['port'],
-                                                     db=self.__redis_dvs['db'],
-                                                     decode_responses=self.__redis_dvs['dcd_resp'])
+        self.__redis_pool_dvs = redis.ConnectionPool(host=self.__redis_dts_dev['host'],
+                                                     port=self.__redis_dts_dev['port'],
+                                                     db=self.__redis_dts_dev['db'],
+                                                     decode_responses=self.__redis_dts_dev['dcd_resp'])
 
         # data store (reserved keys)
-        self.__redis_pool_dts_rsvd = redis.ConnectionPool(host=self.__redis_dts_rsvd['host'],
-                                                          port=self.__redis_dts_rsvd['port'],
-                                                          db=self.__redis_dts_rsvd['db'],
-                                                          decode_responses=self.__redis_dts_rsvd['dcd_resp'])
+        self.__redis_pool_dts_rsvd = redis.ConnectionPool(host=self.__redis_dts_per['host'],
+                                                          port=self.__redis_dts_per['port'],
+                                                          db=self.__redis_dts_per['db'],
+                                                          decode_responses=self.__redis_dts_per['dcd_resp'])
 
 
 
@@ -93,7 +93,7 @@ class ArancinoDataStore:
 
 
 
-    def getDataStore(self):
+    def getDataStoreStd(self):
         """
         Gets a redis client from a connection pool. This client is used to
             manage data received from the microcontrollers.
@@ -103,7 +103,7 @@ class ArancinoDataStore:
         return self._redis_conn_dts
 
 
-    def getDeviceStore(self):
+    def getDataStoreDev(self):
         """
         Gets a redis client from a connection pool. This client is used to
             manage configurations of Arancino Devices.
@@ -112,7 +112,7 @@ class ArancinoDataStore:
         return self._redis_conn_dvs
 
 
-    def getDataStoreRsvd(self):
+    def getDataStorePer(self):
         """
         Gets a redis client from a connection pool. This client is used to
             manage reserved keys, and/or persistent application keys.
@@ -123,6 +123,6 @@ class ArancinoDataStore:
 
 
     def closeAll(self):
-        self.getDataStore().connection_pool.disconnect()
-        self.getDeviceStore().connection_pool.disconnect()
-        self.getDataStoreRsvd().connection_pool.disconnect()
+        self.getDataStoreStd().connection_pool.disconnect()
+        self.getDataStoreDev().connection_pool.disconnect()
+        self.getDataStorePer().connection_pool.disconnect()

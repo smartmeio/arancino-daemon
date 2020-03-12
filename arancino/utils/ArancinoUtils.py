@@ -72,6 +72,25 @@ class ArancinoConfig:
         self.__redis_instance_type = Config.get("redis", "instance_type")
         self.__redis_connection_attempts = int(Config.get("redis", "connection_attempts"))
 
+        self.__redis_host = Config.get("redis", "host")
+        self.__redis_port_volatile = Config.get("redis", "port_volatile")
+        self.__redis_port_persistent = Config.get("redis", "port_persistent")
+        self.__redis_decode_response = stringToBool(Config.get("redis", "decode_response"))
+
+        self.__redis_volatile_datastore_std_db = int(Config.get("redis.volatile", "datastore_std_db"))
+        self.__redis_volatile_datastore_dev_db = int(Config.get("redis.volatile", "datastore_dev_db"))
+        self.__redis_volatile_datastore_per_db = int(Config.get("redis.volatile", "datastore_per_db"))
+
+        self.__redis_persistent_datastore_std_db = int(Config.get("redis.persistent", "datastore_std_db"))
+        self.__redis_persistent_datastore_dev_db = int(Config.get("redis.persistent", "datastore_dev_db"))
+        self.__redis_persistent_datastore_per_db = int(Config.get("redis.persistent", "datastore_per_db"))
+
+        self.__redis_volatile_persistent_datastore_std_db = int(Config.get("redis.volatile_persistent", "datastore_std_db"))
+        self.__redis_volatile_persistent_datastore_dev_db = int(Config.get("redis.volatile_persistent", "datastore_dev_db"))
+        self.__redis_volatile_persistent_datastore_per_db = int(Config.get("redis.volatile_persistent", "datastore_per_db"))
+
+
+
         # CONFIG PORT SECTION
         self.__port_firmware_path = Config.get("port", "firmware_path")
         self.__port_firmware_file_types = Config.get("port", "firmware_file_types")
@@ -123,7 +142,7 @@ class ArancinoConfig:
 
 
     ######## REDIS ########
-    def get_redis_instance_type(self):
+    def get_redis_instances_conf(self):
 
         # redis instance type
         #if not RedisInstancesType.has_value(self.__redis_instance_type):
@@ -135,31 +154,47 @@ class ArancinoConfig:
             redis_instance = RedisInstancesType[self.__redis_instance_type]
 
         '''
-        redis_dts: datastore => contains application data (default volatile)
-        redis_dvs: devicestore => contains data about connected device (default persistent)
-        redis_dts_rsvd: datastore persisten keys => contains application data which must be available after device reboot or application restart (default persistent)
+        redis_dts_std: standard datastore => contains application data (default volatile)
+        redis_dts_dev: device data store => contains data about connected device (default persistent)
+        redis_dts_per: persistent data store => contains application data which must be available after device reboot or application restart (default persistent)
         '''
+        # DEFAULT -> VOLATILE PERSISTENT
+        host = self.__redis_host
+        dec_rsp = self.__redis_decode_response
+
         if redis_instance == RedisInstancesType.VOLATILE:
-            redis_dts = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 0}
-            redis_dvs = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 1}
-            redis_dts_rsvd = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 2}
+            port_vol = self.__redis_port_volatile
+            port_per = self.__redis_port_volatile
+            dts_std_db = self.__redis_volatile_datastore_std_db
+            dts_per_db = self.__redis_volatile_datastore_per_db
+            dts_dev_db = self.__redis_volatile_datastore_dev_db
 
         elif redis_instance == RedisInstancesType.PERSISTENT:
-            redis_dts = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 0}
-            redis_dvs = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 1}
-            redis_dts_rsvd = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 2}
+            port_vol = self.__redis_port_persistent
+            port_per = self.__redis_port_persistent
+            dts_std_db = self.__redis_persistent_datastore_std_db
+            dts_per_db = self.__redis_persistent_datastore_per_db
+            dts_dev_db = self.__redis_persistent_datastore_dev_db
 
         elif redis_instance == RedisInstancesType.VOLATILE_PERSISTENT:
-            redis_dts = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 0}
-            redis_dvs = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 0}
-            redis_dts_rsvd = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 1}
+            port_vol = self.__redis_port_volatile
+            port_per = self.__redis_port_persistent
+            dts_std_db = self.__redis_volatile_persistent_datastore_std_db
+            dts_per_db = self.__redis_volatile_persistent_datastore_per_db
+            dts_dev_db = self.__redis_volatile_persistent_datastore_dev_db
 
         else:  # DEFAULT is VOLATILE_PERSISTENT
-            redis_dts = {'host': 'localhost', 'port': 6379, 'dcd_resp': True, 'db': 0}
-            redis_dvs = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 0}
-            redis_dts_rsvd = {'host': 'localhost', 'port': 6380, 'dcd_resp': True, 'db': 1}
+            port_vol = self.__redis_port_volatile
+            port_per = self.__redis_port_persistent
+            dts_std_db = self.__redis_volatile_persistent_datastore_std_db
+            dts_per_db = self.__redis_volatile_persistent_datastore_per_db
+            dts_dev_db = self.__redis_volatile_persistent_datastore_dev_db
 
-        return redis_dts, redis_dvs, redis_dts_rsvd
+        redis_dts_std = {'host': host, 'port': port_vol, 'dcd_resp': dec_rsp, 'db': dts_std_db}
+        redis_dts_dev = {'host': host, 'port': port_per, 'dcd_resp': dec_rsp, 'db': dts_dev_db}
+        redis_dts_per = {'host': host, 'port': port_per, 'dcd_resp': dec_rsp, 'db': dts_per_db}
+
+        return redis_dts_std, redis_dts_dev, redis_dts_per
 
 
     def get_redis_connection_attempts(self):

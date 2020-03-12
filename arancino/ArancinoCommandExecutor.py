@@ -38,9 +38,9 @@ class ArancinoCommandExecutor:
 
         # Redis Data Stores
         redis = ArancinoDataStore.Instance()
-        self.__datastore = redis.getDataStore()
-        self.__devicestore = redis.getDeviceStore()
-        self.__datastore_rsvd = redis.getDataStoreRsvd()
+        self.__datastore = redis.getDataStoreStd()
+        self.__devicestore = redis.getDataStoreDev()
+        self.__datastore_rsvd = redis.getDataStorePer()
 
         self.__conf = ArancinoConfig.Instance()
         self.__compatibility_array_serial = COMPATIBILITY_MATRIX_MOD_SERIAL[str(self.__conf.get_metadata_version())]

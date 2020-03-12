@@ -69,7 +69,7 @@ def __runArancinoApi():
     ALLOWED_EXTENSIONS = set(c.get_port_firmware_file_types())
 
     from arancino.ArancinoDataStore import ArancinoDataStore
-    __devicestore = ArancinoDataStore.Instance().getDeviceStore()
+    __devicestore = ArancinoDataStore.Instance().getDataStoreDev()
 
     @auth.verify_password
     def verify(username, password):

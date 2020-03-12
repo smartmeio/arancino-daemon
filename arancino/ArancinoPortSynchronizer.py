@@ -33,7 +33,7 @@ class ArancinoPortSynch:
 
 
     def __init__(self):
-        self.__devicestore = ArancinoDataStore.Instance().getDeviceStore()
+        self.__devicestore = ArancinoDataStore.Instance().getDataStoreDev()
 
 
     # def synchPorts(self, discovered, connected, phase):
