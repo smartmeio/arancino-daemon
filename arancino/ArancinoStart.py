@@ -65,6 +65,7 @@ def __runArancinoApi():
     api = ArancinoApi()
 
     app = Flask(__name__)
+    app.logger = LOG
 
     ALLOWED_EXTENSIONS = set(c.get_port_firmware_file_types())
 
