@@ -116,6 +116,8 @@ class ArancinoConfig:
         # CONFIG LOG SECTION
         self.__log_level = Config.get("log", "level")
         self.__log_name = Config.get("log", "name")
+        self.__log_size = int(Config.get("log", "size")) if 0 < int(Config.get("log", "size")) <= 5 else 1
+        self.__log_rotate = int(Config.get("log", "rotate")) if 0 < int(Config.get("log", "rotate")) <= 10 else 1
 
         self.__log_handler_console = stringToBool(Config.get("log", "handler_console"))
         self.__log_handler_file = stringToBool(Config.get("log", "handler_file"))
@@ -272,6 +274,12 @@ class ArancinoConfig:
     def get_log_name(self):
         return self.__log_name
 
+    def get_log_size(self):
+        return self.__log_size
+
+    def get_log_rotate(self):
+        return self.__log_rotate
+
     def get_log_handler_console(self):
         return self.__log_handler_console
 
@@ -308,6 +316,8 @@ class ArancinoLogger:
         self.__dirlog = os.environ.get('ARANCINOLOG')
         self.__format = CustomConsoleFormatter(level='DEBUG')  #logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
+        self.__log_size = CONF.get_log_size()
+        self.__log_rotate = CONF.get_log_rotate()
 
         # logging.basicConfig(level=logging.getLevelName(CONF.get_log_level()))
         # if CONF.get_log_handler_console():
@@ -330,12 +340,12 @@ class ArancinoLogger:
         return console_handler
 
     def __getFileHandler(self):
-        file_handler = RotatingFileHandler(os.path.join(self.__dirlog, self.__filename), mode='a', maxBytes=1000 * 1024, backupCount=5)
+        file_handler = RotatingFileHandler(os.path.join(self.__dirlog, self.__filename), mode='a', maxBytes=1000 * 1024 * self.__log_size, backupCount=self.__log_rotate)
         file_handler.setFormatter(self.__format)
         return file_handler
 
     def __getErrorFileHandler(self):
-        file_handler_error = RotatingFileHandler(os.path.join(self.__dirlog, self.__error_filename), mode='a', maxBytes=1000 * 1024, backupCount=5)
+        file_handler_error = RotatingFileHandler(os.path.join(self.__dirlog, self.__error_filename), mode='a', maxBytes=1000 * 1024 * self.__log_size, backupCount=self.__log_rotate)
         file_handler_error.setFormatter(self.__format)
         file_handler_error.setLevel(logging.ERROR)
         return file_handler_error
