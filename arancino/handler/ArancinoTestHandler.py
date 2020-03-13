@@ -45,6 +45,7 @@ class ArancinoTestHandler(threading.Thread):
         self.__stop = False
 
         self.__command_test_list = self.__getCommnandsList()
+        self.__command_test_del_list = self.__getCommnandsDelList()
 
     def run(self):
         time.sleep(1.5) # do il tempo ad Arancino di inserire la porta in lista
@@ -91,6 +92,14 @@ class ArancinoTestHandler(threading.Thread):
         '''
         try:
 
+            # before disconnect clear all test case:
+
+            for raw_cmd in self.__command_test_del_list:
+                self.__commandReceivedHandler(raw_cmd)
+                time.sleep(0.25)
+
+
+
             LOG.warning("{}Connection lost".format(self.__log_prefix))
             if self.__connectionLostHandler is not None:
                 self.__connectionLostHandler()
@@ -101,24 +110,47 @@ class ArancinoTestHandler(threading.Thread):
     def stop(self):
         self.__stop = True
 
+    def __getCommnandsDelList(self):
+
+        ### keys used:
+        # <ID>_TEST_KEY
+        # <ID>_TEST_PERS_KEY
+        # <ID>_TEST_HSET
+        list = []
+        # DEL
+        list.append(cmdId.CMD_APP_KEYS["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_KEY" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_KEYS["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_PERS_KEY" + specChars.CHR_EOT)
+        # HDEL
+        list.append(cmdId.CMD_APP_HDEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_10" + specChars.CHR_EOT)
+
+        return list
+
 
 
     def __getCommnandsList(self):
+
+        ### keys used:
+        # <ID>_TEST_KEY
+        # <ID>_TEST_PERS_KEY
+        # <ID>_TEST_HSET
+
         list = []
+
+
         # START
         list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + "1.0.0" + specChars.CHR_EOT)
 
         # SET
-        list.append(cmdId.CMD_APP_SET["id"] + specChars.CHR_SEP + "TEST_KEY" + specChars.CHR_SEP + "TEST_VAL" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_SET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_KEY" + specChars.CHR_SEP + "TEST_VAL" + specChars.CHR_EOT)
 
         # SET PERSISTENT
-        list.append(cmdId.CMD_APP_SET_PERS["id"] + specChars.CHR_SEP + "TEST_PERS_KEY" + specChars.CHR_SEP + "TEST_PERS_VAL" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_SET_PERS["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_PERS_KEY" + specChars.CHR_SEP + "TEST_PERS_VAL" + specChars.CHR_EOT)
 
         # GET
-        list.append(cmdId.CMD_APP_GET["id"] + specChars.CHR_SEP + "TEST_KEY" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_GET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_KEY" + specChars.CHR_EOT)
 
         # GET of a persistent key
-        list.append(cmdId.CMD_APP_GET["id"] + specChars.CHR_SEP + "TEST_PERS_KEY" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_GET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_PERS_KEY" + specChars.CHR_EOT)
 
         # KEYS w/ wildcard
         list.append(cmdId.CMD_APP_KEYS["id"] + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
@@ -126,16 +158,47 @@ class ArancinoTestHandler(threading.Thread):
         # KEYS w/ specified name and wildcard
         list.append(cmdId.CMD_APP_KEYS["id"] + specChars.CHR_SEP + "TEST*" + specChars.CHR_EOT)
 
+        # DEL
+        list.append(cmdId.CMD_APP_KEYS["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_KEY" + specChars.CHR_EOT)
+
         # HSET
+        list.append(cmdId.CMD_APP_HSET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_1" + specChars.CHR_SEP + "TEST_VAL_1" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HSET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_2" + specChars.CHR_SEP + "TEST_VAL_2" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HSET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_3" + specChars.CHR_SEP + "TEST_VAL_3" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HSET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_4" + specChars.CHR_SEP + "TEST_VAL_4" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HSET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_5" + specChars.CHR_SEP + "TEST_VAL_5" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HSET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_6" + specChars.CHR_SEP + "TEST_VAL_6" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HSET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_7" + specChars.CHR_SEP + "TEST_VAL_7" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HSET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_8" + specChars.CHR_SEP + "TEST_VAL_8" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HSET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_9" + specChars.CHR_SEP + "TEST_VAL_9" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HSET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_1" + specChars.CHR_SEP + "TEST_VAL_10" + specChars.CHR_EOT)
 
         # HGET
+        list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_1" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_2" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_3" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_4" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_5" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_6" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_7" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_8" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_9" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_10" + specChars.CHR_EOT)
 
         # HGETALL
+        list.append(cmdId.CMD_APP_HGETALL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_EOT)
 
-        # HVAL
+        # HVALS
+        list.append(cmdId.CMD_APP_HVALS["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_EOT)
+
+        # HKEYS
+        list.append(cmdId.CMD_APP_HKEYS["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_EOT)
 
         # HDEL
+        list.append(cmdId.CMD_APP_HDEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_10" + specChars.CHR_EOT)
 
-        # TODO: add all command to test
+        # PUB
+        list.append(cmdId.CMD_APP_PUB["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_PUB" + specChars.CHR_SEP + "TEST_PUB_VAL" + specChars.CHR_EOT)
+
         return list
 

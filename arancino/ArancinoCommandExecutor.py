@@ -719,10 +719,10 @@ class ArancinoCommandExecutor:
 
             try:
 
-                num = self.datastore.publish(channel, message)
+                num = self.__datastore.publish(channel, message)
 
             except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandResponseCodes.ERR_REDIS)
+                raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
             return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(num) + ArancinoSpecialChars.CHR_EOT
 
