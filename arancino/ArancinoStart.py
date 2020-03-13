@@ -30,6 +30,7 @@ from threading import Thread
 
 from flask_httpauth import HTTPBasicAuth
 from flask import Flask, jsonify, request
+import logging
 
 
 
@@ -65,7 +66,15 @@ def __runArancinoApi():
     api = ArancinoApi()
 
     app = Flask(__name__)
-    app.logger = LOG
+
+    # log setup for werkzeug and flask, startig from arancino log. not the best solution....
+    log_server = logging.getLogger("werkzeug")
+    for handler in LOG.handlers:
+        app.logger.addHandler(handler)
+        log_server.addHandler(handler)
+
+    app.logger.setLevel(logging.getLevelName(c.get_log_level()))
+    log_server.setLevel(logging.getLevelName(c.get_log_level()))
 
     ALLOWED_EXTENSIONS = set(c.get_port_firmware_file_types())
 
@@ -78,14 +87,14 @@ def __runArancinoApi():
         #     return False
         # return USER_DATA.get(username) == password
 
-        users_list = c.get_general_users()
-        if username in users_list:
+        #users_list = c.get_general_users()
+        #if username in users_list:
             if pamAuthentication(username, password):
                 return True
             else:
                 return False
-        else:
-            False
+        #else:
+        #    return False
 
 
     @app.route('/api/v1/', methods=['GET'])

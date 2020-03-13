@@ -66,7 +66,7 @@ class ArancinoConfig:
         # CONFIG GENERAL SECTION
         self.__general_env = Config.get("general", "env")
         self.__general_cycle_time = Config.get("general", "cycle_time")
-        self.__general_users = Config.get("general", "users")
+        #self.__general_users = Config.get("general", "users")
 
         # CONFIG REDIS SECTION
         self.__redis_instance_type = Config.get("redis", "instance_type")
@@ -117,12 +117,14 @@ class ArancinoConfig:
         self.__log_level = Config.get("log", "level")
         self.__log_name = Config.get("log", "name")
 
-        self.__log_console = stringToBool(Config.get("log", "console"))
-        self.__log_file = stringToBool(Config.get("log", "file"))
+        self.__log_handler_console = stringToBool(Config.get("log", "handler_console"))
+        self.__log_handler_file = stringToBool(Config.get("log", "handler_file"))
 
-        self.__log_log = Config.get("log", "log")
-        self.__log_error = Config.get("log", "error")
-        self.__log_stats = Config.get("log", "stats")
+        self.__log_file_log = Config.get("log", "file_log")
+        #self.__log_file_api = Config.get("log", "file_base")
+        self.__log_file_error = Config.get("log", "file_error")
+        #self.__log_file_stats = Config.get("log", "file_stats")
+
 
         self.__dirlog = os.environ.get('ARANCINOLOG')
 
@@ -137,8 +139,8 @@ class ArancinoConfig:
     def get_general_cycle_time(self):
         return self.__general_cycle_time
 
-    def get_general_users(self):
-        return json.loads(self.__general_users)
+    # def get_general_users(self):
+    #     return json.loads(self.__general_users)
 
 
     ######## REDIS ########
@@ -270,26 +272,23 @@ class ArancinoConfig:
     def get_log_name(self):
         return self.__log_name
 
-    def get_log_name(self):
-        return self.__log_name
+    def get_log_handler_console(self):
+        return self.__log_handler_console
 
-    def get_log_console(self):
-        return self.__log_console
+    def get_log_handler_file(self):
+        return self.__log_handler_file
 
-    def get_log_file(self):
-        return self.__log_file
+    def get_log_file_log(self):
+        return self.__log_file_log
 
-    def get_log_log_file(self):
-        return self.__log_log
+    def get_log_file_error(self):
+        return self.__log_file_error
 
-    def get_log_error_file(self):
-        return self.__log_error
-
-    def get_log_stats_file(self):
-        return self.__log_stats
-
-    def get_stats_file_path(self):
-        return os.path.join(self.__dirlog, self.__log_stats)
+    # def get_log_file_stats(self):
+    #     return self.__log_file_stats
+    #
+    # def get_stats_file_path(self):
+    #     return os.path.join(self.__dirlog, self.__log_file_stats)
 
 @Singleton
 class ArancinoLogger:
@@ -301,21 +300,27 @@ class ArancinoLogger:
         CONF = ArancinoConfig.Instance()
 
         self.__name = CONF.get_log_name()  # 'Arancino Serial'
-        self.__filename = CONF.get_log_log_file()  # 'arancino.log'
-        self.__error_filename = CONF.get_log_error_file()  # 'arancino.error.log'
-        #self.__stats_filename = conf.get_log_stats_file()  # 'arancino.stats.log'
+        self.__filename = CONF.get_log_file_log()  # 'arancino.log'
+        self.__error_filename = CONF.get_log_file_error()  # 'arancino.error.log'
+        # self.__stats_filename = conf.get_log_stats_file()  # 'arancino.stats.log'
 
         # __dirlog = Config["log"].get("path")           #'/var/log/arancino'
         self.__dirlog = os.environ.get('ARANCINOLOG')
         self.__format = CustomConsoleFormatter(level='DEBUG')  #logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-        self.__logger = logging.getLogger(self.__name)#CustomLogger(self.__name)#
+
+        # logging.basicConfig(level=logging.getLevelName(CONF.get_log_level()))
+        # if CONF.get_log_handler_console():
+        #     logging.handlers
+
+
+        self.__logger = logging.getLogger(self.__name) #CustomLogger(self.__name)#
         self.__logger.setLevel(logging.getLevelName(CONF.get_log_level()))
 
-        if CONF.get_log_console():
+        if CONF.get_log_handler_console():
             self.__logger.addHandler(self.__getConsoleHandler())
 
-        if CONF.get_log_file():
+        if CONF.get_log_handler_file():
             self.__logger.addHandler(self.__getFileHandler())
             self.__logger.addHandler(self.__getErrorFileHandler())
 
@@ -337,6 +342,7 @@ class ArancinoLogger:
 
     def getLogger(self):
         return self.__logger
+        # return logging
 
 
 # class CustomLogger(logging.Logger):
