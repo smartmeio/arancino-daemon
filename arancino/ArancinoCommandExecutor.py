@@ -40,7 +40,7 @@ class ArancinoCommandExecutor:
         redis = ArancinoDataStore.Instance()
         self.__datastore = redis.getDataStoreStd()
         self.__devicestore = redis.getDataStoreDev()
-        self.__datastore_rsvd = redis.getDataStorePer()
+        self.__datastore_pers = redis.getDataStorePer()
 
         self.__conf = ArancinoConfig.Instance()
         self.__compatibility_array_serial = COMPATIBILITY_MATRIX_MOD_SERIAL[str(self.__conf.get_metadata_version())]
@@ -256,7 +256,7 @@ class ArancinoCommandExecutor:
                 if type == 'STD':
 
                     # check if key exist in other data store
-                    if (self.__datastore_rsvd.exists(key) == 1):
+                    if (self.__datastore_pers.exists(key) == 1):
                         raise RedisStandardKeyExistsInPersistentDatastoreException(
                             "Duplicate Key In Persistent Data Store: ", ArancinoCommandErrorCodes.ERR_REDIS_KEY_EXISTS_IN_PERS)
                     else:
@@ -274,7 +274,7 @@ class ArancinoCommandExecutor:
                                 "Duplicate Key In Standard Data Store: ", ArancinoCommandErrorCodes.ERR_REDIS_KEY_EXISTS_IN_STD)
                         else:
                             # write to the dedicate data store (dedicated to persistent keys)
-                            rsp = self.__datastore_rsvd.set(key, value)
+                            rsp = self.__datastore_pers.set(key, value)
 
                 if rsp:
                     # return ok response
@@ -378,7 +378,7 @@ class ArancinoCommandExecutor:
 
                 # then try get from reserved datastore
                 if rsp is None:
-                    rsp = self.__datastore_rsvd.get(key)
+                    rsp = self.__datastore_pers.get(key)
 
             except Exception as ex:
                 raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
@@ -413,9 +413,11 @@ class ArancinoCommandExecutor:
 
             try:
 
-                # TODO delete user-reserved keys
-
                 num = self.__datastore.delete(*args)
+
+                # then try get from reserved datastore
+                if num is 0:
+                    num = self.__datastore_pers.delete(*args)
 
             except Exception as ex:
                 raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
@@ -446,7 +448,7 @@ class ArancinoCommandExecutor:
         try:
 
             keys = self.__datastore.keys(pattern)
-            keys_pers = self.__datastore_rsvd.keys(pattern)
+            keys_pers = self.__datastore_pers.keys(pattern)
 
             keys = keys + keys_pers
 
