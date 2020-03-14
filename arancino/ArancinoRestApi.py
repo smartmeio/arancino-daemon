@@ -20,7 +20,7 @@ under the License
 """
 
 import time
-
+import netifaces
 from arancino.Arancino import Arancino
 from arancino.utils.ArancinoUtils import ArancinoConfig, getProcessUptime, ArancinoLogger
 from arancino.ArancinoConstants import ArancinoApiResponseCode
@@ -268,7 +268,10 @@ class ArancinoApi():
                 "arancino": {
                     "system": {
                         "os" : [system(), release()],
-                        "network": [gethostname(), gethostbyname(gethostname())],
+                        "network": {
+                            "hostname": gethostname(),
+                            "ifaces": self.__getNetwork(), #[gethostname(), gethostbyname(gethostname())],
+                        },
                         "uptime": [sys_upt, getProcessUptime(int(sys_upt))]
                     },
                     "arancino": {
@@ -287,6 +290,30 @@ class ArancinoApi():
             LOG.error("Error on api call: {}".format(str(ex)))
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
 
+
+
+    def __getNetwork(self):
+
+        PROTO = netifaces.AF_INET  # We want only IPv4, for now at least
+
+        # Get list of network interfaces
+        ifaces = netifaces.interfaces()
+
+        # Get addresses for each interface
+        if_addrs = [(netifaces.ifaddresses(iface), iface) for iface in ifaces]
+
+        # Filter for only IPv4 addresses
+        if_inet_addrs = [(tup[0][PROTO], tup[1]) for tup in if_addrs if PROTO in tup[0]]
+
+        all = []
+        for item in if_inet_addrs:
+            #if str(item[1]).upper() != "LO0":
+                item[0][0]["iface"] = str(item[1])
+                print(item[0][0])
+
+                all.append(item[0][0])
+
+        return all
 
     def __apiCreatePortResponse(self, port):
     #def __get_response_for_port(self, port=None):
