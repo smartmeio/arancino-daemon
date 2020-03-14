@@ -291,6 +291,30 @@ class ArancinoApi():
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
 
 
+    def system(self):
+
+        try:
+            sys_upt = uptime()
+
+            response = {
+                "arancino": {
+                    "system": {
+                        "os": [system(), release()],
+                        "network": {
+                            "hostname": gethostname(),
+                            "ifaces": self.__getNetwork(),  # [gethostname(), gethostbyname(gethostname())],
+                        },
+                        "uptime": [sys_upt, getProcessUptime(int(sys_upt))]
+                    }
+                }
+            }
+
+            return response, 200
+        except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)))
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
+
+
 
     def __getNetwork(self):
 

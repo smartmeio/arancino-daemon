@@ -105,6 +105,14 @@ def __runArancinoApi():
         response.status_code = result[1]
         return response
 
+    @app.route('/api/v1/system', methods=['GET'])
+    def api_system():
+
+        result = api.system()
+        response = jsonify(result[0])
+        response.status_code = result[1]
+        return response
+
 
     @app.route('/api/v1/ports', methods=['GET'])
     def api_get_ports():
