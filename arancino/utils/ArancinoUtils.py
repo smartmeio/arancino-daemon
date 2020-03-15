@@ -109,7 +109,8 @@ class ArancinoConfig:
         self.__port_test_hide = stringToBool(Config.get("port.test", "hide"))
         self.__port_test_filter_type = Config.get("port.test", "filter_type")
         self.__port_test_filter_list = Config.get("port.test", "filter_list")
-        self.__port_test_num = Config.get("port.test", "num")
+        self.__port_test_num = int(Config.get("port.test", "num"))
+        self.__port_test_delay = float(Config.get("port.test", "delay"))
         self.__port_test_id_template = Config.get("port.test", "id_template")
         self.__port_test_upload_command = Config.get("port.test", "upload_command")
 
@@ -259,6 +260,9 @@ class ArancinoConfig:
 
     def get_port_test_num(self):
         return self.__port_test_num
+
+    def get_port_test_delay(self):
+        return self.__port_test_delay
 
     def get_port_test_id_template(self):
         return self.__port_test_id_template

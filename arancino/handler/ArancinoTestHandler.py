@@ -24,15 +24,15 @@ from arancino.utils.ArancinoUtils import *
 from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoCortex import ArancinoCommandIdentifiers as cmdId
 from arancino.ArancinoConstants import ArancinoSpecialChars as specChars
-from random import randrange
 import time
 
 LOG = ArancinoLogger.Instance().getLogger()
+CONF = ArancinoConfig.Instance()
 
 class ArancinoTestHandler(threading.Thread):
 
     def __init__(self, name, id, device, commandReceivedHandler, connectionLostHandler):
-        threading.Thread.__init__(self,name=name)
+        threading.Thread.__init__(self, name=name)
 
         self.__name = name          # the name, usually the arancino port id
         self.__id = id
@@ -41,6 +41,8 @@ class ArancinoTestHandler(threading.Thread):
 
         self.__commandReceivedHandler = commandReceivedHandler  # handler to be called when a raw command is complete and ready to be translated and executed.
         self.__connectionLostHandler = connectionLostHandler    # handler to be called when a connection is lost or stopped
+
+        self.__command_delay = CONF.get_port_test_delay()
 
         self.__stop = False
 
@@ -69,7 +71,7 @@ class ArancinoTestHandler(threading.Thread):
                     else:
                         count += 1  # go to the next command
 
-                    time.sleep(randrange(3))
+                    time.sleep(self.__command_delay)
 
                 except Exception as ex:
                     # probably some I/O problem such as disconnected USB serial
