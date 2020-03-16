@@ -2,7 +2,7 @@
 
 
 #### v 1.0.3 - 2020.03.16
-* Fixed a bug which prevented redis-persistent to start after an uncontrolled shutdown of the board. #63
+* Fixed a bug which prevented redis-persistent to start after an uncontrolled shutdown of the board. #53
 
 #### v 1.0.2 - 2020.03.11
 * Fixed a critical bug that prevented redis-persistent to work properly. #53
