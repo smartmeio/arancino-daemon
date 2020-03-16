@@ -23,6 +23,10 @@ chown 644 extras/redis-persistent.service
 chown 644 extras/redis-volatile.service
 chown 644 config/arancino.cfg
 
+#Issue 62
+chmod +x extras/fix-aof.sh
+cp extras/fix-aof.sh /etc/redis/fix-aof.sh
+
 #copy arancino service file to /ectc/systemd directory
 cp extras/arancino.service /etc/systemd/system/
 

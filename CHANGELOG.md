@@ -1,6 +1,5 @@
 # Changelog
 
-
 #### v 1.0.3 - 2020.03.16
 * Fixed a bug which prevented redis-persistent to start after an uncontrolled shutdown of the board. #53
 
