@@ -320,7 +320,7 @@ class ArancinoApiResponseCode:
         OK_RESET_NOT_PROVIDED: "This port does not provide reset operation",
 
         OK_UPLOAD: "Firmware uploaded successfully.",
-        OK_UPLOAD_NOT_PROVIDED: "This port does not provide uploade operation",
+        OK_UPLOAD_NOT_PROVIDED: "This port does not provide upload operation",
 
         ERR_PORT_NOT_FOUND: "Sorry, can not find specified port. Probably port was disconnected or unplugged during this operation.",
         ERR_CAN_NOT_CONNECT_PORT_DISABLED: "Sorry, can not connect a disabled port, first enable it.",
@@ -346,7 +346,7 @@ class ArancinoApiResponseCode:
         OK_RESET_NOT_PROVIDED: "This port does not provide reset operation",
 
         OK_UPLOAD: "Firmware uploaded successfully.",
-        OK_UPLOAD_NOT_PROVIDED: "This port does not provide uploade operation",
+        OK_UPLOAD_NOT_PROVIDED: "This port does not provide upload operation",
 
         ERR_PORT_NOT_FOUND: "Sorry, can not find specified port. Probably port was disconnected or unplugged during this operation.",
         ERR_CAN_NOT_CONNECT_PORT_DISABLED: "Sorry, can not connect a disabled port, first enable it.",
