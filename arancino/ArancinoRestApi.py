@@ -18,7 +18,7 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 """
-
+import subprocess
 import time
 import netifaces
 from arancino.Arancino import Arancino
@@ -267,7 +267,7 @@ class ArancinoApi():
             response = {
                 "arancino": {
                     "system": {
-                        "os" : [system(), release()],
+                        "os": self.__getOsInfo(),
                         "network": {
                             "hostname": gethostname(),
                             "ifaces": self.__getNetwork(), #[gethostname(), gethostbyname(gethostname())],
@@ -299,7 +299,7 @@ class ArancinoApi():
             response = {
                 "arancino": {
                     "system": {
-                        "os": [system(), release()],
+                        "os": self.__getOsInfo(),
                         "network": {
                             "hostname": gethostname(),
                             "ifaces": self.__getNetwork(),  # [gethostname(), gethostbyname(gethostname())],
@@ -313,6 +313,29 @@ class ArancinoApi():
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)))
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
+
+
+    def __getOsInfo(self):
+
+        # default
+        result = [system(), release()]
+
+        try:
+            cmd_arr = ["lsb_release", "-rds"]
+            proc = subprocess.Popen(cmd_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = proc.communicate()
+            stdout = stdout.decode("utf-8")
+            stderr = stderr.decode("utf-8")
+            rtcode = proc.returncode
+
+            if(rtcode == 0):
+                result = stdout.strip().split('\n')
+
+        except Exception as ex:
+            pass
+
+        finally:
+            return result
 
 
 
@@ -338,6 +361,7 @@ class ArancinoApi():
                 all.append(item[0][0])
 
         return all
+
 
     def __apiCreatePortResponse(self, port):
     #def __get_response_for_port(self, port=None):
