@@ -342,7 +342,7 @@ To run locally Arancino Module please set up the same variables and change the v
 Following a _configuration_ for `launch.json` of Visual Studio Code
 
 ```json
-
+{
     "configurations": [
         {
             "name": "Arancino Run",
@@ -352,12 +352,13 @@ Following a _configuration_ for `launch.json` of Visual Studio Code
                 "ARANCINO": "${cwd}",
                 "ARANCINOCONF": "${cwd}/config",
                 "ARANCINOLOG": "${cwd}/log",
-                "ARANCINOENV": "DEV",
+                "ARANCINOENV": "DEV"
             },
             "program": "${cwd}/start.sh",
-            "console": "integratedTerminal",
+            "console": "integratedTerminal"
         }
     ]
+}
 ```
 
 #### PyCharm
@@ -798,7 +799,7 @@ Send a reset command to port specified by `{{PORT_ID}}`
     "arancino": {
         "messages": [
             {
-                "internalMessage": "Port reset successfully ",
+                "internalMessage": ["Port reset successfully "],
                 "returnCode": 9,
                 "userMessage": "Port reset successfully."
             }
@@ -813,7 +814,7 @@ Send a reset command to port specified by `{{PORT_ID}}`
     "arancino": {
         "errors": [
             {
-                "internalMessage": "This port does not provide reset operation",
+                "internalMessage": ["This port does not provide reset operation"],
                 "returnCode": 10,
                 "userMessage": "This port does not provide reset operation"
             }
@@ -836,7 +837,7 @@ Enables the port specified by `{{PORT_ID}}`
     "arancino": {
         "messages": [
             {
-                "internalMessage": "Port enabled successfully.",
+                "internalMessage": ["Port enabled successfully."],
                 "returnCode": 2,
                 "userMessage": "Port enabled successfully."
             }
@@ -852,7 +853,7 @@ Enables the port specified by `{{PORT_ID}}`
     "arancino": {
         "messages": [
             {
-                "internalMessage": "Selected port is already enabled.",
+                "internalMessage": ["Selected port is already enabled."],
                 "returnCode": 1,
                 "userMessage": "Selected port is already enabled."
             }
@@ -873,7 +874,7 @@ Disables the port specified by `{{PORT_ID}}`
     "arancino": {
         "messages": [
             {
-                "internalMessage": "Selected port is already disabled.",
+                "internalMessage": ["Selected port is already disabled."],
                 "returnCode": 3,
                 "userMessage": "Selected port is already disabled."
             }
@@ -887,7 +888,7 @@ Disables the port specified by `{{PORT_ID}}`
     "arancino": {
         "messages": [
             {
-                "internalMessage": "Port disabled successfully.",
+                "internalMessage": ["Port disabled successfully."],
                 "returnCode": 4,
                 "userMessage": "Port disabled successfully."
             }
@@ -910,7 +911,7 @@ Uploads firmware to the port specified by `{{PORT_ID}}`
     "arancino": {
         "errors": [
             {
-                "internalMessage": "This port does not provide upload operation",
+                "internalMessage": ["This port does not provide upload operation"],
                 "returnCode": 12,
                 "userMessage": "This port does not provide upload operation"
             }
@@ -927,7 +928,7 @@ Uploads firmware to the port specified by `{{PORT_ID}}`
     "arancino": {
         "errors": [
             {
-                "internalMessage": "Sorry, can not find specified port. Probably port was disconnected or unplugged during this operation.",
+                "internalMessage": ["Sorry, can not find specified port. Probably port was disconnected or unplugged during this operation."],
                 "returnCode": 20,
                 "userMessage": "Sorry, can not find specified port. Probably port was disconnected or unplugged during this operation."
             }

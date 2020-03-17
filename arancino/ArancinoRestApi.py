@@ -449,16 +449,7 @@ class ArancinoApi():
         if internal_message is None:
             internal_message = API_CODE.INTERNAL_MESSAGE(error_code)
 
-        return {
-            "arancino": {
-                "errors": [
-                    {
-                        "userMessage": user_message,
-                        "internalMessage": internal_message,
-                        "returnCode": error_code
-                    }]
-            }
-        }
+        return self.__apiCreateResponseMessage(return_code=error_code, user_message=user_message, nternal_message=[internal_message], isError=True)
 
 
     def __apiCreateOkMessage(self, response_code=0, user_message=None, internal_message=None):
@@ -469,13 +460,19 @@ class ArancinoApi():
         if internal_message is None:
             internal_message = API_CODE.INTERNAL_MESSAGE(response_code)
 
+        return self.__apiCreateResponseMessage(return_code=response_code, user_message=user_message, internal_message=[internal_message], isError=False)
+
+
+    def __apiCreateResponseMessage(self, return_code=0, user_message=None, internal_message=None, isError=False):
+
         return {
             "arancino": {
-                "messages": [
+                "response": [
                     {
+                        "isError": isError,
                         "userMessage": user_message,
-                        "internalMessage": internal_message,
-                        "returnCode": response_code
+                        "internalMessage": [internal_message],
+                        "returnCode": return_code
                     }]
             }
         }
