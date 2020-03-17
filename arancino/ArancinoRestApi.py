@@ -46,6 +46,187 @@ class ArancinoApi():
         self.__synchronizer = ArancinoPortSynch()
 
 
+    #### QUERIES ####
+    def hello(self):
+        try:
+            sys_upt = uptime()
+            ara_upt = self.__arancino.getUptime()
+
+            c = self.__getListOfPortConnected()
+            d = self.__getListOfPortDiscovered()
+
+            response = {
+                "arancino": {
+                    "system": {
+                        "os": self.__getOsInfo(),
+                        "network": {
+                            "hostname": gethostname(),
+                            "ifaces": self.__getNetwork(), #[gethostname(), gethostbyname(gethostname())],
+                        },
+                        "uptime": [sys_upt, getProcessUptime(int(sys_upt))]
+                    },
+                    "arancino": {
+                        "uptime" : [ara_upt, getProcessUptime(int(ara_upt))],
+                        "version": str(CONF.get_metadata_version()),
+                        "ports": {
+                            "discovered": d,
+                            "connected": c
+                        }
+                    }
+                }
+            }
+
+            return response, 200
+        except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)))
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
+
+
+    def arancino(self):
+        try:
+            ara_upt = self.__arancino.getUptime()
+
+            c = self.__getListOfPortConnected()
+            d = self.__getListOfPortDiscovered()
+
+            response = {
+                "arancino": {
+                    "arancino": {
+                        "uptime": [ara_upt, getProcessUptime(int(ara_upt))],
+                        "version": str(CONF.get_metadata_version()),
+                        "ports": {
+                            "discovered": d,
+                            "connected": c
+                        }
+                    }
+                }
+            }
+            return response, 200
+
+        except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)))
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
+
+    def system(self):
+
+        try:
+            sys_upt = uptime()
+
+            response = {
+                "arancino": {
+                    "system": {
+                        "os": self.__getOsInfo(),
+                        "network": {
+                            "hostname": gethostname(),
+                            "ifaces": self.__getNetwork(),  # [gethostname(), gethostbyname(gethostname())],
+                        },
+                        "uptime": [sys_upt, getProcessUptime(int(sys_upt))]
+                    }
+                }
+            }
+
+            return response, 200
+        except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)))
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
+
+    def getAllPorts(self):
+        try:
+            ports_conn = []
+            for id, port in self.__arancino.getConnectedPorts().items():
+                rp = self.__apiCreatePortResponse(port)
+                ports_conn.append(rp)
+
+            ports_disc = []
+            for id, port in self.__arancino.getDiscoveredPorts().items():
+                rp = self.__apiCreatePortResponse(port)
+                ports_disc.append(rp)
+
+            response = {
+                "arancino" : {
+                    "arancino" : {
+                        "ports" : {
+                            "connected": ports_disc,
+                            "discovered": ports_conn
+                        }
+                    }
+                }
+            }
+
+            return response, 200
+
+        except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)))
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
+
+    def getPort(self, port_id=None):
+
+        try:
+            response = {}
+            port = self.__arancino.findPort(port_id)
+            if port is not None:
+                response = {
+                    "arancino": {
+                        "arancino": {
+                            "port": self.__apiCreatePortResponse(port)
+                        }
+                    }
+                }
+
+            return response, 200
+
+        except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)))
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
+
+    def getPortsConnected(self):
+        try:
+            ports = []
+            for id, port in self.__arancino.getConnectedPorts().items():
+                rp = self.__apiCreatePortResponse(port)
+                ports.append(rp)
+
+            response = {
+                "arancino" : {
+                    "arancino" : {
+                        "ports" : {
+                            "connected": ports
+                        }
+                    }
+                }
+            }
+
+            return response, 200
+
+        except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)))
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
+
+    def getPortsDiscovered(self):
+        try:
+            ports = []
+            for id, port in self.__arancino.getDiscoveredPorts().items():
+                rp = self.__apiCreatePortResponse(port)
+                ports.append(rp)
+
+            response = {
+                "arancino" : {
+                    "arancino" : {
+                        "ports" : {
+                            "discovered": ports
+                        }
+                    }
+                }
+            }
+
+            return response, 200
+
+        except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)))
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
+
+
+    #### OPERATIONS ####
     def resetPort(self, port_id):
         try:
             port = self.__arancino.findPort(port_id)
@@ -66,36 +247,34 @@ class ArancinoApi():
             LOG.error("Error on api call: {}".format(str(ex)))
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_RESET, internal_message=str(ex)), 500
 
+    def enablePort(self, port_id):
 
-    def uploadFirmware(self, port_id, firmware):
         try:
             port = self.__arancino.findPort(port_id)
+
             if port:
 
-                self.__arancino.pauseArancinoThread()
-                result = port.upload(firmware)
-                self.__arancino.resumeArancinoThread()
+                new_status = True
+                curr_status = port.isEnabled()
 
-                if result:
+                if new_status == curr_status:
+                    return self.__apiCreateOkMessage(response_code=API_CODE.OK_ALREADY_ENABLED), 200
 
-                    rtn_cod = result[0]
-                    std_out = result[1]
-                    std_err = result[2]
+                else:
+                    port.setEnabled(new_status)
+                    self.__synchronizer.writePortConfig(port)  # Note: maybe it's better wrapping this call inside Arancino class.
 
-                    if rtn_cod != 0:
-                        return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_UPLOAD, internal_message=[std_out, std_err]), 500
-                    else:
-                        return self.__apiCreateOkMessage(response_code=API_CODE.OK_UPLOAD, internal_message=[std_out, std_err]), 201
+                    while not port.isConnected():
+                        time.sleep(1)
 
-                else:  # when it is None means that no uploaded procedure is provided.
-                    return self.__apiCreateErrorMessage(error_code=API_CODE.OK_UPLOAD_NOT_PROVIDED), 500
+                    return self.__apiCreateOkMessage(response_code=API_CODE.OK_ENABLED), 200
 
             else:
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 500
+
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)))
-            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_UPLOAD, internal_message=str(ex)), 500
-
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
 
     def disablePort(self, port_id):
         # NOTE: in realta sono due operazioni: 1) disable 2) disconnect. Forse é il caso di dare due messaggi nella
@@ -127,194 +306,37 @@ class ArancinoApi():
             LOG.error("Error on api call: {}".format(str(ex)))
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
 
-
-    def enablePort(self, port_id):
-
+    def uploadFirmware(self, port_id, firmware):
         try:
             port = self.__arancino.findPort(port_id)
-
             if port:
 
-                new_status = True
-                curr_status = port.isEnabled()
+                self.__arancino.pauseArancinoThread()
+                result = port.upload(firmware)
+                self.__arancino.resumeArancinoThread()
 
-                if new_status == curr_status:
-                    return self.__apiCreateOkMessage(response_code=API_CODE.OK_ALREADY_ENABLED), 200
+                if result:
 
-                else:
-                    port.setEnabled(new_status)
-                    self.__synchronizer.writePortConfig(port)  # Note: maybe it's better wrapping this call inside Arancino class.
+                    rtn_cod = result[0]
+                    std_out = result[1]
+                    std_err = result[2]
 
-                    while not port.isConnected():
-                        time.sleep(1)
+                    if rtn_cod != 0:
+                        return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_UPLOAD, internal_message=[std_out, std_err]), 500
+                    else:
+                        return self.__apiCreateOkMessage(response_code=API_CODE.OK_UPLOAD, internal_message=[std_out, std_err]), 201
 
-                    return self.__apiCreateOkMessage(response_code=API_CODE.OK_ENABLED), 200
+                else:  # when it is None means that no uploaded procedure is provided.
+                    return self.__apiCreateErrorMessage(error_code=API_CODE.OK_UPLOAD_NOT_PROVIDED), 500
 
             else:
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 500
-
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)))
-            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_UPLOAD, internal_message=str(ex)), 500
 
 
-    def getPort(self, port_id=None):
-
-        try:
-            response = {}
-            port = self.__arancino.findPort(port_id)
-            if port is not None:
-                response = {
-                    "arancino": {
-                        "arancino": {
-                            "port": self.__apiCreatePortResponse(port)
-                        }
-                    }
-                }
-
-            return response, 200
-
-        except Exception as ex:
-            LOG.error("Error on api call: {}".format(str(ex)))
-            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
-
-
-    def getPortsDiscovered(self):
-        try:
-            ports = []
-            for id, port in self.__arancino.getDiscoveredPorts().items():
-                rp = self.__apiCreatePortResponse(port)
-                ports.append(rp)
-
-            response = {
-                "arancino" : {
-                    "arancino" : {
-                        "ports" : {
-                            "discovered": ports
-                        }
-                    }
-                }
-            }
-
-            return response, 200
-
-        except Exception as ex:
-            LOG.error("Error on api call: {}".format(str(ex)))
-            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
-
-
-    def getPortsConnected(self):
-        try:
-            ports = []
-            for id, port in self.__arancino.getConnectedPorts().items():
-                rp = self.__apiCreatePortResponse(port)
-                ports.append(rp)
-
-            response = {
-                "arancino" : {
-                    "arancino" : {
-                        "ports" : {
-                            "connected": ports
-                        }
-                    }
-                }
-            }
-
-            return response, 200
-
-        except Exception as ex:
-            LOG.error("Error on api call: {}".format(str(ex)))
-            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
-
-
-    def getAllPorts(self):
-        try:
-            ports_conn = []
-            for id, port in self.__arancino.getConnectedPorts().items():
-                rp = self.__apiCreatePortResponse(port)
-                ports_conn.append(rp)
-
-            ports_disc = []
-            for id, port in self.__arancino.getDiscoveredPorts().items():
-                rp = self.__apiCreatePortResponse(port)
-                ports_disc.append(rp)
-
-            response = {
-                "arancino" : {
-                    "arancino" : {
-                        "ports" : {
-                            "connected": ports_disc,
-                            "discovered": ports_conn
-                        }
-                    }
-                }
-            }
-
-            return response, 200
-
-        except Exception as ex:
-            LOG.error("Error on api call: {}".format(str(ex)))
-            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
-
-
-    def hello(self):
-        try:
-            sys_upt = uptime()
-            ara_upt = self.__arancino.getUptime()
-
-            c = self.getPortsConnected()
-            d = self.getPortsDiscovered()
-            response = {
-                "arancino": {
-                    "system": {
-                        "os": self.__getOsInfo(),
-                        "network": {
-                            "hostname": gethostname(),
-                            "ifaces": self.__getNetwork(), #[gethostname(), gethostbyname(gethostname())],
-                        },
-                        "uptime": [sys_upt, getProcessUptime(int(sys_upt))]
-                    },
-                    "arancino": {
-                        "uptime" : [ara_upt, getProcessUptime(int(ara_upt))],
-                        "version": str(CONF.get_metadata_version()),
-                        "ports": {
-                            "discovered": d[0]["arancino"]["arancino"]["ports"]["discovered"],
-                            "connected": c[0]["arancino"]["arancino"]["ports"]["connected"]
-                        }
-                    }
-                }
-            }
-
-            return response, 200
-        except Exception as ex:
-            LOG.error("Error on api call: {}".format(str(ex)))
-            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
-
-
-    def system(self):
-
-        try:
-            sys_upt = uptime()
-
-            response = {
-                "arancino": {
-                    "system": {
-                        "os": self.__getOsInfo(),
-                        "network": {
-                            "hostname": gethostname(),
-                            "ifaces": self.__getNetwork(),  # [gethostname(), gethostbyname(gethostname())],
-                        },
-                        "uptime": [sys_upt, getProcessUptime(int(sys_upt))]
-                    }
-                }
-            }
-
-            return response, 200
-        except Exception as ex:
-            LOG.error("Error on api call: {}".format(str(ex)))
-            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
-
-
+    #### UTILS ####
     def __getOsInfo(self):
 
         # default
@@ -336,8 +358,6 @@ class ArancinoApi():
 
         finally:
             return result
-
-
 
     def __getNetwork(self):
 
@@ -362,6 +382,21 @@ class ArancinoApi():
 
         return all
 
+    def __getListOfPortDiscovered(self):
+        c = {}
+        for id, port in self.__arancino.getConnectedPorts().items():
+            if port.getPortType not in c:
+                c[port.getPortType().name] = []
+            c[port.getPortType().name].append(id)
+        return c
+
+    def __getListOfPortConnected(self):
+        d = {}
+        for id, port in self.__arancino.getDiscoveredPorts().items():
+            if port.getPortType not in d:
+                d[port.getPortType().name] = []
+            d[port.getPortType().name].append(id)
+        return d
 
     def __apiCreatePortResponse(self, port):
     #def __get_response_for_port(self, port=None):

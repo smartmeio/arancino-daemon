@@ -431,82 +431,22 @@ Returns a lot of information about the device:
     "arancino": {
         "arancino": {
             "ports": {
-                "connected": [
-                    {
-                        "B_DEVICE": "There",
-                        "B_ID": "TESTPORT5",
-                        "B_LIB_VER": "1.0.0",
-                        "B_PORT_TYPE": "TEST",
-                        "C_ALIAS": "TESTPORT5",
-                        "C_ENABLED": true,
-                        "C_HIDE_DEVICE": true,
-                        "S_CONNECTED": true,
-                        "S_CREATION_DATE": "Mon, 16 Mar 2020 08:44:33 GMT",
-                        "S_LAST_USAGE_DATE": "Mon, 16 Mar 2020 17:12:51 GMT",
-                        "S_PLUGGED": true
-                    },
-                    {
-                        "B_DEVICE": "/dev/ttyACM0",
-                        "B_ID": "1ABDF7C5504E4B53382E314AFF0C1B2D",
-                        "B_LIB_VER": "None",
-                        "B_PORT_TYPE": "SERIAL",
-                        "C_ALIAS": "",
-                        "C_ENABLED": true,
-                        "C_HIDE_DEVICE": false,
-                        "P_DESCRIPTION": "Arancino",
-                        "P_HWID": "USB VID:PID=04D8:ECDA SER=1ABDF7C5504E4B53382E314AFF0C1B2D LOCATION=1-1.2:1.0",
-                        "P_INTERFACE": null,
-                        "P_LOCATION": "1-1.2:1.0",
-                        "P_MANUFACTURER": "smartme.io",
-                        "P_NAME": "ttyACM0",
-                        "P_PID": "0xECDA",
-                        "P_PRODUCT": "Arancino",
-                        "P_SERIALNUMBER": "1ABDF7C5504E4B53382E314AFF0C1B2D",
-                        "P_VID": "0x04D8",
-                        "S_CONNECTED": true,
-                        "S_CREATION_DATE": "Mon, 16 Mar 2020 08:41:40 GMT",
-                        "S_LAST_USAGE_DATE": null,
-                        "S_PLUGGED": true
-                    }
-                ],
-                "discovered": [
-                    {
-                        "B_DEVICE": "There",
-                        "B_ID": "TESTPORT5",
-                        "B_LIB_VER": "1.0.0",
-                        "B_PORT_TYPE": "TEST",
-                        "C_ALIAS": "TESTPORT5",
-                        "C_ENABLED": true,
-                        "C_HIDE_DEVICE": true,
-                        "S_CONNECTED": true,
-                        "S_CREATION_DATE": "Mon, 16 Mar 2020 08:44:33 GMT",
-                        "S_LAST_USAGE_DATE": "Mon, 16 Mar 2020 17:12:51 GMT",
-                        "S_PLUGGED": true
-                    },
-                    {
-                        "B_DEVICE": "/dev/ttyACM0",
-                        "B_ID": "1ABDF7C5504E4B53382E314AFF0C1B2D",
-                        "B_LIB_VER": "None",
-                        "B_PORT_TYPE": "SERIAL",
-                        "C_ALIAS": "",
-                        "C_ENABLED": true,
-                        "C_HIDE_DEVICE": false,
-                        "P_DESCRIPTION": "Arancino",
-                        "P_HWID": "USB VID:PID=04D8:ECDA SER=1ABDF7C5504E4B53382E314AFF0C1B2D LOCATION=1-1.2:1.0",
-                        "P_INTERFACE": null,
-                        "P_LOCATION": "1-1.2:1.0",
-                        "P_MANUFACTURER": "smartme.io",
-                        "P_NAME": "ttyACM0",
-                        "P_PID": "0xECDA",
-                        "P_PRODUCT": "Arancino",
-                        "P_SERIALNUMBER": "1ABDF7C5504E4B53382E314AFF0C1B2D",
-                        "P_VID": "0x04D8",
-                        "S_CONNECTED": true,
-                        "S_CREATION_DATE": "Mon, 16 Mar 2020 08:41:40 GMT",
-                        "S_LAST_USAGE_DATE": null,
-                        "S_PLUGGED": true
-                    }
-                ]
+                "connected": {
+                      "TEST": [
+                          "TESTPORT5"
+                      ],
+                      "SERIAL": [
+                          "1ABDF7C5504E4B53382E314AFF0C1B2D"
+                      ] 
+                },
+                "discovered":{
+                      "TEST": [
+                          "TESTPORT5"
+                       ],
+                      "SERIAL": [
+                          "1ABDF7C5504E4B53382E314AFF0C1B2D"
+                      ] 
+                }
             },
             "uptime": [
                 30285.765567541122,
@@ -542,6 +482,44 @@ Returns a lot of information about the device:
             ]
         }
     }
+}
+```
+
+##### Arancino
+Returns information about Arancino:
+
+- API address: `/arancino`
+- API method: `GET`
+- API result: 
+```json
+{
+    "arancino": {
+        "arancino": {
+            "ports": {
+                "connected": {
+                      "TEST": [
+                          "TESTPORT5"
+                      ],
+                      "SERIAL": [
+                          "1ABDF7C5504E4B53382E314AFF0C1B2D"
+                      ] 
+                },
+                "discovered":{
+                      "TEST": [
+                          "TESTPORT5"
+                       ],
+                      "SERIAL": [
+                          "1ABDF7C5504E4B53382E314AFF0C1B2D"
+                      ] 
+                }
+            },
+            "uptime": [
+                30285.765567541122,
+                "8 hours, 24 minutes, 45 seconds"
+            ],
+            "version": "2.0.0"
+        }
+    }    
 }
 ```
 

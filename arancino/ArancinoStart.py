@@ -96,7 +96,12 @@ def __runArancinoApi():
         #else:
         #    return False
 
+    @app.route('/api/v1/shutdown-not-easy-to-find-api', methods=['POST'])
+    def shutdown():
+        shutdown_server()
+        return 'Server shutting down...'
 
+    #### QUERIES ####
     @app.route('/api/v1/', methods=['GET'])
     def api_hello():
 
@@ -113,6 +118,13 @@ def __runArancinoApi():
         response.status_code = result[1]
         return response
 
+    @app.route('/api/v1/arancino', methods=['GET'])
+    def api_arancino():
+
+        result = api.arancino()
+        response = jsonify(result[0])
+        response.status_code = result[1]
+        return response
 
     @app.route('/api/v1/ports', methods=['GET'])
     def api_get_ports():
@@ -120,7 +132,6 @@ def __runArancinoApi():
         response = jsonify(result[0])
         response.status_code = result[1]
         return response
-
 
     @app.route('/api/v1/ports/connected', methods=['GET'])
     def api_get_ports_connected():
@@ -130,15 +141,13 @@ def __runArancinoApi():
         response.status_code = result[1]
         return response
 
-
     @app.route('/api/v1/ports/discovered', methods=['GET'])
     def get_ports_discovered():
 
-        result = api.getPortsDiscovered()
+        result = api.__getPortsDiscovered()
         response = jsonify(result[0])
         response.status_code = result[1]
         return response
-
 
     @app.route('/api/v1/ports/<port_id>', methods=['GET'])
     def api_get_port(port_id):
@@ -148,7 +157,7 @@ def __runArancinoApi():
         response.status_code = result[1]
         return response
 
-
+    #### OPERATIONS ####
     @app.route('/api/v1/ports/<port_id>/reset', methods=['POST'])
     @auth.login_required
     def api_reset(port_id=None):
@@ -210,10 +219,6 @@ def __runArancinoApi():
             response.status_code = 400
             return response
 
-    @app.route('/api/v1/shutdown-not-easy-to-find-api', methods=['POST'])
-    def shutdown():
-        shutdown_server()
-        return 'Server shutting down...'
 
     def allowed_file(filename):
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
