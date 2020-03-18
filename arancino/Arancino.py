@@ -60,6 +60,7 @@ class Arancino(Thread):
 
             self.__stop = False
             self.__pause = False
+            self.__isPaused = False
             self.__cycle_time = CONF.get_general_cycle_time()
             self.__version = CONF.get_metadata_version()
 
@@ -122,6 +123,7 @@ class Arancino(Thread):
         while not self.__stop:
             if not self.__pause:
                 try:
+                    self.__isPaused = False
                     self.__uptime_sec = (time.time() - self.__thread_start)
                     self.__uptime_str = getProcessUptime(self.__uptime_sec)
                     LOG.info('Uptime :' + self.__uptime_str)
@@ -205,7 +207,8 @@ class Arancino(Thread):
 
                 except Exception as ex:
                     LOG.exception(ex)
-
+            else:
+                self.__isPaused = True
             time.sleep(self.__cycle_time)
 
 
@@ -247,6 +250,9 @@ class Arancino(Thread):
     def resumeArancinoThread(self):
         self.__cycle_time = CONF.get_general_cycle_time()
         self.__pause = False
+
+    def isPaused(self):
+        return self.__isPaused
 
     def getUptime(self):
         return self.__uptime_sec

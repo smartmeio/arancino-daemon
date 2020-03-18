@@ -79,7 +79,7 @@ class ArancinoApi():
             return response, 200
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)))
-            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
 
     def arancino(self):
@@ -105,7 +105,7 @@ class ArancinoApi():
 
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)))
-            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
     def system(self):
 
@@ -128,7 +128,7 @@ class ArancinoApi():
             return response, 200
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)))
-            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
     def getAllPorts(self):
         try:
@@ -157,7 +157,7 @@ class ArancinoApi():
 
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)))
-            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
     def getPort(self, port_id=None):
 
@@ -177,7 +177,7 @@ class ArancinoApi():
 
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)))
-            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
     def getPortsConnected(self):
         try:
@@ -200,7 +200,7 @@ class ArancinoApi():
 
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)))
-            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
     def getPortsDiscovered(self):
         try:
@@ -223,7 +223,7 @@ class ArancinoApi():
 
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)))
-            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
 
     #### OPERATIONS ####
@@ -234,6 +234,8 @@ class ArancinoApi():
             if port:
 
                 self.__arancino.pauseArancinoThread()
+                while not self.__arancino.isPaused():
+                    pass
                 result = port.reset()
                 self.__arancino.resumeArancinoThread()
 
@@ -245,7 +247,7 @@ class ArancinoApi():
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 200
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)))
-            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_RESET, internal_message=str(ex)), 500
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_RESET, internal_message=[None, str(ex)]), 500
 
     def enablePort(self, port_id):
 
@@ -274,7 +276,7 @@ class ArancinoApi():
 
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)))
-            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
     def disablePort(self, port_id):
         # NOTE: in realta sono due operazioni: 1) disable 2) disconnect. Forse é il caso di dare due messaggi nella
@@ -304,7 +306,7 @@ class ArancinoApi():
 
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)))
-            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=str(ex)), 500
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
     def uploadFirmware(self, port_id, firmware):
         try:
@@ -312,6 +314,8 @@ class ArancinoApi():
             if port:
 
                 self.__arancino.pauseArancinoThread()
+                while not self.__arancino.isPaused():
+                    pass
                 result = port.upload(firmware)
                 self.__arancino.resumeArancinoThread()
 
@@ -333,7 +337,7 @@ class ArancinoApi():
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 500
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)))
-            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_UPLOAD, internal_message=str(ex)), 500
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_UPLOAD, internal_message=[None, str(ex)]), 500
 
 
     #### UTILS ####
@@ -447,9 +451,9 @@ class ArancinoApi():
             user_message = API_CODE.USER_MESSAGE(error_code)
 
         if internal_message is None:
-            internal_message = API_CODE.INTERNAL_MESSAGE(error_code)
+            internal_message = [API_CODE.INTERNAL_MESSAGE(error_code)]
 
-        return self.__apiCreateResponseMessage(return_code=error_code, user_message=user_message, nternal_message=[internal_message], isError=True)
+        return self.__apiCreateResponseMessage(return_code=error_code, user_message=user_message, internal_message=internal_message, isError=True)
 
 
     def __apiCreateOkMessage(self, response_code=0, user_message=None, internal_message=None):
@@ -458,9 +462,9 @@ class ArancinoApi():
             user_message = API_CODE.USER_MESSAGE(response_code)
 
         if internal_message is None:
-            internal_message = API_CODE.INTERNAL_MESSAGE(response_code)
+            internal_message = [API_CODE.INTERNAL_MESSAGE(response_code)]
 
-        return self.__apiCreateResponseMessage(return_code=response_code, user_message=user_message, internal_message=[internal_message], isError=False)
+        return self.__apiCreateResponseMessage(return_code=response_code, user_message=user_message, internal_message=internal_message, isError=False)
 
 
     def __apiCreateResponseMessage(self, return_code=0, user_message=None, internal_message=None, isError=False):
@@ -471,7 +475,7 @@ class ArancinoApi():
                     {
                         "isError": isError,
                         "userMessage": user_message,
-                        "internalMessage": [internal_message],
+                        "internalMessage": internal_message,
                         "returnCode": return_code
                     }]
             }
