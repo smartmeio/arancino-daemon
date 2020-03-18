@@ -61,7 +61,7 @@ class ArancinoTestDiscovery:
 
 
         # get each port in the collection
-        for id, port in collection.items():  # if the
+        for id in list(collection):  # using list() prevent the `RuntimeError: dictionary changed size during iteration` becouse list() make a copy of the object
 
             # if a port in the collection is not in the list of the test_port (the created one) means that the port was unplegged.
             if id not in test_ports:

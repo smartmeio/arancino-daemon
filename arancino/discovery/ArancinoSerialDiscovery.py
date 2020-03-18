@@ -19,7 +19,7 @@ License for the specific language governing permissions and limitations
 under the License
 """
 
-from serial.tools import list_ports as list
+from serial.tools import list_ports
 
 from arancino.utils.ArancinoUtils import ArancinoConfig
 from arancino.filter.ArancinoPortFilter import FilterTypes
@@ -44,7 +44,7 @@ class ArancinoSerialDiscovery:
         :return Dictionary of ArancinoPort
         """
 
-        ports = list.comports()
+        ports = list_ports.comports()
         ports = self.__preFilterPorts(ports)
         ports = self.__transformInArancinoPorts(ports)
         ports = self.__postFilterPorts(ports=ports, filter_type=self.__filter_type, filter_list=self.__filter_list)
@@ -55,9 +55,9 @@ class ArancinoSerialDiscovery:
             else:
                 pass#del collection[id]
 
-        for id, port in collection.items():
+        for id in list(collection):
             if id not in ports:
-                del collection[id]
+                    del collection[id]
 
 
         return collection
