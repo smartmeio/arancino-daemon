@@ -299,15 +299,14 @@ class ArancinoPortSynch:
 
         id = port.getId()
         port_type = port.getPortType().value
-        liv_ver = str(port.getLibVersion())
         creation_date = datetimeToString(port.getCreationDate())
-
+        #lib_ver = str(port.getLibVersion())
         try:
             pipeline = self.__devicestore.pipeline()
             pipeline.hset(id, ArancinoDBKeys.B_ID, id)
             pipeline.hset(id, ArancinoDBKeys.B_PORT_TYPE, port_type)
-            pipeline.hset(id, ArancinoDBKeys.B_LIB_VER, liv_ver)
             pipeline.hset(id, ArancinoDBKeys.B_CREATION_DATE, creation_date)
+            #pipeline.hset(id, ArancinoDBKeys.B_LIB_VER, lib_ver)
             pipeline.execute()
         except Exception as ex:
             LOG.error("Redis Error: {}".format(str(ex)))
@@ -410,8 +409,10 @@ class ArancinoPortSynch:
     def writePortChanges(self, port):
         id = port.getId()
         last_usage_date = datetimeToString(port.getLastUsageDate()) if port.getLastUsageDate() is not None and not "" else ""
+        lib_ver = str(port.getLibVersion())
         try:
             pipeline = self.__devicestore.pipeline()
+            pipeline.hset(id, ArancinoDBKeys.B_LIB_VER, lib_ver)
             pipeline.hset(id, ArancinoDBKeys.S_LAST_USAGE_DATE, last_usage_date)
             pipeline.execute()
         except Exception as ex:
