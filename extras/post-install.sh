@@ -51,14 +51,14 @@ echo Reloading daemons
 systemctl daemon-reload
 
 #enable services
-systemctl enable redis-volatile
-systemctl enable redis-persistent
-systemctl enable arancino
+#systemctl enable redis-volatile
+#systemctl enable redis-persistent
+#systemctl enable arancino
 
 #start services
-systemctl start redis-volatile
-systemctl start redis-persistent
-systemctl start arancino
+#systemctl start redis-volatile
+#systemctl start redis-persistent
+#systemctl start arancino
 echo --------------------------------------
 
 #echo --------------------------------------
