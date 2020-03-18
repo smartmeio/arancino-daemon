@@ -57,14 +57,20 @@ class ArancinoConfig:
 
     def __init__(self):
 
+        env = os.environ.get('ARANCINOENV')
+        if env.upper() == "DEV" or env.upper() == "TEST" or env.upper() == "DEBUG" or env.upper() == "DEVELOPMENT":
+            cfg_file = "arancino.test.cfg"
+        elif env.upper() == "PROD" or env.upper() == "PRODUCTION":
+            cfg_file = "arancino.cfg"
+
         Config = configparser.ConfigParser()
-        Config.read(os.path.join(os.environ.get('ARANCINOCONF'), "arancino.cfg"))
+        Config.read(os.path.join(os.environ.get('ARANCINOCONF'), cfg_file))
 
         # CONFIG METADATA SECTION
         self.__metadata_version = semantic_version.Version(Config.get("metadata", "version"))
 
         # CONFIG GENERAL SECTION
-        self.__general_env = Config.get("general", "env")
+        self.__general_env = env
         self.__general_cycle_time = int(Config.get("general", "cycle_time"))
         #self.__general_users = Config.get("general", "users")
 

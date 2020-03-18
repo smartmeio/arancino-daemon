@@ -107,7 +107,8 @@ setup(
         # 'extras/redis-persistent.service',
         # 'extras/redis-volatile.conf',
         # 'extras/redis-volatile.service',
-        'config/arancino.cfg'])],
+        'config/arancino.cfg',
+        'config/arancino.test.cfg'])],
 
     #package_data={'arancino':['LICENSE','README.md','extras/*.*','config/*.*']},
 

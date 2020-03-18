@@ -16,6 +16,7 @@
 * Improved Redis Connection: Arancino by default makes 5 connection attemps (each one every 3 seconds) and then exit if Redis unreachable.
 * Introduced a rest server with the some API like _Enable/Disable_, _Reset_, _Upload Firmware_ etc...
 * Redis configuration and systemd services are now exclueded from Arancino package. They are pre-installed in Arancino OS. 
+* Introduced different configuration file based on `ARANCINOENV` environment variables (`PROD`, `DEV` or `TEST`)
 
 #### v 1.0.1 - 2019.12.30
 * Fix a bug while checks compatibility that prevent a new version library to be released without adding it in the compatibility array. Now it uses '*' while check version number.

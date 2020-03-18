@@ -18,6 +18,7 @@ chown 644 extras/arancino.service
 #chown 644 extras/redis-persistent.service
 #chown 644 extras/redis-volatile.service
 chown 644 config/arancino.cfg
+chown 644 config/arancino.test.cfg
 
 #copy arancino service file to /ectc/systemd directory
 cp extras/arancino.service /etc/systemd/system/
@@ -42,6 +43,8 @@ then
     mv /etc/arancino/config/arancino.cfg /etc/arancino/config/arancino_$timestamp.cfg
     cp config/arancino.cfg /etc/arancino/config/arancino.cfg
 fi
+
+cp config/arancino.test.cfg /etc/arancino/config/arancino.test.cfg
 echo --------------------------------------
 
 echo --------------------------------------
