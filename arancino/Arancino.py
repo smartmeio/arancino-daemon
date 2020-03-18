@@ -206,7 +206,7 @@ class Arancino(Thread):
                 except Exception as ex:
                     LOG.exception(ex)
 
-            time.sleep(int(self.__cycle_time))
+            time.sleep(self.__cycle_time)
 
 
         self.__exit()

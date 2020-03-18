@@ -65,7 +65,7 @@ class ArancinoConfig:
 
         # CONFIG GENERAL SECTION
         self.__general_env = Config.get("general", "env")
-        self.__general_cycle_time = Config.get("general", "cycle_time")
+        self.__general_cycle_time = int(Config.get("general", "cycle_time"))
         #self.__general_users = Config.get("general", "users")
 
         # CONFIG REDIS SECTION
@@ -103,6 +103,7 @@ class ArancinoConfig:
         self.__port_serial_filter_type = Config.get("port.serial", "filter_type")
         self.__port_serial_filter_list = Config.get("port.serial", "filter_list")
         self.__port_serial_upload_command = Config.get("port.serial", "upload_command")
+        self.__port_serial_timeout = int(Config.get("port.serial", "timeout"))
 
         # CONFIG TEST PORT SECTION
         self.__port_test_enabled = stringToBool(Config.get("port.test", "enabled"))
@@ -241,6 +242,10 @@ class ArancinoConfig:
 
     def get_port_serial_upload_command(self):
         return self.__port_serial_upload_command
+
+    def get_port_serial_timeout(self):
+        return self.__port_serial_timeout
+
 
     ######## TEST PORT ########
     def get_port_test_enabled(self):
