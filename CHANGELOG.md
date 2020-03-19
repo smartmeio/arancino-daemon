@@ -1,5 +1,8 @@
 # Changelog
 
+#### v 1.0.4 - 2020.03.19
+* Fixed a bug which doesn't disable console handler. This writes to `/var/log/syslog` and `/var/log/daemon.log` and fill up the storage. #63
+
 #### v 1.0.3 - 2020.03.16
 * Fixed a bug which prevented redis-persistent to start after an uncontrolled shutdown of the board. #53
 

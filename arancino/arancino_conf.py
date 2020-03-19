@@ -136,5 +136,5 @@ logger.setLevel( logging.getLevelName(Config["log"].get("level")) )
 logger.addHandler(__get_file_handler())
 logger.addHandler(__get_error_file_handler())
 
-if Config["log"].get("console"):
+if Config["log"].get("console").upper() == "TRUE":
     logger.addHandler(__get_console_handler())
