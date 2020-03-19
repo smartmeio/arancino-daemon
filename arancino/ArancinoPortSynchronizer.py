@@ -430,3 +430,27 @@ class ArancinoPortSynch:
                 raise Exception("No port specified")
         except Exception as ex:
             LOG.error("Redis Error: {}".format(str(ex)))
+
+    def synchClean(self, ports):
+        """
+        :param ports: Dictionary of Arancino Ports
+        """
+
+        keys = self.__devicestore.keys()
+
+        # if there are registered ports in devicestore
+        if len(keys) > 0:
+
+            diff = {}
+            #items = {}
+
+            if ports  and len(ports) > 0:
+                #items = ports
+
+                diff = set(keys).difference(ports)
+
+                pipeline = self.__devicestore.pipeline()
+                for it in diff:
+                    pipeline.hset(it, ArancinoDBKeys.S_PLUGGED, str(False))
+                    pipeline.hset(it, ArancinoDBKeys.S_CONNECTED, str(False))
+                pipeline.execute()

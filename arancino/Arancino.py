@@ -162,6 +162,7 @@ class Arancino(Thread):
                             # if disabled then disconnect.
                             if not p_conn.isEnabled():
                                 p_conn.disconnect()
+                                self.__synchronizer.writePortStatus(p_conn)
 
                         # discovered port in not yet a connected port
                         else:
@@ -182,13 +183,6 @@ class Arancino(Thread):
                                 # leggi la last usage date (serve leggerla la prima volta perche potrebbe essere disabilitata e quindi non usata)
                                 self.__synchronizer.readPortChanges(port)
 
-
-
-                            self.__synchronizer.writePortChanges(port)
-                            self.__synchronizer.writePortLink(port)
-                            self.__synchronizer.writePortStatus(port)
-                            self.__synchronizer.writePortInfo(port)
-
                             if port.isEnabled():
 
                                 try:
@@ -204,6 +198,15 @@ class Arancino(Thread):
                                 self.__ports_connected[id] = port
                             else:
                                 LOG.warning("Port is not enabeled, can not connect to: {} - {} at {}".format(port.getAlias(), port.getId(), port.getDevice()))
+
+                            self.__synchronizer.writePortChanges(port)
+                            self.__synchronizer.writePortLink(port)
+                            self.__synchronizer.writePortStatus(port)
+                            self.__synchronizer.writePortInfo(port)
+
+
+                    #clean
+                    self.__synchronizer.synchClean(self.__ports_connected)
 
                 except Exception as ex:
                     LOG.exception(ex)
