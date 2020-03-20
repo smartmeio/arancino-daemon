@@ -319,7 +319,7 @@ class ArancinoPortSynch:
 
         try:
             pipeline = self.__devicestore.pipeline()
-            pipeline.hset(id, ArancinoDBKeys.B_DEVICE, device)
+            pipeline.hset(id, ArancinoDBKeys.L_DEVICE, device)
             pipeline.execute()
         except Exception as ex:
             LOG.error("Redis Error: {}".format(str(ex)))

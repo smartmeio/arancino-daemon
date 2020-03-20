@@ -10,6 +10,11 @@ implement the Arancino Cortex Protocol. It can manage multiple connection at tim
 
 ## Setup
 
+
+> Note: if you previously installed one of the previous versions (1. *. *) it is recommended that you flush the 
+>redis databases. Many keys have different names and others have been eliminated.
+
+
 ### Install Arancino Module using CLI
 There are two repositories, one for release packages and one for development (snapshot), both are available in [packages.smartme.io](https://packages.smartme.io).
 

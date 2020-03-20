@@ -425,7 +425,7 @@ class ArancinoApi():
 
             # BASE ARANCINO METADATA (B)Base
             response[DB_KEYS.B_ID] = port.getId()
-            response[DB_KEYS.B_DEVICE] = port.getDevice()
+            response[DB_KEYS.L_DEVICE] = port.getDevice()
             response[DB_KEYS.B_PORT_TYPE] = port.getPortType().name
             response[DB_KEYS.B_LIB_VER] = str(port.getLibVersion())
 

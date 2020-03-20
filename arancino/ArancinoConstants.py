@@ -241,36 +241,106 @@ class ArancinoCommandIdentifiers:
 class ArancinoDBKeys:
     # Keys used in to store port information into devicestore
 
-    # BASE ARANCINO METADATA (B)Base
-    B_ID = "B_ID"  # String
-    B_DEVICE = "B_DEVICE"  # String
-    B_PORT_TYPE = "B_PORT_TYPE" # String
-    B_LIB_VER = "B_LIB_VER"  # String
-    B_CREATION_DATE = "S_CREATION_DATE"  # Datetime
+    # BASE ARANCINO METADATA (B)ase
+    B_ID = "B_ID"                           # String
+    B_PORT_TYPE = "B_PORT_TYPE"             # Num
+    B_CREATION_DATE = "S_CREATION_DATE"     # Datetime
+    B_LIB_VER = "B_LIB_VER"                 # String
 
-    # BASE ARANCINO STATUS METADATA (S)Status
-    S_CONNECTED = "S_CONNECTED"  # Boolean
-    S_PLUGGED = "S_PLUGGED"  # Boolean
+    # LINK ARANCINO METADATA (L)ink
+    L_DEVICE = "L_DEVICE"                   # String
 
-    S_LAST_USAGE_DATE = "S_LAST_USAGE_DATE"  # Datetime
+    # BASE ARANCINO STATUS METADATA (S)tatus
+    S_CONNECTED = "S_CONNECTED"             # Boolean
+    S_PLUGGED = "S_PLUGGED"                 # Boolean
+    S_LAST_USAGE_DATE = "S_LAST_USAGE_DATE" # Datetime
 
     # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
-    C_ENABLED = "C_ENABLED"  # Boolean
-    C_ALIAS = "C_ALIAS"  # Boolean
-    C_HIDE_DEVICE = "C_HIDE_DEVICE"  # Boolean
+    C_ENABLED = "C_ENABLED"                 # Boolean
+    C_ALIAS = "C_ALIAS"                     # Boolean
+    C_HIDE_DEVICE = "C_HIDE_DEVICE"         # Boolean
 
     # SERIAL ARANCINO PORT METADATA (P)Port
-    P_NAME = "P_NAME"  # String
-    P_DESCRIPTION = "P_DESCRIPTION"  # String
-    P_HWID = "P_HWID"  # String
-    P_VID = "P_VID"  # Number in Hex format
-    P_PID = "P_PID"  # Number in Hex
-    P_SERIALNUMBER = "P_SERIALNUMBER"  # String (Hex)
-    P_LOCATION = "P_LOCATION"  # Number-Number
-    P_MANUFACTURER = "P_MANUFACTURER"  # String
-    P_PRODUCT = "P_PRODUCT"  # String
-    P_INTERFACE = "P_INTERFACE"  # String
-    P_DEVICE = "P_DEVICE"  # String
+    P_NAME = "P_NAME"                       # String
+    P_DESCRIPTION = "P_DESCRIPTION"         # String
+    P_HWID = "P_HWID"                       # String
+    P_VID = "P_VID"                         # Number in Hex format
+    P_PID = "P_PID"                         # Number in Hex
+    P_SERIALNUMBER = "P_SERIALNUMBER"       # String (Hex)
+    P_LOCATION = "P_LOCATION"               # Number-Number
+    P_MANUFACTURER = "P_MANUFACTURER"       # String
+    P_PRODUCT = "P_PRODUCT"                 # String
+    P_INTERFACE = "P_INTERFACE"             # String
+    P_DEVICE = "P_DEVICE"                   # String
+
+
+    __DB_KEY_NAMES = {
+        # BASE ARANCINO METADATA (B)ase
+        B_ID: "B_ID",                           # String
+        B_PORT_TYPE: "B_PORT_TYPE",             # Num
+        B_CREATION_DATE: "S_CREATION_DATE",     # Datetime
+        B_LIB_VER: "B_LIB_VER",                 # String
+
+        # LINK ARANCINO METADATA (L)ink
+        L_DEVICE: "L_DEVICE",                   # String
+
+        # BASE ARANCINO STATUS METADATA (S)tatus
+        S_CONNECTED: "S_CONNECTED",             # Boolean
+        S_PLUGGED: "S_PLUGGED",                 # Boolean
+        S_LAST_USAGE_DATE: "S_LAST_USAGE_DATE", # Datetime
+
+        # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
+        C_ENABLED: "C_ENABLED",                 # Boolean
+        C_ALIAS: "C_ALIAS",                     # Boolean
+        C_HIDE_DEVICE: "C_HIDE_DEVICE",         # Boolean
+
+        # SERIAL ARANCINO PORT METADATA (P)Port
+        P_NAME: "P_NAME",                       # String
+        P_DESCRIPTION: "P_DESCRIPTION",         # String
+        P_HWID: "P_HWID" ,                      # String
+        P_VID: "P_VID",                         # Number in Hex format
+        P_PID: "P_PID",                         # Number in Hex
+        P_SERIALNUMBER: "P_SERIALNUMBER",       # String (Hex)
+        P_LOCATION: "P_LOCATION",               # Number-Number
+        P_MANUFACTURER: "P_MANUFACTURER",       # String
+        P_PRODUCT: "P_PRODUCT",                 # String
+        P_INTERFACE: "P_INTERFACE",             # String
+        P_DEVICE: "P_DEVICE",                   # String
+    }
+
+    __DB_KEY_DESC = {
+        # BASE ARANCINO METADATA (B)ase
+        B_ID: "Id",  # String
+        B_PORT_TYPE: "Type",  # Num
+        B_CREATION_DATE: "Creation Date",  # Datetime
+        B_LIB_VER: "Library Version",  # String
+
+        # LINK ARANCINO METADATA (L)ink
+        L_DEVICE: "Connection Id",  # String
+
+        # BASE ARANCINO STATUS METADATA (S)tatus
+        S_CONNECTED: "Connected",  # Boolean
+        S_PLUGGED: "Plugged",  # Boolean
+        S_LAST_USAGE_DATE: "Last Usage Date",  # Datetime
+
+        # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
+        C_ENABLED: "Enabled",  # Boolean
+        C_ALIAS: "Alias",  # Boolean
+        C_HIDE_DEVICE: "Hidden",  # Boolean
+
+        # SERIAL ARANCINO PORT METADATA (P)Port
+        P_NAME: "Serial Name",  # String
+        P_DESCRIPTION: "Serial Port Description",  # String
+        P_HWID: "Serial Port Hardware Id",  # String
+        P_VID: "Serial Port Vendor Id",  # Number in Hex format
+        P_PID: "Serial Port Product Id",  # Number in Hex
+        P_SERIALNUMBER: "Serial Port Serial Number",  # String (Hex)
+        P_LOCATION: "Serial Port Location",  # Number-Number
+        P_MANUFACTURER: "Serial Port Manufcaturer",  # String
+        P_PRODUCT: "Serial Port Product Name",  # String
+        P_INTERFACE: "Serial Port Interface",  # String
+        P_DEVICE: "Serial Port Device Name",  # String
+    }
 
 
 class ArancinoApiResponseCode:
