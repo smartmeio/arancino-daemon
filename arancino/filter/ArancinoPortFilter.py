@@ -1,7 +1,8 @@
-'''
+# coding=utf-8
+"""
 SPDX-license-identifier: Apache-2.0
 
-Copyright (c) 2019 SmartMe.IO
+Copyright (c) 2020 SmartMe.IO
 
 Authors:  Sergio Tomasello <sergio@smartme.io>
 
@@ -16,20 +17,38 @@ distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
 WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
-'''
-def run():
-    import os
+"""
 
-    ENV = os.environ.get('ARANCINOENV')
+from abc import ABCMeta, abstractmethod
+from enum import Enum
 
-    #if ENV == "PROD":
-    # PROD
-    from arancino.arancino_main import Arancino 
-    import arancino.arancino_constants as Const
-    # else:
-    #     # DEV
-    #     from arancino.arancino_main import Arancino 
-    #     import arancino.arancino_constants as Const
 
-    a = Arancino()
-    a.start()
+class ArancinoPortFilter():
+
+    __metaclass__ = ABCMeta
+
+    def __init__(self):
+        pass
+
+
+    @abstractmethod
+    def filterOnly(self, ports={}, list=[]):
+        pass
+
+
+    @abstractmethod
+    def filterAll(self, ports={},list=[]):
+        pass
+
+
+    @abstractmethod
+    def filterExclude(self, ports={},list=[]):
+        pass
+
+
+
+class FilterTypes(Enum):
+    EXCLUDE = 0
+    ONLY = 1
+    ALL = 2
+    DEFAULT = 2

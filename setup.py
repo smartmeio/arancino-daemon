@@ -33,8 +33,8 @@ class ArancinoPostInstallCommand(install):
     post-install script to install Arancino services
     """
     def run(self):
-        call(["chmod","+x","extras/pre-install.sh"])
-        call(["chmod","+x","extras/post-install.sh"])
+        call(["chmod", "+x", "extras/pre-install.sh"])
+        call(["chmod", "+x", "extras/post-install.sh"])
 
         #### ARANCINO PRE INSTALL
         print("--------------------------------------")
@@ -66,7 +66,11 @@ setup(
 
     name='arancino',
 
+<<<<<<< HEAD
     version='1.0.2',
+=======
+    version='2.0.0',
+>>>>>>> feat-new-project-structure
 
     description='Arancino Module for Arancino Library',
 
@@ -82,7 +86,7 @@ setup(
 
     url='http://www.arancino.cc',
 
-    classifiers=[   'Development Status :: 4 - Beta',
+    classifiers=[   'Development Status :: 5 - Production/Stable',
                     'License :: OSI Approved :: Apache Software License',
                     'Programming Language :: Python :: 3',
                     'Environment :: Console',
@@ -103,15 +107,16 @@ setup(
         ['extras/pre-install.sh',
         'extras/post-install.sh',
         'extras/arancino.service',
-        'extras/redis-persistent.conf',
-        'extras/redis-persistent.service',
-        'extras/redis-volatile.conf',
-        'extras/redis-volatile.service',
-        'config/arancino.cfg'])],
+        # 'extras/redis-persistent.conf',
+        # 'extras/redis-persistent.service',
+        # 'extras/redis-volatile.conf',
+        # 'extras/redis-volatile.service',
+        'config/arancino.cfg',
+        'config/arancino.test.cfg'])],
 
     #package_data={'arancino':['LICENSE','README.md','extras/*.*','config/*.*']},
 
-    install_requires=['pyserial>=3.4', 'redis>=2.10.6', 'setuptools==41.4.0','semantic-version==2.8.4'],
+    install_requires=['pyserial>=3.4', 'redis>=2.10.6', 'setuptools==41.4.0', 'semantic-version==2.8.4', 'uptime==3.0.1', 'Flask==1.1.1', 'Flask_HTTPAuth==3.3.0', 'requests==2.23.0', 'netifaces==0.10.9'],
 
     include_package_data=True,
 
@@ -123,7 +128,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'arancino=arancino.arancino_start:run'
+            'arancino=arancino.ArancinoStart:run'
         ]
     }
 )
