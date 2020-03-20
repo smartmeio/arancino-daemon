@@ -56,15 +56,13 @@ class Arancino(Thread):
         if Arancino._instance is not None and not Arancino._init:
             Thread.__init__(self, name='Arancino')
 
-
-
             self.__stop = False
             self.__pause = False
             self.__isPaused = False
             self.__cycle_time = CONF.get_general_cycle_time()
             self.__version = CONF.get_metadata_version()
 
-            LOG.info("Arancino version {} Starts!".format(self.__version))
+            LOG.info("Arancino version {} starts on environment {}!".format(self.__version, CONF.get_general_env()))
 
             self.__thread_start = None
             self.__thread_start_reset = None
