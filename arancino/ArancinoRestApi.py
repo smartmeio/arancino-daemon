@@ -21,6 +21,7 @@ under the License
 import subprocess
 import time
 import netifaces
+import os
 from arancino.Arancino import Arancino
 from arancino.utils.ArancinoUtils import ArancinoConfig, getProcessUptime, ArancinoLogger
 from arancino.ArancinoConstants import ArancinoApiResponseCode
@@ -71,6 +72,12 @@ class ArancinoApi():
                         "ports": {
                             "discovered": d,
                             "connected": c
+                        },
+                        "env": {
+                            "ARANCINO": os.environ.get('ARANCINO'),
+                            "ARANCINOCONF": os.environ.get('ARANCINOCONF'),
+                            "ARANCINOLOG": os.environ.get('ARANCINOLOG'),
+                            "ARANCINOENV": os.environ.get('ARANCINOENV')
                         }
                     }
                 }
@@ -97,6 +104,12 @@ class ArancinoApi():
                         "ports": {
                             "discovered": d,
                             "connected": c
+                        },
+                        "env":{
+                            "ARANCINO": os.environ.get('ARANCINO'),
+                            "ARANCINOCONF": os.environ.get('ARANCINOCONF'),
+                            "ARANCINOLOG": os.environ.get('ARANCINOLOG'),
+                            "ARANCINOENV": os.environ.get('ARANCINOENV')
                         }
                     }
                 }
