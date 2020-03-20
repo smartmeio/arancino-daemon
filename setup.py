@@ -66,11 +66,7 @@ setup(
 
     name='arancino',
 
-<<<<<<< HEAD
-    version='1.0.2',
-=======
     version='2.0.0',
->>>>>>> feat-new-project-structure
 
     description='Arancino Module for Arancino Library',
 
