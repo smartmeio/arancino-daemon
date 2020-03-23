@@ -144,7 +144,7 @@ def __runArancinoApi():
     @app.route('/api/v1/ports/discovered', methods=['GET'])
     def get_ports_discovered():
 
-        result = api.__getPortsDiscovered()
+        result = api.getPortsDiscovered()
         response = jsonify(result[0])
         response.status_code = result[1]
         return response
