@@ -401,16 +401,16 @@ class ArancinoApi():
 
     def __getListOfPortDiscovered(self):
         c = {}
-        for id, port in self.__arancino.getConnectedPorts().items():
-            if port.getPortType not in c:
+        for id, port in self.__arancino.getDiscoveredPorts().items():
+            if port.getPortType().name not in c:
                 c[port.getPortType().name] = []
             c[port.getPortType().name].append(id)
         return c
 
     def __getListOfPortConnected(self):
         d = {}
-        for id, port in self.__arancino.getDiscoveredPorts().items():
-            if port.getPortType not in d:
+        for id, port in self.__arancino.getConnectedPorts().items():
+            if port.getPortType().name not in d:
                 d[port.getPortType().name] = []
             d[port.getPortType().name].append(id)
         return d
