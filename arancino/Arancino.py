@@ -195,7 +195,7 @@ class Arancino(Thread):
                                 # move Arancino Port to the self.__ports_connected
                                 self.__ports_connected[id] = port
                             else:
-                                LOG.warning("Port is not enabeled, can not connect to: {} - {} at {}".format(port.getAlias(), port.getId(), port.getDevice()))
+                                LOG.warning("Port is not enabled, can not connect to: {} - {} at {}".format(port.getAlias(), port.getId(), port.getDevice()))
 
                             self.__synchronizer.writePortChanges(port)
                             self.__synchronizer.writePortLink(port)
