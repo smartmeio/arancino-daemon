@@ -394,8 +394,22 @@ class ArancinoPortSynch:
     def readPortChanges(self, port):
         id = port.getId()
         try:
-            last_usage_date = stringToDatetime(self.__devicestore.hget(id, ArancinoDBKeys.S_LAST_USAGE_DATE)) if self.__devicestore.hget(id, ArancinoDBKeys.S_LAST_USAGE_DATE) is not "" else None
-            creation_date = stringToDatetime(self.__devicestore.hget(id, ArancinoDBKeys.B_CREATION_DATE))
+
+            db_val_lud = self.__devicestore.hget(id, ArancinoDBKeys.S_LAST_USAGE_DATE)
+            db_val_cd = self.__devicestore.hget(id, ArancinoDBKeys.B_CREATION_DATE)
+
+            if db_val_lud is not None and db_val_lud is not "":
+                db_val_lud = stringToDatetime(db_val_lud)
+            else:
+                db_val_lud = None
+
+            if db_val_cd is not None and db_val_cd is not "":
+                db_val_cd = stringToDatetime(db_val_cd)
+            else:
+                db_val_cd = None
+
+            last_usage_date = db_val_lud# stringToDatetime(self.__devicestore.hget(id, ArancinoDBKeys.S_LAST_USAGE_DATE)) if self.__devicestore.hget(id, ArancinoDBKeys.S_LAST_USAGE_DATE) is not "" and is not None else None
+            creation_date = db_val_cd #stringToDatetime(self.__devicestore.hget(id, ArancinoDBKeys.B_CREATION_DATE)) if self.__devicestore.hget(id, ArancinoDBKeys.B_CREATION_DATE) is not "" else None
         except Exception as ex:
             LOG.error("Redis Error: {}".format(str(ex)))
             return
