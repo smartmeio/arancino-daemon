@@ -62,6 +62,7 @@ start:
 #######    Code Quality   #######
 
 code_quality:
+  stage: start
   image: docker:stable
   variables:
     DOCKER_DRIVER: overlay2
