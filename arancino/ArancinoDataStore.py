@@ -123,6 +123,9 @@ class ArancinoDataStore:
 
 
     def closeAll(self):
-        self.getDataStoreStd().connection_pool.disconnect()
-        self.getDataStoreDev().connection_pool.disconnect()
-        self.getDataStorePer().connection_pool.disconnect()
+        try:
+            self.getDataStoreStd().connection_pool.disconnect()
+            self.getDataStoreDev().connection_pool.disconnect()
+            self.getDataStorePer().connection_pool.disconnect()
+        except Exception as ex:
+            pass
