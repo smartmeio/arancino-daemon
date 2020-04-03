@@ -33,3 +33,7 @@ def run():
 
     a = Arancino()
     a.start()
+
+
+if __name__ == "__main__":
+    run()
