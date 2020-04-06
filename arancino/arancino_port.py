@@ -21,6 +21,8 @@ under the License
 from serial.tools import list_ports as list
 import arancino.arancino_conf as conf
 
+# logger
+LOG = conf.logger
 
 class ArancinoPortsDiscovery:
 
@@ -46,11 +48,14 @@ class ArancinoPortsDiscovery:
         :return ports_filterd: List
         """
         ports_filterd = []
-
+        hwids = conf.hwid
         for port in ports:
             if port.serial_number != None and port.serial_number != "FFFFFFFFFFFFFFFFFFFF" and port.vid != None and port.pid != None:
-                ports_filterd.append(port)
-
+                for hwid in hwids:
+                    hwid = hwid.split(":")
+                    if hex(port.vid) == hex(int(hwid[0], 16)) and hex(port.pid) == hex(int(hwid[1], 16)):
+                        ports_filterd.append(port)
+        
         return ports_filterd
 
     def __transformInArancinoPorts(self, ports, connected):

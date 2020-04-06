@@ -23,6 +23,7 @@ from logging.handlers import RotatingFileHandler
 import arancino.arancino_constants as const
 import arancino.arancino_log_formatter as formatter
 import configparser
+import json
 
 Config = configparser.ConfigParser()
 Config.read(os.path.join(os.environ.get('ARANCINOCONF'),"arancino.cfg"))
@@ -102,6 +103,7 @@ hwid = [
         ,'2341:0043'
         ]
 '''
+hwid = json.loads(Config["general"].get("allowed_hwid"))
 
 # logger configuration
 __name = Config["log"].get("name")              #'Arancino Serial'
