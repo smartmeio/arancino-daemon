@@ -1,5 +1,8 @@
 # Changelog
 
+#### v 1.1.0 - 2020.04.07
+* Introduced a simple VID:PID filter for Serial Port
+
 #### v 1.0.4 - 2020.03.19
 * Fixed a bug which doesn't disable console handler. This writes to `/var/log/syslog` and `/var/log/daemon.log` and fill up the storage. #63
 

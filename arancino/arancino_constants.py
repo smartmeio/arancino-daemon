@@ -148,6 +148,7 @@ COMPATIBILITY_MATRIX_MOD = {
     "1.0.2": [">=1.0.0-rc,<=1.*.*"],
     "1.0.3": [">=1.0.0-rc,<=1.*.*"],
     "1.0.4": ["0.2.0", ">=1.0.0-rc,<=1.*.*"],
+    "1.1.0": ["0.2.0", ">=1.0.0-rc,<=1.*.*"]
 }
 '''
 COMPATIBILITY_MATRIX_LIB = {
@@ -167,7 +168,7 @@ class RedisInstancesType(Enum):
 
     @classmethod
     def has_value(cls, value):
-        return value in cls._value2member_map_ 
+        return value in cls._value2member_map_
 
 
 class SerialBaudrates(Enum):
