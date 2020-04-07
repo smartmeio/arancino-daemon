@@ -51,11 +51,14 @@ class ArancinoPortsDiscovery:
         hwids = conf.hwid
         for port in ports:
             if port.serial_number != None and port.serial_number != "FFFFFFFFFFFFFFFFFFFF" and port.vid != None and port.pid != None:
-                for hwid in hwids:
-                    hwid = hwid.split(":")
-                    if hex(port.vid) == hex(int(hwid[0], 16)) and hex(port.pid) == hex(int(hwid[1], 16)):
-                        ports_filterd.append(port)
-        
+                if len(hwids) > 0: # apply the filter only if at least one vid:pid is defined in conf file.
+                    for hwid in hwids:
+                        hwid = hwid.split(":")
+                        if hex(port.vid) == hex(int(hwid[0], 16)) and hex(port.pid) == hex(int(hwid[1], 16)):
+                            ports_filterd.append(port)
+                else: # don't apply the filter
+                    ports_filterd.append(port)
+
         return ports_filterd
 
     def __transformInArancinoPorts(self, ports, connected):
