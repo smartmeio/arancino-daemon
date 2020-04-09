@@ -1,5 +1,8 @@
 # Changelog
 
+#### v 1.1.1 - 2020.04.09
+* Fix a typo in redis services which cause and error at boot on systemd file #77.
+
 #### v 1.1.0 - 2020.04.08
 * Introduced a simple VID:PID filter for Serial Port #76
 * Fix missing fix-aof.sh script file #74

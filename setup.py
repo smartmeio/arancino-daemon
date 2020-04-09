@@ -66,7 +66,7 @@ setup(
 
     name='arancino',
 
-    version='1.1.0',
+    version='1.1.1',
 
     description='Arancino Module for Arancino Library',
 
