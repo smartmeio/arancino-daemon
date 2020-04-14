@@ -1,5 +1,8 @@
 # Changelog
 
+#### v 1.2.0 - 2020.04.14
+* Lib version stored in device stored (compatibility with `.2.0.0`).
+
 #### v 1.1.1 - 2020.04.09
 * Fix a typo in redis services which cause and error at boot on systemd file #77.
 
