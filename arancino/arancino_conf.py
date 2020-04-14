@@ -29,7 +29,7 @@ Config = configparser.ConfigParser()
 Config.read(os.path.join(os.environ.get('ARANCINOCONF'),"arancino.cfg"))
 
 #version
-#version = "1.1.1"
+#version = "1.2.0"
 version = Config.get("metadata", "version")
 
 # global variables

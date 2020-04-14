@@ -107,6 +107,7 @@ M_PLUGGED         = "M_PLUGGED"         # Boolean
 M_ALIAS           = "M_ALIAS"           # Boolean
 M_DATETIME        = "M_DATETIME"        # Datetime #TODO contestualizzare in maniera piu opportuna questo campo: (ultima modifica? ultima rilevazione ?)
 M_HIDE_DEVICE     = "M_HIDE_DEVICE"     # Boolean
+M_LIB_VER         = "M_LIB_VER"         # String (version number)
 
 # ports info keys
 P_DEVICE          = "P_DEVICE"          # String
@@ -147,9 +148,10 @@ COMPATIBILITY_MATRIX_MOD = {
     "1.0.1": [">=1.0.0-rc,<=1.*.*"],
     "1.0.2": [">=1.0.0-rc,<=1.*.*"],
     "1.0.3": [">=1.0.0-rc,<=1.*.*"],
-    "1.0.4": ["0.2.0", ">=1.0.0-rc,<=1.*.*"],
-    "1.1.0": ["0.2.0", ">=1.0.0-rc,<=1.*.*"],
-    "1.1.1": ["0.2.0", ">=1.0.0-rc,<=1.*.*"]
+    "1.0.4": [">=0.2.0", ">=1.0.0-rc,<=1.*.*"],
+    "1.1.0": [">=0.2.0", ">=1.0.0-rc,<=1.*.*"],
+    "1.1.1": [">=0.2.0", ">=1.0.0-rc,<=1.*.*"],
+    "1.2.0": [">=0.2.0", ">=1.0.0-rc,<=1.*.*"]
 }
 '''
 COMPATIBILITY_MATRIX_LIB = {
