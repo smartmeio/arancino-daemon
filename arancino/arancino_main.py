@@ -707,6 +707,7 @@ class ArancinoSerialHandler(threading.Thread):
             for compatible_ver in self.compatibility_array:
                 semver_compatible_ver = semver.SimpleSpec(compatible_ver)
                 if semver_value_libvers in semver_compatible_ver:
+                    self.devicestore.hset(self.arancino.id, const.M_LIB_VER, str(value_libvers))
                     return const.RSP_OK + const.CHR_EOT
             
             # TODO disconnect the device. If the device is not disconnected, it will try to START every 2,5 seconds.
