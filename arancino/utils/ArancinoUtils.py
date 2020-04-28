@@ -100,6 +100,7 @@ class ArancinoConfig:
         # CONFIG PORT SECTION
         self.__port_firmware_path = Config.get("port", "firmware_path")
         self.__port_firmware_file_types = Config.get("port", "firmware_file_types")
+        self.__port_reset_on_connect = stringToBool(Config.get("port", "reset_on_connect"))
 
         # CONFIG SERIAL PORT SECTION
         self.__port_serial_enabled = stringToBool(Config.get("port.serial", "enabled"))
@@ -110,6 +111,7 @@ class ArancinoConfig:
         self.__port_serial_filter_list = Config.get("port.serial", "filter_list")
         self.__port_serial_upload_command = Config.get("port.serial", "upload_command")
         self.__port_serial_timeout = int(Config.get("port.serial", "timeout"))
+        self.__port_serial_reset_on_connect = self.__get_or_override_bool(Config, "port.serial", "reset_on_connect", "port", "reset_on_connect")
 
         # CONFIG TEST PORT SECTION
         self.__port_test_enabled = stringToBool(Config.get("port.test", "enabled"))
@@ -120,6 +122,7 @@ class ArancinoConfig:
         self.__port_test_delay = float(Config.get("port.test", "delay"))
         self.__port_test_id_template = Config.get("port.test", "id_template")
         self.__port_test_upload_command = Config.get("port.test", "upload_command")
+        self.__port_test_reset_on_connect = self.__get_or_override_bool(Config, "port.test", "reset_on_connect", "port", "reset_on_connect")
 
         # CONFIG LOG SECTION
         self.__log_level = Config.get("log", "level")
@@ -137,6 +140,16 @@ class ArancinoConfig:
 
 
         self.__dirlog = os.environ.get('ARANCINOLOG')
+
+
+    def __get_or_override_bool(self, cfg, mine_sect, mine_opt, main_sec, main_opt):
+        val = ""
+        try:
+            val = cfg.get(mine_sect, mine_opt)
+        except configparser.NoOptionError:
+            val = cfg.get(main_sec, main_opt)
+        finally:
+            return stringToBool(val)
 
     ######## METADATA ########
     def get_metadata_version(self):
@@ -220,6 +233,9 @@ class ArancinoConfig:
     def get_port_firmware_file_types(self):
         return json.loads(self.__port_firmware_file_types)
 
+    def get_port_reset_on_connect(self):
+        return self.__port_reset_on_connect
+
 
     ######## SERIAL PORT ########
     def get_port_serial_enabled(self):
@@ -252,6 +268,8 @@ class ArancinoConfig:
     def get_port_serial_timeout(self):
         return self.__port_serial_timeout
 
+    def get_port_serial_reset_on_connect(self):
+        return self.__port_serial_reset_on_connect
 
     ######## TEST PORT ########
     def get_port_test_enabled(self):
@@ -280,6 +298,9 @@ class ArancinoConfig:
 
     def get_port_test_upload_command(self):
         return self.__port_test_upload_command
+
+    def get_port_test_reset_on_connect(self):
+        return self.__port_test_reset_on_connect
 
 
     ######## LOG ########

@@ -223,8 +223,9 @@ class ArancinoSerialPort(ArancinoPort):
 
                         LOG.info("{} Connecting...".format(self.__log_prefix))
 
-                        # first resetting
-                        self.reset()
+                        if CONF.get_port_serial_reset_on_connect():
+                            # first resetting
+                            self.reset()
 
                         self.__serial_port = serial.Serial(None, self.__comm_baudrate, timeout=self.__timeout)
                         self.__serial_port.port = self._device

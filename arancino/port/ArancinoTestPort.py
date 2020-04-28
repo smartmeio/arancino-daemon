@@ -124,8 +124,9 @@ class ArancinoTestPort(ArancinoPort):
 
                         LOG.info("{} Connecting...".format(self.__log_prefix))
 
-                        # first resetting
-                        #self.reset()
+                        if CONF.get_port_test_reset_on_connect():
+                            # first resetting
+                            self.reset()
 
                         self.__test_handler = ArancinoTestHandler("ArancinoTestHandler-"+self._id, self._id, self._device, self.__commandReceivedHandler, self.__connectionLostHandler)
                         self.__test_handler.start()
