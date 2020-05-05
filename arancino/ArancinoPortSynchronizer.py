@@ -25,6 +25,7 @@ from arancino.ArancinoDataStore import ArancinoDataStore
 from arancino.ArancinoConstants import ArancinoDBKeys
 from arancino.utils.ArancinoUtils import stringToBool, stringToDatetime, datetimeToString, ArancinoLogger
 from arancino.port.ArancinoPort import PortTypes
+from datetime import datetime
 
 LOG = ArancinoLogger.Instance().getLogger()
 
@@ -299,7 +300,8 @@ class ArancinoPortSynch:
 
         id = port.getId()
         port_type = port.getPortType().value
-        creation_date = datetimeToString(port.getCreationDate())
+        #creation_date = datetimeToString(port.getCreationDate())
+        creation_date = str(datetime.timestamp(port.getCreationDate()))
         #lib_ver = str(port.getLibVersion())
         try:
             pipeline = self.__devicestore.pipeline()
@@ -399,12 +401,14 @@ class ArancinoPortSynch:
             db_val_cd = self.__devicestore.hget(id, ArancinoDBKeys.B_CREATION_DATE)
 
             if db_val_lud is not None and db_val_lud is not "":
-                db_val_lud = stringToDatetime(db_val_lud)
+                #db_val_lud = stringToDatetime(db_val_lud)
+                db_val_lud = datetime.utcfromtimestamp(float(db_val_lud))
             else:
                 db_val_lud = None
 
             if db_val_cd is not None and db_val_cd is not "":
-                db_val_cd = stringToDatetime(db_val_cd)
+                #db_val_cd = stringToDatetime(db_val_cd)
+                db_val_cd = datetime.utcfromtimestamp(float(db_val_cd))
             else:
                 db_val_cd = None
 
@@ -422,12 +426,15 @@ class ArancinoPortSynch:
 
     def writePortChanges(self, port):
         id = port.getId()
-        last_usage_date = datetimeToString(port.getLastUsageDate()) if port.getLastUsageDate() is not None and not "" else ""
+        #last_usage_date = datetimeToString(port.getLastUsageDate()) if port.getLastUsageDate() is not None and not "" else ""
+        last_usage_date = str(datetime.timestamp(port.getLastUsageDate())) if port.getLastUsageDate() is not None and not "" else ""
         lib_ver = str(port.getLibVersion())
+        upt_time = str(port.getUptime())
         try:
             pipeline = self.__devicestore.pipeline()
             pipeline.hset(id, ArancinoDBKeys.B_LIB_VER, lib_ver)
             pipeline.hset(id, ArancinoDBKeys.S_LAST_USAGE_DATE, last_usage_date)
+            pipeline.hset(id, ArancinoDBKeys.S_UPTIME, upt_time)
             pipeline.execute()
         except Exception as ex:
             LOG.error("Redis Error: {}".format(str(ex)))
@@ -467,4 +474,5 @@ class ArancinoPortSynch:
                 for it in diff:
                     pipeline.hset(it, ArancinoDBKeys.S_PLUGGED, str(False))
                     pipeline.hset(it, ArancinoDBKeys.S_CONNECTED, str(False))
+                    pipeline.hset(it, ArancinoDBKeys.S_UPTIME, str(0))
                 pipeline.execute()
