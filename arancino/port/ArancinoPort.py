@@ -21,6 +21,7 @@ under the License
 
 from abc import ABCMeta, abstractmethod
 from enum import Enum
+import time
 
 from types import FunctionType, MethodType
 
@@ -37,7 +38,7 @@ class ArancinoPort(object):
         self._port_type = port_type     # Type of port, i.e: Serial, Network, etc...
         self._library_version = None
         self._m_b_creation_date = None
-
+        self._start_thread_time = None
 
         # BASE STATUS METADATA
         self._m_s_plugged = m_s_plugged
@@ -184,6 +185,11 @@ class ArancinoPort(object):
 
     def setLastUsageDate(self, last_usage_date):
         self._m_s_last_usage_date = last_usage_date
+
+
+
+    def getUptime(self):
+        return time.time() - self._start_thread_time
 
 
     # BASE STATUS METADATA Encapsulators

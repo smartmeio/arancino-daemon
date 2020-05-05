@@ -26,6 +26,7 @@ from arancino.handler.ArancinoSerialHandler import ArancinoSerialHandler
 from arancino.ArancinoCortex import *
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
+import time
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
@@ -235,6 +236,7 @@ class ArancinoSerialPort(ArancinoPort):
                         self._m_s_connected = True
                         self.__serial_handler.start()
                         LOG.info("{} Connected".format(self.__log_prefix))
+                        self._start_thread_time = time.time()
 
                     except Exception as ex:
                         # TODO LOG SOMETHING OR NOT?

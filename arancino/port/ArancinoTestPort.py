@@ -27,6 +27,7 @@ from arancino.ArancinoCortex import *
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 import uuid
+import time
 
 
 LOG = ArancinoLogger.Instance().getLogger()
@@ -132,7 +133,7 @@ class ArancinoTestPort(ArancinoPort):
                         self.__test_handler.start()
                         self._m_s_connected = True
                         LOG.info("{} Connected".format(self.__log_prefix))
-
+                        self._start_thread_time = time.time()
 
 
                     except Exception as ex:

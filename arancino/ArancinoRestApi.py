@@ -88,7 +88,6 @@ class ArancinoApi():
             LOG.error("Error on api call: {}".format(str(ex)))
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
-
     def arancino(self):
         try:
             ara_upt = self.__arancino.getUptime()
@@ -434,6 +433,7 @@ class ArancinoApi():
             response[DB_KEYS.S_PLUGGED] = port.isPlugged()
             response[DB_KEYS.B_CREATION_DATE] = port.getCreationDate()
             response[DB_KEYS.S_LAST_USAGE_DATE] = port.getLastUsageDate()
+            response[DB_KEYS.S_UPTIME] = getProcessUptime(port.getUptime())
 
             # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
             response[DB_KEYS.C_ENABLED] = port.isEnabled()

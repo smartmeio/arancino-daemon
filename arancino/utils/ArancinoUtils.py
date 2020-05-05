@@ -469,6 +469,7 @@ def datetimeToString(dt):
     return dt_str
 
 
+# TODO rename this function to a more correct name
 def getProcessUptime(total_seconds):
     # https://thesmithfam.org/blog/2005/11/19/python-uptime-script/
 
