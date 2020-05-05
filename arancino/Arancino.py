@@ -22,7 +22,7 @@ under the License
 import threading
 from threading import Thread
 from datetime import datetime
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, getProcessUptime
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, secondsToHumanString
 from arancino.discovery.ArancinoSerialDiscovery import ArancinoSerialDiscovery
 from arancino.discovery.ArancinoTestDiscovery import ArancinoTestDiscovery
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
@@ -123,7 +123,7 @@ class Arancino(Thread):
                 try:
                     self.__isPaused = False
                     self.__uptime_sec = (time.time() - self.__thread_start)
-                    self.__uptime_str = getProcessUptime(self.__uptime_sec)
+                    self.__uptime_str = secondsToHumanString(self.__uptime_sec)
                     LOG.info('Uptime :' + self.__uptime_str)
 
                     serial_ports = self.__serial_discovery.getAvailablePorts(serial_ports)

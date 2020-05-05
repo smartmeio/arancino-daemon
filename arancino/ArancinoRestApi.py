@@ -23,7 +23,7 @@ import time
 import netifaces
 import os
 from arancino.Arancino import Arancino
-from arancino.utils.ArancinoUtils import ArancinoConfig, getProcessUptime, ArancinoLogger
+from arancino.utils.ArancinoUtils import ArancinoConfig, secondsToHumanString, ArancinoLogger
 from arancino.ArancinoConstants import ArancinoApiResponseCode
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
 from arancino.ArancinoConstants import ArancinoDBKeys
@@ -64,10 +64,10 @@ class ArancinoApi():
                             "hostname": gethostname(),
                             "ifaces": self.__getNetwork(), #[gethostname(), gethostbyname(gethostname())],
                         },
-                        "uptime": [sys_upt, getProcessUptime(int(sys_upt))]
+                        "uptime": [sys_upt, secondsToHumanString(int(sys_upt))]
                     },
                     "arancino": {
-                        "uptime" : [ara_upt, getProcessUptime(int(ara_upt))],
+                        "uptime" : [ara_upt, secondsToHumanString(int(ara_upt))],
                         "version": str(CONF.get_metadata_version()),
                         "ports": {
                             "discovered": d,
@@ -98,7 +98,7 @@ class ArancinoApi():
             response = {
                 "arancino": {
                     "arancino": {
-                        "uptime": [ara_upt, getProcessUptime(int(ara_upt))],
+                        "uptime": [ara_upt, secondsToHumanString(int(ara_upt))],
                         "version": str(CONF.get_metadata_version()),
                         "ports": {
                             "discovered": d,
@@ -132,7 +132,7 @@ class ArancinoApi():
                             "hostname": gethostname(),
                             "ifaces": self.__getNetwork(),  # [gethostname(), gethostbyname(gethostname())],
                         },
-                        "uptime": [sys_upt, getProcessUptime(int(sys_upt))]
+                        "uptime": [sys_upt, secondsToHumanString(int(sys_upt))]
                     }
                 }
             }
@@ -433,7 +433,7 @@ class ArancinoApi():
             response[DB_KEYS.S_PLUGGED] = port.isPlugged()
             response[DB_KEYS.B_CREATION_DATE] = port.getCreationDate()
             response[DB_KEYS.S_LAST_USAGE_DATE] = port.getLastUsageDate()
-            response[DB_KEYS.S_UPTIME] = getProcessUptime(port.getUptime())
+            response[DB_KEYS.S_UPTIME] = secondsToHumanString(port.getUptime())
 
             # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
             response[DB_KEYS.C_ENABLED] = port.isEnabled()
