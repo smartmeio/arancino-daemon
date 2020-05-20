@@ -160,7 +160,7 @@ class Arancino(Thread):
                             # if disabled then disconnect.
                             if not p_conn.isEnabled():
                                 p_conn.disconnect()
-                                self.__synchronizer.writePortStatus(p_conn)
+                                ###self.__synchronizer.writePortStatus(p_conn)
 
                         # discovered port in not yet a connected port
                         else:
@@ -197,14 +197,14 @@ class Arancino(Thread):
                             else:
                                 LOG.warning("Port is not enabled, can not connect to: {} - {} at {}".format(port.getAlias(), port.getId(), port.getDevice()))
 
-                            self.__synchronizer.writePortChanges(port)
-                            self.__synchronizer.writePortLink(port)
-                            self.__synchronizer.writePortStatus(port)
-                            self.__synchronizer.writePortInfo(port)
+                        self.__synchronizer.writePortChanges(port)
+                            #self.__synchronizer.writePortLink(port)
+                            #self.__synchronizer.writePortStatus(port)
+                            #self.__synchronizer.writePortInfo(port)
 
 
                     #clean
-                    self.__synchronizer.synchClean(self.__ports_connected)
+                    #self.__synchronizer.synchClean(self.__ports_connected)
 
                 except Exception as ex:
                     LOG.exception(ex)
@@ -227,7 +227,7 @@ class Arancino(Thread):
             port = self.__ports_connected.pop(port_id, None)
             LOG.warning("[{} - {} at {}] Destroying Arancino Port".format(port.getPortType(), port.getId(), port.getDevice()))
             #self.__synchronizer.synchPort(port)
-            self.__synchronizer.writePortStatus(port)
+            ###self.__synchronizer.writePortStatus(port)
             # TODO pay attention to that DEL: nel caso dell'upload, viene invocato il disconnect che triggera questo
             #   handler ed infine inoca il DEL. ma nel frattempo tempo essere invocato il run bossa (che impiega diversi secondi)
             #   e poi tornare alla api il ritorno. Se viene fatto il DEL come si comporta?

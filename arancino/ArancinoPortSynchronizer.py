@@ -428,13 +428,13 @@ class ArancinoPortSynch:
         id = port.getId()
         #last_usage_date = datetimeToString(port.getLastUsageDate()) if port.getLastUsageDate() is not None and not "" else ""
         last_usage_date = str(datetime.timestamp(port.getLastUsageDate())) if port.getLastUsageDate() is not None and not "" else ""
-        lib_ver = str(port.getLibVersion())
-        upt_time = str(port.getUptime())
+        ###lib_ver = str(port.getLibVersion())
+        ###upt_time = str(port.getUptime())
         try:
             pipeline = self.__devicestore.pipeline()
-            pipeline.hset(id, ArancinoDBKeys.B_LIB_VER, lib_ver)
+            ###pipeline.hset(id, ArancinoDBKeys.B_LIB_VER, lib_ver)
             pipeline.hset(id, ArancinoDBKeys.S_LAST_USAGE_DATE, last_usage_date)
-            pipeline.hset(id, ArancinoDBKeys.S_UPTIME, upt_time)
+            ###pipeline.hset(id, ArancinoDBKeys.S_UPTIME, upt_time)
             pipeline.execute()
         except Exception as ex:
             LOG.error("Redis Error: {}".format(str(ex)))
@@ -474,5 +474,20 @@ class ArancinoPortSynch:
                 for it in diff:
                     pipeline.hset(it, ArancinoDBKeys.S_PLUGGED, str(False))
                     pipeline.hset(it, ArancinoDBKeys.S_CONNECTED, str(False))
-                    pipeline.hset(it, ArancinoDBKeys.S_UPTIME, str(0))
+                    ###pipeline.hset(it, ArancinoDBKeys.S_UPTIME, str(0))
                 pipeline.execute()
+
+
+
+    """
+        NUOVA GESTIONE
+        
+        usiamo funzioni semplici per gestire solo informazioni basilari su redis
+        
+    """
+
+    def readConfigNew(self, port):
+        pass
+
+    def writeConfigNew(self, port):
+        pass
