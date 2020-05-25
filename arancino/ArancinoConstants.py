@@ -369,12 +369,20 @@ class ArancinoApiResponseCode:
     OK_UPLOAD = 11
     OK_UPLOAD_NOT_PROVIDED = 12
 
+    OK_ALREADY_HIDDEN = 15
+    OK_HIDDEN = 16
+
+    OK_ALREADY_SHOWN = 17
+    OK_SHOWN = 18
+
+    OK_CONFIGURATED = 19
+
     ERR_PORT_NOT_FOUND = 20
     ERR_CAN_NOT_CONNECT_PORT_DISABLED = 21
     ERR_GENERIC = 22
     ERR_RESET = 23
     ERR_UPLOAD = 24
-
+    ERR_NO_CONFIG_PROVIDED = 25
 
     __USER_MESSAGES = {
         OK_ALREADY_ENABLED: "Selected port is already enabled.",
@@ -399,7 +407,16 @@ class ArancinoApiResponseCode:
         ERR_CAN_NOT_CONNECT_PORT_DISABLED: "Sorry, can not connect a disabled port, first enable it.",
         ERR_GENERIC: "Sorry, an error was occurred during this operation.",
         ERR_RESET: "Sorry, an error was occurred during this operation.",
-        ERR_UPLOAD: "Sorry, an error was occurred during this operation."
+        ERR_UPLOAD: "Sorry, an error was occurred during this operation.",
+        ERR_NO_CONFIG_PROVIDED: "Sorry, no configuration params found during this operation",
+
+        OK_ALREADY_HIDDEN: "Selected port is already hidden",
+        OK_HIDDEN: "Port hidden successfully",
+
+        OK_ALREADY_SHOWN: "Selected port is already shown",
+        OK_SHOWN: "Port shown successfully",
+
+        OK_CONFIGURATED: "Port configured successfully"
     }
 
     __INTERNAL_MESSAGES = {
@@ -425,8 +442,17 @@ class ArancinoApiResponseCode:
         ERR_CAN_NOT_CONNECT_PORT_DISABLED: "Sorry, can not connect a disabled port, first enable it.",
         ERR_GENERIC: None,
         ERR_RESET: None,
-        ERR_UPLOAD: None
+        ERR_UPLOAD: None,
+        ERR_NO_CONFIG_PROVIDED: "Sorry, no configuration params found during this operation",
 
+        OK_ALREADY_HIDDEN: "Selected port is already hidden",
+        OK_HIDDEN: "Port hidden successfully",
+
+        OK_ALREADY_SHOWN: "Selected port is already shown",
+        OK_SHOWN: "Port shown successfully",
+
+        OK_CONFIGURATED: "Port configured successfully"
+        
     }
 
     def USER_MESSAGE(self, response_code):

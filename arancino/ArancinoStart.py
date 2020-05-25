@@ -219,7 +219,33 @@ def __runArancinoApi():
             response.status_code = 400
             return response
 
+    @app.route('/api/v1/ports/<port_id>/config', methods=['POST'])
+    @auth.login_required
+    def api_config(port_id=None, alias = None, enable = None, hide = None):
+        result = api.setConfig(port_id, request.get_json())
+        response = jsonify(result[0])
+        response.status_code = result[1]
+        return response
 
+
+    @app.route('/api/v1/ports/<port_id>/hide', methods=['POST'])
+    @auth.login_required
+    def api_hide(port_id=None):
+        result = api.hidePort(port_id)
+        response = jsonify(result[0])
+        response.status_code = result[1]
+        return response
+
+
+    @app.route('/api/v1/ports/<port_id>/show', methods=['POST'])
+    @auth.login_required
+    def api_show(port_id=None):
+        result = api.showPort(port_id)
+        response = jsonify(result[0])
+        response.status_code = result[1]
+        return response
+
+        
     def allowed_file(filename):
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
