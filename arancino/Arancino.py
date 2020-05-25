@@ -198,13 +198,7 @@ class Arancino(Thread):
                                 LOG.warning("Port is not enabled, can not connect to: {} - {} at {}".format(port.getAlias(), port.getId(), port.getDevice()))
 
                         self.__synchronizer.writePortChanges(port)
-                            #self.__synchronizer.writePortLink(port)
-                            #self.__synchronizer.writePortStatus(port)
-                            #self.__synchronizer.writePortInfo(port)
 
-
-                    #clean
-                    #self.__synchronizer.synchClean(self.__ports_connected)
 
                 except Exception as ex:
                     LOG.exception(ex)
