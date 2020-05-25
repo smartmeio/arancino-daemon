@@ -1,5 +1,8 @@
 # Changelog
 
+#### v 1.2.1 - 2020.05.25
+* Fix: Missing Arancino Mignon in allowed vid-pid.
+
 #### v 1.2.0 - 2020.04.14
 * Lib version stored in device stored (compatibility with `.2.0.0`).
 
