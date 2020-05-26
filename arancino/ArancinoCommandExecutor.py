@@ -201,7 +201,8 @@ class ArancinoCommandExecutor:
             for compatible_ver in compatibility_array:
                 semver_compatible_ver = semver.SimpleSpec(compatible_ver)
                 if semver_value_libvers in semver_compatible_ver:
-                    return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
+                    return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + \
+                           self.__port_id + ArancinoSpecialChars.CHR_EOT
 
             # NOTE: If the device is not disconnected, it will try to START every 2,5 seconds.
             raise NonCompatibilityException(
