@@ -369,13 +369,13 @@ class ArancinoApiResponseCode:
     OK_UPLOAD = 11
     OK_UPLOAD_NOT_PROVIDED = 12
 
-    OK_ALREADY_HIDDEN = 15
-    OK_HIDDEN = 16
+    OK_ALREADY_HIDDEN = 13
+    OK_HIDDEN = 14
 
-    OK_ALREADY_SHOWN = 17
-    OK_SHOWN = 18
+    OK_ALREADY_SHOWN = 15
+    OK_SHOWN = 16
 
-    OK_CONFIGURATED = 19
+    OK_CONFIGURATED = 17
 
     ERR_PORT_NOT_FOUND = 20
     ERR_CAN_NOT_CONNECT_PORT_DISABLED = 21
@@ -476,10 +476,12 @@ COMPATIBILITY_MATRIX_MOD_SERIAL = {
     "1.0.1": [">=1.0.0-rc,<=1.*.*"],
     "1.0.2": [">=1.0.0-rc,<=1.*.*"],
     "1.0.3": [">=1.0.0-rc,<=1.*.*"],
-    "1.0.4": [">=0.2.0"],
-    "1.1.0": [">=0.2.0"],
-    "1.1.1": [">=0.2.0"],
-    "2.0.0": [">=0.2.0"]
+    "1.0.4": ["=0.2.0"],
+    "1.1.0": ["=0.2.0"],
+    "1.1.1": ["=0.2.0"],
+    "1.2.0": ["=0.2.0"],
+    "1.2.1": ["=0.2.0"],
+    "2.0.0": [">=0.3.0"],
 }
 
 

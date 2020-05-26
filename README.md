@@ -436,6 +436,12 @@ Returns a lot of information about the device:
 {
     "arancino": {
         "arancino": {
+            "env": {
+                "ARANCINO": "/etc/arancino",
+                "ARANCINOCONF": "/etc/arancino/config",
+                "ARANCINOENV": "TEST",
+                "ARANCINOLOG": "/var/log/arancino"
+            },
             "ports": {
                 "connected": {
                       "TEST": [
@@ -501,6 +507,12 @@ Returns information about Arancino:
 {
     "arancino": {
         "arancino": {
+            "env": {
+                "ARANCINO": "/etc/arancino",
+                "ARANCINOCONF": "/etc/arancino/config",
+                "ARANCINOENV": "TEST",
+                "ARANCINOLOG": "/var/log/arancino"
+            },
             "ports": {
                 "connected": {
                       "TEST": [
@@ -583,26 +595,26 @@ Return all the ports organized in *Connected* and *Discovered*
             "ports": {
                 "connected": [
                     {
-                        "B_DEVICE": "/dev/ttyACM0",
                         "B_ID": "1ABDF7C5504E4B53382E314AFF0C1B2D",
-                        "B_LIB_VER": "None",
+                        "B_LIB_VER": "1.1.0",
                         "B_PORT_TYPE": "SERIAL",
                         "C_ALIAS": "",
                         "C_ENABLED": true,
                         "C_HIDE_DEVICE": false,
+                        "L_DEVICE": "/dev/ttyACM0",
                         "P_DESCRIPTION": "Arancino",
                         "P_HWID": "USB VID:PID=04D8:ECDA SER=1ABDF7C5504E4B53382E314AFF0C1B2D LOCATION=1-1.2:1.0",
                         "P_INTERFACE": null,
                         "P_LOCATION": "1-1.2:1.0",
-                        "P_MANUFACTURER": "smartme.io",
+                        "P_MANUFACTURER": "smartme.IO",
                         "P_NAME": "ttyACM0",
                         "P_PID": "0xECDA",
                         "P_PRODUCT": "Arancino",
                         "P_SERIALNUMBER": "1ABDF7C5504E4B53382E314AFF0C1B2D",
                         "P_VID": "0x04D8",
                         "S_CONNECTED": true,
-                        "S_CREATION_DATE": "Mon, 16 Mar 2020 08:41:40 GMT",
-                        "S_LAST_USAGE_DATE": null,
+                        "S_CREATION_DATE": "Thu, 21 May 2020 01:17:14 GMT",
+                        "S_LAST_USAGE_DATE": "Tue, 26 May 2020 10:02:25 GMT",
                         "S_PLUGGED": true
                     }
                 ],
@@ -621,26 +633,26 @@ Return all the ports organized in *Connected* and *Discovered*
                         "S_PLUGGED": true
                     },
                     {
-                        "B_DEVICE": "/dev/ttyACM0",
                         "B_ID": "1ABDF7C5504E4B53382E314AFF0C1B2D",
-                        "B_LIB_VER": "None",
+                        "B_LIB_VER": "1.1.0",
                         "B_PORT_TYPE": "SERIAL",
                         "C_ALIAS": "",
                         "C_ENABLED": true,
                         "C_HIDE_DEVICE": false,
+                        "L_DEVICE": "/dev/ttyACM0",
                         "P_DESCRIPTION": "Arancino",
                         "P_HWID": "USB VID:PID=04D8:ECDA SER=1ABDF7C5504E4B53382E314AFF0C1B2D LOCATION=1-1.2:1.0",
                         "P_INTERFACE": null,
                         "P_LOCATION": "1-1.2:1.0",
-                        "P_MANUFACTURER": "smartme.io",
+                        "P_MANUFACTURER": "smartme.IO",
                         "P_NAME": "ttyACM0",
                         "P_PID": "0xECDA",
                         "P_PRODUCT": "Arancino",
                         "P_SERIALNUMBER": "1ABDF7C5504E4B53382E314AFF0C1B2D",
                         "P_VID": "0x04D8",
                         "S_CONNECTED": true,
-                        "S_CREATION_DATE": "Mon, 16 Mar 2020 08:41:40 GMT",
-                        "S_LAST_USAGE_DATE": null,
+                        "S_CREATION_DATE": "Thu, 21 May 2020 01:17:14 GMT",
+                        "S_LAST_USAGE_DATE": "Tue, 26 May 2020 10:02:25 GMT",
                         "S_PLUGGED": true
                     }
                 ]
@@ -664,26 +676,26 @@ Return all the *Connected* ports
             "ports": {
                 "connected": [
                     {
-                        "B_DEVICE": "/dev/ttyACM0",
                         "B_ID": "1ABDF7C5504E4B53382E314AFF0C1B2D",
-                        "B_LIB_VER": "None",
+                        "B_LIB_VER": "1.1.0",
                         "B_PORT_TYPE": "SERIAL",
                         "C_ALIAS": "",
                         "C_ENABLED": true,
                         "C_HIDE_DEVICE": false,
+                        "L_DEVICE": "/dev/ttyACM0",
                         "P_DESCRIPTION": "Arancino",
                         "P_HWID": "USB VID:PID=04D8:ECDA SER=1ABDF7C5504E4B53382E314AFF0C1B2D LOCATION=1-1.2:1.0",
                         "P_INTERFACE": null,
                         "P_LOCATION": "1-1.2:1.0",
-                        "P_MANUFACTURER": "smartme.io",
+                        "P_MANUFACTURER": "smartme.IO",
                         "P_NAME": "ttyACM0",
                         "P_PID": "0xECDA",
                         "P_PRODUCT": "Arancino",
                         "P_SERIALNUMBER": "1ABDF7C5504E4B53382E314AFF0C1B2D",
                         "P_VID": "0x04D8",
                         "S_CONNECTED": true,
-                        "S_CREATION_DATE": "Mon, 16 Mar 2020 08:41:40 GMT",
-                        "S_LAST_USAGE_DATE": null,
+                        "S_CREATION_DATE": "Thu, 21 May 2020 01:17:14 GMT",
+                        "S_LAST_USAGE_DATE": "Tue, 26 May 2020 10:02:25 GMT",
                         "S_PLUGGED": true
                     }
                 ]
@@ -706,26 +718,26 @@ Return all the information about the port specified by `{{PORT_ID}}`
     "arancino": {
         "arancino": {
             "port": {
-                "B_DEVICE": "/dev/ttyACM0",
                 "B_ID": "1ABDF7C5504E4B53382E314AFF0C1B2D",
-                "B_LIB_VER": "None",
+                "B_LIB_VER": "1.1.0",
                 "B_PORT_TYPE": "SERIAL",
                 "C_ALIAS": "",
                 "C_ENABLED": true,
                 "C_HIDE_DEVICE": false,
+                "L_DEVICE": "/dev/ttyACM0",
                 "P_DESCRIPTION": "Arancino",
                 "P_HWID": "USB VID:PID=04D8:ECDA SER=1ABDF7C5504E4B53382E314AFF0C1B2D LOCATION=1-1.2:1.0",
                 "P_INTERFACE": null,
                 "P_LOCATION": "1-1.2:1.0",
-                "P_MANUFACTURER": "smartme.io",
+                "P_MANUFACTURER": "smartme.IO",
                 "P_NAME": "ttyACM0",
                 "P_PID": "0xECDA",
                 "P_PRODUCT": "Arancino",
                 "P_SERIALNUMBER": "1ABDF7C5504E4B53382E314AFF0C1B2D",
                 "P_VID": "0x04D8",
                 "S_CONNECTED": true,
-                "S_CREATION_DATE": "Mon, 16 Mar 2020 08:41:40 GMT",
-                "S_LAST_USAGE_DATE": null,
+                "S_CREATION_DATE": "Thu, 21 May 2020 01:17:14 GMT",
+                "S_LAST_USAGE_DATE": "Tue, 26 May 2020 10:02:25 GMT",
                 "S_PLUGGED": true
             }
         }
@@ -759,26 +771,26 @@ Return all the *Discovered* ports
                         "S_PLUGGED": true
                     },
                     {
-                        "B_DEVICE": "/dev/ttyACM0",
                         "B_ID": "1ABDF7C5504E4B53382E314AFF0C1B2D",
-                        "B_LIB_VER": "None",
+                        "B_LIB_VER": "1.1.0",
                         "B_PORT_TYPE": "SERIAL",
                         "C_ALIAS": "",
                         "C_ENABLED": true,
                         "C_HIDE_DEVICE": false,
+                        "L_DEVICE": "/dev/ttyACM0",
                         "P_DESCRIPTION": "Arancino",
                         "P_HWID": "USB VID:PID=04D8:ECDA SER=1ABDF7C5504E4B53382E314AFF0C1B2D LOCATION=1-1.2:1.0",
                         "P_INTERFACE": null,
                         "P_LOCATION": "1-1.2:1.0",
-                        "P_MANUFACTURER": "smartme.io",
+                        "P_MANUFACTURER": "smartme.IO",
                         "P_NAME": "ttyACM0",
                         "P_PID": "0xECDA",
                         "P_PRODUCT": "Arancino",
                         "P_SERIALNUMBER": "1ABDF7C5504E4B53382E314AFF0C1B2D",
                         "P_VID": "0x04D8",
                         "S_CONNECTED": true,
-                        "S_CREATION_DATE": "Mon, 16 Mar 2020 08:41:40 GMT",
-                        "S_LAST_USAGE_DATE": null,
+                        "S_CREATION_DATE": "Thu, 21 May 2020 01:17:14 GMT",
+                        "S_LAST_USAGE_DATE": "Tue, 26 May 2020 10:02:25 GMT",
                         "S_PLUGGED": true
                     }
                 ]
@@ -793,40 +805,7 @@ Return all the *Discovered* ports
 Those API are accesbile with authentication becouse they have impact in the running Arancino Module. To access them \
 you can use every user defined in Arancino OS except `root`, ie: use the user `me`.
 
-##### Reset
-Send a reset command to port specified by `{{PORT_ID}}`
 
-- API address: `/ports/{{PORT_ID}}/reset`
-- API method: `POST`
-- API result if Reset success:
-```json
-{
-    "arancino": {
-        "messages": [
-            {
-                "internalMessage": ["Port reset successfully "],
-                "returnCode": 9,
-                "userMessage": "Port reset successfully."
-            }
-        ]
-    }
-}
-
-```
-- API result if Reset is not implemented for the port:
-```json
-{
-    "arancino": {
-        "errors": [
-            {
-                "internalMessage": ["This port does not provide reset operation"],
-                "returnCode": 10,
-                "userMessage": "This port does not provide reset operation"
-            }
-        ]
-    }
-}
-```
 
 
 
@@ -874,14 +853,15 @@ Disables the port specified by `{{PORT_ID}}`
 - API address: `/ports/{{PORT_ID}}/disable`
 - API method: `POST`
 - API result if Disable success:
+
 ```json
 {
     "arancino": {
         "messages": [
             {
-                "internalMessage": ["Selected port is already disabled."],
+                "internalMessage": ["Port disabled successfully."],
                 "returnCode": 3,
-                "userMessage": "Selected port is already disabled."
+                "userMessage": "Port disabled successfully."
             }
         ]
     }
@@ -893,14 +873,149 @@ Disables the port specified by `{{PORT_ID}}`
     "arancino": {
         "messages": [
             {
-                "internalMessage": ["Port disabled successfully."],
+                "internalMessage": ["Selected port is already disabled."],
                 "returnCode": 4,
-                "userMessage": "Port disabled successfully."
+                "userMessage": "Selected port is already disabled."
             }
         ]
     }
 }
 ```
+
+##### Hide
+Flag port specified by `{{PORT_ID}}` as _hidden_
+
+- API address: `/ports/{{PORT_ID}}/hide`
+- API method: `POST`
+- API result if Hide success:
+
+```json
+{
+    "arancino": {
+        "messages": [
+            {
+                "internalMessage": ["Port hidden successfully"],
+                "returnCode": 14,
+                "userMessage": "Port hidden successfully."
+            }
+        ]
+    }
+}
+```
+- API result if port is already hidden:
+
+```json
+{
+    "arancino": {
+        "messages": [
+            {
+                "internalMessage": ["Selected port is already hidden"],
+                "returnCode": 13,
+                "userMessage": "Selected port is already hidden"
+            }
+        ]
+    }
+}
+```
+
+
+##### Show
+Flag port specified by `{{PORT_ID}}` as _not hidden_
+
+- API address: `/ports/{{PORT_ID}}/show`
+- API method: `POST`
+- API result if Show success:
+
+```json
+{
+    "arancino": {
+        "messages": [
+            {
+                "internalMessage": ["Port shown successfully"],
+                "returnCode": 16,
+                "userMessage": "Port shown successfully."
+            }
+        ]
+    }
+}
+```
+- API result if port is already shown:
+
+```json
+{
+    "arancino": {
+        "messages": [
+            {
+                "internalMessage": ["Selected port is already shown"],
+                "returnCode": 15,
+                "userMessage": "SSelected port is already shown"
+            }
+        ]
+    }
+}
+```
+
+
+##### Config
+Used to set up generic port configuration. It allow to send configuration parameters in to the  body request.
+
+- API address: `/ports/{{PORT_ID}}/config`
+- API method: `POST`
+- API body param: 
+    - `enabled`: `true`/`false`
+    - `hidden`: `true`/`false`
+    - `alias`: `your prefered name for the port in string format`
+- API result if Config success:
+
+```json
+{
+    "arancino": {
+        "messages": [
+            {
+                "internalMessage": ["Port configured successfully"],
+                "returnCode": 17,
+                "userMessage": "Port configured successfully"
+            }
+        ]
+    }
+}
+```
+
+##### Reset
+Send a reset command to port specified by `{{PORT_ID}}`
+
+- API address: `/ports/{{PORT_ID}}/reset`
+- API method: `POST`
+- API result if Reset success:
+```json
+{
+    "arancino": {
+        "messages": [
+            {
+                "internalMessage": ["Port reset successfully "],
+                "returnCode": 9,
+                "userMessage": "Port reset successfully."
+            }
+        ]
+    }
+}
+
+```
+- API result if Reset is not implemented for the port:
+```json
+{
+    "arancino": {
+        "errors": [
+            {
+                "internalMessage": ["This port does not provide reset operation"],
+                "returnCode": 10,
+                "userMessage": "This port does not provide reset operation"
+            }
+        ]
+    }
+}
+```
+
 
 ##### Upload
 Uploads firmware to the port specified by `{{PORT_ID}}`
@@ -964,6 +1079,14 @@ Uploads firmware to the port specified by `{{PORT_ID}}`
 |OK_UPLOAD | 11|
 |OK_UPLOAD_NOT_PROVIDED | 12|
 |_________________________________________|____|
+|OK_ALREADY_HIDDEN | 13|
+|OK_HIDDEN | 14|
+|_________________________________________|____|
+|OK_ALREADY_SHOWN | 15|
+|OK_SHOWN | 16|
+|_________________________________________|____|
+|OK_CONFIGURED | 17|
+|_________________________________________|____|
 |ERR_PORT_NOT_FOUND | 20|
 |ERR_CAN_NOT_CONNECT_PORT_DISABLED | 21|
 |ERR_GENERIC | 22|
@@ -988,9 +1111,14 @@ Uploads firmware to the port specified by `{{PORT_ID}}`
 | `1.0.0`			| `>=`	| `1.0.0`			|
 | `1.0.1`			| `>=`	| `1.0.0-rc`	|
 | 					  | `<=`	| `1.*.*`			|
-| `1.0.2`			| `>=`	| `1.0.0-rc`	|
-| 					  | `<=`	| `1.*.*`			|
-| `2.0.0`			| `>=`	| `1.1.0`			|
+| `1.0.2`			| `>=`	|					|
+| `1.0.3`			| `>=`	|					|
+| `1.0.4`			| `=`	| `0.2.0`			|
+| `1.1.0`			| `=`	|					|
+| `1.1.1`			| `=`	|					|
+| `1.2.0`			| `=`	|					|
+| `1.2.1`			| `=`	|					|
+| `2.0.0`			| `>=`	| `0.3.0`			|
 |					    |		    |					    |
 
 ### Compatibility with Test Port
