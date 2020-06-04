@@ -1,4 +1,4 @@
-# Arancino: serial module for Arancino Library
+# Arancino: Module for Arancino Cortex Protocol
 
 It's designed to run on Arancino OS, but can run on Unix-based systems. It manages serial connections by default and can be extended to other communication channel. Each connection must
 implement the Arancino Cortex Protocol. It can manage multiple connection at time.
