@@ -50,8 +50,18 @@ class ArancinoComamnd:
 
         cmd_parsed = self.__parseCommand(raw_command)
 
-        self.__id = cmd_parsed[0]       # first element is the Command Identifier
-        self.__args = cmd_parsed[1]     # second element is the array of Command Arguments
+        #self.__id = cmd_parsed[0]       # first element is the Command Identifier
+        #self.__args = cmd_parsed[1]     # second element is the array of Command Arguments
+
+        if self.__isCmdIdAvailable(cmd_parsed[0]):
+            self.__id = cmd_parsed[0]
+        else:
+            raise InvalidCommandException("Command does not exist: " + cmd_parsed[0] + " - Skipped", ArancinoCommandErrorCodes.ERR_CMD_NOT_FND)
+
+        try:
+            self.__args = self.__checkAndGetArgsByCmdId(cmd_parsed[0], cmd_parsed[1])
+        except InvalidArgumentsNumberException as ex:
+            raise ex
 
 
     def __constructorB(self, cmd_id=None, cmd_args=None):
@@ -65,14 +75,18 @@ class ArancinoComamnd:
         else:
             raise InvalidCommandException("Command does not exist: " + cmd_id + " - Skipped", ArancinoCommandErrorCodes.ERR_CMD_NOT_FND)
 
-        # retrieve the number of arguments required for the command
-        n_args_required = self.__getArgsNumberByCmdId(cmd_id)
-        n_args = len(cmd_args)
 
-        if n_args_required == n_args:
-            self.__args = cmd_args
-        else:
-            raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + n_args + "; Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+        try:
+            self.__args = self.__checkAndGetArgsByCmdId(cmd_id, cmd_args)
+        except InvalidArgumentsNumberException as ex:
+            raise ex
+
+
+
+        # if n_args_required == n_args:
+        #     self.__args = cmd_args
+        # else:
+        #     raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + n_args + "; Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
 
 
         self.__raw = self.__id + ArancinoSpecialChars.CHR_SEP + ArancinoSpecialChars.CHR_SEP.join(self.__args) + ArancinoSpecialChars.CHR_EOT
@@ -167,8 +181,56 @@ class ArancinoComamnd:
 
         command = ArancinoCommandIdentifiers.COMMANDS_DICT[cmd_id]
         num = command["args"]
+        op = command["op"]
 
-        return num
+        return num, op
+
+
+    def __checkAndGetArgsByCmdId(self, cmd_id, cmd_args):
+        # retrieve the number of arguments required for the command
+        res = self.__getArgsNumberByCmdId(cmd_id)
+        n_args_required = res[0]
+        n_args_operator = res[1]
+        n_args = len(cmd_args)
+
+
+        if n_args_operator == ArancinoOperators.EQUAL:
+
+            if n_args == n_args_required:
+               return cmd_args
+            else:
+                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: == (Equal) " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+
+        elif n_args_operator == ArancinoOperators.GREATER_THAN:
+            if n_args > n_args_required:
+                return cmd_args
+            else:
+                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: > (Greater Than) " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+
+        elif n_args_operator == ArancinoOperators.GREATER_THAN_OR_EQUAL:
+            if n_args >= n_args_required:
+                return cmd_args
+            else:
+                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: >= (Greater Than or Equal) " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+
+        elif n_args_operator == ArancinoOperators.LESS_THAN:
+            if n_args < n_args_required:
+                return cmd_args
+            else:
+                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: < (Less Than) " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+
+        elif n_args_operator == ArancinoOperators.LESS_THAN_OR_EQUAL:
+            if n_args <= n_args_required:
+                return cmd_args
+            else:
+                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: <= (Less Than or Equal) " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+
+        elif n_args_operator == ArancinoOperators.NOT_EQUAL:
+            if n_args != n_args_required:
+                return cmd_args
+            else:
+                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: != (Not Equal) " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+
 
 
 class ArancinoResponse:

@@ -123,80 +123,74 @@ class ArancinoCommandResponseCodes:
                            RSP_HSET_UPD]
 
 
+class ArancinoOperators:
+
+    EQUAL = "EQ"
+    LESS_THAN = "LT"
+    LESS_THAN_OR_EQUAL = "LTE"
+    GREATER_THAN = "GT"
+    GREATER_THAN_OR_EQUAL = "GTE"
+    NOT_EQUAL = "NEQ"
+
 class ArancinoCommandIdentifiers:
-    # Commands sent by the microcontroller running Arancino Library
+    # Commands sent by the Port w/ Cortex Protocol
 
     # Init commands
     __CMD_SYS_START = 'START'
-    # CMD_SYS_START = [__CMD_SYS_START, 0]
-    CMD_SYS_START = {"id": __CMD_SYS_START, "args": 1}
+    CMD_SYS_START = {"id": __CMD_SYS_START, "args": 1, "op": ArancinoOperators.EQUAL}
     "Start Commmand"
 
     # Simple Operation Commands
     __CMD_APP_GET = 'GET'
-    # CMD_APP_GET = [__CMD_APP_GET, 1]
-    CMD_APP_GET = {"id": __CMD_APP_GET, "args": 1}
+    CMD_APP_GET = {"id": __CMD_APP_GET, "args": 1, "op": ArancinoOperators.EQUAL}
     "Get value at key"
 
     __CMD_APP_SET = 'SET'
-    # CMD_APP_SET = [__CMD_APP_SET, 2]
-    CMD_APP_SET = {"id": __CMD_APP_SET, "args": 2}
+    CMD_APP_SET = {"id": __CMD_APP_SET, "args": 2, "op": ArancinoOperators.EQUAL}
     "Set value at key"
 
     __CMD_APP_SET_STD = 'SET'
-    # CMD_APP_SET_STD = [__CMD_APP_SET_STD, 2]
-    CMD_APP_SET_STD = {"id": __CMD_APP_SET_STD, "args": 2}
+    CMD_APP_SET_STD = {"id": __CMD_APP_SET_STD, "args": 2, "op": ArancinoOperators.EQUAL}
     "Set value at key (Standard as SET above)"
 
     __CMD_APP_SET_PERS = 'SETPERS'
-    # CMD_APP_SET_PERS = [__CMD_APP_SET_PERS, 2]
-    CMD_APP_SET_PERS = {"id": __CMD_APP_SET_PERS, "args": 2}
+    CMD_APP_SET_PERS = {"id": __CMD_APP_SET_PERS, "args": 2, "op": ArancinoOperators.EQUAL}
     "Set value at key (Persistent for User)"
 
     __CMD_APP_DEL = 'DEL'
-    # CMD_APP_DEL = [__CMD_APP_DEL, 1]
-    CMD_APP_DEL = {"id": __CMD_APP_DEL, "args": 1}
+    CMD_APP_DEL = {"id": __CMD_APP_DEL, "args": 1, "op": ArancinoOperators.EQUAL}
     "Delete one or multiple keys"
 
     __CMD_APP_KEYS = 'KEYS'
-    # CMD_APP_KEYS = [__CMD_APP_KEYS, 1]
-    CMD_APP_KEYS = {"id": __CMD_APP_KEYS, "args": 1}
+    CMD_APP_KEYS = {"id": __CMD_APP_KEYS, "args": 1, "op": ArancinoOperators.EQUAL}
     "Get keys by a pattern"
 
     # Hashtable Commands
     __CMD_APP_HGET = 'HGET'  #
-    # CMD_APP_HGET = [__CMD_APP_HGET, 2]
-    CMD_APP_HGET = {"id": __CMD_APP_HGET, "args": 2}
+    CMD_APP_HGET = {"id": __CMD_APP_HGET, "args": 2, "op": ArancinoOperators.EQUAL}
 
     __CMD_APP_HGETALL = 'HGETALL'  #
-    # CMD_APP_HGETALL = [__CMD_APP_HGETALL, 111111]
-    CMD_APP_HGETALL = {"id": __CMD_APP_HGETALL, "args": 1}
+    CMD_APP_HGETALL = {"id": __CMD_APP_HGETALL, "args": 1, "op": ArancinoOperators.EQUAL}
 
     __CMD_APP_HKEYS = 'HKEYS'  #
-    # CMD_APP_HKEYS__= [__CMD_APP_HKEYS, 11111]
-    CMD_APP_HKEYS = {"id": __CMD_APP_HKEYS, "args": 1}
+    CMD_APP_HKEYS = {"id": __CMD_APP_HKEYS, "args": 1, "op": ArancinoOperators.EQUAL}
 
     __CMD_APP_HVALS = 'HVALS'  #
-    # CMD_APP_HVALS = [__CMD_APP_HVALS, 111111]
-    CMD_APP_HVALS = {"id": __CMD_APP_HVALS, "args": 1}
+    CMD_APP_HVALS = {"id": __CMD_APP_HVALS, "args": 1, "op": ArancinoOperators.EQUAL}
 
     __CMD_APP_HDEL = 'HDEL'  #
-    # CMD_APP_HDEL = [__CMD_APP_HDEL, 1111111]
-    CMD_APP_HDEL = {"id": __CMD_APP_HDEL, "args": 2}
+    CMD_APP_HDEL = {"id": __CMD_APP_HDEL, "args": 2, "op": ArancinoOperators.EQUAL}
 
     __CMD_APP_HSET = 'HSET'  #
-    # CMD_APP_HSET = [__CMD_APP_HSET, 1111]
-    CMD_APP_HSET = {"id": __CMD_APP_HSET, "args": 3}
+    CMD_APP_HSET = {"id": __CMD_APP_HSET, "args": 3, "op": ArancinoOperators.EQUAL}
 
     # Other Commands
     __CMD_APP_PUB = 'PUB'
-    # CMD_APP_PUB = [__CMD_APP_PUB, 2]
-    CMD_APP_PUB = {"id": __CMD_APP_PUB, "args": 2}
+    CMD_APP_PUB = {"id": __CMD_APP_PUB, "args": 2, "op": ArancinoOperators.EQUAL}
     "Publish a message to a channel"
 
     __CMD_APP_FLUSH = 'FLUSH'
-    # sCMD_APP_FLUSH = [__CMD_APP_FLUSH, 0]
-    CMD_APP_FLUSH = {"id": __CMD_APP_FLUSH, "args": 0}
+    CMD_APP_FLUSH = {"id": __CMD_APP_FLUSH, "args": 0, "op": ArancinoOperators.EQUAL}
     "Flush the current Database, delete all the keys from the current Database"
 
     COMMANDS_DICT = {

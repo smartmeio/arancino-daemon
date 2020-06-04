@@ -70,11 +70,11 @@ class ArancinoCommandExecutor:
 
 
             # retrieve the number of arguments required for the command
-            n_args_required = self.__get_args_nr_by_cmd_id(cmd_id)
-            n_args = len(cmd_args)
-
-            if n_args_required != n_args:
-                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+            # n_args_required = self.__get_args_nr_by_cmd_id(cmd_id)
+            # n_args = len(cmd_args)
+            #
+            # if n_args_required != n_args:
+            #     raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
 
 
 
@@ -158,61 +158,52 @@ class ArancinoCommandExecutor:
         MCU ← 100@ (OK)
         """
 
-        n_args_required = 1
-        n_args_received = len(args)
+        # first argument in the START comamnd is the version of the library
+        value_libvers = args[0]
+        key_libvers = ArancinoReservedChars.RSVD_KEY_LIBVERSION + self.__port_id + ArancinoReservedChars.RSVD_CHARS
 
-        if n_args_received == n_args_required:
+        # convert
+        semver_value_libvers = semver.Version(value_libvers)
 
-            # first argument in the START comamnd is the version of the library
-            value_libvers = args[0]
-            key_libvers = ArancinoReservedChars.RSVD_KEY_LIBVERSION + self.__port_id + ArancinoReservedChars.RSVD_CHARS
+        # store the reserved key
+        # self.__datastore.set(key_libvers, value_libvers)
 
-            # convert
-            semver_value_libvers = semver.Version(value_libvers)
+        # and then check if it's compatible. if the library is not compatible, disconnect the board and
+        # if value_libvers not in self.compatibility_array:
+        #     # NOTE: If the device is not disconnected, it will try to START every 2,5 seconds.
+        #     raise NonCompatibilityException("Module version " + conf.version + " can not work with Library version " + value_libvers + " on the device: " + self.arancino.port.device + " - " + self.arancino.id, const.ERR_NON_COMPATIBILITY)
+        # else:
+        #     return const.RSP_OK + const.CHR_EOT
 
-            # store the reserved key
-            # self.__datastore.set(key_libvers, value_libvers)
+        # if library version is >= of v (one at least) then compatibility is ok
+        # eg1: compatibility_array = ["1.*.*", "2.1.*"] and value_libevers = "1.0.0"
+        # "1.0.0" >= "2.1.*" ---> False (KO: go foward)
+        # "1.0.0" >= "1.*.*" ---> True (OK: can return)
+        #
+        #
+        # eg3: compatibility_array = ["0.1.*", "0.2.*"] and value_libevers = "1.0.0"
+        # "1.0.0" >= "0.1.*" ---> False (KO: go forward)
+        # "1.0.0" >= "0.2.*" ---> False (KO: go forward and raise exception)
 
-            # and then check if it's compatible. if the library is not compatible, disconnect the board and
-            # if value_libvers not in self.compatibility_array:
-            #     # NOTE: If the device is not disconnected, it will try to START every 2,5 seconds.
-            #     raise NonCompatibilityException("Module version " + conf.version + " can not work with Library version " + value_libvers + " on the device: " + self.arancino.port.device + " - " + self.arancino.id, const.ERR_NON_COMPATIBILITY)
-            # else:
-            #     return const.RSP_OK + const.CHR_EOT
+        compatibility_array = {}
 
-            # if library version is >= of v (one at least) then compatibility is ok
-            # eg1: compatibility_array = ["1.*.*", "2.1.*"] and value_libevers = "1.0.0"
-            # "1.0.0" >= "2.1.*" ---> False (KO: go foward)
-            # "1.0.0" >= "1.*.*" ---> True (OK: can return)
-            #
-            #
-            # eg3: compatibility_array = ["0.1.*", "0.2.*"] and value_libevers = "1.0.0"
-            # "1.0.0" >= "0.1.*" ---> False (KO: go forward)
-            # "1.0.0" >= "0.2.*" ---> False (KO: go forward and raise exception)
-
-            compatibility_array = {}
-
-            if self.__port_type == PortTypes.SERIAL:
-                compatibility_array = self.__compatibility_array_serial
-            elif self.__port_type == PortTypes.TEST:
-                compatibility_array = self.__compatibility_array_test
+        if self.__port_type == PortTypes.SERIAL:
+            compatibility_array = self.__compatibility_array_serial
+        elif self.__port_type == PortTypes.TEST:
+            compatibility_array = self.__compatibility_array_test
 
 
-            for compatible_ver in compatibility_array:
-                semver_compatible_ver = semver.SimpleSpec(compatible_ver)
-                if semver_value_libvers in semver_compatible_ver:
-                    return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + \
-                           self.__port_id + ArancinoSpecialChars.CHR_EOT
+        for compatible_ver in compatibility_array:
+            semver_compatible_ver = semver.SimpleSpec(compatible_ver)
+            if semver_value_libvers in semver_compatible_ver:
+                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + \
+                       self.__port_id + ArancinoSpecialChars.CHR_EOT
 
-            # NOTE: If the device is not disconnected, it will try to START every 2,5 seconds.
-            raise NonCompatibilityException(
-                "Module version " + str(self.__conf.get_metadata_version()) + " can not work with Library version " + value_libvers,
-                ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
+        # NOTE: If the device is not disconnected, it will try to START every 2,5 seconds.
+        raise NonCompatibilityException(
+            "Module version " + str(self.__conf.get_metadata_version()) + " can not work with Library version " + value_libvers,
+            ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
 
-        else:
-            raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + ArancinoCommandIdentifiers.CMD_SYS_START['id'] + ". Received: " + str(
-                    n_args_received) + "; Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
 
     # SET STANDARD (to standard device store)
     def __OPTS_SET_STD(self, args):
@@ -241,51 +232,46 @@ class ArancinoCommandExecutor:
         MCU ← 208@ (KO)
         '''
 
-        n_args_required = 2
-        n_args_received = len(args)
+        key = args[0]
+        value = args[1]
+        rsp = False
 
-        if n_args_received == n_args_required:
+        try:
+            # Keys must be unique among data stores
 
-            key = args[0]
-            value = args[1]
-            rsp = False
+            # STANDARD DATA STORE (even with reserved key by arancino)
+            if type == 'STD':
 
-            try:
-                # Keys must be unique among data stores
+                # check if key exist in other data store
+                if (self.__datastore_pers.exists(key) == 1):
+                    raise RedisStandardKeyExistsInPersistentDatastoreException(
+                        "Duplicate Key In Persistent Data Store: ", ArancinoCommandErrorCodes.ERR_REDIS_KEY_EXISTS_IN_PERS)
+                else:
+                    # store the value at key
+                    rsp = self.__datastore.set(key, value)
 
-                # STANDARD DATA STORE (even with reserved key by arancino)
-                if type == 'STD':
+
+            else:
+                # PERSISTENT DATA STORE
+                if type == 'PERS':
 
                     # check if key exist in other data store
-                    if (self.__datastore_pers.exists(key) == 1):
-                        raise RedisStandardKeyExistsInPersistentDatastoreException(
-                            "Duplicate Key In Persistent Data Store: ", ArancinoCommandErrorCodes.ERR_REDIS_KEY_EXISTS_IN_PERS)
+                    if (self.__datastore.exists(key) == 1):
+                        raise RedisPersistentKeyExistsInStadardDatastoreException(
+                            "Duplicate Key In Standard Data Store: ", ArancinoCommandErrorCodes.ERR_REDIS_KEY_EXISTS_IN_STD)
                     else:
-                        # store the value at key
-                        rsp = self.__datastore.set(key, value)
+                        # write to the dedicate data store (dedicated to persistent keys)
+                        rsp = self.__datastore_pers.set(key, value)
 
+            if rsp:
+                # return ok response
+                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
+            else:
+                # return the error code
+                return ArancinoSpecialChars.ERR_SET + ArancinoSpecialChars.CHR_EOT
 
-                else:
-                    # PERSISTENT DATA STORE
-                    if type == 'PERS':
-
-                        # check if key exist in other data store
-                        if (self.__datastore.exists(key) == 1):
-                            raise RedisPersistentKeyExistsInStadardDatastoreException(
-                                "Duplicate Key In Standard Data Store: ", ArancinoCommandErrorCodes.ERR_REDIS_KEY_EXISTS_IN_STD)
-                        else:
-                            # write to the dedicate data store (dedicated to persistent keys)
-                            rsp = self.__datastore_pers.set(key, value)
-
-                if rsp:
-                    # return ok response
-                    return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
-                else:
-                    # return the error code
-                    return ArancinoSpecialChars.ERR_SET + ArancinoSpecialChars.CHR_EOT
-
-            except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
+        except Exception as ex:
+            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
             # try:
 
@@ -326,11 +312,6 @@ class ArancinoCommandExecutor:
             #     # return the error code
             #     return const.ERR_SET + const.CHR_EOT
 
-        else:
-            raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + ArancinoCommandIdentifiers.CMD_APP_SET['id'] + ". Received: " + str(
-                    n_args_received) + "; Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
-
     # GET
     def __OPTS_GET(self, args):
         '''
@@ -345,56 +326,48 @@ class ArancinoCommandExecutor:
         MCU ← 201@ (KO)
         '''
 
-        n_args_required = 1
-        n_args_received = len(args)
 
-        if n_args_received == n_args_required:
+        key = args[0]
+        rsp = None
 
-            key = args[0]
-            rsp = None
+        try:
+            '''
+            # It's a reserved key.
+            if key.startswith(const.RSVD_CHARS) and key.endswith(const.RSVD_CHARS):
 
-            try:
-                '''
-                # It's a reserved key.
-                if key.startswith(const.RSVD_CHARS) and key.endswith(const.RSVD_CHARS):
-
-                    # if it's the reserverd key __LIBVERSION__,
-                    # then add port id to associate the device and the running version of the library
-                    if key.upper() == const.RSVD_KEY_LIBVERSION:
-                        key += self.arancino.id + const.RSVD_CHARS
-
-                    rsp = self.datastore_rsvd.get(key)
-
-                # It's an application key.
-                else:
-                    rsp = self.datastore.get(key)
-                '''
                 # if it's the reserverd key __LIBVERSION__,
                 # then add port id to associate the device and the running version of the library
-                if key.upper() == ArancinoReservedChars.RSVD_KEY_LIBVERSION:
-                    key += self.__port_id + ArancinoReservedChars.RSVD_CHARS
+                if key.upper() == const.RSVD_KEY_LIBVERSION:
+                    key += self.arancino.id + const.RSVD_CHARS
 
-                # first get from standard datastore
-                rsp = self.__datastore.get(key)
+                rsp = self.datastore_rsvd.get(key)
 
-                # then try get from reserved datastore
-                if rsp is None:
-                    rsp = self.__datastore_pers.get(key)
-
-            except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
-
-            if rsp is not None:
-                # return the value
-                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(rsp) + ArancinoSpecialChars.CHR_EOT
+            # It's an application key.
             else:
-                # return the error code
-                return ArancinoCommandErrorCodes.ERR_NULL + ArancinoSpecialChars.CHR_EOT
+                rsp = self.datastore.get(key)
+            '''
+            # if it's the reserverd key __LIBVERSION__,
+            # then add port id to associate the device and the running version of the library
+            if key.upper() == ArancinoReservedChars.RSVD_KEY_LIBVERSION:
+                key += self.__port_id + ArancinoReservedChars.RSVD_CHARS
 
+            # first get from standard datastore
+            rsp = self.__datastore.get(key)
+
+            # then try get from reserved datastore
+            if rsp is None:
+                rsp = self.__datastore_pers.get(key)
+
+        except Exception as ex:
+            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
+
+        if rsp is not None:
+            # return the value
+            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(rsp) + ArancinoSpecialChars.CHR_EOT
         else:
-            raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + ArancinoCommandIdentifiers.CMD_APP_GET['id'] + ". Received: " + str(
-                    n_args_received) + "; Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+            # return the error code
+            return ArancinoCommandErrorCodes.ERR_NULL + ArancinoSpecialChars.CHR_EOT
+
 
     # DEL
     def __OPTS_DEL(self, args):
@@ -407,28 +380,20 @@ class ArancinoCommandExecutor:
         MCU ← 100#<num-of-deleted-keys>@
         '''
 
-        n_args_required = 1
-        n_args_received = len(args)
 
-        if n_args_received >= n_args_required:
+        try:
 
-            try:
+            num = self.__datastore.delete(*args)
 
-                num = self.__datastore.delete(*args)
+            # then try get from reserved datastore
+            if num is 0:
+                num = self.__datastore_pers.delete(*args)
 
-                # then try get from reserved datastore
-                if num is 0:
-                    num = self.__datastore_pers.delete(*args)
+        except Exception as ex:
+            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-            except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
+        return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(num) + ArancinoSpecialChars.CHR_EOT
 
-            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(num) + ArancinoSpecialChars.CHR_EOT
-
-        else:
-            raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + ArancinoCommandIdentifiers.CMD_APP_DEL['id'] + ". Received: " + str(
-                    n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
 
     # KEYS
     def __OPTS_KEYS(self, args):
@@ -492,31 +457,22 @@ class ArancinoCommandExecutor:
         MCU ← 102@
         '''
 
-        n_args_required = 3
-        n_args_received = len(args)
 
-        if n_args_received == n_args_required:
+        key = args[0]
+        field = args[1]
+        value = args[2]
 
-            key = args[0]
-            field = args[1]
-            value = args[2]
+        try:
 
-            try:
+            rsp = self.__datastore.hset(key, field, value)
 
-                rsp = self.__datastore.hset(key, field, value)
+        except Exception as ex:
+            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-            except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
-
-            if rsp == 1:
-                return ArancinoCommandResponseCodes.RSP_HSET_NEW + ArancinoSpecialChars.CHR_EOT
-            else:  # 0
-                return ArancinoCommandResponseCodes.RSP_HSET_UPD + ArancinoSpecialChars.CHR_EOT
-
-        else:
-            raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + ArancinoCommandIdentifiers.CMD_APP_HSET['id'] + ". Received: " + str(
-                    n_args_received) + "; Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+        if rsp == 1:
+            return ArancinoCommandResponseCodes.RSP_HSET_NEW + ArancinoSpecialChars.CHR_EOT
+        else:  # 0
+            return ArancinoCommandResponseCodes.RSP_HSET_UPD + ArancinoSpecialChars.CHR_EOT
 
     # HGET
     def __OPTS_HGET(self, args):
@@ -531,32 +487,22 @@ class ArancinoCommandExecutor:
 
         '''
 
-        n_args_required = 2
-        n_args_received = len(args)
+        key = args[0]
+        field = args[1]
 
-        if n_args_received == n_args_required:
+        try:
 
-            key = args[0]
-            field = args[1]
+            value = self.__datastore.hget(key, field)
 
-            try:
+        except Exception as ex:
+            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-                value = self.__datastore.hget(key, field)
-
-            except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
-
-            if value is not None:
-                # return the value
-                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(value) + ArancinoSpecialChars.CHR_EOT
-            else:
-                # return the error code
-                return ArancinoCommandErrorCodes.ERR_NULL + ArancinoSpecialChars.CHR_EOT
-
+        if value is not None:
+            # return the value
+            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(value) + ArancinoSpecialChars.CHR_EOT
         else:
-            raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + ArancinoCommandIdentifiers.CMD_APP_HGET['id'] + ". Found: " + str(
-                    n_args_received) + "; Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+            # return the error code
+            return ArancinoCommandErrorCodes.ERR_NULL + ArancinoSpecialChars.CHR_EOT
 
     # HGETALL
     def __OPTS_HGETALL(self, args):
@@ -572,31 +518,22 @@ class ArancinoCommandExecutor:
         MCU ← 100[#<field-1>#<value-1>#<field-2>#<value-2>]@
         '''
 
-        n_args_required = 1
-        n_args_received = len(args)
 
-        if n_args_received == n_args_required:
+        key = args[0]
 
-            key = args[0]
+        rsp_str = ""
 
-            rsp_str = ""
+        try:
 
-            try:
+            data = self.__datastore.hgetall(key)  # {'field-1': 'value-1', 'field-2': 'value-2'}
 
-                data = self.__datastore.hgetall(key)  # {'field-1': 'value-1', 'field-2': 'value-2'}
+        except Exception as ex:
+            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-            except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
+        for field in data:
+            rsp_str += ArancinoSpecialChars.CHR_SEP + field + ArancinoSpecialChars.CHR_SEP + data[field]
 
-            for field in data:
-                rsp_str += ArancinoSpecialChars.CHR_SEP + field + ArancinoSpecialChars.CHR_SEP + data[field]
-
-            return ArancinoCommandResponseCodes.RSP_OK + rsp_str + ArancinoSpecialChars.CHR_EOT
-
-        else:
-            raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + ArancinoCommandIdentifiers.CMD_APP_HGETALL['id'] + ". Received: " + str(
-                    n_args_received) + "; Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+        return ArancinoCommandResponseCodes.RSP_OK + rsp_str + ArancinoSpecialChars.CHR_EOT
 
     # HKEYS
     def __OPTS_HKEYS(self, args):
@@ -609,29 +546,20 @@ class ArancinoCommandExecutor:
 
         MCU ← 100[#<field-1>#<field-2>]@
         '''
-        n_args_required = 1
-        n_args_received = len(args)
 
-        if n_args_received == n_args_required:
+        key = args[0]
 
-            key = args[0]
+        try:
 
-            try:
+            fields = self.__datastore.hkeys(key)
 
-                fields = self.__datastore.hkeys(key)
+        except Exception as ex:
+            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-            except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
-
-            if len(fields) > 0:
-                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + ArancinoSpecialChars.CHR_SEP.join(fields) + ArancinoSpecialChars.CHR_EOT
-            else:
-                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
-
+        if len(fields) > 0:
+            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + ArancinoSpecialChars.CHR_SEP.join(fields) + ArancinoSpecialChars.CHR_EOT
         else:
-            raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + ArancinoCommandIdentifiers.CMD_APP_HKEYS['id'] + ". Received: " + str(
-                    n_args_received) + "; Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
 
     # HVALS
     def __OPTS_HVALS(self, args):
@@ -643,28 +571,20 @@ class ArancinoCommandExecutor:
 
         MCU ← 100[#<value-1>#<value-2>]@
         '''
-        n_args_required = 1
-        n_args_received = len(args)
 
-        if n_args_received == n_args_required:
-            key = args[0]
+        key = args[0]
 
-            try:
+        try:
 
-                values = self.__datastore.hvals(key)
+            values = self.__datastore.hvals(key)
 
-            except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
+        except Exception as ex:
+            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-            if len(values) > 0:
-                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + ArancinoSpecialChars.CHR_SEP.join(values) + ArancinoSpecialChars.CHR_EOT
-            else:
-                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
-
+        if len(values) > 0:
+            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + ArancinoSpecialChars.CHR_SEP.join(values) + ArancinoSpecialChars.CHR_EOT
         else:
-            raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + ArancinoCommandIdentifiers.CMD_APP_HVALS['id'] + ". Received: " + str(
-                    n_args_received) + "; Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
 
     # HDEL
     def __OPTS_HDEL(self, args):
@@ -679,27 +599,18 @@ class ArancinoCommandExecutor:
         MCU ← 100#<num-of-deleted-keys>@
         '''
 
-        n_args_required = 2
-        n_args_received = len(args)
+        idx = len(args)
+        key = args[0]
+        fields = args[1:idx]
 
-        if n_args_received >= n_args_required:
-            idx = len(args)
-            key = args[0]
-            fields = args[1:idx]
+        try:
 
-            try:
+            num = self.__datastore.hdel(key, *fields)
 
-                num = self.__datastore.hdel(key, *fields)
+        except Exception as ex:
+            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-            except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
-
-            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(num) + ArancinoSpecialChars.CHR_EOT
-
-        else:
-            raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + ArancinoCommandIdentifiers.CMD_APP_HDEL['id'] + ". Received: " + str(
-                    n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+        return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(num) + ArancinoSpecialChars.CHR_EOT
 
     # PUB
     def __OPTS_PUB(self, args):
@@ -713,26 +624,17 @@ class ArancinoCommandExecutor:
         MCU ← 100#<num-of-reached-clients>@
         '''
 
-        n_args_required = 2
-        n_args_received = len(args)
+        channel = args[0]
+        message = args[1]
 
-        if n_args_received >= n_args_required:
-            channel = args[0]
-            message = args[1]
+        try:
 
-            try:
+            num = self.__datastore.publish(channel, message)
 
-                num = self.__datastore.publish(channel, message)
+        except Exception as ex:
+            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-            except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
-
-            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(num) + ArancinoSpecialChars.CHR_EOT
-
-        else:
-            raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + ArancinoCommandIdentifiers.CMD_APP_PUB['id'] + ". Received: " + str(
-                    n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", ArancinoCommandResponseCodes.ERR_CMD_PRM_NUM)
+        return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(num) + ArancinoSpecialChars.CHR_EOT
 
     # FLUSH
     def __OPTS_FLUSH(self, args):
@@ -746,40 +648,31 @@ class ArancinoCommandExecutor:
         MCU ← 100@
         '''
 
-        n_args_required = 0
-        n_args_received = len(args)
 
-        if n_args_received >= n_args_required:
+        try:
 
-            try:
+            # before flush, save all Reserved Keys
+            rsvd_keys = self.__datastore.keys(ArancinoReservedChars.RSVD_CHARS + "*" + ArancinoReservedChars.RSVD_CHARS)
+            rsvd_keys_value = {}
+            for k in rsvd_keys:
+                rsvd_keys_value[k] = self.__datastore.get(k)
 
-                # before flush, save all Reserved Keys
-                rsvd_keys = self.__datastore.keys(ArancinoReservedChars.RSVD_CHARS + "*" + ArancinoReservedChars.RSVD_CHARS)
-                rsvd_keys_value = {}
-                for k in rsvd_keys:
-                    rsvd_keys_value[k] = self.__datastore.get(k)
+            # flush
+            # Andrea comment
+            # rsp = self.datastore.flushdb()
 
-                # flush
-                # Andrea comment
-                # rsp = self.datastore.flushdb()
+            # finally set them all again
+            for k, v in rsvd_keys_value.items():
+                self.__datastore.set(k, v)
 
-                # finally set them all again
-                for k, v in rsvd_keys_value.items():
-                    self.__datastore.set(k, v)
-
-                # flush directly the datastore; reserved keys are stored separately
-                # rsp = self.datastore.flushdb()
+            # flush directly the datastore; reserved keys are stored separately
+            # rsp = self.datastore.flushdb()
 
 
-            except Exception as ex:
-                raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
+        except Exception as ex:
+            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-            return ArancinoCommandResponseCodes.RSP_OK + ArancinoReservedChars.CHR_EOT
-
-        else:
-            raise InvalidArgumentsNumberException(
-                "Invalid arguments number for command " + ArancinoCommandIdentifiers.CMD_APP_FLUSH['id'] + ". Received: " + str(
-                    n_args_received) + "; Minimum Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+        return ArancinoCommandResponseCodes.RSP_OK + ArancinoReservedChars.CHR_EOT
 
 
     def __get_args_nr_by_cmd_id(self, cmd_id):
