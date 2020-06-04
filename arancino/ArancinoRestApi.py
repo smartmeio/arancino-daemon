@@ -158,8 +158,8 @@ class ArancinoApi():
                 "arancino" : {
                     "arancino" : {
                         "ports" : {
-                            "connected": ports_disc,
-                            "discovered": ports_conn
+                            "connected": ports_conn,
+                            "discovered": ports_disc
                         }
                     }
                 }
