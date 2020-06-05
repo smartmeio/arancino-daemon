@@ -46,8 +46,8 @@ start:
     - echo `date +%H-%M-%S` > tmp/time.tmp
     - pip3 install semantic-version
     - python3 check-version.py $CI_COMMIT_TAG   # genera un file chiamato release.tmp che contiene o "RELEASE" o "SNAPSHOT"
-    - mv release.tmp > tmp/release.tmp
-    - mv repo_name.tmp > tmp/repo_name.tmp
+    - mv release.tmp tmp/release.tmp
+    - mv repo_name.tmp tmp/repo_name.tmp
 
   artifacts:
     paths:
@@ -222,4 +222,4 @@ cleanup:
         - rm -rf tmp/
 
     only:
-      - tag
+      - tags
