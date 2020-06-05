@@ -21,6 +21,7 @@ echo Giving grants 644 and copying services file
 chown 644 extras/arancino.service
 #chown 644 extras/redis-persistent.service
 #chown 644 extras/redis-volatile.service
+chown 644 config/meta.cfg
 chown 644 config/arancino.cfg
 chown 644 config/arancino.test.cfg
 
@@ -52,6 +53,7 @@ echo Backup previous configurations files
 timestamp=$(date +%Y%m%d_%H%M%S)
 mv /etc/arancino/config/arancino.cfg /etc/arancino/config/arancino_$timestamp.cfg
 mv /etc/arancino/config/arancino.test.cfg /etc/arancino/config/arancino_$timestamp.test.cfg
+cp config/meta.cfg /etc/arancino/config/meta.cfg
 cp config/arancino.cfg /etc/arancino/config/arancino.cfg
 cp config/arancino.test.cfg /etc/arancino/config/arancino.test.cfg
 

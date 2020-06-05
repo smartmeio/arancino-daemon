@@ -20,18 +20,17 @@ under the License
 
 from setuptools import setup, find_packages
 from setuptools.command.install import install
-from setuptools.command.develop import develop
-from setuptools.command.egg_info import egg_info
-from subprocess import check_call, call
-from os import system
+from subprocess import call
+from distutils.command.sdist import sdist
 import os
-import configparser
+from configparser import ConfigParser
 
 class ArancinoPostInstallCommand(install):
     """
     Customized setuptools install command used as 
     post-install script to install Arancino services
     """
+
     def run(self):
         call(["chmod", "+x", "extras/pre-install.sh"])
         call(["chmod", "+x", "extras/post-install.sh"])
@@ -58,15 +57,50 @@ class ArancinoPostInstallCommand(install):
         print("--------------------------------------")
 
 
-#Config = configparser.ConfigParser()
-#Config.read(os.path.join("config","arancino.cfg"))
-#cfg_version = Config.get("metadata", "version")
+class sdist_hg(sdist):
+    #https: // the - hitchhikers - guide - to - packaging.readthedocs.io / en / latest / specification.html  # development-releases
+    user_options = sdist.user_options + [
+            ('version=', None, "Add a version number")
+        ]
+
+    def initialize_options(self):
+        sdist.initialize_options(self)
+        self.version = "0.0.1"
+
+    def run(self):
+        if self.version:
+            #suffix = '.dev%d' % self.get_tip_revision()
+            #self.distribution.metadata.version += suffix
+            self.distribution.metadata.version = self.version
+            self.save_cfg_files()
+        sdist.run(self)
+
+    def get_tip_revision(self, path=os.getcwd()):
+        # from mercurial.hg import repository
+        # from mercurial.ui import ui
+        # from mercurial import node
+        # repo = repository(ui(), path)
+        # tip = repo.changelog.tip()
+        # return repo.changelog.rev(tip)
+        return 0
+
+    def save_cfg_files(self):
+
+        filename = os.path.join("config", "meta.cfg")
+
+        config = ConfigParser()
+
+        config.read(filename)
+        config.set("metadata", "version", self.version)
+        with open(filename, 'w') as configfile:
+            config.write(configfile)
 
 setup(
 
     name='arancino',
 
-    version='2.0.0',
+    #version='2.0.0',
+    version=0,
 
     description='Arancino Module for Arancino Library',
 
@@ -103,10 +137,7 @@ setup(
         ['extras/pre-install.sh',
         'extras/post-install.sh',
         'extras/arancino.service',
-        # 'extras/redis-persistent.conf',
-        # 'extras/redis-persistent.service',
-        # 'extras/redis-volatile.conf',
-        # 'extras/redis-volatile.service',
+        'config/meta.cfg',
         'config/arancino.cfg',
         'config/arancino.test.cfg'])],
 
@@ -120,6 +151,7 @@ setup(
 
     cmdclass={
         'install': ArancinoPostInstallCommand,
+        'sdist': sdist_hg
     },
 
     entry_points={
