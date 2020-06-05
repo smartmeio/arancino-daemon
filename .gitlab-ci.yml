@@ -26,7 +26,6 @@ image: digitalgenius/alpine-python3-pg
 
 stages:
   - start
-  - code_quality
   - package
   - upload
   - cleanup
@@ -38,85 +37,130 @@ stages:
 start:
   stage: start
 
-  variables:
-    GIT_STRATEGY: none
+#  variables:
+#    GIT_STRATEGY: none
 
   script:
     - mkdir -p tmp
     - echo `date +%Y-%m-%d` > tmp/date.tmp
     - echo `date +%H-%M-%S` > tmp/time.tmp
+    - pip3 install semantic-version
+    - python3 check-version.py $CI_COMMIT_TAG   # genera un file chiamato release.tmp che contiene o "RELEASE" o "SNAPSHOT"
+    - mv release.tmp > tmp/release.tmp
+    - mv repo_name.tmp > tmp/repo_name.tmp
 
   artifacts:
     paths:
       - tmp/
     expire_in: 1d
 
-
-  except:
-    - master
-
-#################################
-#######      QUALITY      #######
-#################################
-
-#######    Code Quality   #######
-
-code_quality:
-  stage: start
-  image: docker:stable
-  variables:
-    DOCKER_DRIVER: overlay2
-  allow_failure: true
-  services:
-    - docker:stable-dind
-  script:
-    - export SP_VERSION=$(echo "$CI_SERVER_VERSION" | sed 's/^\([0-9]*\)\.\([0-9]*\).*/\1-\2-stable/')
-    - docker run
-        --env SOURCE_CODE="$PWD"
-        --volume "$PWD":/code
-        --volume /var/run/docker.sock:/var/run/docker.sock
-        "registry.gitlab.com/gitlab-org/ci-cd/codequality:$SP_VERSION" /code
-  artifacts:
-      paths: [gl-code-quality-report.json]
+#  except:
+#    - master
+  only:
+    - tags
 
 #################################
 #######      PACKAGE      #######
 #################################
 
 #######    Package Staging    #######
-#questo job esegue la compressione ad ogni commit su tutti i branch tranne master
-package_staging:
+
+
+#package_staging:
+#
+#  stage: package
+#
+#  script:
+#    - DATE="$(cat tmp/date.tmp)"
+#    - TIME="$(cat tmp/time.tmp)"
+#
+#    - VER=$DATE-$TIME-$CI_COMMIT_REF_NAME-${CI_COMMIT_SHA:0:8}
+#
+#    - echo pypi-snapshot > tmp/repo_name.tmp    #il nome del repository
+#
+#    #### prendo la versione dal file arancino.cfg, il setup.py la leggerà direttamente dal file arancino.cfg. cosi scrivo la versione in un solo punto
+#    #- DEVVER="$(cat config/arancino.cfg | grep 'version =')"  # prendo dal file arancino.cfg la versione: eg. => version = 1.0.1,
+#    #- NEWVER=$DEVVER.$VER                                  # concateno versione con versione di sviluppo
+#    #- sed -i "s/$DEVVER/$NEWVER/g" config/arancino.cfg     # nel file arancino.cfg sostituisco la versione: version = 1.0.1, => version = 1.0.1.20190318-170022-dev-a12def33
+#
+#
+#    #### prendo la versione direttamente dal file setup.py
+#    - DEVVER="$(cat setup.py | grep version= -m1)"    #prendo dal file arancino.cfg la versione: eg. => version='1.0.1',   Attenzione prendo la prima occorenza (-m1), attenzione a come viene composto il file setup.py
+#    - NEWVERTMP=${DEVVER%??}                          #taglio gli ultimi due caratteri => ', => version='1.0.1
+#    - NEWVER="$NEWVERTMP.$VER',"                      #concateno le stringhe ed aggiunto i due caratteri tolti => version='1.0.1.12345678-20190318-170022-dev-a12def33',
+#
+#    - sed -i "s/$DEVVER/$NEWVER/g" setup.py       #nel file setup.py sostituisco la versione: version='1.0.1', => version='1.0.1.20190318-170022-dev-a12def33',
+#
+#    - echo $NEWVER
+#
+#    - python3 setup.py sdist
+#    - ls dist/ > tmp/pgk_name.tmp               #ottengo il nome del file generato e salvo il nome del pacchetto su file temp
+#    #- PKG_NAME="$(ls dist/)"                    #ottengo il nome del file generato
+#    #- echo $PKG_NAME > tmp/pgk_name.tmp         #salvo il nome del pacchetto su file temp
+#    - mv dist/*.tar.gz tmp/                     #sposto il file su di dir temp.
+#
+#  dependencies:
+#    - start
+#
+#  artifacts:
+#    paths:
+#      - tmp/
+#
+#  only:
+#    - branches
+#
+#  except:
+#    - master
+#    - tags
+#
+#
+########    Package Release    #######
+##esegue la compressione del pacchetto quando viene creato un tag su master (ovvero ad ogni release)
+#package_release:
+#
+#  stage: package
+#
+#  script:
+#    - echo pypi > tmp/repo_name.tmp             #il nome del repository
+#    - python3 setup.py sdist                    #non si devono fare trucchi, la versione nel file setup.py deve coincidere con quella del tag di release.
+#    - ls dist/ > tmp/pgk_name.tmp               #ottengo il nome del file generato e salvo il nome del pacchetto su file temp
+#    #- PKG_NAME="$(ls dist/)"                    #ottengo il nome del file generato
+#    #- echo $PKG_NAME > tmp/pgk_name.tmp         #salvo il nome del pacchetto su file temp
+#    - mv dist/*.tar.gz tmp/                     #sposto il file su di dir temp.
+#
+#  dependencies:
+#    - start
+#
+#  artifacts:
+#    paths:
+#      - tmp/
+#
+#  only:
+#    - tags
+#
+#  except:
+#    - branches
+
+
+#######    Package Release & Snapshot    #######
+#esegue la creazione del pacchetto quando viene creato un tag
+package:
 
   stage: package
 
   script:
-    - DATE="$(cat tmp/date.tmp)"
-    - TIME="$(cat tmp/time.tmp)"
+                                                          # grazie al file repo_name.tmp e release.tmp conosco il tipo
+                                                          #   di destinazione: RELEASE o SNAPSHOT
 
-    - VER=$DATE-$TIME-$CI_COMMIT_REF_NAME-${CI_COMMIT_SHA:0:8}
+    - python3 setup.py sdist --version='$CI_COMMIT_TAG'   # non si devono fare trucchi, imposto la versione nel setup.py e
+                                                          #   nei file di cfg a partire dal tag inserito, che DEVE
+                                                          #   RISPETTARE IL VERSIONAMENTO SEMANTICO 2.0 con nomi di
+                                                          #   pre-release specificati ne file check_version.py
 
-    - echo pypi-snapshot > tmp/repo_name.tmp    #il nome del repository
+    - ls dist/ > tmp/pgk_name.tmp                         # ottengo il nome del file generato e salvo il nome del
+                                                          #   pacchetto su file temp
 
-    #### prendo la versione dal file arancino.cfg, il setup.py la leggerà direttamente dal file arancino.cfg. cosi scrivo la versione in un solo punto
-    #- DEVVER="$(cat config/arancino.cfg | grep 'version =')"  # prendo dal file arancino.cfg la versione: eg. => version = 1.0.1,
-    #- NEWVER=$DEVVER.$VER                                  # concateno versione con versione di sviluppo
-    #- sed -i "s/$DEVVER/$NEWVER/g" config/arancino.cfg     # nel file arancino.cfg sostituisco la versione: version = 1.0.1, => version = 1.0.1.20190318-170022-dev-a12def33
-
-
-    #### prendo la versione direttamente dal file setup.py
-    - DEVVER="$(cat setup.py | grep version= -m1)"    #prendo dal file arancino.cfg la versione: eg. => version='1.0.1',   Attenzione prendo la prima occorenza (-m1), attenzione a come viene composto il file setup.py
-    - NEWVERTMP=${DEVVER%??}                          #taglio gli ultimi due caratteri => ', => version='1.0.1
-    - NEWVER="$NEWVERTMP.$VER',"                      #concateno le stringhe ed aggiunto i due caratteri tolti => version='1.0.1.12345678-20190318-170022-dev-a12def33',
-    
-    - sed -i "s/$DEVVER/$NEWVER/g" setup.py       #nel file setup.py sostituisco la versione: version='1.0.1', => version='1.0.1.20190318-170022-dev-a12def33',
-
-    - echo $NEWVER
-
-    - python3 setup.py sdist
-    - ls dist/ > tmp/pgk_name.tmp               #ottengo il nome del file generato e salvo il nome del pacchetto su file temp
-    #- PKG_NAME="$(ls dist/)"                    #ottengo il nome del file generato
-    #- echo $PKG_NAME > tmp/pgk_name.tmp         #salvo il nome del pacchetto su file temp
-    - mv dist/*.tar.gz tmp/                     #sposto il file su di dir temp.
+    - mv dist/*.tar.gz tmp/                               #sposto il file su di dir temp.
 
   dependencies:
     - start
@@ -124,48 +168,18 @@ package_staging:
   artifacts:
     paths:
       - tmp/
-
-  only:
-    - branches
-
-  except:
-    - master
-    - tags
-
-
-#######    Package Release    #######
-#esegue la compressione del pacchetto quando viene creato un tag su master (ovvero ad ogni release)
-package_release:
-
-  stage: package
-
-  script:
-    - echo pypi > tmp/repo_name.tmp             #il nome del repository
-    - python3 setup.py sdist                    #non si devono fare trucchi, la versione nel file setup.py deve coincidere con quella del tag di release.
-    - ls dist/ > tmp/pgk_name.tmp               #ottengo il nome del file generato e salvo il nome del pacchetto su file temp
-    #- PKG_NAME="$(ls dist/)"                    #ottengo il nome del file generato
-    #- echo $PKG_NAME > tmp/pgk_name.tmp         #salvo il nome del pacchetto su file temp
-    - mv dist/*.tar.gz tmp/                     #sposto il file su di dir temp.
-
-  dependencies:
-    - start
-
-  artifacts:
-    paths:
-      - tmp/
+    expire_in: 1d
 
   only:
     - tags
 
-  except:
-    - branches
 
 
 #################################
 #######       UPLOAD      #######
 #################################
 
-#######    Upload Staging    #######
+#######    Upload Release & Snapshot    #######
 #carica sul repository manager
 upload:
 
@@ -175,34 +189,20 @@ upload:
     GIT_STRATEGY: none
 
   script:
-    #- DATE="$(cat tmp/date.tmp)"
-    #- TIME="$(cat tmp/time.tmp)"
-    - PKG_NAME="$(cat tmp/pgk_name.tmp)"
-    - REPO_NAME="$(cat tmp/repo_name.tmp)"
-    #- TARGET_PATH="$(cat tmp/target_path.tmp)"
-    #- REPO_NAME=$CI_PROJECT_NAME
-    #- REPO_DIR=$CI_PROJECT_NAME/staging
-    - apk add curl
-    #- REPO_URL=$REPO_BASE_URL
-    #- echo ${REPO_URL}
-    #- echo ${REPO_BASE_URL}
-    # Nexus 3
-    - curl -X POST "${REPO_BASE_URL}/service/rest/v1/components?repository=${REPO_NAME}" -u $REPO_USR:$REPO_PWD -F pypi.asset1=@tmp/$PKG_NAME
-    # Artifactory
-    # RESOLVE
-    # - curl -u $REPO_USR:$REPO_PWD -O "${REPO_BASE_URL}/artifactory/${REPO_NAME}/${PKG_NAME}.zip"
-    # DOWNLOAD
-    #- curl -u $REPO_USR:$REPO_PWD -T tmp/$PKG_NAME.zip "${REPO_BASE_URL}/artifactory/${REPO_NAME}/${TARGET_PATH}/${PKG_NAME}.zip"
 
-  #dependencies:
-  #  - package_release
-  #  - package_staging
+    - PKG_NAME="$(cat tmp/pgk_name.tmp)"                  # Recupero il nome del pacchetto
+    - REPO_NAME="$(cat tmp/repo_name.tmp)"                # Recupero il nome del repository su cui fare upload
+
+    - apk add curl                                        # Install curl
+
+                                                          # Eseguo upload sul repository specificato (Nexus 3)
+    - curl -X POST "${REPO_BASE_URL}/service/rest/v1/components?repository=${REPO_NAME}" -u $REPO_USR:$REPO_PWD -F pypi.asset1=@tmp/$PKG_NAME
+
+  dependencies:
+    - package
 
   only:
-    - branches
     - tags
-  except:
-    - master
 
 
 #################################
@@ -221,5 +221,5 @@ cleanup:
         - echo "Cleaning up"
         - rm -rf tmp/
 
-    except:
-      - master
+    only:
+      - tag

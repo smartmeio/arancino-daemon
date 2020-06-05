@@ -43,8 +43,8 @@ class ArancinoCommandExecutor:
         self.__datastore_pers = redis.getDataStorePer()
 
         self.__conf = ArancinoConfig.Instance()
-        self.__compatibility_array_serial = COMPATIBILITY_MATRIX_MOD_SERIAL[str(self.__conf.get_metadata_version())]
-        self.__compatibility_array_test = COMPATIBILITY_MATRIX_MOD_TEST[str(self.__conf.get_metadata_version())]
+        self.__compatibility_array_serial = COMPATIBILITY_MATRIX_MOD_SERIAL[str(self.__conf.get_metadata_version().truncate())]
+        self.__compatibility_array_test = COMPATIBILITY_MATRIX_MOD_TEST[str(self.__conf.get_metadata_version().truncate())]
 
 
     def exec(self, arancino_command):
