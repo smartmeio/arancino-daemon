@@ -102,6 +102,10 @@ class ArancinoSerialPort(ArancinoPort):
 
         # All Arancino Application Exceptions contains an Error Code
         except ArancinoException as ex:
+
+            if ex.error_code == ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY:
+                self._setComapitibility(False)
+
             arsp = ArancinoResponse(rsp_id=ex.error_code, rsp_args=[])
             LOG.error("{} {}".format(self.__log_prefix, str(ex)))
 

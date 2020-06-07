@@ -615,7 +615,8 @@ Return all the ports organized in *Connected* and *Discovered*
                         "S_CONNECTED": true,
                         "S_CREATION_DATE": "Thu, 21 May 2020 01:17:14 GMT",
                         "S_LAST_USAGE_DATE": "Tue, 26 May 2020 10:02:25 GMT",
-                        "S_PLUGGED": true
+                        "S_PLUGGED": true,
+                        "S_COMPATIBILITY": true
                     }
                 ],
                 "discovered": [
@@ -630,7 +631,8 @@ Return all the ports organized in *Connected* and *Discovered*
                         "S_CONNECTED": true,
                         "S_CREATION_DATE": "Mon, 16 Mar 2020 08:44:33 GMT",
                         "S_LAST_USAGE_DATE": "Mon, 16 Mar 2020 17:41:32 GMT",
-                        "S_PLUGGED": true
+                        "S_PLUGGED": true,
+                        "S_COMPATIBILITY": true
                     },
                     {
                         "B_ID": "1ABDF7C5504E4B53382E314AFF0C1B2D",
@@ -653,7 +655,8 @@ Return all the ports organized in *Connected* and *Discovered*
                         "S_CONNECTED": true,
                         "S_CREATION_DATE": "Thu, 21 May 2020 01:17:14 GMT",
                         "S_LAST_USAGE_DATE": "Tue, 26 May 2020 10:02:25 GMT",
-                        "S_PLUGGED": true
+                        "S_PLUGGED": true,
+                        "S_COMPATIBILITY": true
                     }
                 ]
             }
@@ -696,7 +699,8 @@ Return all the *Connected* ports
                         "S_CONNECTED": true,
                         "S_CREATION_DATE": "Thu, 21 May 2020 01:17:14 GMT",
                         "S_LAST_USAGE_DATE": "Tue, 26 May 2020 10:02:25 GMT",
-                        "S_PLUGGED": true
+                        "S_PLUGGED": true,
+                        "S_COMPATIBILITY": true
                     }
                 ]
             }
@@ -738,7 +742,8 @@ Return all the information about the port specified by `{{PORT_ID}}`
                 "S_CONNECTED": true,
                 "S_CREATION_DATE": "Thu, 21 May 2020 01:17:14 GMT",
                 "S_LAST_USAGE_DATE": "Tue, 26 May 2020 10:02:25 GMT",
-                "S_PLUGGED": true
+                "S_PLUGGED": true,
+                "S_COMPATIBILITY": true
             }
         }
     }
@@ -768,7 +773,8 @@ Return all the *Discovered* ports
                         "S_CONNECTED": true,
                         "S_CREATION_DATE": "Mon, 16 Mar 2020 08:44:33 GMT",
                         "S_LAST_USAGE_DATE": "Mon, 16 Mar 2020 17:41:32 GMT",
-                        "S_PLUGGED": true
+                        "S_PLUGGED": true,
+                        "S_COMPATIBILITY": true
                     },
                     {
                         "B_ID": "1ABDF7C5504E4B53382E314AFF0C1B2D",
@@ -791,7 +797,8 @@ Return all the *Discovered* ports
                         "S_CONNECTED": true,
                         "S_CREATION_DATE": "Thu, 21 May 2020 01:17:14 GMT",
                         "S_LAST_USAGE_DATE": "Tue, 26 May 2020 10:02:25 GMT",
-                        "S_PLUGGED": true
+                        "S_PLUGGED": true,
+                        "S_COMPATIBILITY": true
                     }
                 ]
             }

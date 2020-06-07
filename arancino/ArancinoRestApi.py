@@ -529,6 +529,7 @@ class ArancinoApi():
             response[DB_KEYS.B_CREATION_DATE] = port.getCreationDate()
             response[DB_KEYS.S_LAST_USAGE_DATE] = port.getLastUsageDate()
             response[DB_KEYS.S_UPTIME] = secondsToHumanString(port.getUptime())
+            response[DB_KEYS.S_COMPATIBILITY] = port.isCompatible()
 
             # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
             response[DB_KEYS.C_ENABLED] = port.isEnabled()

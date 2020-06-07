@@ -249,6 +249,7 @@ class ArancinoDBKeys:
     S_PLUGGED = "S_PLUGGED"                 # Boolean
     S_LAST_USAGE_DATE = "S_LAST_USAGE_DATE" # Datetime
     S_UPTIME = "S_UPTIME"                   # Datetime
+    S_COMPATIBILITY = "S_COMPATIBILITY"     # Boolean
 
     # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
     C_ENABLED = "C_ENABLED"                 # Boolean
@@ -284,6 +285,7 @@ class ArancinoDBKeys:
         S_PLUGGED: "S_PLUGGED",                 # Boolean
         S_LAST_USAGE_DATE: "S_LAST_USAGE_DATE", # Datetime
         S_UPTIME: "S_UPTIME",                   # Datetime
+        S_COMPATIBILITY: "S_COMPATIBILITY",     # Boolean
 
         # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
         C_ENABLED: "C_ENABLED",                 # Boolean
@@ -319,6 +321,7 @@ class ArancinoDBKeys:
         S_PLUGGED: "Plugged",  # Boolean
         S_LAST_USAGE_DATE: "Last Usage Date",  # Datetime
         S_UPTIME: "Uptime",  # Datetime
+        S_COMPATIBILITY: "Compatibility", # Boolean
 
         # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
         C_ENABLED: "Enabled",  # Boolean

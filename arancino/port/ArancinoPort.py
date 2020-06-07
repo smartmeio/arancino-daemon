@@ -44,6 +44,7 @@ class ArancinoPort(object):
         self._m_s_plugged = m_s_plugged
         self._m_s_connected = False
         self._m_s_last_usage_date = None
+        self._m_s_compatible = None
 
         # BASE CONFIGURATION METADATA
         self._m_c_enabled = m_c_enabled
@@ -200,6 +201,14 @@ class ArancinoPort(object):
 
     def isConnected(self):
         return self._m_s_connected
+
+
+    def isCompatible(self):
+        return self._m_s_compatible
+
+
+    def _setComapitibility(self, comp):
+        self._m_s_compatible = comp
 
 
     # BASE CONFIGURATION METADATA Encapsulators
