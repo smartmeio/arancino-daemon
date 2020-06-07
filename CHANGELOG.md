@@ -8,17 +8,17 @@
 * Introduced a new kind of Port called Test Port, used for testing purpose
 * Fix `KEYS` command: now returns even persistent keys.
 * Metadata are now different for each Port Type, but they have a common set of metadata. Even the Device Store changed.
-* Introduces new etadatas: _creation date_, _last usage date_, _port type_, _library version_
+* Introduces new metadatas: _creation date_, _last usage date_, _port type_, _library version_, _compatibility_
 * The key `___LIBVERS_<PORT_ID>___` stored in the Data Store are now part of common set of port metadata.
 * Use Redis `MULTI` and `EXEC` trough `pipeline` in *Synch* process to reduce the back-and-forth overhead between the client and server. 
 * Log Console Handler and Log File Handler can be enabled directly from `arancino.cfg`
 * Improved Redis Connection: now Arancino continues running even Redis has been stoppped, and reconnect when connection is restored.
-* Improved Redis Connection: Arancino by default makes 5 connection attemps (each one every 3 seconds) and then exit if Redis unreachable.
+* Improved Redis Connection: Arancino by default makes 5 connection attemps (each one every 3 seconds) and then exit if Redis is unreachable.
 * Introduced a rest server with some API like _Enable/Disable_, _Reset_, _Upload Firmware_ etc...
 * Redis configuration and systemd services are now exclueded from Arancino package. They are pre-installed in Arancino OS. 
 * Introduced different configuration file based on `ARANCINOENV` environment variables (`PROD`, `DEV` or `TEST`)
 * Introduced `S_UPTIME` status metadata to store uptime port #78.
-* Introduced a more flexible way to check arguments number (lass than, equal, etc...).
+* Introduced a more flexible way to check command (cortex) arguments number (lass than, equal, etc...).
 
 #### v 1.0.2 - 2020.03.11
 * Fixed a critical bug that prevented redis-persistent to work properly. #53
