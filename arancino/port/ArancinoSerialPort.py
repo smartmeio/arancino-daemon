@@ -99,10 +99,6 @@ class ArancinoSerialPort(ArancinoPort):
             # create the Arancino Response object
             arsp = ArancinoResponse(raw_response=raw_response)
 
-            if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
-                v = semantic_version.Version(acmd.getArguments()[0])
-                self._setLibVersion(v)
-
 
         # All Arancino Application Exceptions contains an Error Code
         except ArancinoException as ex:
@@ -117,9 +113,14 @@ class ArancinoSerialPort(ArancinoPort):
         finally:
 
             try:
+                # move there that, becouse if there's an non compatibility error, lib version will not setted
+                #   moving that in the finally, it will setted
+                if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
+                    v = semantic_version.Version(acmd.getArguments()[0])
+                    self._setLibVersion(v)
+
                 # send the response back.
                 self.sendResponse(arsp.getRaw())
-                #self.__serial_port.write(arsp.getRaw().encode())
                 LOG.debug("{} Sending: {}: {}".format(self.__log_prefix, arsp.getId(), str(arsp.getArguments())))
 
             except SerialException as ex:

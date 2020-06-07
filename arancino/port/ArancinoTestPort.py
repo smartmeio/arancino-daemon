@@ -85,11 +85,17 @@ class ArancinoTestPort(ArancinoPort):
         # Generic Exception uses a generic Error Code
         except Exception as ex:
             arsp = ArancinoResponse(rsp_id=ArancinoCommandErrorCodes.ERR, rsp_args=[])
-            LOG.exception("{} {}".format(self.__log_prefix, str(ex)))
+            LOG.error("{} {}".format(self.__log_prefix, str(ex)))
 
         finally:
 
             try:
+                # move there that, becouse if there's an non compatibility error, lib version will not setted
+                #   moving that in the finally, it will setted
+                if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
+                    v = semantic_version.Version(acmd.getArguments()[0])
+                    self._setLibVersion(v)
+
                 # send the response back.
                 self.sendRespose(arsp.getRaw())
                 LOG.debug("{} Sending: {}: {}".format(self.__log_prefix, arsp.getId(), str(arsp.getArguments())))
