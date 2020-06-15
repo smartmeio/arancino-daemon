@@ -19,6 +19,7 @@
 * Introduced different configuration file based on `ARANCINOENV` environment variables (`PROD`, `DEV` or `TEST`)
 * Introduced `S_UPTIME` status metadata to store uptime port #78.
 * Introduced a more flexible way to check command (cortex) arguments number (lass than, equal, etc...).
+* Fixed Flush command. Disabled by error.
 
 #### v 1.0.2 - 2020.03.11
 * Fixed a critical bug that prevented redis-persistent to work properly. #53

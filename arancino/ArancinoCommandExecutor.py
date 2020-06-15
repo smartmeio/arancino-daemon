@@ -658,8 +658,7 @@ class ArancinoCommandExecutor:
                 rsvd_keys_value[k] = self.__datastore.get(k)
 
             # flush
-            # Andrea comment
-            # rsp = self.datastore.flushdb()
+            rsp = self.__datastore.flushdb()
 
             # finally set them all again
             for k, v in rsvd_keys_value.items():
