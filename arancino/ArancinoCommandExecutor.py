@@ -25,6 +25,7 @@ from arancino.ArancinoExceptions import *
 from arancino.ArancinoDataStore import ArancinoDataStore
 from arancino.utils.ArancinoUtils import ArancinoConfig
 from arancino.port.ArancinoPort import PortTypes
+from datetime import datetime
 
 
 class ArancinoCommandExecutor:
@@ -196,8 +197,10 @@ class ArancinoCommandExecutor:
         for compatible_ver in compatibility_array:
             semver_compatible_ver = semver.SimpleSpec(compatible_ver)
             if semver_value_libvers in semver_compatible_ver:
-                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + \
-                       self.__port_id + ArancinoSpecialChars.CHR_EOT
+                now = datetime.now()
+                ts = datetime.timestamp(now)
+
+                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + self.__port_id + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
 
         # NOTE: If the device is not disconnected, it will try to START every 2,5 seconds.
         raise NonCompatibilityException(
@@ -671,7 +674,7 @@ class ArancinoCommandExecutor:
         except Exception as ex:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-        return ArancinoCommandResponseCodes.RSP_OK + ArancinoReservedChars.CHR_EOT
+        return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
 
 
     def __get_args_nr_by_cmd_id(self, cmd_id):
