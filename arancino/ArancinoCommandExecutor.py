@@ -197,8 +197,9 @@ class ArancinoCommandExecutor:
         for compatible_ver in compatibility_array:
             semver_compatible_ver = semver.SimpleSpec(compatible_ver)
             if semver_value_libvers in semver_compatible_ver:
-                now = datetime.now()
-                ts = datetime.timestamp(now)
+                #now = datetime.now()
+                #ts = datetime.timestamp(now)
+                ts = datetime.now().timestamp()
 
                 return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + self.__port_id + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
 
