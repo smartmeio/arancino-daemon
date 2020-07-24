@@ -1,7 +1,8 @@
-'''
+# coding=utf-8
+"""
 SPDX-license-identifier: Apache-2.0
 
-Copyright (c) 2019 SmartMe.IO
+Copyright (c) 2020 SmartMe.IO
 
 Authors:  Sergio Tomasello <sergio@smartme.io>
 
@@ -16,21 +17,38 @@ distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
 WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
-'''
+"""
 
-[metadata]
-name = iotronic_lightningrod
-summary = Implementation of the Lightning-rod, the Stack4Things board-side probe
-description-file = README.md
-author = Sergio Tomasello
-author-email = sergio@smartme.io
-#home-page = 
-classifier =
-    Development Status :: 5 - Production/Stable
-    Environment :: Console
-    Intended Audience :: Information Technology
-    Intended Audience :: System Administrators
-    License :: OSI Approved :: Apache Software License
-    Operating System :: Unix
-    Programming Language :: Python
-    Programming Language :: Python :: 3
+from abc import ABCMeta, abstractmethod
+from enum import Enum
+
+
+class ArancinoPortFilter():
+
+    __metaclass__ = ABCMeta
+
+    def __init__(self):
+        pass
+
+
+    @abstractmethod
+    def filterOnly(self, ports={}, list=[]):
+        pass
+
+
+    @abstractmethod
+    def filterAll(self, ports={},list=[]):
+        pass
+
+
+    @abstractmethod
+    def filterExclude(self, ports={},list=[]):
+        pass
+
+
+
+class FilterTypes(Enum):
+    EXCLUDE = 0
+    ONLY = 1
+    ALL = 2
+    DEFAULT = 2
