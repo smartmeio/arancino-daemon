@@ -98,13 +98,13 @@ class ArancinoPortSynch:
             db_val_lud = self.__devicestore.hget(id, ArancinoDBKeys.S_LAST_USAGE_DATE)
             db_val_cd = self.__devicestore.hget(id, ArancinoDBKeys.B_CREATION_DATE)
 
-            if db_val_lud is not None and db_val_lud is not "":
+            if db_val_lud is not None and db_val_lud != "":
                 #db_val_lud = stringToDatetime(db_val_lud)
                 db_val_lud = datetime.utcfromtimestamp(float(db_val_lud))
             else:
                 db_val_lud = None
 
-            if db_val_cd is not None and db_val_cd is not "":
+            if db_val_cd is not None and db_val_cd != "":
                 #db_val_cd = stringToDatetime(db_val_cd)
                 db_val_cd = datetime.utcfromtimestamp(float(db_val_cd))
             else:

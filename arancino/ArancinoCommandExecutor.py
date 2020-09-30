@@ -390,7 +390,7 @@ class ArancinoCommandExecutor:
             num = self.__datastore.delete(*args)
 
             # then try get from reserved datastore
-            if num is 0:
+            if num == 0:
                 num = self.__datastore_pers.delete(*args)
 
         except Exception as ex:
