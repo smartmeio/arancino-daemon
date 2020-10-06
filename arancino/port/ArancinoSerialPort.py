@@ -123,6 +123,10 @@ class ArancinoSerialPort(ArancinoPort):
                     v = semantic_version.Version(acmd.getArguments()[0])
                     self._setLibVersion(v)
 
+                    # if it is not compatible an error was send back to the mcu and the communnication is not started (the mcu receive an errore and try to connect again)
+                    # if it is compatible the communication starts and it ready to receive new commands.
+                    self._setStarted(self.isCompatible())
+
                 # send the response back.
                 self.sendResponse(arsp.getRaw())
                 LOG.debug("{} Sending: {}: {}".format(self.__log_prefix, arsp.getId(), str(arsp.getArguments())))

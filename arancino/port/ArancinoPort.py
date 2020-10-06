@@ -44,7 +44,8 @@ class ArancinoPort(object):
         self._m_s_plugged = m_s_plugged
         self._m_s_connected = False
         self._m_s_last_usage_date = None
-        self._m_s_compatible = None
+        self._m_s_compatible = True     # Compatible by default, is not compatible it will be setted later, after connection: in the START comamnd
+        self._m_s_started = False
 
         # BASE CONFIGURATION METADATA
         self._m_c_enabled = m_c_enabled
@@ -138,7 +139,7 @@ class ArancinoPort(object):
         pass
 
 
-    # BASE METADATA Encapsulators
+    #region BASE METADATA Encapsulators
 
     def getId(self):
         return self._id
@@ -188,12 +189,12 @@ class ArancinoPort(object):
         self._m_s_last_usage_date = last_usage_date
 
 
-
     def getUptime(self):
         return time.time() - self._start_thread_time
 
+    #endregion
 
-    # BASE STATUS METADATA Encapsulators
+    #region BASE STATUS METADATA Encapsulators
 
     def isPlugged(self):
         return self._m_s_plugged
@@ -211,7 +212,15 @@ class ArancinoPort(object):
         self._m_s_compatible = comp
 
 
-    # BASE CONFIGURATION METADATA Encapsulators
+    def _setStarted(self, started):
+        self._m_s_started = started
+
+    def isStarted(self):
+        return self._m_s_started
+
+    #endregion
+
+    #region BASE CONFIGURATION METADATA Encapsulators
 
     def isEnabled(self):
         return self._m_c_enabled
@@ -246,8 +255,9 @@ class ArancinoPort(object):
         else:
             return False
 
+    #endregion
 
-    # Set Handlers
+    #region Set Handlers
 
     def setDisconnectionHandler(self, disconnection_handler):
         if isinstance(disconnection_handler, FunctionType) or isinstance(disconnection_handler, MethodType):
@@ -262,7 +272,7 @@ class ArancinoPort(object):
         else:
             self._received_command_handler = None
 
-
+    #endregion
 
 
 class PortTypes(Enum):
