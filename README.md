@@ -541,6 +541,50 @@ Returns information about Arancino:
 }
 ```
 
+##### Arancino Configuration
+Returns all Arancino configuration or a specific one:
+
+- API address: `/arancino`
+- API method: `GET`
+- API body params:
+    - empty -> return all the configurations
+    - json -> return the required configurations:
+```json
+{
+    "config": [
+        {
+            "section": "redis",
+            "option": "host"
+        },
+        {
+            "section": "redis",
+            "option": "port_volatile"
+        },
+        {
+            "section": "general",
+            "option": "cycle_time"
+        }
+    ]
+}
+```
+- API result:
+```json
+{
+    "arancino": {
+        "config": {
+            "general": {
+                "cycle_time": "10"
+            },
+            "redis": {
+                "host": "localhost",
+                "port_volatile": "6379"
+            }
+        }
+    }
+}
+
+```
+
 
 ##### System
 Returns information about OS and network:
@@ -813,10 +857,58 @@ Those API are accesbile with authentication becouse they have impact in the runn
 you can use every user defined in Arancino OS except `root`, ie: use the user `me`.
 
 
+##### Set Arancino Configuration
+Set a generic configuration specified by `section` and `option` of the configuration file.
+
+- API address: `/arancino/config`
+- API method: `POST`
+- API query param: 
+    - `section`: the section name of the configuration file
+    - `option`: the option name of the section in the configuration file
+    - `value`: the value of the specified option
+
+- API header param: `Content-Type` : `application/x-www-form-urlencoded`
+- API result if configuration succeed: 
+```json
+{
+    "arancino": {
+        "response": [
+            {
+                "internalMessage": [
+                    "Arancino configured successfully"
+                ],
+                "isError": false,
+                "returnCode": 18,
+                "userMessage": "Arancino configured successfully"
+            }
+        ]
+    }
+}
+
+```
+
+- API result if you missed a parameter (`section` in the example below):
+```json
+{
+    "arancino": {
+        "response": [
+            {
+                "internalMessage": [
+                    null,
+                    "Configuration Section is empty"
+                ],
+                "isError": true,
+                "returnCode": 26,
+                "userMessage": "Sorry, no section configuration found during this operation"
+            }
+        ]
+    }
+}
+```
 
 
 
-##### Enable
+##### Port Enable
 Enables the port specified by `{{PORT_ID}}`
 
 
@@ -854,7 +946,7 @@ Enables the port specified by `{{PORT_ID}}`
 ```
 
 
-##### Disable
+##### Port Disable
 Disables the port specified by `{{PORT_ID}}`
 
 - API address: `/ports/{{PORT_ID}}/disable`
@@ -889,7 +981,7 @@ Disables the port specified by `{{PORT_ID}}`
 }
 ```
 
-##### Hide
+##### Port Hide
 Flag port specified by `{{PORT_ID}}` as _hidden_
 
 - API address: `/ports/{{PORT_ID}}/hide`
@@ -926,7 +1018,7 @@ Flag port specified by `{{PORT_ID}}` as _hidden_
 ```
 
 
-##### Show
+##### Port Show
 Flag port specified by `{{PORT_ID}}` as _not hidden_
 
 - API address: `/ports/{{PORT_ID}}/show`
@@ -963,7 +1055,7 @@ Flag port specified by `{{PORT_ID}}` as _not hidden_
 ```
 
 
-##### Config
+##### Port Config
 Used to set up generic port configuration. It allow to send configuration parameters in to the  body request.
 
 - API address: `/ports/{{PORT_ID}}/config`

@@ -374,12 +374,17 @@ class ArancinoApiResponseCode:
 
     OK_CONFIGURATED = 17
 
+    OK_ARANCINO_CONFIGURATED = 18
+
     ERR_PORT_NOT_FOUND = 20
     ERR_CAN_NOT_CONNECT_PORT_DISABLED = 21
     ERR_GENERIC = 22
     ERR_RESET = 23
     ERR_UPLOAD = 24
     ERR_NO_CONFIG_PROVIDED = 25
+    ERR_NO_ARANCINO_CONFIG_SECTION_PROVIDED = 26
+    ERR_NO_ARANCINO_CONFIG_OPTION_PROVIDED = 27
+    ERR_NO_ARANCINO_CONFIG_VALUE_PROVIDED = 28
 
     __USER_MESSAGES = {
         OK_ALREADY_ENABLED: "Selected port is already enabled.",
@@ -407,13 +412,21 @@ class ArancinoApiResponseCode:
         ERR_UPLOAD: "Sorry, an error was occurred during this operation.",
         ERR_NO_CONFIG_PROVIDED: "Sorry, no configuration params found during this operation",
 
+        ERR_NO_ARANCINO_CONFIG_SECTION_PROVIDED: "Sorry, no section configuration found during this operation",
+        ERR_NO_ARANCINO_CONFIG_OPTION_PROVIDED: "Sorry, no option configuration found during this operation",
+        ERR_NO_ARANCINO_CONFIG_VALUE_PROVIDED: "Sorry, no value configuration found during this operation",
+
+
         OK_ALREADY_HIDDEN: "Selected port is already hidden",
         OK_HIDDEN: "Port hidden successfully",
 
         OK_ALREADY_SHOWN: "Selected port is already shown",
         OK_SHOWN: "Port shown successfully",
 
-        OK_CONFIGURATED: "Port configured successfully"
+        OK_CONFIGURATED: "Port configured successfully",
+
+        OK_ARANCINO_CONFIGURATED: "Arancino configured successfully"
+
     }
 
     __INTERNAL_MESSAGES = {
@@ -442,14 +455,20 @@ class ArancinoApiResponseCode:
         ERR_UPLOAD: None,
         ERR_NO_CONFIG_PROVIDED: "Sorry, no configuration params found during this operation",
 
+        ERR_NO_ARANCINO_CONFIG_SECTION_PROVIDED: "Sorry, no section configuration found during this operation",
+        ERR_NO_ARANCINO_CONFIG_OPTION_PROVIDED: "Sorry, no option configuration found during this operation",
+        ERR_NO_ARANCINO_CONFIG_VALUE_PROVIDED: "Sorry, no value configuration found during this operation",
+
         OK_ALREADY_HIDDEN: "Selected port is already hidden",
         OK_HIDDEN: "Port hidden successfully",
 
         OK_ALREADY_SHOWN: "Selected port is already shown",
         OK_SHOWN: "Port shown successfully",
 
-        OK_CONFIGURATED: "Port configured successfully"
-        
+        OK_CONFIGURATED: "Port configured successfully",
+
+        OK_ARANCINO_CONFIGURATED: "Arancino configured successfully"
+
     }
 
     def USER_MESSAGE(self, response_code):

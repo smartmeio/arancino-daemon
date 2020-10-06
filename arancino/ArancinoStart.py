@@ -39,8 +39,8 @@ from arancino.ArancinoRestApi import ArancinoApi
 
 auth = HTTPBasicAuth()
 
-m = Arancino()
 c = ArancinoConfig.Instance()
+m = Arancino()
 
 LOG = ArancinoLogger.Instance().getLogger()
 ENV = os.environ.get('ARANCINOENV')
@@ -150,17 +150,36 @@ def __runArancinoApi():
         return response
 
     @app.route('/api/v1/ports/<port_id>', methods=['GET'])
-    def api_get_port(port_id):
+    def api_port_get(port_id):
 
         result = api.getPort(port_id)
         response = jsonify(result[0])
         response.status_code = result[1]
         return response
 
+    @app.route('/api/v1/arancino/config', methods=['GET'])
+    def api_arancino_conf_get():
+
+        """
+        A json in the body is passed to obtain one o more specific configuration.
+        An empty body means you get all the configurations.
+        :return:
+        """
+
+        #if(request.get_json()): # una o piu conf specifica/e
+        result = api.getArancinoConf(request.get_json())
+        #else:   # tutte le conf.
+        #    result = api.getArancinoConf()
+
+        response = jsonify(result[0])
+        response.status_code = result[1]
+        return response
+
+
     #### OPERATIONS ####
     @app.route('/api/v1/ports/<port_id>/reset', methods=['POST'])
     @auth.login_required
-    def api_reset(port_id=None):
+    def api_port_reset(port_id=None):
         result = api.resetPort(port_id)
         response = jsonify(result[0])
         response.status_code = result[1]
@@ -168,7 +187,7 @@ def __runArancinoApi():
 
     @app.route('/api/v1/ports/<port_id>/enable', methods=['POST'])
     @auth.login_required
-    def api_enable(port_id=None):
+    def api_port_enable(port_id=None):
         result = api.enablePort(port_id)
         response = jsonify(result[0])
         response.status_code = result[1]
@@ -176,7 +195,7 @@ def __runArancinoApi():
 
     @app.route('/api/v1/ports/<port_id>/disable', methods=['POST'])
     @auth.login_required
-    def api_disable(port_id=None):
+    def api_port_disable(port_id=None):
         result = api.disablePort(port_id)
         response = jsonify(result[0])
         response.status_code = result[1]
@@ -184,7 +203,7 @@ def __runArancinoApi():
 
     @app.route('/api/v1/ports/<port_id>/upload', methods=['POST'])
     @auth.login_required
-    def upload_file(port_id):
+    def api_port_upload_firmware(port_id):
 
         # check if the post request has the file part
         if 'firmware' not in request.files:
@@ -208,7 +227,7 @@ def __runArancinoApi():
             file_fw = os.path.join(path, file.filename)
             file.save(file_fw)
 
-            result = api.uploadFirmware(port_id, file_fw)
+            result = api.uploadPortFirmware(port_id, file_fw)
 
             response = jsonify(result[0])
             response.status_code = result[1]
@@ -221,8 +240,8 @@ def __runArancinoApi():
 
     @app.route('/api/v1/ports/<port_id>/config', methods=['POST'])
     @auth.login_required
-    def api_config(port_id=None, alias = None, enable = None, hide = None):
-        result = api.setConfig(port_id, request.get_json())
+    def api_port_config(port_id=None):
+        result = api.setPortConfig(port_id, request.get_json())
         response = jsonify(result[0])
         response.status_code = result[1]
         return response
@@ -230,7 +249,7 @@ def __runArancinoApi():
 
     @app.route('/api/v1/ports/<port_id>/hide', methods=['POST'])
     @auth.login_required
-    def api_hide(port_id=None):
+    def api_port_hide(port_id=None):
         result = api.hidePort(port_id)
         response = jsonify(result[0])
         response.status_code = result[1]
@@ -239,8 +258,22 @@ def __runArancinoApi():
 
     @app.route('/api/v1/ports/<port_id>/show', methods=['POST'])
     @auth.login_required
-    def api_show(port_id=None):
+    def api_port_show(port_id=None):
         result = api.showPort(port_id)
+        response = jsonify(result[0])
+        response.status_code = result[1]
+        return response
+
+    @app.route('/api/v1/arancino/config', methods=['POST'])
+    def api_arancino_conf_set():
+
+        """
+        """
+        section = request.args.get("section")
+        option = request.args.get("option")
+        value = request.args.get("value")
+        result = api.setArancinoConf(section, option, value)
+
         response = jsonify(result[0])
         response.status_code = result[1]
         return response

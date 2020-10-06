@@ -59,12 +59,12 @@ class ArancinoConfig:
 
         env = os.environ.get('ARANCINOENV')
         if env.upper() == "DEV" or env.upper() == "TEST" or env.upper() == "DEBUG" or env.upper() == "DEVELOPMENT":
-            cfg_file = "arancino.test.cfg"
+            self.__cfg_file = "arancino.test.cfg"
         elif env.upper() == "PROD" or env.upper() == "PRODUCTION":
-            cfg_file = "arancino.cfg"
+            self.__cfg_file = "arancino.cfg"
 
-        Config = configparser.ConfigParser()
-        Config.read(os.path.join(os.environ.get('ARANCINOCONF'), cfg_file))
+        self.Config = configparser.ConfigParser()
+        self.Config.read(os.path.join(os.environ.get('ARANCINOCONF'), self.__cfg_file))
 
         ConfigMeta = configparser.ConfigParser()
         ConfigMeta.read(os.path.join(os.environ.get('ARANCINOCONF'), "meta.cfg"))
@@ -74,71 +74,71 @@ class ArancinoConfig:
 
         # CONFIG GENERAL SECTION
         self.__general_env = env
-        self.__general_cycle_time = int(Config.get("general", "cycle_time"))
+        self.__general_cycle_time = int(self.Config.get("general", "cycle_time"))
         #self.__general_users = Config.get("general", "users")
 
         # CONFIG REDIS SECTION
-        self.__redis_instance_type = Config.get("redis", "instance_type")
-        self.__redis_connection_attempts = int(Config.get("redis", "connection_attempts"))
+        self.__redis_instance_type = self.Config.get("redis", "instance_type")
+        self.__redis_connection_attempts = int(self.Config.get("redis", "connection_attempts"))
 
-        self.__redis_host = Config.get("redis", "host")
-        self.__redis_port_volatile = Config.get("redis", "port_volatile")
-        self.__redis_port_persistent = Config.get("redis", "port_persistent")
-        self.__redis_decode_response = stringToBool(Config.get("redis", "decode_response"))
+        self.__redis_host = self.Config.get("redis", "host")
+        self.__redis_port_volatile = self.Config.get("redis", "port_volatile")
+        self.__redis_port_persistent = self.Config.get("redis", "port_persistent")
+        self.__redis_decode_response = stringToBool(self.Config.get("redis", "decode_response"))
 
-        self.__redis_volatile_datastore_std_db = int(Config.get("redis.volatile", "datastore_std_db"))
-        self.__redis_volatile_datastore_dev_db = int(Config.get("redis.volatile", "datastore_dev_db"))
-        self.__redis_volatile_datastore_per_db = int(Config.get("redis.volatile", "datastore_per_db"))
+        self.__redis_volatile_datastore_std_db = int(self.Config.get("redis.volatile", "datastore_std_db"))
+        self.__redis_volatile_datastore_dev_db = int(self.Config.get("redis.volatile", "datastore_dev_db"))
+        self.__redis_volatile_datastore_per_db = int(self.Config.get("redis.volatile", "datastore_per_db"))
 
-        self.__redis_persistent_datastore_std_db = int(Config.get("redis.persistent", "datastore_std_db"))
-        self.__redis_persistent_datastore_dev_db = int(Config.get("redis.persistent", "datastore_dev_db"))
-        self.__redis_persistent_datastore_per_db = int(Config.get("redis.persistent", "datastore_per_db"))
+        self.__redis_persistent_datastore_std_db = int(self.Config.get("redis.persistent", "datastore_std_db"))
+        self.__redis_persistent_datastore_dev_db = int(self.Config.get("redis.persistent", "datastore_dev_db"))
+        self.__redis_persistent_datastore_per_db = int(self.Config.get("redis.persistent", "datastore_per_db"))
 
-        self.__redis_volatile_persistent_datastore_std_db = int(Config.get("redis.volatile_persistent", "datastore_std_db"))
-        self.__redis_volatile_persistent_datastore_dev_db = int(Config.get("redis.volatile_persistent", "datastore_dev_db"))
-        self.__redis_volatile_persistent_datastore_per_db = int(Config.get("redis.volatile_persistent", "datastore_per_db"))
+        self.__redis_volatile_persistent_datastore_std_db = int(self.Config.get("redis.volatile_persistent", "datastore_std_db"))
+        self.__redis_volatile_persistent_datastore_dev_db = int(self.Config.get("redis.volatile_persistent", "datastore_dev_db"))
+        self.__redis_volatile_persistent_datastore_per_db = int(self.Config.get("redis.volatile_persistent", "datastore_per_db"))
 
 
 
         # CONFIG PORT SECTION
-        self.__port_firmware_path = Config.get("port", "firmware_path")
-        self.__port_firmware_file_types = Config.get("port", "firmware_file_types")
-        self.__port_reset_on_connect = stringToBool(Config.get("port", "reset_on_connect"))
+        self.__port_firmware_path = self.Config.get("port", "firmware_path")
+        self.__port_firmware_file_types = self.Config.get("port", "firmware_file_types")
+        self.__port_reset_on_connect = stringToBool(self.Config.get("port", "reset_on_connect"))
 
         # CONFIG SERIAL PORT SECTION
-        self.__port_serial_enabled = stringToBool(Config.get("port.serial", "enabled"))
-        self.__port_serial_hide = stringToBool(Config.get("port.serial", "hide"))
-        self.__port_serial_comm_baudrate = int(Config.get("port.serial", "comm_baudrate"))
-        self.__port_serial_reset_baudrate = int(Config.get("port.serial", "reset_baudrate"))
-        self.__port_serial_filter_type = Config.get("port.serial", "filter_type")
-        self.__port_serial_filter_list = Config.get("port.serial", "filter_list")
-        self.__port_serial_upload_command = Config.get("port.serial", "upload_command")
-        self.__port_serial_timeout = int(Config.get("port.serial", "timeout"))
-        self.__port_serial_reset_on_connect = self.__get_or_override_bool(Config, "port.serial", "reset_on_connect", "port", "reset_on_connect")
+        self.__port_serial_enabled = stringToBool(self.Config.get("port.serial", "enabled"))
+        self.__port_serial_hide = stringToBool(self.Config.get("port.serial", "hide"))
+        self.__port_serial_comm_baudrate = int(self.Config.get("port.serial", "comm_baudrate"))
+        self.__port_serial_reset_baudrate = int(self.Config.get("port.serial", "reset_baudrate"))
+        self.__port_serial_filter_type = self.Config.get("port.serial", "filter_type")
+        self.__port_serial_filter_list = self.Config.get("port.serial", "filter_list")
+        self.__port_serial_upload_command = self.Config.get("port.serial", "upload_command")
+        self.__port_serial_timeout = int(self.Config.get("port.serial", "timeout"))
+        self.__port_serial_reset_on_connect = self.__get_or_override_bool(self.Config, "port.serial", "reset_on_connect", "port", "reset_on_connect")
 
         # CONFIG TEST PORT SECTION
-        self.__port_test_enabled = stringToBool(Config.get("port.test", "enabled"))
-        self.__port_test_hide = stringToBool(Config.get("port.test", "hide"))
-        self.__port_test_filter_type = Config.get("port.test", "filter_type")
-        self.__port_test_filter_list = Config.get("port.test", "filter_list")
-        self.__port_test_num = int(Config.get("port.test", "num"))
-        self.__port_test_delay = float(Config.get("port.test", "delay"))
-        self.__port_test_id_template = Config.get("port.test", "id_template")
-        self.__port_test_upload_command = Config.get("port.test", "upload_command")
-        self.__port_test_reset_on_connect = self.__get_or_override_bool(Config, "port.test", "reset_on_connect", "port", "reset_on_connect")
+        self.__port_test_enabled = stringToBool(self.Config.get("port.test", "enabled"))
+        self.__port_test_hide = stringToBool(self.Config.get("port.test", "hide"))
+        self.__port_test_filter_type = self.Config.get("port.test", "filter_type")
+        self.__port_test_filter_list = self.Config.get("port.test", "filter_list")
+        self.__port_test_num = int(self.Config.get("port.test", "num"))
+        self.__port_test_delay = float(self.Config.get("port.test", "delay"))
+        self.__port_test_id_template = self.Config.get("port.test", "id_template")
+        self.__port_test_upload_command = self.Config.get("port.test", "upload_command")
+        self.__port_test_reset_on_connect = self.__get_or_override_bool(self.Config, "port.test", "reset_on_connect", "port", "reset_on_connect")
 
         # CONFIG LOG SECTION
-        self.__log_level = Config.get("log", "level")
-        self.__log_name = Config.get("log", "name")
-        self.__log_size = int(Config.get("log", "size")) if 0 < int(Config.get("log", "size")) <= 5 else 1
-        self.__log_rotate = int(Config.get("log", "rotate")) if 0 < int(Config.get("log", "rotate")) <= 10 else 1
+        self.__log_level = self.Config.get("log", "level")
+        self.__log_name = self.Config.get("log", "name")
+        self.__log_size = int(self.Config.get("log", "size")) if 0 < int(self.Config.get("log", "size")) <= 5 else 1
+        self.__log_rotate = int(self.Config.get("log", "rotate")) if 0 < int(self.Config.get("log", "rotate")) <= 10 else 1
 
-        self.__log_handler_console = stringToBool(Config.get("log", "handler_console"))
-        self.__log_handler_file = stringToBool(Config.get("log", "handler_file"))
+        self.__log_handler_console = stringToBool(self.Config.get("log", "handler_console"))
+        self.__log_handler_file = stringToBool(self.Config.get("log", "handler_file"))
 
-        self.__log_file_log = Config.get("log", "file_log")
+        self.__log_file_log = self.Config.get("log", "file_log")
         #self.__log_file_api = Config.get("log", "file_base")
-        self.__log_file_error = Config.get("log", "file_error")
+        self.__log_file_error = self.Config.get("log", "file_error")
         #self.__log_file_stats = Config.get("log", "file_stats")
 
 
@@ -336,6 +336,60 @@ class ArancinoConfig:
     #
     # def get_stats_file_path(self):
     #     return os.path.join(self.__dirlog, self.__log_file_stats)
+
+
+    def get_config_by_name(self, section, option):
+        try:
+            section = section.replace('-', '.')
+            val = self.Config.get(section, option)
+            return val
+        except configparser.NoOptionError as ex:
+            return None
+        except configparser.NoSectionError as ex:
+            return None
+
+
+    def get_config_all(self):
+        result = {}
+        for sec in self.Config.sections():
+            result[sec] = {}
+            for it in self.Config.items(sec):
+                result[sec][it[0]] = it[1]
+
+        return result
+
+    # def test(self):
+    #
+    #     test = {}
+    #     for sec in self.Config.sections():
+    #         test[sec] = {}
+    #         for it in self.Config.items(sec):
+    #             test[sec][it[0]] = it[1]
+    #
+    #
+    #     print(test)
+    #     dmp = json.dumps(test);
+    #     ob = json.loads(dmp)
+    #     print(ob)
+
+
+
+    def set_config_by_name(self, section, option, value):
+        try:
+            #section = section.replace('-', '.')
+            self.Config.set(section, option, value)
+            self.__write_config()
+            return self.Config.get(section, option)
+        except configparser.NoOptionError as ex:
+            return None
+        except configparser.NoSectionError as ex:
+            return None
+
+    def __write_config(self):
+        filename = os.path.join(os.environ.get('ARANCINOCONF'), self.__cfg_file)
+        with open(filename, 'w') as configfile:
+            self.Config.write(configfile)
+
 
 @Singleton
 class ArancinoLogger:
