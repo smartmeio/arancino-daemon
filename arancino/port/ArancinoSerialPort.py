@@ -125,7 +125,8 @@ class ArancinoSerialPort(ArancinoPort):
 
                     # if it is not compatible an error was send back to the mcu and the communnication is not started (the mcu receive an errore and try to connect again)
                     # if it is compatible the communication starts and it ready to receive new commands.
-                    self._setStarted(self.isCompatible())
+                    started = True if self.isCompatible() else False
+                    self._setStarted(started)
 
                 # send the response back.
                 self.sendResponse(arsp.getRaw())

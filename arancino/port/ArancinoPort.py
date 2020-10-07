@@ -44,7 +44,7 @@ class ArancinoPort(object):
         self._m_s_plugged = m_s_plugged
         self._m_s_connected = False
         self._m_s_last_usage_date = None
-        self._m_s_compatible = True     # Compatible by default, is not compatible it will be setted later, after connection: in the START comamnd
+        self._m_s_compatible = None
         self._m_s_started = False
 
         # BASE CONFIGURATION METADATA
