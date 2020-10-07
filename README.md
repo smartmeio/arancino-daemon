@@ -4,7 +4,7 @@ It's designed to run on Arancino OS, but can run on Unix-based systems. It manag
 implement the Arancino Cortex Protocol. It can manage multiple connection at time.
 
 - [Getting Started](docs/GETTINGSTARTED.md)
-- [Configuration](docs/CONFIGURATION.md)
+- [Configuration](docs:/CONFIGURATION.md)
 - [Rest API v1.0](docs/APIv1.0.md)
 
 
