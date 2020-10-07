@@ -603,7 +603,7 @@ class ArancinoApi():
             response[DB_KEYS.B_ID] = port.getId()
             response[DB_KEYS.L_DEVICE] = port.getDevice()
             response[DB_KEYS.B_PORT_TYPE] = port.getPortType().name
-            response[DB_KEYS.B_LIB_VER] = str(port.getLibVersion())
+            response[DB_KEYS.B_LIB_VER] = None if port.getLibVersion() == None else str(port.getLibVersion())
 
             # BASE ARANCINO STATUS METADATA (S)Status
             response[DB_KEYS.S_CONNECTED] = port.isConnected()
