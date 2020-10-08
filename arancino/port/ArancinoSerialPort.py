@@ -18,8 +18,8 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 """
-import semantic_version
-import serial, time
+
+import serial
 from serial import SerialException
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.handler.ArancinoSerialHandler import ArancinoSerialHandler
@@ -27,6 +27,7 @@ from arancino.ArancinoCortex import *
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 import time
+
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
@@ -118,10 +119,10 @@ class ArancinoSerialPort(ArancinoPort):
 
             try:
                 # move there that, becouse if there's an non compatibility error, lib version will not setted
-                #   moving that in the finally, it will setted
+                #  moving that in the finally, it will be setted
                 if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
-                    v = semantic_version.Version(acmd.getArguments()[0])
-                    self._setLibVersion(v)
+
+                    self._retrieveStartCmdArgs(acmd.getArguments())
 
                     # if it is not compatible an error was send back to the mcu and the communnication is not started (the mcu receive an errore and try to connect again)
                     # if it is compatible the communication starts and it ready to receive new commands.

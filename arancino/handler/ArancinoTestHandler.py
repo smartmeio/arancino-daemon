@@ -101,7 +101,6 @@ class ArancinoTestHandler(threading.Thread):
                 time.sleep(0.25)
 
 
-
             LOG.warning("{}Connection lost".format(self.__log_prefix))
             if self.__connectionLostHandler is not None:
                 self.__connectionLostHandler()
@@ -149,9 +148,27 @@ class ArancinoTestHandler(threading.Thread):
 
         list = []
 
-
         # START
-        list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + "1.0.0" + specChars.CHR_EOT)
+            # firmware upload date time
+        fw_date_str = "Oct 21 1988"
+        fw_time_str = "12:48:00"
+        fw_tz_str = "+06:00"
+        fw_datetime_str = fw_date_str + ' ' + fw_time_str + ' ' + fw_tz_str
+        fw_datetime_str = ""
+            # firmware version
+        fw_version = "0.0.1"
+        #fw_version = ""
+
+            # fimware name
+        fw_name = "Arancino Test Port Firmware"
+        #fw_name = ""
+            # arancino library version
+
+        lib_version = "1.0.0"
+
+
+        list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + lib_version + specChars.CHR_SEP + fw_name + specChars.CHR_SEP + fw_version + specChars.CHR_SEP + fw_datetime_str + specChars.CHR_EOT)
+        #list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + lib_version + specChars.CHR_EOT)
 
         # SET
         list.append(cmdId.CMD_APP_SET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_KEY" + specChars.CHR_SEP + "TEST_VAL" + specChars.CHR_EOT)

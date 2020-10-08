@@ -161,13 +161,9 @@ class ArancinoCommandExecutor:
 
         # first argument in the START comamnd is the version of the library
         value_libvers = args[0]
-        key_libvers = ArancinoReservedChars.RSVD_KEY_LIBVERSION + self.__port_id + ArancinoReservedChars.RSVD_CHARS
 
-        # convert
+        # convert string to semver object
         semver_value_libvers = semver.Version(value_libvers)
-
-        # store the reserved key
-        # self.__datastore.set(key_libvers, value_libvers)
 
         # and then check if it's compatible. if the library is not compatible, disconnect the board and
         # if value_libvers not in self.compatibility_array:

@@ -603,14 +603,17 @@ class ArancinoApi():
             response[DB_KEYS.B_ID] = port.getId()
             response[DB_KEYS.L_DEVICE] = port.getDevice()
             response[DB_KEYS.B_PORT_TYPE] = port.getPortType().name
-            response[DB_KEYS.B_LIB_VER] = None if port.getLibVersion() == None else str(port.getLibVersion())
+            response[DB_KEYS.B_LIB_VER] = None if port.getLibVersion() is None else str(port.getLibVersion())
+            response[DB_KEYS.B_FW_NAME] = None if port.getFirmwareName() is None else str(port.getFirmwareName())
+            response[DB_KEYS.B_FW_VER] = None if port.getFirmwareVersion() is None else str(port.getFirmwareVersion())
+            response[DB_KEYS.B_FW_UPLOAD_DATE] = None if port.getFirmwareUploadDate() is None else port.getFirmwareUploadDate()
 
             # BASE ARANCINO STATUS METADATA (S)Status
             response[DB_KEYS.S_CONNECTED] = port.isConnected()
             response[DB_KEYS.S_PLUGGED] = port.isPlugged()
             response[DB_KEYS.B_CREATION_DATE] = port.getCreationDate()
             response[DB_KEYS.S_LAST_USAGE_DATE] = port.getLastUsageDate()
-            response[DB_KEYS.S_UPTIME] = secondsToHumanString(port.getUptime())
+            response[DB_KEYS.S_UPTIME] = None if port.getUptime() is None else secondsToHumanString(port.getUptime())
             response[DB_KEYS.S_COMPATIBILITY] = port.isCompatible()
             response[DB_KEYS.S_STARTED] = port.isStarted()
 

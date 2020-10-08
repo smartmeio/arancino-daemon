@@ -22,8 +22,12 @@ under the License
 from abc import ABCMeta, abstractmethod
 from enum import Enum
 import time
+from datetime import datetime
 
 from types import FunctionType, MethodType
+
+import semantic_version
+
 
 class ArancinoPort(object):
 
@@ -39,6 +43,9 @@ class ArancinoPort(object):
         self._library_version = None
         self._m_b_creation_date = None
         self._start_thread_time = None
+        self._firmware_version = None
+        self._firmware_name = None
+        self._firmware_upload_datetime = None
 
         # BASE STATUS METADATA
         self._m_s_plugged = m_s_plugged
@@ -66,6 +73,34 @@ class ArancinoPort(object):
 
 
         self.__first_time = True
+
+
+    def _retrieveStartCmdArgs(self, args):
+        arg_num = len(args)
+
+        ### Retrieving some info and metadata: ###
+
+        # Arancino Library Version
+        if arg_num > 0:
+            arancino_lib_version = semantic_version.Version(args[0])
+            self._setLibVersion(arancino_lib_version)
+
+        # Arancino Firmware Name
+        if arg_num > 1:
+            arancino_fw_name = None if args[1].strip() == "" else args[1].strip()
+            self._setFirmwareName(arancino_fw_name)
+
+        # Arancino Firmware Version
+        if arg_num > 2:
+            arancino_fw_version = None if args[2].strip() == "" else semantic_version.Version(args[2])
+            self._setFirmwareVersion(arancino_fw_version)
+
+        # Arancino Firmware Upload Datetime/Timestamp
+        if arg_num > 3:
+            arancino_firmware_upload_datetime = None if args[3].strip() == "" else datetime.strptime(args[3], '%b %d %Y %H:%M:%S %z')
+            arancino_firmware_upload_datetime = datetime.timestamp(arancino_firmware_upload_datetime)
+            arancino_firmware_upload_datetime = datetime.fromtimestamp(arancino_firmware_upload_datetime)
+            self._setFirmwareUploadDate(arancino_firmware_upload_datetime)
 
     def unplug(self):
         self.disconnect()
@@ -191,6 +226,30 @@ class ArancinoPort(object):
 
     def getUptime(self):
         return time.time() - self._start_thread_time
+
+
+    def getFirmwareVersion(self):
+        return self._firmware_version
+
+
+    def _setFirmwareVersion(self, firmware_version):
+        self._firmware_version = firmware_version
+
+
+    def getFirmwareName(self):
+        return self._firmware_name
+
+
+    def _setFirmwareName(self, firmware_name):
+        self._firmware_name = firmware_name
+
+
+    def getFirmwareUploadDate(self):
+        return self._firmware_upload_datetime
+
+
+    def _setFirmwareUploadDate(self, firmware_upload_datetime):
+        self._firmware_upload_datetime = firmware_upload_datetime
 
     #endregion
 

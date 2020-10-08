@@ -137,7 +137,7 @@ class ArancinoCommandIdentifiers:
 
     # Init commands
     __CMD_SYS_START = 'START'
-    CMD_SYS_START = {"id": __CMD_SYS_START, "args": 1, "op": ArancinoOperators.EQUAL}
+    CMD_SYS_START = {"id": __CMD_SYS_START, "args": 1, "op": ArancinoOperators.GREATER_THAN_OR_EQUAL}
     "Start Commmand"
 
     # Simple Operation Commands
@@ -240,6 +240,9 @@ class ArancinoDBKeys:
     B_PORT_TYPE = "B_PORT_TYPE"             # Num
     B_CREATION_DATE = "S_CREATION_DATE"     # Datetime
     B_LIB_VER = "B_LIB_VER"                 # String
+    B_FW_VER = "B_FW_VER"                   # String
+    B_FW_NAME = "B_FW_NAME"                 # String
+    B_FW_UPLOAD_DATE = "B_FW_UPLOAD_DATE"   # Datetime
 
     # LINK ARANCINO METADATA (L)ink
     L_DEVICE = "L_DEVICE"                   # String
@@ -277,6 +280,9 @@ class ArancinoDBKeys:
         B_PORT_TYPE: "B_PORT_TYPE",             # Num
         B_CREATION_DATE: "S_CREATION_DATE",     # Datetime
         B_LIB_VER: "B_LIB_VER",                 # String
+        B_FW_VER: "B_FW_VER",                   # String
+        B_FW_NAME: "B_FW_NAME",                 # String
+        B_FW_UPLOAD_DATE: "B_FW_UPLOAD_DATE",   # Datetime
 
         # LINK ARANCINO METADATA (L)ink
         L_DEVICE: "L_DEVICE",                   # String
@@ -310,39 +316,42 @@ class ArancinoDBKeys:
 
     __DB_KEY_DESC = {
         # BASE ARANCINO METADATA (B)ase
-        B_ID: "Id",  # String
-        B_PORT_TYPE: "Type",  # Num
-        B_CREATION_DATE: "Creation Date",  # Datetime
-        B_LIB_VER: "Library Version",  # String
+        B_ID: "Id",                                 # String
+        B_PORT_TYPE: "Type",                        # Num
+        B_CREATION_DATE: "Creation Date",           # Datetime
+        B_LIB_VER: "Library Version",               # String
+        B_FW_VER: "Fimrware Version",               # String
+        B_FW_NAME: "Firmware Name",                 # String
+        B_FW_UPLOAD_DATE: "Firmware Upload Date",   # Datetime
 
         # LINK ARANCINO METADATA (L)ink
-        L_DEVICE: "Connection Id",  # String
+        L_DEVICE: "Connection Id",                  # String
 
         # BASE ARANCINO STATUS METADATA (S)tatus
-        S_CONNECTED: "Connected",  # Boolean
-        S_PLUGGED: "Plugged",  # Boolean
-        S_LAST_USAGE_DATE: "Last Usage Date",  # Datetime
-        S_UPTIME: "Uptime",  # Datetime
-        S_COMPATIBILITY: "Compatibility", # Boolean
-        S_COMPATIBILITY: "Started",  # Boolean
+        S_CONNECTED: "Connected",                   # Boolean
+        S_PLUGGED: "Plugged",                       # Boolean
+        S_LAST_USAGE_DATE: "Last Usage Date",       # Datetime
+        S_UPTIME: "Uptime",                         # Datetime
+        S_COMPATIBILITY: "Compatibility",           # Boolean
+        S_COMPATIBILITY: "Started",                 # Boolean
 
         # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
-        C_ENABLED: "Enabled",  # Boolean
-        C_ALIAS: "Alias",  # Boolean
-        C_HIDE_DEVICE: "Hidden",  # Boolean
+        C_ENABLED: "Enabled",                       # Boolean
+        C_ALIAS: "Alias",                           # Boolean
+        C_HIDE_DEVICE: "Hidden",                    # Boolean
 
         # SERIAL ARANCINO PORT METADATA (P)Port
-        P_NAME: "Serial Name",  # String
-        P_DESCRIPTION: "Serial Port Description",  # String
-        P_HWID: "Serial Port Hardware Id",  # String
-        P_VID: "Serial Port Vendor Id",  # Number in Hex format
-        P_PID: "Serial Port Product Id",  # Number in Hex
-        P_SERIALNUMBER: "Serial Port Serial Number",  # String (Hex)
-        P_LOCATION: "Serial Port Location",  # Number-Number
-        P_MANUFACTURER: "Serial Port Manufcaturer",  # String
-        P_PRODUCT: "Serial Port Product Name",  # String
-        P_INTERFACE: "Serial Port Interface",  # String
-        P_DEVICE: "Serial Port Device Name",  # String
+        P_NAME: "Serial Name",                      # String
+        P_DESCRIPTION: "Serial Port Description",   # String
+        P_HWID: "Serial Port Hardware Id",          # String
+        P_VID: "Serial Port Vendor Id",             # Number in Hex format
+        P_PID: "Serial Port Product Id",            # Number in Hex
+        P_SERIALNUMBER: "Serial Port Serial Number",# String (Hex)
+        P_LOCATION: "Serial Port Location",         # Number-Number
+        P_MANUFACTURER: "Serial Port Manufcaturer", # String
+        P_PRODUCT: "Serial Port Product Name",      # String
+        P_INTERFACE: "Serial Port Interface",       # String
+        P_DEVICE: "Serial Port Device Name",        # String
     }
 
 
@@ -501,6 +510,7 @@ COMPATIBILITY_MATRIX_MOD_SERIAL = {
     "1.2.0": ["=0.2.0"],
     "1.2.1": ["=0.2.0"],
     "2.0.0": [">=0.3.0,<1.0.0", ">=1.2.0"],
+    "2.1.0": [">=0.3.0,<1.0.0", ">=1.2.0"],
     #"2.0.0": ["<0.3.0", ">=1.2.0"], # for tests
 }
 

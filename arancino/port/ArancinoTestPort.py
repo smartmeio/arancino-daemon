@@ -30,6 +30,7 @@ import uuid
 import time
 
 
+
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
 
@@ -97,8 +98,8 @@ class ArancinoTestPort(ArancinoPort):
                 # move there that, becouse if there's an non compatibility error, lib version will not setted
                 #   moving that in the finally, it will setted
                 if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
-                    v = semantic_version.Version(acmd.getArguments()[0])
-                    self._setLibVersion(v)
+
+                    self._retrieveStartCmdArgs(acmd.getArguments())
 
                     # if it is not compatible an error was send back to the mcu and the communnication is not started (the mcu receive an errore and try to connect again)
                     # if it is compatible the communication starts and it ready to receive new commands.
