@@ -1,6 +1,11 @@
 # Changelog
 
-#### v 2.0.0 2020.MM.DD
+#### v 2.1.0 2020.MM.DD
+* Introduced a new State called "STARTED". It rappresent the state of the communiction between a port and Aracino Module. #199
+* Fixed Rest API for port configuration (Alias, Enable/Disable, Hide/Show). #95
+* Introduced Rest API for get and set Arancino configuration.
+
+#### v 2.0.0 2020.07.24
 * Now Resets each microcontroller before connecting (requires `v1.1.0` Arancino Platform)
 * Changed project structure to a more modular architecture. Arancino Port Type can now be easily extended.
 * Improved logger formatter.
