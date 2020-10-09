@@ -44,8 +44,8 @@ class ArancinoCommandExecutor:
         self.__datastore_pers = redis.getDataStorePer()
 
         self.__conf = ArancinoConfig.Instance()
-        self.__compatibility_array_serial = COMPATIBILITY_MATRIX_MOD_SERIAL[str(self.__conf.get_metadata_version().truncate())]
-        self.__compatibility_array_test = COMPATIBILITY_MATRIX_MOD_TEST[str(self.__conf.get_metadata_version().truncate())]
+#        self.__compatibility_array_serial = COMPATIBILITY_MATRIX_MOD_SERIAL[str(self.__conf.get_metadata_version().truncate())]
+#        self.__compatibility_array_test = COMPATIBILITY_MATRIX_MOD_TEST[str(self.__conf.get_metadata_version().truncate())]
 
 
     def exec(self, arancino_command):
@@ -160,10 +160,10 @@ class ArancinoCommandExecutor:
         """
 
         # first argument in the START comamnd is the version of the library
-        value_libvers = args[0]
+#        value_libvers = args[0]
 
         # convert string to semver object
-        semver_value_libvers = semver.Version(value_libvers)
+#        semver_value_libvers = semver.Version(value_libvers)
 
         # and then check if it's compatible. if the library is not compatible, disconnect the board and
         # if value_libvers not in self.compatibility_array:
@@ -182,27 +182,28 @@ class ArancinoCommandExecutor:
         # "1.0.0" >= "0.1.*" ---> False (KO: go forward)
         # "1.0.0" >= "0.2.*" ---> False (KO: go forward and raise exception)
 
-        compatibility_array = {}
+#        compatibility_array = {}
 
-        if self.__port_type == PortTypes.SERIAL:
-            compatibility_array = self.__compatibility_array_serial
-        elif self.__port_type == PortTypes.TEST:
-            compatibility_array = self.__compatibility_array_test
+#        if self.__port_type == PortTypes.SERIAL:
+#            compatibility_array = self.__compatibility_array_serial
+#        elif self.__port_type == PortTypes.TEST:
+#            compatibility_array = self.__compatibility_array_test
 
 
-        for compatible_ver in compatibility_array:
-            semver_compatible_ver = semver.SimpleSpec(compatible_ver)
-            if semver_value_libvers in semver_compatible_ver:
-                #now = datetime.now()
-                #ts = datetime.timestamp(now)
-                ts = datetime.now().timestamp()
+        # for compatible_ver in compatibility_array:
+        #     semver_compatible_ver = semver.SimpleSpec(compatible_ver)
+        #     if semver_value_libvers in semver_compatible_ver:
+        #         #now = datetime.now()
+        #         #ts = datetime.timestamp(now)
+        #         ts = datetime.now().timestamp()
 
-                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + self.__port_id + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
+        ts = datetime.now().timestamp()
+        return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + self.__port_id + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
 
         # NOTE: If the device is not disconnected, it will try to START every 2,5 seconds.
-        raise NonCompatibilityException(
-            "Module version " + str(self.__conf.get_metadata_version()) + " can not work with Library version " + value_libvers,
-            ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
+#        raise NonCompatibilityException(
+#            "Module version " + str(self.__conf.get_metadata_version()) + " can not work with Library version " + value_libvers,
+#            ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
 
 
     # SET STANDARD (to standard device store)
