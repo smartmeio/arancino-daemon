@@ -46,6 +46,7 @@ class ArancinoPort(object):
         self._firmware_version = None
         self._firmware_name = None
         self._firmware_upload_datetime = None
+        self._firmware_core_version = None
 
         # BASE STATUS METADATA
         self._m_s_plugged = m_s_plugged
@@ -102,6 +103,11 @@ class ArancinoPort(object):
             arancino_firmware_upload_datetime = datetime.fromtimestamp(arancino_firmware_upload_datetime)
             self._setFirmwareUploadDate(arancino_firmware_upload_datetime)
 
+        #Arancino Core Version
+        if arg_num > 4:
+            arancino_core_version = None if args[4].strip() == "" else semantic_version.Version(args[4])
+            self._setFirmwareCoreVersion(arancino_core_version)
+            
     def unplug(self):
         self.disconnect()
         self._m_s_plugged = False
@@ -247,6 +253,11 @@ class ArancinoPort(object):
     def getFirmwareUploadDate(self):
         return self._firmware_upload_datetime
 
+    def getFirmwareCoreVersion(self):
+        return self._firmware_core_version
+
+    def _setFirmwareCoreVersion(self, firmware_core_version):
+        self._firmware_core_version = firmware_core_version
 
     def _setFirmwareUploadDate(self, firmware_upload_datetime):
         self._firmware_upload_datetime = firmware_upload_datetime

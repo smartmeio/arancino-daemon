@@ -154,7 +154,7 @@ class ArancinoTestHandler(threading.Thread):
         fw_time_str = "12:48:00"
         fw_tz_str = "+06:00"
         fw_datetime_str = fw_date_str + ' ' + fw_time_str + ' ' + fw_tz_str
-        fw_datetime_str = ""
+        #fw_datetime_str = ""
             # firmware version
         fw_version = "0.0.1"
         #fw_version = ""
@@ -165,9 +165,9 @@ class ArancinoTestHandler(threading.Thread):
             # arancino library version
 
         lib_version = "1.0.0"
+        core_version = "1.0.0"
 
-
-        list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + lib_version + specChars.CHR_SEP + fw_name + specChars.CHR_SEP + fw_version + specChars.CHR_SEP + fw_datetime_str + specChars.CHR_EOT)
+        list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + lib_version + specChars.CHR_SEP + fw_name + specChars.CHR_SEP + fw_version + specChars.CHR_SEP + fw_datetime_str + specChars.CHR_SEP + core_version + specChars.CHR_EOT)
         #list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + lib_version + specChars.CHR_EOT)
 
         # SET

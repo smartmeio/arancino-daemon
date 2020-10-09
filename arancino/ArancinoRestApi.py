@@ -606,8 +606,9 @@ class ArancinoApi():
             response[DB_KEYS.B_LIB_VER] = None if port.getLibVersion() is None else str(port.getLibVersion())
             response[DB_KEYS.B_FW_NAME] = None if port.getFirmwareName() is None else str(port.getFirmwareName())
             response[DB_KEYS.B_FW_VER] = None if port.getFirmwareVersion() is None else str(port.getFirmwareVersion())
-            response[DB_KEYS.B_FW_UPLOAD_DATE] = None if port.getFirmwareUploadDate() is None else port.getFirmwareUploadDate()
-
+            response[DB_KEYS.B_FW_COMPILE_DATE] = None if port.getFirmwareUploadDate() is None else port.getFirmwareUploadDate()
+            response[DB_KEYS.B_FW_CORE_VER] = None if port.getFirmwareCoreVersion() is None else str(port.getFirmwareCoreVersion())
+            
             # BASE ARANCINO STATUS METADATA (S)Status
             response[DB_KEYS.S_CONNECTED] = port.isConnected()
             response[DB_KEYS.S_PLUGGED] = port.isPlugged()

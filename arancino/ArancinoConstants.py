@@ -242,8 +242,9 @@ class ArancinoDBKeys:
     B_LIB_VER = "B_LIB_VER"                 # String
     B_FW_VER = "B_FW_VER"                   # String
     B_FW_NAME = "B_FW_NAME"                 # String
-    B_FW_UPLOAD_DATE = "B_FW_UPLOAD_DATE"   # Datetime
-
+    B_FW_COMPILE_DATE = "B_FW_COMPILE_DATE" # Datetime
+    B_FW_CORE_VER = "B_FW_CORE_VER"         # String
+    
     # LINK ARANCINO METADATA (L)ink
     L_DEVICE = "L_DEVICE"                   # String
 
@@ -282,8 +283,9 @@ class ArancinoDBKeys:
         B_LIB_VER: "B_LIB_VER",                 # String
         B_FW_VER: "B_FW_VER",                   # String
         B_FW_NAME: "B_FW_NAME",                 # String
-        B_FW_UPLOAD_DATE: "B_FW_UPLOAD_DATE",   # Datetime
-
+        B_FW_COMPILE_DATE: "B_FW_COMPILE_DATE", # Datetime
+        B_FW_CORE_VER: "B_FW_CORE_VER",         # String
+        
         # LINK ARANCINO METADATA (L)ink
         L_DEVICE: "L_DEVICE",                   # String
 
@@ -322,8 +324,8 @@ class ArancinoDBKeys:
         B_LIB_VER: "Library Version",               # String
         B_FW_VER: "Fimrware Version",               # String
         B_FW_NAME: "Firmware Name",                 # String
-        B_FW_UPLOAD_DATE: "Firmware Upload Date",   # Datetime
-
+        B_FW_COMPILE_DATE: "Firmware Compile Date", # Datetime
+        B_FW_CORE_VER: "Firmware Core Version",     # String
         # LINK ARANCINO METADATA (L)ink
         L_DEVICE: "Connection Id",                  # String
 
