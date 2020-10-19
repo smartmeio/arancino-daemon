@@ -135,9 +135,12 @@ class ArancinoTestHandler(threading.Thread):
         # DEL
         list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_EOT)
 
+        # DEL
+        list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_MSET_KEY_1" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_MSET_KEY_2" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_MSET_KEY_3" + specChars.CHR_EOT)
+
         return list
-
-
 
     def __getCommnandsList(self):
 
@@ -169,7 +172,7 @@ class ArancinoTestHandler(threading.Thread):
 
         list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + lib_version + specChars.CHR_SEP + fw_name + specChars.CHR_SEP + fw_version + specChars.CHR_SEP + fw_datetime_str + specChars.CHR_SEP + core_version + specChars.CHR_EOT)
         #list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + lib_version + specChars.CHR_EOT)
-
+        """
         # SET
         list.append(cmdId.CMD_APP_SET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_KEY" + specChars.CHR_SEP + "TEST_VAL" + specChars.CHR_EOT)
 
@@ -240,6 +243,38 @@ class ArancinoTestHandler(threading.Thread):
 
         # PUB
         list.append(cmdId.CMD_APP_PUB["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_PUB" + specChars.CHR_SEP + "TEST_PUB_VAL" + specChars.CHR_EOT)
+        """
+        # MSET
+            # OK
+        keys = str(self.__id) + "_TEST_MSET_KEY_1" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MSET_KEY_2" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MSET_KEY_3"
+        values = "_TEST_MSET_VAL_1" + specChars.CHR_ARR_SEP + "_TEST_MSET_VAL_2" + specChars.CHR_ARR_SEP + "_TEST_MSET_VAL_3"
+        list.append(cmdId.CMD_APP_MSET["id"] + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
+
+            # KO
+        keys = str(self.__id) + "_TEST_MSET_KEY_1" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MSET_KEY_2"
+        list.append(cmdId.CMD_APP_MSET["id"] + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
+
+
+        #M GET
+            # OK
+        #list.append(cmdId.CMD_APP_MGET["id"] + specChars.CHR_SEP + keys + specChars.CHR_EOT)
+
+            # KO -> key does not exist
+        keys = str(self.__id) + "_TEST_MGET_1"
+        #list.append(cmdId.CMD_APP_MGET["id"] + specChars.CHR_SEP + keys + specChars.CHR_EOT)
+
+            # KO -> keys don't exist
+        keys = str(self.__id) + "_TEST_MGET_KEY_1" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MGET_KEY_2"
+        #list.append(cmdId.CMD_APP_MGET["id"] + specChars.CHR_SEP + keys + specChars.CHR_EOT)
+
+            # KO -> one key does not exist
+        keys = str(self.__id) + "_TEST_MSET_KEY_1" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MGET_KEY_2"
+        list.append(cmdId.CMD_APP_MGET["id"] + specChars.CHR_SEP + keys + specChars.CHR_EOT)
+
+            # KO -> empty list
+        keys = ""
+        list.append(cmdId.CMD_APP_MGET["id"] + specChars.CHR_SEP + keys + specChars.CHR_EOT)
+
 
         return list
 

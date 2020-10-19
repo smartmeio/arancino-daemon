@@ -48,6 +48,12 @@ class ArancinoSpecialChars:
     CHR_SEP = chr(30)
     "Separator Char: separates the commands id from arguments, and arguments themeself"
 
+    CHR_ARR_SEP = chr(16)
+    "Array Char: separates arguments data in case of array"
+
+    CHR_NULL_VALUE = chr(0)
+    "Representation of Null/None value"
+
 
 class ArancinoReservedChars:
     #Characters for Reserverd keys def
@@ -96,16 +102,22 @@ class ArancinoCommandErrorCodes:
     ERR_NON_COMPATIBILITY = '209'
     "Non compatibility between Arancino Module and Library"
 
-    ERRORS_CODE_LIST = [ERR,
-                        ERR_NULL,
-                        ERR_SET,
-                        ERR_CMD_NOT_FND,
-                        ERR_CMD_NOT_RCV,
-                        ERR_CMD_PRM_NUM,
-                        ERR_REDIS,
-                        ERR_REDIS_KEY_EXISTS_IN_STD,
-                        ERR_REDIS_KEY_EXISTS_IN_PERS,
-                        ERR_NON_COMPATIBILITY]
+    ERR_INVALID_ARGUMENTS = '210'
+    "Generic Invalid Arguments"
+
+    ERRORS_CODE_LIST = [
+                            ERR,
+                            ERR_NULL,
+                            ERR_SET,
+                            ERR_CMD_NOT_FND,
+                            ERR_CMD_NOT_RCV,
+                            ERR_CMD_PRM_NUM,
+                            ERR_REDIS,
+                            ERR_REDIS_KEY_EXISTS_IN_STD,
+                            ERR_REDIS_KEY_EXISTS_IN_PERS,
+                            ERR_NON_COMPATIBILITY,
+                            ERR_INVALID_ARGUMENTS,
+                        ]
 
 
 class ArancinoCommandResponseCodes:
@@ -193,6 +205,14 @@ class ArancinoCommandIdentifiers:
     CMD_APP_FLUSH = {"id": __CMD_APP_FLUSH, "args": 0, "op": ArancinoOperators.EQUAL}
     "Flush the current Database, delete all the keys from the current Database"
 
+    __CMD_APP_MSET = 'MSET'
+    CMD_APP_MSET = {"id": __CMD_APP_MSET, "args": 2, "op": ArancinoOperators.EQUAL}
+    "Sets more than one key value at the same time"
+
+    __CMD_APP_MGET = 'MGET'
+    CMD_APP_MGET = {"id": __CMD_APP_MGET, "args": 1, "op": ArancinoOperators.EQUAL}
+    "Sets more than one key value at the same time"
+
     COMMANDS_DICT = {
         __CMD_SYS_START: CMD_SYS_START,
         __CMD_APP_GET: CMD_APP_GET,
@@ -208,7 +228,9 @@ class ArancinoCommandIdentifiers:
         __CMD_APP_HDEL: CMD_APP_HDEL,
         __CMD_APP_HSET: CMD_APP_HSET,
         __CMD_APP_PUB: CMD_APP_PUB,
-        __CMD_APP_FLUSH: CMD_APP_FLUSH
+        __CMD_APP_FLUSH: CMD_APP_FLUSH,
+        __CMD_APP_MSET: CMD_APP_MSET,
+        __CMD_APP_MGET: CMD_APP_MGET,
     }
     "Complete dictionary of all available commands: " \
     "{ 'SET': {'id': 'SET', 'args': 2} , ... }"
@@ -227,7 +249,10 @@ class ArancinoCommandIdentifiers:
                      __CMD_APP_HDEL,
                      __CMD_APP_HSET,
                      __CMD_APP_PUB,
-                     __CMD_APP_FLUSH]
+                     __CMD_APP_FLUSH,
+                     __CMD_APP_MSET,
+                     __CMD_APP_MGET,
+                     ]
     "Complete list of all available commands:" \
     "[ 'SET', 'GET', ... ]"
 
@@ -335,7 +360,7 @@ class ArancinoDBKeys:
         S_LAST_USAGE_DATE: "Last Usage Date",       # Datetime
         S_UPTIME: "Uptime",                         # Datetime
         S_COMPATIBILITY: "Compatibility",           # Boolean
-        S_COMPATIBILITY: "Started",                 # Boolean
+        S_STARTED: "Started",                       # Boolean
 
         # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
         C_ENABLED: "Enabled",                       # Boolean

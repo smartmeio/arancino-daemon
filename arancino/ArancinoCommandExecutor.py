@@ -78,7 +78,7 @@ class ArancinoCommandExecutor:
             #     raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
 
 
-
+            #region Options
             # START
             if cmd_id == ArancinoCommandIdentifiers.CMD_SYS_START['id']:
                 raw_response = self.__OPTS_START(cmd_args)
@@ -135,10 +135,20 @@ class ArancinoCommandExecutor:
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_FLUSH['id']:
                 raw_response = self.__OPTS_FLUSH(cmd_args)
                 return raw_response
+            # MSET
+            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_MSET['id']:
+                raw_response = self.__OPTS_MSET(cmd_args)
+                return raw_response
+            # MGET
+            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_MGET['id']:
+                raw_response = self.__OPTS_MGET(cmd_args)
+                return raw_response
             # Default
             else:
                 raw_response = ArancinoCommandErrorCodes.ERR_CMD_NOT_FND + ArancinoSpecialChars.CHR_SEP
                 return raw_response
+
+            # endregion
             #cmd = ArancinoComamnd(cmd_id=cmd_id, cmd_args=cmd_args)
             #response = ArancinoResponse(raw_response=raw_response)
 
@@ -148,8 +158,9 @@ class ArancinoCommandExecutor:
         except Exception as ex:
             raise ex
 
+    #region COMMANDS OPTIONS
 
-    # START
+    #region START
     def __OPTS_START(self, args):
         """
         Microcontroller sends START command to start communication
@@ -205,18 +216,22 @@ class ArancinoCommandExecutor:
 #            "Module version " + str(self.__conf.get_metadata_version()) + " can not work with Library version " + value_libvers,
 #            ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
 
+    #endregion
 
-    # SET STANDARD (to standard device store)
+    #region SET
+    #region SET STANDARD (to standard device store)
     def __OPTS_SET_STD(self, args):
         # wraps __OPTS_SET
         return self.__OPTS_SET(args, "STD")
+    # endregion
 
-    # SET PERSISTENT (to persistent keys device store)
+    #region SET PERSISTENT (to persistent keys device store)
     def __OPTS_SET_PERS(self, args, ):
         # wraps __OPTS_SET
         return self.__OPTS_SET(args, "PERS")
+    # endregion
 
-    # SET
+    #region SET
     def __OPTS_SET(self, args, type):
         '''
         Set key to hold the string value. If key already holds a value,
@@ -312,8 +327,10 @@ class ArancinoCommandExecutor:
             # else:
             #     # return the error code
             #     return const.ERR_SET + const.CHR_EOT
+    # endregion
+    # endregion
 
-    # GET
+    #region GET
     def __OPTS_GET(self, args):
         '''
         Get the value of key. If the key does not exist the special value nil is returned.
@@ -368,9 +385,9 @@ class ArancinoCommandExecutor:
         else:
             # return the error code
             return ArancinoCommandErrorCodes.ERR_NULL + ArancinoSpecialChars.CHR_EOT
+    # endregion
 
-
-    # DEL
+    #region DEL
     def __OPTS_DEL(self, args):
         '''
         Removes the specified keys. A key is ignored if it does not exist.
@@ -394,9 +411,9 @@ class ArancinoCommandExecutor:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
         return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(num) + ArancinoSpecialChars.CHR_EOT
+    # endregion
 
-
-    # KEYS
+    #region KEYS
     def __OPTS_KEYS(self, args):
         '''
         Returns all keys matching pattern.
@@ -443,8 +460,9 @@ class ArancinoCommandExecutor:
 
         else:
             return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
+    # endregion
 
-    # HSET
+    #region HSET
     def __OPTS_HSET(self, args):
         '''
         Sets field in the hash stored at key to value.
@@ -474,8 +492,9 @@ class ArancinoCommandExecutor:
             return ArancinoCommandResponseCodes.RSP_HSET_NEW + ArancinoSpecialChars.CHR_EOT
         else:  # 0
             return ArancinoCommandResponseCodes.RSP_HSET_UPD + ArancinoSpecialChars.CHR_EOT
+    # endregion
 
-    # HGET
+    #region HGET
     def __OPTS_HGET(self, args):
         '''
         Returns the value associated with field in the hash stored at key.
@@ -504,8 +523,9 @@ class ArancinoCommandExecutor:
         else:
             # return the error code
             return ArancinoCommandErrorCodes.ERR_NULL + ArancinoSpecialChars.CHR_EOT
+    # endregion
 
-    # HGETALL
+    #region HGETALL
     def __OPTS_HGETALL(self, args):
 
         '''
@@ -535,8 +555,9 @@ class ArancinoCommandExecutor:
             rsp_str += ArancinoSpecialChars.CHR_SEP + field + ArancinoSpecialChars.CHR_SEP + data[field]
 
         return ArancinoCommandResponseCodes.RSP_OK + rsp_str + ArancinoSpecialChars.CHR_EOT
+    # endregion
 
-    # HKEYS
+    #region HKEYS
     def __OPTS_HKEYS(self, args):
 
         '''
@@ -561,8 +582,9 @@ class ArancinoCommandExecutor:
             return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + ArancinoSpecialChars.CHR_SEP.join(fields) + ArancinoSpecialChars.CHR_EOT
         else:
             return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
+    # endregion
 
-    # HVALS
+    #region HVALS
     def __OPTS_HVALS(self, args):
         '''
         Returns all values in the hash stored at key.
@@ -586,8 +608,9 @@ class ArancinoCommandExecutor:
             return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + ArancinoSpecialChars.CHR_SEP.join(values) + ArancinoSpecialChars.CHR_EOT
         else:
             return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
+    # endregion
 
-    # HDEL
+    #region HDEL
     def __OPTS_HDEL(self, args):
         '''
         Removes the specified fields from the hash stored at key.
@@ -613,7 +636,9 @@ class ArancinoCommandExecutor:
 
         return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(num) + ArancinoSpecialChars.CHR_EOT
 
-    # PUB
+    # endregion
+
+    #region PUB
     def __OPTS_PUB(self, args):
         '''
         Posts a message to the given channel. Return the number of clients
@@ -636,8 +661,9 @@ class ArancinoCommandExecutor:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
         return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(num) + ArancinoSpecialChars.CHR_EOT
+    # endregion
 
-    # FLUSH
+    #region FLUSH
     def __OPTS_FLUSH(self, args):
         '''
         Delete all the keys of the currently application DB.
@@ -673,6 +699,103 @@ class ArancinoCommandExecutor:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
         return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
+    # endregion
+
+    #region MSET
+    def __OPTS_MSET(self, args):
+        '''
+        Sets the given keys to their respective values. MSET replaces existing values with new values, just as regular SET.
+            https://redis.io/commands/mset
+
+        MCU → MSET#<key1>%<key2>%<key3>#<value1>%<value2>%<value3>@
+
+        MCU ← 100@
+        MCU ← 200@
+
+        '''
+
+        keys = args[0]
+        values = args[1]
+
+        try:
+
+            keys_array = keys.split(ArancinoSpecialChars.CHR_ARR_SEP)
+            values_array = values.split(ArancinoSpecialChars.CHR_ARR_SEP)
+
+            if keys_array and values_array and len(keys_array) > 0 and len(values_array) and len(keys_array) == len(values_array):
+
+                # create a map of key-value
+                map = {}
+                for idx, key in enumerate(keys_array):
+                    map[key] = values_array[idx]
+
+                value = self.__datastore.mset(map)
+            else:
+                raise RedisGenericException("Redis Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
+
+
+        except ArancinoException as ex:
+            raise ex
+
+        except Exception as ex:
+            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
+
+        if value:
+            # return ok
+            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
+        else:
+            # return the error code
+            return ArancinoCommandErrorCodes.ERR_NULL + ArancinoSpecialChars.CHR_EOT
+
+    # endregion
+
+    #region MGET
+    def __OPTS_MGET(self, args):
+        '''
+        Sets the given keys to their respective values. MSET replaces existing values with new values, just as regular SET.
+            https://redis.io/commands/mset
+
+        MCU → MSET#<key1>%<key2>%<key3>#<value1>%<value2>%<value3>@
+
+        MCU ← 100@
+        MCU ← 200@
+
+        '''
+
+        keys = args[0]
+
+        try:
+
+            keys_array = keys.strip().split(ArancinoSpecialChars.CHR_ARR_SEP)
+
+            if keys_array and len(keys_array) > 0:
+
+                value = self.__datastore.mget(keys_array)
+            else:
+                raise RedisGenericException("Redis Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
+
+
+        except ArancinoException as ex:
+            raise ex
+
+        except Exception as ex:
+            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
+
+        if value:
+
+            for idx, val in enumerate(value):
+                if val is  None:
+                    value[idx] = ArancinoSpecialChars.CHR_NULL_VALUE
+
+
+            response = ArancinoSpecialChars.CHR_ARR_SEP.join(value)
+
+            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + response + ArancinoSpecialChars.CHR_EOT
+        else:
+            # return the error code
+            return ArancinoCommandErrorCodes.ERR_NULL + ArancinoSpecialChars.CHR_EOT
+
+    # endregion
 
 
     def __get_args_nr_by_cmd_id(self, cmd_id):
