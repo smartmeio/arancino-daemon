@@ -87,9 +87,22 @@ class sdist_hg(sdist):
         with open(filename, 'w') as configfile:
             config.write(configfile)
 
+def get_version():
+    """Get version number of the package from version.py without importing core module."""
+    package_dir = os.path.abspath(os.path.dirname(__file__))
+    version_file = os.path.join(package_dir, 'arancino/version.py')
+
+    namespace = {}
+    with open(version_file, 'rt') as f:
+        exec(f.read(), namespace)
+
+    return namespace['__version__']
+
 setup(
 
     name='arancino',
+
+    version=get_version(),
 
     description='Arancino Module for Arancino Library',
 
