@@ -67,17 +67,19 @@ package:
 
   script:
                                                           # grazie al file repo_name.tmp e release.tmp conosco il tipo
-                                                          #   di destinazione: RELEASE o SNAPSHOT
+                                                          # di destinazione: RELEASE o SNAPSHOT
 
-    - python3 setup.py sdist --version=$CI_COMMIT_TAG     # non si devono fare trucchi, imposto la versione nel setup.py e
-                                                          #   nei file di cfg a partire dal tag inserito, che DEVE
-                                                          #   RISPETTARE IL VERSIONAMENTO SEMANTICO 2.0 con nomi di
-                                                          #   pre-release specificati ne file check_version.py
+    - sed "s;^[# ]*\(version * = *\)\(.*\);\1${CI_COMMIT_TAG};" setup.cfg
+
+    - python3 setup.py release                            # non si devono fare trucchi, imposto la versione nel setup.py e
+                                                          # nei file di cfg a partire dal tag inserito, che DEVE
+                                                          # RISPETTARE IL VERSIONAMENTO SEMANTICO 2.0 con nomi di
+                                                          # pre-release specificati ne file check_version.py
 
     - ls dist/ > tmp/pgk_name.txt                         # ottengo il nome del file generato e salvo il nome del
-                                                          #   pacchetto su file temp
+                                                          # pacchetto su file temp
 
-    - mv dist/*.tar.gz tmp/                               #sposto il file su di dir temp.
+    - mv dist/*.tar.gz tmp/                               # sposto il file su di dir temp.
 
   dependencies:
     - start

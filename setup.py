@@ -58,14 +58,16 @@ class ArancinoPostInstallCommand(install):
 
 
 class sdist_hg(sdist):
-    #https: // the - hitchhikers - guide - to - packaging.readthedocs.io / en / latest / specification.html  # development-releases
-    user_options = sdist.user_options + [
-            ('version=', None, "Add a version number")
-        ]
 
     def initialize_options(self):
+        filename_src = os.path.join(".", "setup.cfg")
+        config_src = ConfigParser()
+
+        config_src.read(filename_src)
+        rel_vers=config_src.get("metadata", "version")
+
         sdist.initialize_options(self)
-        self.version = "0.0.1"
+        self.version=(rel_vers)
 
     def run(self):
         if self.version:
@@ -75,19 +77,9 @@ class sdist_hg(sdist):
             self.save_cfg_files()
         sdist.run(self)
 
-    def get_tip_revision(self, path=os.getcwd()):
-        # from mercurial.hg import repository
-        # from mercurial.ui import ui
-        # from mercurial import node
-        # repo = repository(ui(), path)
-        # tip = repo.changelog.tip()
-        # return repo.changelog.rev(tip)
-        return 0
-
     def save_cfg_files(self):
 
         filename = os.path.join("config", "meta.cfg")
-
         config = ConfigParser()
 
         config.read(filename)
@@ -98,9 +90,6 @@ class sdist_hg(sdist):
 setup(
 
     name='arancino',
-
-    #version='2.0.0',
-    version=0,
 
     description='Arancino Module for Arancino Library',
 
@@ -139,11 +128,12 @@ setup(
         'extras/arancino.service',
         'config/meta.cfg',
         'config/arancino.cfg',
-        'config/arancino.test.cfg'])],
+        'config/arancino.test.cfg',
+        'LICENSE'])],
 
     #package_data={'arancino':['LICENSE','README.md','extras/*.*','config/*.*']},
 
-    install_requires=['pyserial>=3.4', 'redis>=2.10.6', 'setuptools==41.4.0', 'semantic-version==2.8.4', 'uptime==3.0.1', 'Flask==1.1.1', 'Flask_HTTPAuth==3.3.0', 'requests==2.23.0', 'netifaces==0.10.9'],
+    install_requires=['pyserial>=3.4', 'redis>=2.10.6', 'setuptools>=41.4.0', 'semantic-version==2.8.4', 'uptime==3.0.1', 'Flask==1.1.1', 'Flask_HTTPAuth==3.3.0', 'requests==2.23.0', 'netifaces==0.10.9'],
 
     include_package_data=True,
 
