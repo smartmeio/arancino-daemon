@@ -70,7 +70,7 @@ package:
                                                           # grazie al file repo_name.tmp e release.tmp conosco il tipo
                                                           # di destinazione: RELEASE o SNAPSHOT
 
-    - sed "s;^[# ]*\(version * = *\)\(.*\);\1${CI_COMMIT_TAG};" setup.cfg
+    - sed -i "s;^[# ]*\(version * = *\)\(.*\);\1${CI_COMMIT_TAG};" setup.cfg
 
     - python3 setup.py release                            # non si devono fare trucchi, imposto la versione nel setup.py e
                                                           # nei file di cfg a partire dal tag inserito, che DEVE
