@@ -25,6 +25,7 @@ import logging
 import sys
 import os
 import json
+import arancino
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 
@@ -70,7 +71,7 @@ class ArancinoConfig:
         ConfigMeta.read(os.path.join(os.environ.get('ARANCINOCONF'), "meta.cfg"))
 
         # CONFIG METADATA SECTION
-        self.__metadata_version = semantic_version.Version(ConfigMeta.get("metadata", "version"))
+        self.__metadata_version = semantic_version.Version(arancino.__version__)
 
         # CONFIG GENERAL SECTION
         self.__general_env = env

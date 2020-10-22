@@ -57,37 +57,6 @@ class ArancinoPostInstallCommand(install):
         print("END ARANCINO POST INSTALL")
         print("--------------------------------------")
 
-
-class sdist_hg(sdist):
-
-    def initialize_options(self):
-        filename_src = os.path.join(".", "setup.cfg")
-        config_src = ConfigParser()
-
-        config_src.read(filename_src)
-        rel_vers=config_src.get("metadata", "version")
-
-        sdist.initialize_options(self)
-        self.version=(rel_vers)
-
-    def run(self):
-        if self.version:
-            #suffix = '.dev%d' % self.get_tip_revision()
-            #self.distribution.metadata.version += suffix
-            self.distribution.metadata.version = self.version
-            self.save_cfg_files()
-        sdist.run(self)
-
-    def save_cfg_files(self):
-
-        filename = os.path.join("config", "meta.cfg")
-        config = ConfigParser()
-
-        config.read(filename)
-        config.set("metadata", "version", self.version)
-        with open(filename, 'w') as configfile:
-            config.write(configfile)
-
 def get_version():
     """Get version number of the package from version.py without importing core module."""
     package_dir = os.path.abspath(os.path.dirname(__file__))
@@ -143,7 +112,6 @@ setup(
         ['extras/pre-install.sh',
         'extras/post-install.sh',
         'extras/arancino.service',
-        'config/meta.cfg',
         'config/arancino.cfg',
         'config/arancino.test.cfg',
         'LICENSE'])],
@@ -157,8 +125,7 @@ setup(
     zip_safe=False,
 
     cmdclass={
-        'install': ArancinoPostInstallCommand,
-        'sdist': sdist_hg
+        'install': ArancinoPostInstallCommand
     },
 
     entry_points={
