@@ -162,7 +162,7 @@ class ArancinoTestHandler(threading.Thread):
             # firmware upload date time
         fw_date_str = "Oct 21 1988"
         fw_time_str = "12:48:00"
-        fw_tz_str = "+06:00"
+        fw_tz_str = "+0600"
         fw_datetime_str = fw_date_str + ' ' + fw_time_str + ' ' + fw_tz_str
         #fw_datetime_str = ""
             # firmware version

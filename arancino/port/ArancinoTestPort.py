@@ -198,6 +198,6 @@ class ArancinoTestPort(ArancinoPort):
         # No upload provided method for this Port
         return False
 
-    def sendRespose(self, raw_response):
+    def sendResponse(self, raw_response):
         # Do nothing
         pass

@@ -221,17 +221,17 @@ class ArancinoPort(object):
         # Generic Exception uses a generic Error Code
         except Exception as ex:
             arsp = ArancinoResponse(rsp_id=ArancinoCommandErrorCodes.ERR, rsp_args=[])
-            LOG.error("{} {}".format(self._log_prefix, str(ex)))
+            LOG.error("{} {}".format(self._log_prefix, str(ex)), exc_info=True)
 
         finally:
 
             try:
                 # send the response back.
-                self.sendRespose(arsp.getRaw())
+                self.sendResponse(arsp.getRaw())
                 LOG.debug("{} Sending: {}: {}".format(self._log_prefix, arsp.getId(), str(arsp.getArguments())))
 
             except Exception as ex:
-                LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex))
+                LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex), exc_info=True)
 
 
 
