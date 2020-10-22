@@ -18,6 +18,7 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 """
+from redis import RedisError
 
 from arancino.ArancinoConstants import *
 import semantic_version as semver
@@ -376,15 +377,27 @@ class ArancinoCommandExecutor:
             if rsp is None:
                 rsp = self.__datastore_pers.get(key)
 
-        except Exception as ex:
+            # if rsp is not None:
+            #     # return the value
+            #     return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(rsp) + ArancinoSpecialChars.CHR_EOT
+            # else:
+            #     # return the error code
+            #     return ArancinoCommandErrorCodes.ERR_NULL + ArancinoSpecialChars.CHR_EOT
+
+            # check again, if None send back null value.
+            if rsp is None:
+                rsp = ArancinoSpecialChars.CHR_NULL_VALUE
+
+            # return the value
+            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + rsp + ArancinoSpecialChars.CHR_EOT
+
+
+        except RedisError as ex:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-        if rsp is not None:
-            # return the value
-            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(rsp) + ArancinoSpecialChars.CHR_EOT
-        else:
-            # return the error code
-            return ArancinoCommandErrorCodes.ERR_NULL + ArancinoSpecialChars.CHR_EOT
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
+
     # endregion
 
     #region DEL
@@ -514,15 +527,26 @@ class ArancinoCommandExecutor:
 
             value = self.__datastore.hget(key, field)
 
-        except Exception as ex:
+            rsp = None
+
+            if value is not None:
+                # return the value
+                rsp = value
+
+            # TODO search in persistent datastore
+
+            else:
+                # return the error code
+                rsp = ArancinoSpecialChars.CHR_NULL_VALUE
+
+            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + rsp + ArancinoSpecialChars.CHR_EOT
+
+        except RedisError as ex:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-        if value is not None:
-            # return the value
-            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(value) + ArancinoSpecialChars.CHR_EOT
-        else:
-            # return the error code
-            return ArancinoCommandErrorCodes.ERR_NULL + ArancinoSpecialChars.CHR_EOT
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
+
     # endregion
 
     #region HGETALL
@@ -731,21 +755,29 @@ class ArancinoCommandExecutor:
 
                 value = self.__datastore.mset(map)
             else:
-                raise RedisGenericException("Redis Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
+                raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
 
 
-        except ArancinoException as ex:
-            raise ex
+        # except ArancinoException as ex:
+        #     raise ex
+        #
+        # except Exception as ex:
+        #     raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-        except Exception as ex:
+            if value:
+                # return ok
+                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
+            else:
+                # return the error code
+                return ArancinoCommandErrorCodes.ERR_NULL + ArancinoSpecialChars.CHR_EOT
+
+
+        except RedisError as ex:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-        if value:
-            # return ok
-            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
-        else:
-            # return the error code
-            return ArancinoCommandErrorCodes.ERR_NULL + ArancinoSpecialChars.CHR_EOT
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
+
 
     # endregion
 
@@ -762,9 +794,9 @@ class ArancinoCommandExecutor:
 
         '''
 
-        keys = args[0]
-
         try:
+
+            keys = args[0]
 
             keys_array = keys.strip().split(ArancinoSpecialChars.CHR_ARR_SEP)
 
@@ -772,28 +804,28 @@ class ArancinoCommandExecutor:
 
                 value = self.__datastore.mget(keys_array)
             else:
-                raise RedisGenericException("Redis Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
+                raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
 
 
-        except ArancinoException as ex:
-            raise ex
+            if value:
 
-        except Exception as ex:
+                for idx, val in enumerate(value):
+                    if val is None:
+                        value[idx] = ArancinoSpecialChars.CHR_NULL_VALUE
+
+
+                response = ArancinoSpecialChars.CHR_ARR_SEP.join(value)
+
+                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + response + ArancinoSpecialChars.CHR_EOT
+            else:
+                # return the error code
+                return ArancinoCommandErrorCodes.ERR_NULL + ArancinoSpecialChars.CHR_EOT
+
+        except RedisError as ex:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-        if value:
-
-            for idx, val in enumerate(value):
-                if val is  None:
-                    value[idx] = ArancinoSpecialChars.CHR_NULL_VALUE
-
-
-            response = ArancinoSpecialChars.CHR_ARR_SEP.join(value)
-
-            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + response + ArancinoSpecialChars.CHR_EOT
-        else:
-            # return the error code
-            return ArancinoCommandErrorCodes.ERR_NULL + ArancinoSpecialChars.CHR_EOT
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
 
     # endregion
 
