@@ -23,6 +23,7 @@ from setuptools.command.install import install
 from subprocess import call
 from distutils.command.sdist import sdist
 import os
+import re
 from configparser import ConfigParser
 
 class ArancinoPostInstallCommand(install):
@@ -98,11 +99,14 @@ def get_version():
 
     return namespace['__version__']
 
+with open("arancino/version.py", encoding="utf8") as f:
+    version = re.search(r'__version__ = "(.*?)"', f.read())
+
 setup(
 
     name='arancino',
 
-    version=get_version(),
+    version=version,
 
     description='Arancino Module for Arancino Library',
 
