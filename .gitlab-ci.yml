@@ -71,6 +71,7 @@ package:
                                                           # di destinazione: RELEASE o SNAPSHOT
 
     - sed -i "s;^[# ]*\(version * = *\)\(.*\);\1${CI_COMMIT_TAG};" setup.cfg
+    - sed -i "s;^[# ]*\(__version__ * = *\)\(.*\);\1'${CI_COMMIT_TAG}';" arancino/version.py
 
     - python3 setup.py release                            # non si devono fare trucchi, imposto la versione nel setup.py e
                                                           # nei file di cfg a partire dal tag inserito, che DEVE
