@@ -67,9 +67,6 @@ class ArancinoConfig:
         self.Config = configparser.ConfigParser()
         self.Config.read(os.path.join(os.environ.get('ARANCINOCONF'), self.__cfg_file))
 
-        ConfigMeta = configparser.ConfigParser()
-        ConfigMeta.read(os.path.join(os.environ.get('ARANCINOCONF'), "meta.cfg"))
-
         # CONFIG METADATA SECTION
         self.__metadata_version = semantic_version.Version(arancino.__version__)
 
