@@ -176,7 +176,7 @@ class ArancinoTestHandler(threading.Thread):
 
         lib_version = "1.0.0"
         core_version = "1.0.0"
-        """
+
         # 1. START
         list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + lib_version + specChars.CHR_SEP + fw_name + specChars.CHR_SEP + fw_version + specChars.CHR_SEP + fw_datetime_str + specChars.CHR_SEP + core_version + specChars.CHR_EOT)
         #list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + lib_version + specChars.CHR_EOT)
@@ -206,7 +206,7 @@ class ArancinoTestHandler(threading.Thread):
 
         # 6. DEL
         list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_KEY" + specChars.CHR_EOT)
-        """
+
         # 7. HSET
         list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_1" + specChars.CHR_SEP + "TEST_VAL_1" + specChars.CHR_EOT)
         # list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_2" + specChars.CHR_SEP + "TEST_VAL_2" + specChars.CHR_EOT)
@@ -227,7 +227,7 @@ class ArancinoTestHandler(threading.Thread):
         list.append(cmdId.CMD_APP_HSET_PERS["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_1" + specChars.CHR_SEP + "TEST_VAL_1" + specChars.CHR_EOT)
 
 
-        """
+
         # HGET
             # 8.1 HGET OK
         list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_1" + specChars.CHR_EOT)
@@ -310,7 +310,7 @@ class ArancinoTestHandler(threading.Thread):
             # 15.5 KO -> empty list
         keys = ""
         list.append(cmdId.CMD_APP_MGET["id"] + specChars.CHR_SEP + keys + specChars.CHR_EOT)
-        """
+
 
         return list
 
