@@ -196,6 +196,12 @@ class ArancinoCommandIdentifiers:
     __CMD_APP_HSET = 'HSET'  #
     CMD_APP_HSET = {"id": __CMD_APP_HSET, "args": 3, "op": ArancinoOperators.EQUAL}
 
+    __CMD_APP_HSET_STD = 'HSET'  #
+    CMD_APP_HSET_STD = {"id": __CMD_APP_HSET_STD, "args": 3, "op": ArancinoOperators.EQUAL}
+
+    __CMD_APP_HSET_PERS = 'HSETPERS'  #
+    CMD_APP_HSET_PERS = {"id": __CMD_APP_HSET_PERS, "args": 3, "op": ArancinoOperators.EQUAL}
+
     # Other Commands
     __CMD_APP_PUB = 'PUB'
     CMD_APP_PUB = {"id": __CMD_APP_PUB, "args": 2, "op": ArancinoOperators.EQUAL}
@@ -207,7 +213,16 @@ class ArancinoCommandIdentifiers:
 
     __CMD_APP_MSET = 'MSET'
     CMD_APP_MSET = {"id": __CMD_APP_MSET, "args": 2, "op": ArancinoOperators.EQUAL}
-    "Sets more than one key value at the same time"
+    "Sets more than one value at the specified keys, at the same time"
+
+    __CMD_APP_MSET_STD = 'MSET'
+    CMD_APP_MSET_STD = {"id": __CMD_APP_MSET_STD, "args": 2, "op": ArancinoOperators.EQUAL}
+    "Sets more than one value at the specified keys, at the same time (Standard as SET above)"
+
+    __CMD_APP_MSET_PERS = 'MSETPERS'
+    CMD_APP_MSET_PERS = {"id": __CMD_APP_MSET_PERS, "args": 2, "op": ArancinoOperators.EQUAL}
+    "Sets more than one value at the specified keys, at the same time (Persistent for User)"
+
 
     __CMD_APP_MGET = 'MGET'
     CMD_APP_MGET = {"id": __CMD_APP_MGET, "args": 1, "op": ArancinoOperators.EQUAL}
@@ -227,9 +242,13 @@ class ArancinoCommandIdentifiers:
         __CMD_APP_HVALS: CMD_APP_HVALS,
         __CMD_APP_HDEL: CMD_APP_HDEL,
         __CMD_APP_HSET: CMD_APP_HSET,
+        __CMD_APP_HSET_STD: CMD_APP_HSET_STD,
+        __CMD_APP_HSET_PERS: CMD_APP_HSET_PERS,
         __CMD_APP_PUB: CMD_APP_PUB,
         __CMD_APP_FLUSH: CMD_APP_FLUSH,
         __CMD_APP_MSET: CMD_APP_MSET,
+        __CMD_APP_MSET_STD: CMD_APP_MSET_STD,
+        __CMD_APP_MSET_PERS: CMD_APP_MSET_PERS,
         __CMD_APP_MGET: CMD_APP_MGET,
     }
     "Complete dictionary of all available commands: " \
@@ -248,9 +267,13 @@ class ArancinoCommandIdentifiers:
                      __CMD_APP_HVALS,
                      __CMD_APP_HDEL,
                      __CMD_APP_HSET,
+                     __CMD_APP_HSET_STD,
+                     __CMD_APP_HSET_PERS,
                      __CMD_APP_PUB,
                      __CMD_APP_FLUSH,
                      __CMD_APP_MSET,
+                     __CMD_APP_MSET_STD,
+                     __CMD_APP_MSET_PERS,
                      __CMD_APP_MGET,
                      ]
     "Complete list of all available commands:" \
