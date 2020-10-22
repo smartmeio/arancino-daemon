@@ -15,4 +15,4 @@ __import__('pkg_resources').declare_namespace(__name__)
 package_dir = path.abspath(path.dirname(__file__))
 
 from arancino import *
-from arancino.version import __version__, __version_info__  # NOQA
+from arancino.version import __version__ # NOQA
