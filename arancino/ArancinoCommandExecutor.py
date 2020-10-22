@@ -536,7 +536,7 @@ class ArancinoCommandExecutor:
 
             # then try get from reserved datastore
             if rsp is None:
-                rsp = self.__datastore_pers.get(key, field)
+                rsp = self.__datastore_pers.hget(key, field)
 
             # check again, if None send back Null Value.
             if rsp is None:
