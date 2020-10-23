@@ -877,7 +877,7 @@ class ArancinoCommandExecutor:
                         else:
                             values[idx] = chk
 
-                response = ArancinoSpecialChars.CHR_ARR_SEP.join(values)
+                response = ArancinoSpecialChars.CHR_SEP.join(values)
 
                 return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + response + ArancinoSpecialChars.CHR_EOT
             else:

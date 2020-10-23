@@ -51,7 +51,7 @@ class ArancinoSpecialChars:
     CHR_ARR_SEP = chr(16)
     "Array Char: separates arguments data in case of array"
 
-    CHR_NULL_VALUE = chr(0)
+    CHR_NULL_VALUE = chr(25)
     "Representation of Null/None value"
 
 
