@@ -138,6 +138,8 @@ class ArancinoConfig:
         #self.__log_file_api = Config.get("log", "file_base")
         self.__log_file_error = self.Config.get("log", "file_error")
         #self.__log_file_stats = Config.get("log", "file_stats")
+        self.__log_print_stack_trace = stringToBool(self.Config.get("log", "print_stack_trace"))
+
 
 
         self.__dirlog = os.environ.get('ARANCINOLOG')
@@ -334,6 +336,9 @@ class ArancinoConfig:
     #
     # def get_stats_file_path(self):
     #     return os.path.join(self.__dirlog, self.__log_file_stats)
+
+    def get_log_print_stack_trace(self):
+        return self.__log_print_stack_trace
 
 
     def get_config_by_name(self, section, option):

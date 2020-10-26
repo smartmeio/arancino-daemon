@@ -33,6 +33,7 @@ import time
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
+TRACE = CONF.get_log_print_stack_trace()
 
 class ArancinoTestPort(ArancinoPort):
     def __init__(self, id=None, device=None, m_s_plugged=True, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None):
@@ -154,7 +155,7 @@ class ArancinoTestPort(ArancinoPort):
 
                     except Exception as ex:
                         # TODO: lasciare il raise????
-                        LOG.error("{} Error while connecting: {}".format(self._log_prefix, str(ex)))
+                        LOG.error("{} Error while connecting: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
                         raise ex
 
                 else:

@@ -31,6 +31,7 @@ import semantic_version
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
+TRACE = CONF.get_log_print_stack_trace()
 
 class ArancinoPort(object):
 
@@ -216,12 +217,12 @@ class ArancinoPort(object):
 
         except ArancinoException as ex:
             arsp = ArancinoResponse(rsp_id=ex.error_code, rsp_args=[])
-            LOG.error("{} {}".format(self._log_prefix, str(ex)))
+            LOG.error("{} {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
 
         # Generic Exception uses a generic Error Code
         except Exception as ex:
             arsp = ArancinoResponse(rsp_id=ArancinoCommandErrorCodes.ERR, rsp_args=[])
-            LOG.error("{} {}".format(self._log_prefix, str(ex)), exc_info=True)
+            LOG.error("{} {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
 
         finally:
 
@@ -231,7 +232,7 @@ class ArancinoPort(object):
                 LOG.debug("{} Sending: {}: {}".format(self._log_prefix, arsp.getId(), str(arsp.getArguments())))
 
             except Exception as ex:
-                LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex), exc_info=True)
+                LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex), exc_info=TRACE)
 
 
 
@@ -297,7 +298,10 @@ class ArancinoPort(object):
 
 
     def getUptime(self):
-        return time.time() - self._start_thread_time
+        if self._start_thread_time:
+            return time.time() - self._start_thread_time
+        else:
+            return 0
 
 
     def getFirmwareVersion(self):
@@ -369,11 +373,19 @@ class ArancinoPort(object):
     #     return self._m_c_auto_connect
 
     def getAlias(self):
-        return self._m_c_alias
+        if self._m_c_alias is None:
+            self._m_c_alias = ""
+
+        return self._m_c_alias if self._m_c_alias else ""
 
 
     def setAlias(self, alias):
+
+        if alias is not None:
+            alias = ""
+
         self._m_c_alias = alias
+
 
 
     def isHidden(self):

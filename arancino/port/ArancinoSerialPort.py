@@ -31,6 +31,7 @@ import time
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
+TRACE = CONF.get_log_print_stack_trace()
 
 class ArancinoSerialPort(ArancinoPort):
 
@@ -251,7 +252,7 @@ class ArancinoSerialPort(ArancinoPort):
 
                     except Exception as ex:
                         # TODO LOG SOMETHING OR NOT?
-                        LOG.error("{} Error while connecting: {}".format(self._log_prefix, str(ex)))
+                        LOG.error("{} Error while connecting: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
                         raise ex
 
                 else:
@@ -339,7 +340,7 @@ class ArancinoSerialPort(ArancinoPort):
         except Exception as ex:
             rtcode = -1
             stderr = str(ex)
-            LOG.error("{} Something goes wrong while uploadig: {}".format(self._log_prefix, str(ex)))
+            LOG.error("{} Something goes wrong while uploadig: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
 
         finally:
             self.setEnabled(True)
