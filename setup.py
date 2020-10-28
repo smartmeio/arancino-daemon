@@ -23,6 +23,7 @@ from setuptools.command.install import install
 from subprocess import call
 from distutils.command.sdist import sdist
 import os
+import re
 from configparser import ConfigParser
 
 class ArancinoPostInstallCommand(install):
@@ -56,51 +57,25 @@ class ArancinoPostInstallCommand(install):
         print("END ARANCINO POST INSTALL")
         print("--------------------------------------")
 
+def get_version():
+    """Get version number of the package from version.py without importing core module."""
+    package_dir = os.path.abspath(os.path.dirname(__file__))
+    version_file = os.path.join(package_dir, 'arancino/version.py')
 
-class sdist_hg(sdist):
-    #https: // the - hitchhikers - guide - to - packaging.readthedocs.io / en / latest / specification.html  # development-releases
-    user_options = sdist.user_options + [
-            ('version=', None, "Add a version number")
-        ]
+    namespace = {}
+    with open(version_file, 'rt') as f:
+        exec(f.read(), namespace)
 
-    def initialize_options(self):
-        sdist.initialize_options(self)
-        self.version = "0.0.1"
+    return namespace['__version__']
 
-    def run(self):
-        if self.version:
-            #suffix = '.dev%d' % self.get_tip_revision()
-            #self.distribution.metadata.version += suffix
-            self.distribution.metadata.version = self.version
-            self.save_cfg_files()
-        sdist.run(self)
-
-    def get_tip_revision(self, path=os.getcwd()):
-        # from mercurial.hg import repository
-        # from mercurial.ui import ui
-        # from mercurial import node
-        # repo = repository(ui(), path)
-        # tip = repo.changelog.tip()
-        # return repo.changelog.rev(tip)
-        return 0
-
-    def save_cfg_files(self):
-
-        filename = os.path.join("config", "meta.cfg")
-
-        config = ConfigParser()
-
-        config.read(filename)
-        config.set("metadata", "version", self.version)
-        with open(filename, 'w') as configfile:
-            config.write(configfile)
+with open("arancino/version.py", encoding="utf8") as f:
+    version = re.search(r'__version__ = "(.*?)"', f.read())
 
 setup(
 
     name='arancino',
 
-    #version='2.0.0',
-    version=0,
+    version=version,
 
     description='Arancino Module for Arancino Library',
 
@@ -137,21 +112,20 @@ setup(
         ['extras/pre-install.sh',
         'extras/post-install.sh',
         'extras/arancino.service',
-        'config/meta.cfg',
         'config/arancino.cfg',
-        'config/arancino.test.cfg'])],
+        'config/arancino.test.cfg',
+        'LICENSE'])],
 
     #package_data={'arancino':['LICENSE','README.md','extras/*.*','config/*.*']},
 
-    install_requires=['pyserial>=3.4', 'redis>=2.10.6', 'setuptools==41.4.0', 'semantic-version==2.8.4', 'uptime==3.0.1', 'Flask==1.1.1', 'Flask_HTTPAuth==3.3.0', 'requests==2.23.0', 'netifaces==0.10.9'],
+    install_requires=['pyserial>=3.4', 'redis>=2.10.6', 'setuptools>=41.4.0', 'semantic-version>=2.8.4', 'uptime>=3.0.1', 'Flask>=1.1.1', 'Flask_HTTPAuth>=3.3.0', 'requests>=2.23.0', 'netifaces>=0.10.9'],
 
     include_package_data=True,
 
     zip_safe=False,
 
     cmdclass={
-        'install': ArancinoPostInstallCommand,
-        'sdist': sdist_hg
+        'install': ArancinoPostInstallCommand
     },
 
     entry_points={

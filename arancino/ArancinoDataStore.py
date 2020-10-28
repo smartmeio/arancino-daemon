@@ -27,6 +27,7 @@ import redis
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
+TRACE = CONF.get_log_print_stack_trace()
 
 @Singleton
 class ArancinoDataStore:
@@ -83,7 +84,7 @@ class ArancinoDataStore:
             except Exception as ex:
                 if self.__attempts_tot != -1:
                     if self.__attempts == self.__attempts_tot:
-                        LOG.error("Cannot connect to Redis: {}".format(str(ex)))
+                        LOG.error("Cannot connect to Redis: {}".format(str(ex)), exc_info=TRACE)
                         sys.exit(-1)
 
                     self.__attempts += 1

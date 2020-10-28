@@ -85,7 +85,7 @@ class ArancinoApi():
 
             return response, 200
         except Exception as ex:
-            LOG.error("Error on api call: {}".format(str(ex)))
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=True)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
     def arancino(self):
@@ -116,7 +116,7 @@ class ArancinoApi():
             return response, 200
 
         except Exception as ex:
-            LOG.error("Error on api call: {}".format(str(ex)))
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=True)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
     def system(self):
@@ -139,7 +139,7 @@ class ArancinoApi():
 
             return response, 200
         except Exception as ex:
-            LOG.error("Error on api call: {}".format(str(ex)))
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=True)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
     def getAllPorts(self):
@@ -168,7 +168,7 @@ class ArancinoApi():
             return response, 200
 
         except Exception as ex:
-            LOG.error("Error on api call: {}".format(str(ex)))
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=True)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
     def getPort(self, port_id=None):
@@ -188,7 +188,7 @@ class ArancinoApi():
             return response, 200
 
         except Exception as ex:
-            LOG.error("Error on api call: {}".format(str(ex)))
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=True)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
     def getPortsConnected(self):
@@ -234,8 +234,57 @@ class ArancinoApi():
             return response, 200
 
         except Exception as ex:
-            LOG.error("Error on api call: {}".format(str(ex)))
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=True)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
+
+    def __getArancinoConf(self):
+        # return all the configurations
+        try:
+            config = CONF.get_config_all()
+            response = {
+                "arancino": {
+                    "config": config
+                }
+            }
+            return response, 200
+
+        except Exception as ex:
+            raise ex
+
+    def getArancinoConf(self, params=None):
+        try:
+            if(params and params["config"]): # check if there's the "config" key in the json, else return all the configuration.
+
+                config = {}
+
+                for it in params["config"]:
+                    section = it["section"]
+                    option = it["option"]
+
+                    if section not in config:
+                        config[section] = {}
+
+                    #if option not in config[section]:
+                    config[section][option] = CONF.get_config_by_name(section, option)
+
+                    print(config)
+
+                response = {
+                    "arancino": {
+                        "config": config
+                    }
+                }
+                return response, 200
+
+            else:
+                return self.getArancinoConf(), 200
+
+        except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=True)
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
+    #
+    # def getArancinoConf(self, section, option):
+    #     pass
 
 
     #### OPERATIONS ####
@@ -258,7 +307,7 @@ class ArancinoApi():
             else:
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 200
         except Exception as ex:
-            LOG.error("Error on api call: {}".format(str(ex)))
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=True)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_RESET, internal_message=[None, str(ex)]), 500
 
     def enablePort(self, port_id):
@@ -287,7 +336,7 @@ class ArancinoApi():
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 500
 
         except Exception as ex:
-            LOG.error("Error on api call: {}".format(str(ex)))
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=True)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
     def disablePort(self, port_id):
@@ -317,10 +366,10 @@ class ArancinoApi():
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 500
 
         except Exception as ex:
-            LOG.error("Error on api call: {}".format(str(ex)))
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=True)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
-    def uploadFirmware(self, port_id, firmware):
+    def uploadPortFirmware(self, port_id, firmware):
         try:
             port = self.__arancino.findPort(port_id)
             if port:
@@ -348,10 +397,10 @@ class ArancinoApi():
             else:
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 500
         except Exception as ex:
-            LOG.error("Error on api call: {}".format(str(ex)))
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=True)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_UPLOAD, internal_message=[None, str(ex)]), 500
 
-    def setConfig(self, port_id, config = None):
+    def setPortConfig(self, port_id, config = None):
         try:
 
             if not config:
@@ -360,6 +409,9 @@ class ArancinoApi():
             port = self.__arancino.findPort(port_id)
             
             if port:
+
+                self.__arancino.pauseArancinoThread()
+
                 if 'alias' in config:
                     curr_alias = port.getAlias()
 
@@ -386,13 +438,15 @@ class ArancinoApi():
                         port.setHide(new_status)
                         self.__synchronizer.writePortConfig(port)  # Note: maybe it's better wrapping this call inside Arancino class.
 
+                self.__arancino.resumeArancinoThread()
+
                 return self.__apiCreateOkMessage(response_code=API_CODE.OK_CONFIGURATED), 200
 
             else:
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 500
 
         except Exception as ex:
-            LOG.error("Error on api call: {}".format(str(ex)))
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=True)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
     def hidePort(self, port_id):
@@ -417,7 +471,7 @@ class ArancinoApi():
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 500
 
         except Exception as ex:
-            LOG.error("Error on api call: {}".format(str(ex)))
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=True)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
     def showPort(self, port_id):
@@ -442,9 +496,37 @@ class ArancinoApi():
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 500
 
         except Exception as ex:
-            LOG.error("Error on api call: {}".format(str(ex)))
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=True)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
+    def setArancinoConf(self, section, option, value):
+        try:
+
+            try:
+                if section is None or section.strip() == "":
+                    raise Exception("Configuration Section is empty")
+            except Exception as ex:
+                return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_NO_ARANCINO_CONFIG_SECTION_PROVIDED, internal_message=[None, str(ex)]), 500
+
+            try:
+                if option is None or option.strip() == "":
+                    raise Exception("Configuration Option is empty")
+            except Exception as ex:
+                return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_NO_ARANCINO_CONFIG_OPTION_PROVIDED, internal_message=[None, str(ex)]), 500
+
+            try:
+                if value is None or value.strip() == "":
+                    raise Exception("Configuration Value is empty")
+            except Exception as ex:
+                return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_NO_ARANCINO_CONFIG_VALUE_PROVIDED, internal_message=[None, str(ex)]), 500
+
+            CONF.set_config_by_name(section, option, value)
+
+            return self.__apiCreateOkMessage(response_code=API_CODE.OK_ARANCINO_CONFIGURATED), 200
+
+        except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=True)
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
 
     #### UTILS ####
@@ -521,15 +603,20 @@ class ArancinoApi():
             response[DB_KEYS.B_ID] = port.getId()
             response[DB_KEYS.L_DEVICE] = port.getDevice()
             response[DB_KEYS.B_PORT_TYPE] = port.getPortType().name
-            response[DB_KEYS.B_LIB_VER] = str(port.getLibVersion())
-
+            response[DB_KEYS.B_LIB_VER] = None if port.getLibVersion() is None else str(port.getLibVersion())
+            response[DB_KEYS.B_FW_NAME] = None if port.getFirmwareName() is None else str(port.getFirmwareName())
+            response[DB_KEYS.B_FW_VER] = None if port.getFirmwareVersion() is None else str(port.getFirmwareVersion())
+            response[DB_KEYS.B_FW_COMPILE_DATE] = None if port.getFirmwareUploadDate() is None else port.getFirmwareUploadDate()
+            response[DB_KEYS.B_FW_CORE_VER] = None if port.getFirmwareCoreVersion() is None else str(port.getFirmwareCoreVersion())
+            
             # BASE ARANCINO STATUS METADATA (S)Status
             response[DB_KEYS.S_CONNECTED] = port.isConnected()
             response[DB_KEYS.S_PLUGGED] = port.isPlugged()
             response[DB_KEYS.B_CREATION_DATE] = port.getCreationDate()
             response[DB_KEYS.S_LAST_USAGE_DATE] = port.getLastUsageDate()
-            response[DB_KEYS.S_UPTIME] = secondsToHumanString(port.getUptime())
+            response[DB_KEYS.S_UPTIME] = None if port.getUptime() is None else secondsToHumanString(port.getUptime())
             response[DB_KEYS.S_COMPATIBILITY] = port.isCompatible()
+            response[DB_KEYS.S_STARTED] = port.isStarted()
 
             # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
             response[DB_KEYS.C_ENABLED] = port.isEnabled()
@@ -553,7 +640,6 @@ class ArancinoApi():
 
         return response
 
-
     def __apiCreateErrorMessage(self, error_code=0, user_message=None, internal_message=None):
 
         if user_message is None:
@@ -564,7 +650,6 @@ class ArancinoApi():
 
         return self.__apiCreateResponseMessage(return_code=error_code, user_message=user_message, internal_message=internal_message, isError=True)
 
-
     def __apiCreateOkMessage(self, response_code=0, user_message=None, internal_message=None):
 
         if user_message is None:
@@ -574,7 +659,6 @@ class ArancinoApi():
             internal_message = [API_CODE.INTERNAL_MESSAGE(response_code)]
 
         return self.__apiCreateResponseMessage(return_code=response_code, user_message=user_message, internal_message=internal_message, isError=False)
-
 
     def __apiCreateResponseMessage(self, return_code=0, user_message=None, internal_message=None, isError=False):
 

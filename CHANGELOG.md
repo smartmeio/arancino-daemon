@@ -1,6 +1,17 @@
 # Changelog
 
-#### v 2.0.0 2020.07.24
+#### v 2.1.0 - 2020.28.10
+* Introduced a new State called "STARTED". It rappresent the state of the communication between a port and Aracino Module. #99
+* Fixed Rest API for port configuration (Alias, Enable/Disable, Hide/Show). #95
+* Introduced Rest API for get and set Arancino configuration. #94
+* Introduced `MSET` and `MGET` commands. #91
+* Package improvements. #101
+* Each *get-like* commands (`HSET`, `HVALS`, `HKEYS`, `HGETALL`, `MGET`) now search even in persistent data store for a key(or field). #106
+* Introduced *set-like* commands (`HSET_PERS`, `MSET_PERS`) to store data in persistent datastore. #106
+* `START` Commands now can receive Fw Timestamp, Fw version, Fw Name and Arancino Core Version as arguments.
+* Minor bug fixes and improvements. #105, #014, #102
+
+#### v 2.0.0 - 2020.07.24
 * Now Resets each microcontroller before connecting (requires `v1.1.0` Arancino Platform)
 * Changed project structure to a more modular architecture. Arancino Port Type can now be easily extended.
 * Improved logger formatter.

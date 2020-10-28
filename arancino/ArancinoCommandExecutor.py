@@ -18,6 +18,7 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 """
+from redis import RedisError
 
 from arancino.ArancinoConstants import *
 import semantic_version as semver
@@ -44,8 +45,8 @@ class ArancinoCommandExecutor:
         self.__datastore_pers = redis.getDataStorePer()
 
         self.__conf = ArancinoConfig.Instance()
-        self.__compatibility_array_serial = COMPATIBILITY_MATRIX_MOD_SERIAL[str(self.__conf.get_metadata_version().truncate())]
-        self.__compatibility_array_test = COMPATIBILITY_MATRIX_MOD_TEST[str(self.__conf.get_metadata_version().truncate())]
+#        self.__compatibility_array_serial = COMPATIBILITY_MATRIX_MOD_SERIAL[str(self.__conf.get_metadata_version().truncate())]
+#        self.__compatibility_array_test = COMPATIBILITY_MATRIX_MOD_TEST[str(self.__conf.get_metadata_version().truncate())]
 
 
     def exec(self, arancino_command):
@@ -78,7 +79,7 @@ class ArancinoCommandExecutor:
             #     raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
 
 
-
+            #region Options
             # START
             if cmd_id == ArancinoCommandIdentifiers.CMD_SYS_START['id']:
                 raw_response = self.__OPTS_START(cmd_args)
@@ -104,8 +105,12 @@ class ArancinoCommandExecutor:
                 raw_response = self.__OPTS_KEYS(cmd_args)
                 return raw_response
             # HSET
-            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HSET['id']:
-                raw_response = self.__OPTS_HSET(cmd_args)
+            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HSET_STD['id']:
+                raw_response = self.__OPTS_HSET_STD(cmd_args)
+                return raw_response
+            # HSET PERSISTENT
+            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HSET_PERS['id']:
+                raw_response = self.__OPTS_HSET_PERS(cmd_args)
                 return raw_response
             # HGET
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HGET['id']:
@@ -135,10 +140,24 @@ class ArancinoCommandExecutor:
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_FLUSH['id']:
                 raw_response = self.__OPTS_FLUSH(cmd_args)
                 return raw_response
+            # MSET
+            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_MSET_STD['id']:
+                raw_response = self.__OPTS_MSET_STD(cmd_args)
+                return raw_response
+            # MSET PERSISTENT
+            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_MSET_PERS['id']:
+                raw_response = self.__OPTS_MSET_PERS(cmd_args)
+                return raw_response
+            # MGET
+            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_MGET['id']:
+                raw_response = self.__OPTS_MGET(cmd_args)
+                return raw_response
             # Default
             else:
                 raw_response = ArancinoCommandErrorCodes.ERR_CMD_NOT_FND + ArancinoSpecialChars.CHR_SEP
                 return raw_response
+
+            # endregion
             #cmd = ArancinoComamnd(cmd_id=cmd_id, cmd_args=cmd_args)
             #response = ArancinoResponse(raw_response=raw_response)
 
@@ -148,8 +167,9 @@ class ArancinoCommandExecutor:
         except Exception as ex:
             raise ex
 
+    #region COMMANDS OPTIONS
 
-    # START
+    #region START
     def __OPTS_START(self, args):
         """
         Microcontroller sends START command to start communication
@@ -160,14 +180,10 @@ class ArancinoCommandExecutor:
         """
 
         # first argument in the START comamnd is the version of the library
-        value_libvers = args[0]
-        key_libvers = ArancinoReservedChars.RSVD_KEY_LIBVERSION + self.__port_id + ArancinoReservedChars.RSVD_CHARS
+#        value_libvers = args[0]
 
-        # convert
-        semver_value_libvers = semver.Version(value_libvers)
-
-        # store the reserved key
-        # self.__datastore.set(key_libvers, value_libvers)
+        # convert string to semver object
+#        semver_value_libvers = semver.Version(value_libvers)
 
         # and then check if it's compatible. if the library is not compatible, disconnect the board and
         # if value_libvers not in self.compatibility_array:
@@ -186,46 +202,54 @@ class ArancinoCommandExecutor:
         # "1.0.0" >= "0.1.*" ---> False (KO: go forward)
         # "1.0.0" >= "0.2.*" ---> False (KO: go forward and raise exception)
 
-        compatibility_array = {}
+#        compatibility_array = {}
 
-        if self.__port_type == PortTypes.SERIAL:
-            compatibility_array = self.__compatibility_array_serial
-        elif self.__port_type == PortTypes.TEST:
-            compatibility_array = self.__compatibility_array_test
+#        if self.__port_type == PortTypes.SERIAL:
+#            compatibility_array = self.__compatibility_array_serial
+#        elif self.__port_type == PortTypes.TEST:
+#            compatibility_array = self.__compatibility_array_test
 
 
-        for compatible_ver in compatibility_array:
-            semver_compatible_ver = semver.SimpleSpec(compatible_ver)
-            if semver_value_libvers in semver_compatible_ver:
-                #now = datetime.now()
-                #ts = datetime.timestamp(now)
-                ts = datetime.now().timestamp()
+        # for compatible_ver in compatibility_array:
+        #     semver_compatible_ver = semver.SimpleSpec(compatible_ver)
+        #     if semver_value_libvers in semver_compatible_ver:
+        #         #now = datetime.now()
+        #         #ts = datetime.timestamp(now)
+        #         ts = datetime.now().timestamp()
 
-                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + self.__port_id + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
+        ts = datetime.now().timestamp()
+        return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + self.__port_id + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
 
         # NOTE: If the device is not disconnected, it will try to START every 2,5 seconds.
-        raise NonCompatibilityException(
-            "Module version " + str(self.__conf.get_metadata_version()) + " can not work with Library version " + value_libvers,
-            ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
+#        raise NonCompatibilityException(
+#            "Module version " + str(self.__conf.get_metadata_version()) + " can not work with Library version " + value_libvers,
+#            ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
 
+    #endregion
 
-    # SET STANDARD (to standard device store)
+    #region SET
+    #region SET STANDARD (to standard device store)
     def __OPTS_SET_STD(self, args):
         # wraps __OPTS_SET
-        return self.__OPTS_SET(args, "STD")
+        return self.__OPTS_SET(args, self.__datastore, self.__datastore_pers, "STD")
+    # endregion
 
-    # SET PERSISTENT (to persistent keys device store)
-    def __OPTS_SET_PERS(self, args, ):
+    #region SET PERSISTENT (to persistent keys device store)
+    def __OPTS_SET_PERS(self, args ):
         # wraps __OPTS_SET
-        return self.__OPTS_SET(args, "PERS")
+        return self.__OPTS_SET(args, self.__datastore_pers, self.__datastore, "PERS")
+    # endregion
 
-    # SET
-    def __OPTS_SET(self, args, type):
+    #region SET
+    def __OPTS_SET(self, args, first_datastore, second_datastore, type):
         '''
         Set key to hold the string value. If key already holds a value,
         it is overwritten, regardless of its type. Any previous time to live
         associated with the key is discarded on successful SET operation.
             https://redis.io/commands/set
+
+        If type → 'STD' → first_datastore is volatile datastore and second_datastore is persistent datastore
+        If type → 'PERS' → first_datastore is persistent datastore and second_datastore is volatile datastore
 
         MCU → SET#<key>#<value>@
 
@@ -236,6 +260,7 @@ class ArancinoCommandExecutor:
         MCU ← 208@ (KO)
         '''
 
+
         key = args[0]
         value = args[1]
         rsp = False
@@ -243,29 +268,16 @@ class ArancinoCommandExecutor:
         try:
             # Keys must be unique among data stores
 
-            # STANDARD DATA STORE (even with reserved key by arancino)
-            if type == 'STD':
-
-                # check if key exist in other data store
-                if (self.__datastore_pers.exists(key) == 1):
-                    raise RedisStandardKeyExistsInPersistentDatastoreException(
-                        "Duplicate Key In Persistent Data Store: ", ArancinoCommandErrorCodes.ERR_REDIS_KEY_EXISTS_IN_PERS)
-                else:
-                    # store the value at key
-                    rsp = self.__datastore.set(key, value)
-
-
-            else:
-                # PERSISTENT DATA STORE
+            # check if key exist in other data store
+            if (second_datastore.exists(key) == 1):
+                if type == 'STD':
+                    raise RedisStandardKeyExistsInPersistentDatastoreException("Duplicate Key In Persistent Data Store: ", ArancinoCommandErrorCodes.ERR_REDIS_KEY_EXISTS_IN_PERS)
                 if type == 'PERS':
+                    raise RedisPersistentKeyExistsInStadardDatastoreException("Duplicate Key In Standard Data Store: ", ArancinoCommandErrorCodes.ERR_REDIS_KEY_EXISTS_IN_STD)
+            else:
+                # store the value at key
+                rsp = first_datastore.set(key, value)
 
-                    # check if key exist in other data store
-                    if (self.__datastore.exists(key) == 1):
-                        raise RedisPersistentKeyExistsInStadardDatastoreException(
-                            "Duplicate Key In Standard Data Store: ", ArancinoCommandErrorCodes.ERR_REDIS_KEY_EXISTS_IN_STD)
-                    else:
-                        # write to the dedicate data store (dedicated to persistent keys)
-                        rsp = self.__datastore_pers.set(key, value)
 
             if rsp:
                 # return ok response
@@ -274,49 +286,20 @@ class ArancinoCommandExecutor:
                 # return the error code
                 return ArancinoSpecialChars.ERR_SET + ArancinoSpecialChars.CHR_EOT
 
-        except Exception as ex:
+
+        except RedisError as ex:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-            # try:
+        except ArancinoException as ex:
+            raise ex
 
-            #     # STANDARD DATA STORE (even with reserved key by arancino)
-            #     if type == 'STD':
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
 
-            #         # if it's the reserverd key __LIBVERSION__,
-            #         # then add port id to associate the device and the running version of the library
-            #         if key.upper() == const.RSVD_KEY_LIBVERSION:
-            #             key += self.arancino.id + const.RSVD_CHARS
+    # endregion
+    # endregion
 
-            #         # check if key exist in the other data store
-            #         exist = self.datastore_rsvd.exists(key)
-            #         if( exist == 1):
-            #             raise RedisGenericException("Duplicate Key In Persistent Data Store: ", const.ERR_REDIS_KEY_EXISTS_IN_PERS)
-            #         else:
-            #             rsp = self.datastore.set(key, value)
-
-            #     # PERSISTENT DATA STORE
-            #     else:
-            #         if type == 'PERS':
-
-            #             # check if key exist in the other data store
-            #             exist = self.datastore.exists(key)
-            #             if( exist == 1):
-            #                 raise RedisGenericException("Duplicate Key In Standard Data Store: ", const.ERR_REDIS_KEY_EXISTS_IN_STD)
-            #             else:
-            #                 # write to the dedicate data store (dedicated to persistent keys)
-            #                 rsp = self.datastore_rsvd.set(key, value)
-
-            # except Exception as ex:
-            #     raise RedisGenericException("Redis Error: " + str(ex), const.ERR_REDIS)
-
-            # if rsp:
-            #     # return ok response
-            #     return const.RSP_OK + const.CHR_EOT
-            # else:
-            #     # return the error code
-            #     return const.ERR_SET + const.CHR_EOT
-
-    # GET
+    #region GET
     def __OPTS_GET(self, args):
         '''
         Get the value of key. If the key does not exist the special value nil is returned.
@@ -327,7 +310,8 @@ class ArancinoCommandExecutor:
         MCU → GET#<key>@
 
         MCU ← 100#<value>@ (OK)
-        MCU ← 201@ (KO)
+        MCU ← 200@ (KO) - Generic Error
+        MCU ← 206@ (KO) - Redis Error
         '''
 
 
@@ -362,18 +346,23 @@ class ArancinoCommandExecutor:
             if rsp is None:
                 rsp = self.__datastore_pers.get(key)
 
-        except Exception as ex:
+            # check again, if None send back Null Value.
+            if rsp is None:
+                rsp = ArancinoSpecialChars.CHR_NULL_VALUE
+
+            # return the value
+            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + rsp + ArancinoSpecialChars.CHR_EOT
+
+
+        except RedisError as ex:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-        if rsp is not None:
-            # return the value
-            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(rsp) + ArancinoSpecialChars.CHR_EOT
-        else:
-            # return the error code
-            return ArancinoCommandErrorCodes.ERR_NULL + ArancinoSpecialChars.CHR_EOT
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
 
+    # endregion
 
-    # DEL
+    #region DEL
     def __OPTS_DEL(self, args):
         '''
         Removes the specified keys. A key is ignored if it does not exist.
@@ -390,16 +379,19 @@ class ArancinoCommandExecutor:
             num = self.__datastore.delete(*args)
 
             # then try get from reserved datastore
-            if num is 0:
+            if num == 0:
                 num = self.__datastore_pers.delete(*args)
 
-        except Exception as ex:
+            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(num) + ArancinoSpecialChars.CHR_EOT
+
+        except RedisError as ex:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-        return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(num) + ArancinoSpecialChars.CHR_EOT
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
+    # endregion
 
-
-    # KEYS
+    #region KEYS
     def __OPTS_KEYS(self, args):
         '''
         Returns all keys matching pattern.
@@ -422,33 +414,49 @@ class ArancinoCommandExecutor:
 
             keys = keys + keys_pers
 
-        except Exception as ex:
-            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
+            if len(keys) > 0:
 
-        if len(keys) > 0:
+                ### uncomment below to apply a filter to exclude reserved keys from returned array
 
-            ### uncomment below to apply a filter to exclude reserved keys from returned array
+                keys_filtered = []
 
-            keys_filtered = []
+                for val in keys:
+                    if not (val.startswith(ArancinoReservedChars.RSVD_CHARS) and val.endswith(ArancinoReservedChars.RSVD_CHARS)):
+                        keys_filtered.append(val)
 
-            for val in keys:
-                if not (val.startswith(ArancinoReservedChars.RSVD_CHARS) and val.endswith(ArancinoReservedChars.RSVD_CHARS)):
-                    keys_filtered.append(val)
+                if len(keys_filtered) > 0:
+                    return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + ArancinoSpecialChars.CHR_SEP.join(keys_filtered) + ArancinoSpecialChars.CHR_EOT
 
-            if len(keys_filtered) > 0:
-                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + ArancinoSpecialChars.CHR_SEP.join(keys_filtered) + ArancinoSpecialChars.CHR_EOT
+                else:
+                    return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
+
+                ### comment the following line when apply the patch above (exclude reserved keys)
+                # return const.RSP_OK + const.CHR_SEP + const.CHR_SEP.join(keys) + const.CHR_EOT
 
             else:
                 return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
 
-            ### comment the following line when apply the patch above (exclude reserved keys)
-            # return const.RSP_OK + const.CHR_SEP + const.CHR_SEP.join(keys) + const.CHR_EOT
+        except RedisError as ex:
+            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-        else:
-            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
 
-    # HSET
-    def __OPTS_HSET(self, args):
+    # endregion
+
+    # region HSET
+    # region HSET STD
+    def __OPTS_HSET_STD(self, args):
+        return self.__OPTS_HSET(args, self.__datastore, self.__datastore_pers, "STD")
+    # endregion
+
+    # region HSET PERS
+    def __OPTS_HSET_PERS(self, args):
+        return self.__OPTS_HSET(args, self.__datastore_pers, self.__datastore, "PERS")
+    # endregion
+
+    # region HSET
+    def __OPTS_HSET(self, args, first_datastore, second_datastore, type):
         '''
         Sets field in the hash stored at key to value.
         If key does not exist, a new key holding a hash is created.
@@ -465,20 +473,45 @@ class ArancinoCommandExecutor:
         key = args[0]
         field = args[1]
         value = args[2]
+        rsp = None
 
         try:
 
-            rsp = self.__datastore.hset(key, field, value)
+            # Keys must be unique among data stores
 
-        except Exception as ex:
+            # check if key exist in other data store
+            if (second_datastore.exists(key) == 1):
+                if type == 'STD':
+                    raise RedisStandardKeyExistsInPersistentDatastoreException("Duplicate Key In Persistent Data Store: ", ArancinoCommandErrorCodes.ERR_REDIS_KEY_EXISTS_IN_PERS)
+                if type == 'PERS':
+                    raise RedisPersistentKeyExistsInStadardDatastoreException("Duplicate Key In Standard Data Store: ", ArancinoCommandErrorCodes.ERR_REDIS_KEY_EXISTS_IN_STD)
+            else:
+                # store the value at key and field
+                rsp = first_datastore.hset(key, field, value)
+
+
+            if rsp is not None:
+                if rsp == 1:
+                    return ArancinoCommandResponseCodes.RSP_HSET_NEW + ArancinoSpecialChars.CHR_EOT
+                else:  # 0
+                    return ArancinoCommandResponseCodes.RSP_HSET_UPD + ArancinoSpecialChars.CHR_EOT
+            else:
+                # return the error code
+                return ArancinoSpecialChars.ERR_SET + ArancinoSpecialChars.CHR_EOT
+
+        except RedisError as ex:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-        if rsp == 1:
-            return ArancinoCommandResponseCodes.RSP_HSET_NEW + ArancinoSpecialChars.CHR_EOT
-        else:  # 0
-            return ArancinoCommandResponseCodes.RSP_HSET_UPD + ArancinoSpecialChars.CHR_EOT
+        except ArancinoException as ex:
+            raise ex
 
-    # HGET
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
+
+    # endregion
+    # endregion
+
+    #region HGET
     def __OPTS_HGET(self, args):
         '''
         Returns the value associated with field in the hash stored at key.
@@ -487,28 +520,39 @@ class ArancinoCommandExecutor:
         MCU → HGET#<key>#<field>@
 
         MCU ← 100#<value>@
-        MCU ← 201@
+        MCU ← 200@ (KO) - Generic Error
+        MCU ← 206@ (KO) - Redis Error
 
         '''
 
         key = args[0]
         field = args[1]
+        rsp = None
 
         try:
 
-            value = self.__datastore.hget(key, field)
+            # first get from standard datastore
+            rsp = self.__datastore.hget(key, field)
 
-        except Exception as ex:
+            # then try get from reserved datastore
+            if rsp is None:
+                rsp = self.__datastore_pers.hget(key, field)
+
+            # check again, if None send back Null Value.
+            if rsp is None:
+                rsp = ArancinoSpecialChars.CHR_NULL_VALUE
+
+            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + rsp + ArancinoSpecialChars.CHR_EOT
+
+        except RedisError as ex:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-        if value is not None:
-            # return the value
-            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(value) + ArancinoSpecialChars.CHR_EOT
-        else:
-            # return the error code
-            return ArancinoCommandErrorCodes.ERR_NULL + ArancinoSpecialChars.CHR_EOT
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
 
-    # HGETALL
+    # endregion
+
+    #region HGETALL
     def __OPTS_HGETALL(self, args):
 
         '''
@@ -520,28 +564,37 @@ class ArancinoCommandExecutor:
         MCU → HGETALL#<key>@
 
         MCU ← 100[#<field-1>#<value-1>#<field-2>#<value-2>]@
+        MCU ← 200@ (KO) - Generic Error
+        MCU ← 206@ (KO) - Redis Error
         '''
 
 
         key = args[0]
-
         rsp_str = ""
 
         try:
 
             data = self.__datastore.hgetall(key)  # {'field-1': 'value-1', 'field-2': 'value-2'}
 
-        except Exception as ex:
+            # empty data, check in persistent datastore
+            if not bool(data):
+                data = self.__datastore_pers.hgetall(key)
+
+            for field in data:
+                rsp_str += ArancinoSpecialChars.CHR_SEP + field + ArancinoSpecialChars.CHR_SEP + data[field]
+
+            return ArancinoCommandResponseCodes.RSP_OK + rsp_str + ArancinoSpecialChars.CHR_EOT
+
+        except RedisError as ex:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-        for field in data:
-            rsp_str += ArancinoSpecialChars.CHR_SEP + field + ArancinoSpecialChars.CHR_SEP + data[field]
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
 
-        return ArancinoCommandResponseCodes.RSP_OK + rsp_str + ArancinoSpecialChars.CHR_EOT
+    # endregion
 
-    # HKEYS
+    #region HKEYS
     def __OPTS_HKEYS(self, args):
-
         '''
         Returns all field names in the hash stored at key.
             https://redis.io/commands/hkeys
@@ -549,23 +602,34 @@ class ArancinoCommandExecutor:
         MCU → HKEYS#<key>@
 
         MCU ← 100[#<field-1>#<field-2>]@
+        MCU ← 200@ (KO) - Generic Error
+        MCU ← 206@ (KO) - Redis Error
         '''
 
         key = args[0]
+        fields = []
 
         try:
 
             fields = self.__datastore.hkeys(key)
 
-        except Exception as ex:
+            if len(fields) == 0:
+                # empty data, check in persistent datastore
+                fields = self.__datastore_pers.hkeys(key)
+
+            if len(fields) > 0:
+                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + ArancinoSpecialChars.CHR_SEP.join(fields) + ArancinoSpecialChars.CHR_EOT
+            else:
+                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
+
+        except RedisError as ex:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-        if len(fields) > 0:
-            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + ArancinoSpecialChars.CHR_SEP.join(fields) + ArancinoSpecialChars.CHR_EOT
-        else:
-            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
+    # endregion
 
-    # HVALS
+    #region HVALS
     def __OPTS_HVALS(self, args):
         '''
         Returns all values in the hash stored at key.
@@ -574,23 +638,34 @@ class ArancinoCommandExecutor:
         MCU → HVALS#<key>
 
         MCU ← 100[#<value-1>#<value-2>]@
+        MCU ← 200@ (KO) - Generic Error
+        MCU ← 206@ (KO) - Redis Error
         '''
 
         key = args[0]
-
+        values = []
         try:
 
             values = self.__datastore.hvals(key)
 
-        except Exception as ex:
+            if len(values) == 0:
+                # empty data, check in persistent datastore
+                values = self.__datastore_pers.hvals(key)
+
+            if len(values) > 0:
+                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + ArancinoSpecialChars.CHR_SEP.join(values) + ArancinoSpecialChars.CHR_EOT
+            else:
+                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
+
+        except RedisError as ex:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-        if len(values) > 0:
-            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + ArancinoSpecialChars.CHR_SEP.join(values) + ArancinoSpecialChars.CHR_EOT
-        else:
-            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
 
-    # HDEL
+    # endregion
+
+    #region HDEL
     def __OPTS_HDEL(self, args):
         '''
         Removes the specified fields from the hash stored at key.
@@ -611,12 +686,21 @@ class ArancinoCommandExecutor:
 
             num = self.__datastore.hdel(key, *fields)
 
-        except Exception as ex:
+            # then try get from reserved datastore
+            if num == 0:
+                num = self.__datastore_pers.delete(*fields)
+
+            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(num) + ArancinoSpecialChars.CHR_EOT
+
+        except RedisError as ex:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-        return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(num) + ArancinoSpecialChars.CHR_EOT
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
 
-    # PUB
+    # endregion
+
+    #region PUB
     def __OPTS_PUB(self, args):
         '''
         Posts a message to the given channel. Return the number of clients
@@ -635,12 +719,16 @@ class ArancinoCommandExecutor:
 
             num = self.__datastore.publish(channel, message)
 
-        except Exception as ex:
+            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(num) + ArancinoSpecialChars.CHR_EOT
+
+        except RedisError as ex:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-        return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(num) + ArancinoSpecialChars.CHR_EOT
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
+    # endregion
 
-    # FLUSH
+    #region FLUSH
     def __OPTS_FLUSH(self, args):
         '''
         Delete all the keys of the currently application DB.
@@ -652,7 +740,6 @@ class ArancinoCommandExecutor:
         MCU ← 100@
         '''
 
-
         try:
 
             # before flush, save all Reserved Keys
@@ -663,6 +750,7 @@ class ArancinoCommandExecutor:
 
             # flush
             rsp = self.__datastore.flushdb()
+            rsp = self.__datastore_pers.flushdb()
 
             # finally set them all again
             for k, v in rsvd_keys_value.items():
@@ -671,12 +759,138 @@ class ArancinoCommandExecutor:
             # flush directly the datastore; reserved keys are stored separately
             # rsp = self.datastore.flushdb()
 
+            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
 
-        except Exception as ex:
+        except RedisError as ex:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
 
-        return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
+    # endregion
 
+    # region MSET
+
+    # region MSET STD
+    def __OPTS_MSET_STD(self, args):
+        # wraps __OPTS_MSET
+        return self.__OPTS_MSET(args, self.__datastore)
+    # endregion
+
+    # region MSET PERS
+    def __OPTS_MSET_PERS(self, args):
+        # wraps __OPTS_MSET
+        return self.__OPTS_MSET(args, self.__datastore_pers)
+    # endregion
+
+    # region MSET
+    def __OPTS_MSET(self, args, datastore):
+        '''
+        Sets the given keys to their respective values. MSET replaces existing values with new values, just as regular SET.
+            https://redis.io/commands/mset
+
+        MCU → MSET#<key1>%<key2>%<key3>#<value1>%<value2>%<value3>@
+
+        MCU ← 100@
+        MCU ← 200@
+
+        No check if one or all the keys exist in other datastores.
+
+        '''
+
+        keys = args[0]
+        values = args[1]
+
+        try:
+
+            keys_array = keys.split(ArancinoSpecialChars.CHR_ARR_SEP)
+            values_array = values.split(ArancinoSpecialChars.CHR_ARR_SEP)
+
+            if keys_array and values_array and len(keys_array) > 0 and len(values_array) and len(keys_array) == len(values_array):
+
+                # create a map of key-value
+                map = {}
+                for idx, key in enumerate(keys_array):
+                    map[key] = values_array[idx]
+
+                value = datastore.mset(map)
+            else:
+                raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
+
+            if value:
+                # return ok
+                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
+            else:
+                # return the error code
+                return ArancinoCommandErrorCodes.ERR_NULL + ArancinoSpecialChars.CHR_EOT
+
+
+        except RedisError as ex:
+            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
+
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
+
+
+    # endregion
+    # endregion
+
+    #region MGET
+    def __OPTS_MGET(self, args):
+        '''
+        Sets the given keys to their respective values. MSET replaces existing values with new values, just as regular SET.
+            https://redis.io/commands/mset
+
+        MCU → MGET#<key1>%<key2>%<key3>@
+
+        MCU ← 100#<value1>%<value2>%<value3>@
+        MCU ← 200@ (KO) - Generic Error
+        MCU ← 201@ (KO) - Null Error
+        MCU ← 206@ (KO) - Redis Error
+
+        '''
+
+        keys = args[0]
+        values = []
+
+        try:
+
+            keys_array = keys.strip().split(ArancinoSpecialChars.CHR_ARR_SEP)
+
+            if keys_array and len(keys_array) > 0:
+
+                values = self.__datastore.mget(keys_array)
+
+            else:
+                raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
+
+
+            if values:
+
+                for idx, val in enumerate(values):
+                    if val is None:
+
+                        # check if key exists in persistent datastore:
+                        chk = self.__datastore_pers.get(keys_array[idx])
+
+                        if chk is None:
+                            values[idx] = ArancinoSpecialChars.CHR_NULL_VALUE
+                        else:
+                            values[idx] = chk
+
+                response = ArancinoSpecialChars.CHR_SEP.join(values)
+
+                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + response + ArancinoSpecialChars.CHR_EOT
+            else:
+                # return the error code
+                return ArancinoCommandErrorCodes.ERR_NULL + ArancinoSpecialChars.CHR_EOT
+
+        except RedisError as ex:
+            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
+
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
+
+    # endregion
 
     def __get_args_nr_by_cmd_id(self, cmd_id):
         '''

@@ -18,8 +18,8 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 """
-import semantic_version
-import serial, time
+
+import serial
 from serial import SerialException
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.handler.ArancinoSerialHandler import ArancinoSerialHandler
@@ -28,8 +28,10 @@ from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 import time
 
+
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
+TRACE = CONF.get_log_print_stack_trace()
 
 class ArancinoSerialPort(ArancinoPort):
 
@@ -62,74 +64,79 @@ class ArancinoSerialPort(ArancinoPort):
 
         self.__populatePortInfo(device=self._device, port_info=self.__port_info)
 
-        # log prefix to be print in each log
-        self.__log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
-
         # Command Executor
         # self.__executor = ArancinoCommandExecutor(self.__id, self.__device)
 
         self._executor = ArancinoCommandExecutor(self._id, self._device, self._port_type)
 
+        self._compatibility_array = COMPATIBILITY_MATRIX_MOD_TEST[str(CONF.get_metadata_version().truncate())]
+
         # # CALLBACK FUNCTIONS
         #self.setReceivedCommandHandler(receivedCommandHandler)  # this is the handler to be used to receive an ArancinoCommand and exec that command.
         #self.setDisconnectionHandler(disconnectionHandler)  # this is the handler to be used whene a disconnection event is triggered
 
+        self._log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
 
-    def __commandReceivedHandler(self, raw_command):
-        """
-        This is an Asynchronous function, and represent "handler" to be used by ArancinoSerialHandeler.
-            It first receives a Raw Command from the Serial Port, then translate it to an ArancinoCommand object
-            and send it back to another callback function
-
-        :param raw_command: the Raw Command received from the Serial port
-        :return: void.
-        """
-        try:
-            # create an Arancino Comamnd from the raw command
-            acmd = ArancinoComamnd(raw_command=raw_command)
-            LOG.debug("{} Received: {}: {}".format(self.__log_prefix, acmd.getId(), str(acmd.getArguments())))
-
-            # check if the received command handler callback function is defined
-            if self._received_command_handler is not None:
-                self._received_command_handler(self._id, acmd)
-
-            # call the Command Executor and get a raw response
-            raw_response = self._executor.exec(acmd)
-
-            # create the Arancino Response object
-            arsp = ArancinoResponse(raw_response=raw_response)
-
-
-        # All Arancino Application Exceptions contains an Error Code
-        except ArancinoException as ex:
-
-            if ex.error_code == ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY:
-                self._setComapitibility(False)
-
-            arsp = ArancinoResponse(rsp_id=ex.error_code, rsp_args=[])
-            LOG.error("{} {}".format(self.__log_prefix, str(ex)))
-
-        # Generic Exception uses a generic Error Code
-        except Exception as ex:
-            arsp = ArancinoResponse(rsp_id=ArancinoCommandErrorCodes.ERR, rsp_args=[])
-            LOG.error("{} {}".format(self.__log_prefix, str(ex)))
-
-        finally:
-
-            try:
-                # move there that, becouse if there's an non compatibility error, lib version will not setted
-                #   moving that in the finally, it will setted
-                if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
-                    v = semantic_version.Version(acmd.getArguments()[0])
-                    self._setLibVersion(v)
-
-                # send the response back.
-                self.sendResponse(arsp.getRaw())
-                LOG.debug("{} Sending: {}: {}".format(self.__log_prefix, arsp.getId(), str(arsp.getArguments())))
-
-            except SerialException as ex:
-                LOG.error("{} Error while transmitting a Response: {}".format(self.__log_prefix), str(ex))
-
+    # def __commandReceivedHandler(self, raw_command):
+    #     """
+    #     This is an Asynchronous function, and represent "handler" to be used by ArancinoSerialHandeler.
+    #         It first receives a Raw Command from the Serial Port, then translate it to an ArancinoCommand object
+    #         and send it back to another callback function
+    #
+    #     :param raw_command: the Raw Command received from the Serial port
+    #     :return: void.
+    #     """
+    #     try:
+    #         # create an Arancino Comamnd from the raw command
+    #         acmd = ArancinoComamnd(raw_command=raw_command)
+    #         LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.getId(), str(acmd.getArguments())))
+    #
+    #         # check if the received command handler callback function is defined
+    #         if self._received_command_handler is not None:
+    #             self._received_command_handler(self._id, acmd)
+    #
+    #         # call the Command Executor and get a raw response
+    #         raw_response = self._executor.exec(acmd)
+    #
+    #         # create the Arancino Response object
+    #         arsp = ArancinoResponse(raw_response=raw_response)
+    #
+    #
+    #     # All Arancino Application Exceptions contains an Error Code
+    #     except ArancinoException as ex:
+    #
+    #         if ex.error_code == ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY:
+    #             self._setComapitibility(False)
+    #
+    #         arsp = ArancinoResponse(rsp_id=ex.error_code, rsp_args=[])
+    #         LOG.error("{} {}".format(self._log_prefix, str(ex)))
+    #
+    #     # Generic Exception uses a generic Error Code
+    #     except Exception as ex:
+    #         arsp = ArancinoResponse(rsp_id=ArancinoCommandErrorCodes.ERR, rsp_args=[])
+    #         LOG.error("{} {}".format(self._log_prefix, str(ex)))
+    #
+    #     finally:
+    #
+    #         try:
+    #             # move there that, becouse if there's an non compatibility error, lib version will not setted
+    #             #  moving that in the finally, it will be setted
+    #             if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
+    #
+    #                 self._retrieveStartCmdArgs(acmd.getArguments())
+    #
+    #                 # if it is not compatible an error was send back to the mcu and the communnication is not started (the mcu receive an errore and try to connect again)
+    #                 # if it is compatible the communication starts and it ready to receive new commands.
+    #                 started = True if self.isCompatible() else False
+    #                 self._setStarted(started)
+    #
+    #             # send the response back.
+    #             self.sendResponse(arsp.getRaw())
+    #             LOG.debug("{} Sending: {}: {}".format(self._log_prefix, arsp.getId(), str(arsp.getArguments())))
+    #
+    #         except SerialException as ex:
+    #             LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex))
+    #
 
     def __connectionLostHandler(self):
         """
@@ -150,7 +157,7 @@ class ArancinoSerialPort(ArancinoPort):
         del self.__serial_handler
         del self.__serial_port
 
-        LOG.warning("{} Serial Port closed.".format(self.__log_prefix))
+        LOG.warning("{} Serial Port closed.".format(self._log_prefix))
 
         # check if the disconnection handler callback function is defined
         if self._disconnection_handler is not None:
@@ -217,7 +224,7 @@ class ArancinoSerialPort(ArancinoPort):
         if self._m_s_connected:
             self.__serial_port.write(raw_response.encode())
         else:  # not connected
-            LOG.warning("{} Cannot Sent a Response: Port is not connected.".format(self.__log_prefix))
+            LOG.warning("{} Cannot Sent a Response: Port is not connected.".format(self._log_prefix))
 
 
     def connect(self):
@@ -227,7 +234,7 @@ class ArancinoSerialPort(ArancinoPort):
                 if not self._m_s_connected:
                     try:
 
-                        LOG.info("{} Connecting...".format(self.__log_prefix))
+                        LOG.info("{} Connecting...".format(self._log_prefix))
 
                         if CONF.get_port_serial_reset_on_connect():
                             # first resetting
@@ -237,24 +244,24 @@ class ArancinoSerialPort(ArancinoPort):
                         self.__serial_port.port = self._device
                         self.__serial_port.open()
 
-                        self.__serial_handler = ArancinoSerialHandler("ArancinoSerialHandler-"+self._id, self.__serial_port, self._id, self._device, self.__commandReceivedHandler, self.__connectionLostHandler)
+                        self.__serial_handler = ArancinoSerialHandler("ArancinoSerialHandler-"+self._id, self.__serial_port, self._id, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
                         self._m_s_connected = True
                         self.__serial_handler.start()
-                        LOG.info("{} Connected".format(self.__log_prefix))
+                        LOG.info("{} Connected".format(self._log_prefix))
                         self._start_thread_time = time.time()
 
                     except Exception as ex:
                         # TODO LOG SOMETHING OR NOT?
-                        LOG.error("{} Error while connecting: {}".format(self.__log_prefix, str(ex)))
+                        LOG.error("{} Error while connecting: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
                         raise ex
 
                 else:
                     # TODO LOG or EXCPETION
-                    LOG.warning("{} Port already connected".format(self.__log_prefix))
+                    LOG.warning("{} Port already connected".format(self._log_prefix))
 
             else: # not enabled
                 #TODO LOG or EXCEPTION
-                LOG.warning("{} Port not enabled".format(self.__log_prefix))
+                LOG.warning("{} Port not enabled".format(self._log_prefix))
 
         except Exception as ex:
             raise ex
@@ -269,7 +276,7 @@ class ArancinoSerialPort(ArancinoPort):
                 self.__serial_handler.stop()
 
             else:
-                LOG.debug("{} Already Disconnected".format(self.__log_prefix))
+                LOG.debug("{} Already Disconnected".format(self._log_prefix))
 
 
         except Exception as ex:
@@ -279,7 +286,7 @@ class ArancinoSerialPort(ArancinoPort):
     def reset(self):
         try:
 
-            LOG.info("{} Resetting...".format(self.__log_prefix))
+            LOG.info("{} Resetting...".format(self._log_prefix))
             self.disconnect()
             self.setEnabled(False)
             # touch to reset
@@ -291,21 +298,21 @@ class ArancinoSerialPort(ArancinoPort):
             del ser
             time.sleep(3)
             self.setEnabled(True)
-            LOG.info("{} Reset".format(self.__log_prefix))
+            LOG.info("{} Reset".format(self._log_prefix))
             return True
         except Exception as ex:
             #LOG.info("{} Connected".format(self.__log_prefix))
-            LOG.exception(self.__log_prefix + str(ex))
+            LOG.exception(self._log_prefix + str(ex))
 
 
     def upload(self, firmware):
 
-        LOG.info("{} Starting Upload Procedure".format(self.__log_prefix))
+        LOG.info("{} Starting Upload Procedure".format(self._log_prefix))
         import subprocess
 
         cmd = self._upload_cmd.format(firmware=firmware, port=self)
         cmd_arr = cmd.split(" ")
-        LOG.info("{} Ready to run upload command ===> {} <===".format(self.__log_prefix, cmd))
+        LOG.info("{} Ready to run upload command ===> {} <===".format(self._log_prefix, cmd))
 
         stdout = None
         stderr = None
@@ -324,16 +331,16 @@ class ArancinoSerialPort(ArancinoPort):
             rtcode = proc.returncode
 
             if rtcode != 0:
-                LOG.error("{} Return code: {} - {}".format(self.__log_prefix, str(rtcode), stderr))
+                LOG.error("{} Return code: {} - {}".format(self._log_prefix, str(rtcode), stderr))
             else:
-                LOG.info("{} Upload Success!".format(self.__log_prefix))
-                LOG.info("{} {}".format(self.__log_prefix, stdout))
+                LOG.info("{} Upload Success!".format(self._log_prefix))
+                LOG.info("{} {}".format(self._log_prefix, stdout))
 
 
         except Exception as ex:
             rtcode = -1
             stderr = str(ex)
-            LOG.error("{} Something goes wrong while uploadig: {}".format(self.__log_prefix, str(ex)))
+            LOG.error("{} Something goes wrong while uploadig: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
 
         finally:
             self.setEnabled(True)

@@ -48,6 +48,12 @@ class ArancinoSpecialChars:
     CHR_SEP = chr(30)
     "Separator Char: separates the commands id from arguments, and arguments themeself"
 
+    CHR_ARR_SEP = chr(16)
+    "Array Char: separates arguments data in case of array"
+
+    CHR_NULL_VALUE = chr(25)
+    "Representation of Null/None value"
+
 
 class ArancinoReservedChars:
     #Characters for Reserverd keys def
@@ -96,16 +102,22 @@ class ArancinoCommandErrorCodes:
     ERR_NON_COMPATIBILITY = '209'
     "Non compatibility between Arancino Module and Library"
 
-    ERRORS_CODE_LIST = [ERR,
-                        ERR_NULL,
-                        ERR_SET,
-                        ERR_CMD_NOT_FND,
-                        ERR_CMD_NOT_RCV,
-                        ERR_CMD_PRM_NUM,
-                        ERR_REDIS,
-                        ERR_REDIS_KEY_EXISTS_IN_STD,
-                        ERR_REDIS_KEY_EXISTS_IN_PERS,
-                        ERR_NON_COMPATIBILITY]
+    ERR_INVALID_ARGUMENTS = '210'
+    "Generic Invalid Arguments"
+
+    ERRORS_CODE_LIST = [
+                            ERR,
+                            ERR_NULL,
+                            ERR_SET,
+                            ERR_CMD_NOT_FND,
+                            ERR_CMD_NOT_RCV,
+                            ERR_CMD_PRM_NUM,
+                            ERR_REDIS,
+                            ERR_REDIS_KEY_EXISTS_IN_STD,
+                            ERR_REDIS_KEY_EXISTS_IN_PERS,
+                            ERR_NON_COMPATIBILITY,
+                            ERR_INVALID_ARGUMENTS,
+                        ]
 
 
 class ArancinoCommandResponseCodes:
@@ -137,7 +149,7 @@ class ArancinoCommandIdentifiers:
 
     # Init commands
     __CMD_SYS_START = 'START'
-    CMD_SYS_START = {"id": __CMD_SYS_START, "args": 1, "op": ArancinoOperators.EQUAL}
+    CMD_SYS_START = {"id": __CMD_SYS_START, "args": 1, "op": ArancinoOperators.GREATER_THAN_OR_EQUAL}
     "Start Commmand"
 
     # Simple Operation Commands
@@ -184,6 +196,12 @@ class ArancinoCommandIdentifiers:
     __CMD_APP_HSET = 'HSET'  #
     CMD_APP_HSET = {"id": __CMD_APP_HSET, "args": 3, "op": ArancinoOperators.EQUAL}
 
+    __CMD_APP_HSET_STD = 'HSET'  #
+    CMD_APP_HSET_STD = {"id": __CMD_APP_HSET_STD, "args": 3, "op": ArancinoOperators.EQUAL}
+
+    __CMD_APP_HSET_PERS = 'HSETPERS'  #
+    CMD_APP_HSET_PERS = {"id": __CMD_APP_HSET_PERS, "args": 3, "op": ArancinoOperators.EQUAL}
+
     # Other Commands
     __CMD_APP_PUB = 'PUB'
     CMD_APP_PUB = {"id": __CMD_APP_PUB, "args": 2, "op": ArancinoOperators.EQUAL}
@@ -192,6 +210,23 @@ class ArancinoCommandIdentifiers:
     __CMD_APP_FLUSH = 'FLUSH'
     CMD_APP_FLUSH = {"id": __CMD_APP_FLUSH, "args": 0, "op": ArancinoOperators.EQUAL}
     "Flush the current Database, delete all the keys from the current Database"
+
+    __CMD_APP_MSET = 'MSET'
+    CMD_APP_MSET = {"id": __CMD_APP_MSET, "args": 2, "op": ArancinoOperators.EQUAL}
+    "Sets more than one value at the specified keys, at the same time"
+
+    __CMD_APP_MSET_STD = 'MSET'
+    CMD_APP_MSET_STD = {"id": __CMD_APP_MSET_STD, "args": 2, "op": ArancinoOperators.EQUAL}
+    "Sets more than one value at the specified keys, at the same time (Standard as SET above)"
+
+    __CMD_APP_MSET_PERS = 'MSETPERS'
+    CMD_APP_MSET_PERS = {"id": __CMD_APP_MSET_PERS, "args": 2, "op": ArancinoOperators.EQUAL}
+    "Sets more than one value at the specified keys, at the same time (Persistent for User)"
+
+
+    __CMD_APP_MGET = 'MGET'
+    CMD_APP_MGET = {"id": __CMD_APP_MGET, "args": 1, "op": ArancinoOperators.EQUAL}
+    "Sets more than one key value at the same time"
 
     COMMANDS_DICT = {
         __CMD_SYS_START: CMD_SYS_START,
@@ -207,8 +242,14 @@ class ArancinoCommandIdentifiers:
         __CMD_APP_HVALS: CMD_APP_HVALS,
         __CMD_APP_HDEL: CMD_APP_HDEL,
         __CMD_APP_HSET: CMD_APP_HSET,
+        __CMD_APP_HSET_STD: CMD_APP_HSET_STD,
+        __CMD_APP_HSET_PERS: CMD_APP_HSET_PERS,
         __CMD_APP_PUB: CMD_APP_PUB,
-        __CMD_APP_FLUSH: CMD_APP_FLUSH
+        __CMD_APP_FLUSH: CMD_APP_FLUSH,
+        __CMD_APP_MSET: CMD_APP_MSET,
+        __CMD_APP_MSET_STD: CMD_APP_MSET_STD,
+        __CMD_APP_MSET_PERS: CMD_APP_MSET_PERS,
+        __CMD_APP_MGET: CMD_APP_MGET,
     }
     "Complete dictionary of all available commands: " \
     "{ 'SET': {'id': 'SET', 'args': 2} , ... }"
@@ -226,8 +267,15 @@ class ArancinoCommandIdentifiers:
                      __CMD_APP_HVALS,
                      __CMD_APP_HDEL,
                      __CMD_APP_HSET,
+                     __CMD_APP_HSET_STD,
+                     __CMD_APP_HSET_PERS,
                      __CMD_APP_PUB,
-                     __CMD_APP_FLUSH]
+                     __CMD_APP_FLUSH,
+                     __CMD_APP_MSET,
+                     __CMD_APP_MSET_STD,
+                     __CMD_APP_MSET_PERS,
+                     __CMD_APP_MGET,
+                     ]
     "Complete list of all available commands:" \
     "[ 'SET', 'GET', ... ]"
 
@@ -240,7 +288,11 @@ class ArancinoDBKeys:
     B_PORT_TYPE = "B_PORT_TYPE"             # Num
     B_CREATION_DATE = "S_CREATION_DATE"     # Datetime
     B_LIB_VER = "B_LIB_VER"                 # String
-
+    B_FW_VER = "B_FW_VER"                   # String
+    B_FW_NAME = "B_FW_NAME"                 # String
+    B_FW_COMPILE_DATE = "B_FW_COMPILE_DATE" # Datetime
+    B_FW_CORE_VER = "B_FW_CORE_VER"         # String
+    
     # LINK ARANCINO METADATA (L)ink
     L_DEVICE = "L_DEVICE"                   # String
 
@@ -250,6 +302,7 @@ class ArancinoDBKeys:
     S_LAST_USAGE_DATE = "S_LAST_USAGE_DATE" # Datetime
     S_UPTIME = "S_UPTIME"                   # Datetime
     S_COMPATIBILITY = "S_COMPATIBILITY"     # Boolean
+    S_STARTED = "S_STARTED"                 # Boolean
 
     # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
     C_ENABLED = "C_ENABLED"                 # Boolean
@@ -276,7 +329,11 @@ class ArancinoDBKeys:
         B_PORT_TYPE: "B_PORT_TYPE",             # Num
         B_CREATION_DATE: "S_CREATION_DATE",     # Datetime
         B_LIB_VER: "B_LIB_VER",                 # String
-
+        B_FW_VER: "B_FW_VER",                   # String
+        B_FW_NAME: "B_FW_NAME",                 # String
+        B_FW_COMPILE_DATE: "B_FW_COMPILE_DATE", # Datetime
+        B_FW_CORE_VER: "B_FW_CORE_VER",         # String
+        
         # LINK ARANCINO METADATA (L)ink
         L_DEVICE: "L_DEVICE",                   # String
 
@@ -286,6 +343,7 @@ class ArancinoDBKeys:
         S_LAST_USAGE_DATE: "S_LAST_USAGE_DATE", # Datetime
         S_UPTIME: "S_UPTIME",                   # Datetime
         S_COMPATIBILITY: "S_COMPATIBILITY",     # Boolean
+        S_STARTED: "S_STARTED",                 # Boolean
 
         # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
         C_ENABLED: "C_ENABLED",                 # Boolean
@@ -308,38 +366,42 @@ class ArancinoDBKeys:
 
     __DB_KEY_DESC = {
         # BASE ARANCINO METADATA (B)ase
-        B_ID: "Id",  # String
-        B_PORT_TYPE: "Type",  # Num
-        B_CREATION_DATE: "Creation Date",  # Datetime
-        B_LIB_VER: "Library Version",  # String
-
+        B_ID: "Id",                                 # String
+        B_PORT_TYPE: "Type",                        # Num
+        B_CREATION_DATE: "Creation Date",           # Datetime
+        B_LIB_VER: "Library Version",               # String
+        B_FW_VER: "Fimrware Version",               # String
+        B_FW_NAME: "Firmware Name",                 # String
+        B_FW_COMPILE_DATE: "Firmware Compile Date", # Datetime
+        B_FW_CORE_VER: "Firmware Core Version",     # String
         # LINK ARANCINO METADATA (L)ink
-        L_DEVICE: "Connection Id",  # String
+        L_DEVICE: "Connection Id",                  # String
 
         # BASE ARANCINO STATUS METADATA (S)tatus
-        S_CONNECTED: "Connected",  # Boolean
-        S_PLUGGED: "Plugged",  # Boolean
-        S_LAST_USAGE_DATE: "Last Usage Date",  # Datetime
-        S_UPTIME: "Uptime",  # Datetime
-        S_COMPATIBILITY: "Compatibility", # Boolean
+        S_CONNECTED: "Connected",                   # Boolean
+        S_PLUGGED: "Plugged",                       # Boolean
+        S_LAST_USAGE_DATE: "Last Usage Date",       # Datetime
+        S_UPTIME: "Uptime",                         # Datetime
+        S_COMPATIBILITY: "Compatibility",           # Boolean
+        S_STARTED: "Started",                       # Boolean
 
         # BASE ARANCINO CONFIGURATION METADATA (C)Configuration
-        C_ENABLED: "Enabled",  # Boolean
-        C_ALIAS: "Alias",  # Boolean
-        C_HIDE_DEVICE: "Hidden",  # Boolean
+        C_ENABLED: "Enabled",                       # Boolean
+        C_ALIAS: "Alias",                           # Boolean
+        C_HIDE_DEVICE: "Hidden",                    # Boolean
 
         # SERIAL ARANCINO PORT METADATA (P)Port
-        P_NAME: "Serial Name",  # String
-        P_DESCRIPTION: "Serial Port Description",  # String
-        P_HWID: "Serial Port Hardware Id",  # String
-        P_VID: "Serial Port Vendor Id",  # Number in Hex format
-        P_PID: "Serial Port Product Id",  # Number in Hex
-        P_SERIALNUMBER: "Serial Port Serial Number",  # String (Hex)
-        P_LOCATION: "Serial Port Location",  # Number-Number
-        P_MANUFACTURER: "Serial Port Manufcaturer",  # String
-        P_PRODUCT: "Serial Port Product Name",  # String
-        P_INTERFACE: "Serial Port Interface",  # String
-        P_DEVICE: "Serial Port Device Name",  # String
+        P_NAME: "Serial Name",                      # String
+        P_DESCRIPTION: "Serial Port Description",   # String
+        P_HWID: "Serial Port Hardware Id",          # String
+        P_VID: "Serial Port Vendor Id",             # Number in Hex format
+        P_PID: "Serial Port Product Id",            # Number in Hex
+        P_SERIALNUMBER: "Serial Port Serial Number",# String (Hex)
+        P_LOCATION: "Serial Port Location",         # Number-Number
+        P_MANUFACTURER: "Serial Port Manufcaturer", # String
+        P_PRODUCT: "Serial Port Product Name",      # String
+        P_INTERFACE: "Serial Port Interface",       # String
+        P_DEVICE: "Serial Port Device Name",        # String
     }
 
 
@@ -374,12 +436,17 @@ class ArancinoApiResponseCode:
 
     OK_CONFIGURATED = 17
 
+    OK_ARANCINO_CONFIGURATED = 18
+
     ERR_PORT_NOT_FOUND = 20
     ERR_CAN_NOT_CONNECT_PORT_DISABLED = 21
     ERR_GENERIC = 22
     ERR_RESET = 23
     ERR_UPLOAD = 24
     ERR_NO_CONFIG_PROVIDED = 25
+    ERR_NO_ARANCINO_CONFIG_SECTION_PROVIDED = 26
+    ERR_NO_ARANCINO_CONFIG_OPTION_PROVIDED = 27
+    ERR_NO_ARANCINO_CONFIG_VALUE_PROVIDED = 28
 
     __USER_MESSAGES = {
         OK_ALREADY_ENABLED: "Selected port is already enabled.",
@@ -407,13 +474,21 @@ class ArancinoApiResponseCode:
         ERR_UPLOAD: "Sorry, an error was occurred during this operation.",
         ERR_NO_CONFIG_PROVIDED: "Sorry, no configuration params found during this operation",
 
+        ERR_NO_ARANCINO_CONFIG_SECTION_PROVIDED: "Sorry, no section configuration found during this operation",
+        ERR_NO_ARANCINO_CONFIG_OPTION_PROVIDED: "Sorry, no option configuration found during this operation",
+        ERR_NO_ARANCINO_CONFIG_VALUE_PROVIDED: "Sorry, no value configuration found during this operation",
+
+
         OK_ALREADY_HIDDEN: "Selected port is already hidden",
         OK_HIDDEN: "Port hidden successfully",
 
         OK_ALREADY_SHOWN: "Selected port is already shown",
         OK_SHOWN: "Port shown successfully",
 
-        OK_CONFIGURATED: "Port configured successfully"
+        OK_CONFIGURATED: "Port configured successfully",
+
+        OK_ARANCINO_CONFIGURATED: "Arancino configured successfully"
+
     }
 
     __INTERNAL_MESSAGES = {
@@ -442,14 +517,20 @@ class ArancinoApiResponseCode:
         ERR_UPLOAD: None,
         ERR_NO_CONFIG_PROVIDED: "Sorry, no configuration params found during this operation",
 
+        ERR_NO_ARANCINO_CONFIG_SECTION_PROVIDED: "Sorry, no section configuration found during this operation",
+        ERR_NO_ARANCINO_CONFIG_OPTION_PROVIDED: "Sorry, no option configuration found during this operation",
+        ERR_NO_ARANCINO_CONFIG_VALUE_PROVIDED: "Sorry, no value configuration found during this operation",
+
         OK_ALREADY_HIDDEN: "Selected port is already hidden",
         OK_HIDDEN: "Port hidden successfully",
 
         OK_ALREADY_SHOWN: "Selected port is already shown",
         OK_SHOWN: "Port shown successfully",
 
-        OK_CONFIGURATED: "Port configured successfully"
-        
+        OK_CONFIGURATED: "Port configured successfully",
+
+        OK_ARANCINO_CONFIGURATED: "Arancino configured successfully"
+
     }
 
     def USER_MESSAGE(self, response_code):
@@ -479,10 +560,13 @@ COMPATIBILITY_MATRIX_MOD_SERIAL = {
     "1.2.0": ["=0.2.0"],
     "1.2.1": ["=0.2.0"],
     "2.0.0": [">=0.3.0,<1.0.0", ">=1.2.0"],
+    "2.1.0": [">=0.4.0,<1.0.0", ">=1.3.0"],
+    #"2.0.0": ["<0.3.0", ">=1.2.0"], # for tests
 }
 
 
 COMPATIBILITY_MATRIX_MOD_TEST = {
     #MODULE : #LIBRARY
     "2.0.0": [">=1.0.0"],
+    "2.1.0": [">=1.0.0"],
 }

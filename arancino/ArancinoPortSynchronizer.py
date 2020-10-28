@@ -20,15 +20,17 @@ under the License
 
 #from arancino.arancino_datastore import ArancinoDataStore
 #import arancino.arancino_constants as const
+from redis import RedisError
 
 from arancino.ArancinoDataStore import ArancinoDataStore
 from arancino.ArancinoConstants import ArancinoDBKeys
-from arancino.utils.ArancinoUtils import stringToBool, stringToDatetime, datetimeToString, ArancinoLogger
+from arancino.utils.ArancinoUtils import stringToBool, stringToDatetime, datetimeToString, ArancinoLogger, ArancinoConfig
 from arancino.port.ArancinoPort import PortTypes
 from datetime import datetime
 
 LOG = ArancinoLogger.Instance().getLogger()
-
+CONF = ArancinoConfig.Instance()
+TRACE = CONF.get_log_print_stack_trace()
 
 class ArancinoPortSynch:
 
@@ -44,8 +46,11 @@ class ArancinoPortSynch:
                 is_enabled = stringToBool(self.__devicestore.hget(id, ArancinoDBKeys.C_ENABLED))
                 is_hidden = stringToBool(self.__devicestore.hget(id, ArancinoDBKeys.C_HIDE_DEVICE))
                 alias = self.__devicestore.hget(id, ArancinoDBKeys.C_ALIAS)
+            except RedisError as ex:
+                LOG.error("Redis Error: {}".format(str(ex)), exc_info=TRACE)
+                return
             except Exception as ex:
-                LOG.error("Redis Error: {}".format(str(ex)))
+                LOG.error("Generic Error: {}".format(str(ex)), exc_info=TRACE)
                 return
 
 
@@ -69,8 +74,10 @@ class ArancinoPortSynch:
             pipeline.hset(id, ArancinoDBKeys.C_HIDE_DEVICE, is_hidden)
             pipeline.hset(id, ArancinoDBKeys.C_ALIAS, alias)
             pipeline.execute()
+        except RedisError as ex:
+            LOG.error("Redis Error: {}".format(str(ex)), exc_info=TRACE)
         except Exception as ex:
-            LOG.error("Redis Error: {}".format(str(ex)))
+            LOG.error("Generic Error: {}".format(str(ex)), exc_info=TRACE)
 
 
     def writePortBase(self, port):
@@ -87,8 +94,10 @@ class ArancinoPortSynch:
             pipeline.hset(id, ArancinoDBKeys.B_CREATION_DATE, creation_date)
             #pipeline.hset(id, ArancinoDBKeys.B_LIB_VER, lib_ver)
             pipeline.execute()
+        except RedisError as ex:
+            LOG.error("Redis Error: {}".format(str(ex)), exc_info=TRACE)
         except Exception as ex:
-            LOG.error("Redis Error: {}".format(str(ex)))
+            LOG.error("Generic Error: {}".format(str(ex)), exc_info=TRACE)
 
 
     def readPortChanges(self, port):
@@ -98,13 +107,13 @@ class ArancinoPortSynch:
             db_val_lud = self.__devicestore.hget(id, ArancinoDBKeys.S_LAST_USAGE_DATE)
             db_val_cd = self.__devicestore.hget(id, ArancinoDBKeys.B_CREATION_DATE)
 
-            if db_val_lud is not None and db_val_lud is not "":
+            if db_val_lud is not None and db_val_lud != "":
                 #db_val_lud = stringToDatetime(db_val_lud)
                 db_val_lud = datetime.utcfromtimestamp(float(db_val_lud))
             else:
                 db_val_lud = None
 
-            if db_val_cd is not None and db_val_cd is not "":
+            if db_val_cd is not None and db_val_cd != "":
                 #db_val_cd = stringToDatetime(db_val_cd)
                 db_val_cd = datetime.utcfromtimestamp(float(db_val_cd))
             else:
@@ -112,8 +121,11 @@ class ArancinoPortSynch:
 
             last_usage_date = db_val_lud# stringToDatetime(self.__devicestore.hget(id, ArancinoDBKeys.S_LAST_USAGE_DATE)) if self.__devicestore.hget(id, ArancinoDBKeys.S_LAST_USAGE_DATE) is not "" and is not None else None
             creation_date = db_val_cd #stringToDatetime(self.__devicestore.hget(id, ArancinoDBKeys.B_CREATION_DATE)) if self.__devicestore.hget(id, ArancinoDBKeys.B_CREATION_DATE) is not "" else None
+        except RedisError as ex:
+            LOG.error("Redis Error: {}".format(str(ex)), exc_info=TRACE)
+            return
         except Exception as ex:
-            LOG.error("Redis Error: {}".format(str(ex)))
+            LOG.error("Generic Error: {}".format(str(ex)), exc_info=TRACE)
             return
 
 
@@ -134,8 +146,10 @@ class ArancinoPortSynch:
             pipeline.hset(id, ArancinoDBKeys.S_LAST_USAGE_DATE, last_usage_date)
             ###pipeline.hset(id, ArancinoDBKeys.S_UPTIME, upt_time)
             pipeline.execute()
+        except RedisError as ex:
+            LOG.error("Redis Error: {}".format(str(ex)), exc_info=TRACE)
         except Exception as ex:
-            LOG.error("Redis Error: {}".format(str(ex)))
+            LOG.error("Generic Error: {}".format(str(ex)), exc_info=TRACE)
 
 
 
@@ -147,5 +161,7 @@ class ArancinoPortSynch:
                 return self.__devicestore.exists(port_id)
             else:
                 raise Exception("No port specified")
+        except RedisError as ex:
+            LOG.error("Redis Error: {}".format(str(ex)), exc_info=TRACE)
         except Exception as ex:
-            LOG.error("Redis Error: {}".format(str(ex)))
+            LOG.error("Generic Error: {}".format(str(ex)), exc_info=TRACE)
