@@ -1,7 +1,7 @@
 # Changelog
 
 #### v 2.1.0 2020.MM.DD
-* Introduced a new State called "STARTED". It rappresent the state of the communication between a port and Aracino Module. #99
+* Introduced a new State called "STARTED". It represents the state of the communication between a port and Aracino Module. #99
 * Fixed Rest API for port configuration (Alias, Enable/Disable, Hide/Show). #95
 * Introduced Rest API for get and set Arancino configuration. #94
 * Introduced `MSET` and `MGET` commands. #91
