@@ -69,7 +69,7 @@ class ArancinoSerialPort(ArancinoPort):
 
         self._executor = ArancinoCommandExecutor(self._id, self._device, self._port_type)
 
-        self._compatibility_array = COMPATIBILITY_MATRIX_MOD_TEST[str(CONF.get_metadata_version().truncate())]
+        self._compatibility_array = COMPATIBILITY_MATRIX_MOD_SERIAL[str(CONF.get_metadata_version().truncate())]
 
         # # CALLBACK FUNCTIONS
         #self.setReceivedCommandHandler(receivedCommandHandler)  # this is the handler to be used to receive an ArancinoCommand and exec that command.
