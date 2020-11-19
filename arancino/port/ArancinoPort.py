@@ -98,6 +98,8 @@ class ArancinoPort(object):
             arancino_lib_version = semantic_version.Version(args[0])
             self._setLibVersion(arancino_lib_version)
 
+            LOG.debug("{} Arancino Library Compatibile Versions: {}".format(self._log_prefix, self._compatibility_array))
+
             for compatible_ver in self._compatibility_array:
                 semver_compatible_ver = semantic_version.SimpleSpec(compatible_ver)
                 if arancino_lib_version in semver_compatible_ver:

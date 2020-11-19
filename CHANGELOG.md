@@ -1,7 +1,10 @@
 # Changelog
 
-#### v 2.1.0 - 2020.28.10
-* Introduced a new State called "STARTED". It rappresent the state of the communication between a port and Aracino Module. #99
+#### v 2.1.1 2020.11.19
+* Fixed compatibility matrix for Serial Port #108 #CU-acuxb1
+
+#### v 2.1.0 2020.10.28
+* Introduced a new State called "STARTED". It represents the state of the communication between a port and Aracino Module. #99
 * Fixed Rest API for port configuration (Alias, Enable/Disable, Hide/Show). #95
 * Introduced Rest API for get and set Arancino configuration. #94
 * Introduced `MSET` and `MGET` commands. #91

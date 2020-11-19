@@ -112,8 +112,8 @@ class Arancino(Thread):
 
     def run(self):
 
-        self.__thread_start = time.time()
-        self.__thread_start_reset = time.time()
+        self.__thread_start = time.perf_counter()#time.time()
+        # self.__thread_start_reset = time.time()
 
         serial_ports = {}
         test_ports = {}
@@ -122,8 +122,10 @@ class Arancino(Thread):
             if not self.__pause:
                 try:
                     self.__isPaused = False
-                    self.__uptime_sec = (time.time() - self.__thread_start)
+                    # self.__uptime_sec = (time.time() - self.__thread_start)
+                    self.__uptime_sec = (time.perf_counter() - self.__thread_start)
                     self.__uptime_str = secondsToHumanString(self.__uptime_sec)
+                    LOG.debug('Uptime :' + str(self.__uptime_sec))
                     LOG.info('Uptime :' + self.__uptime_str)
 
                     serial_ports = self.__serial_discovery.getAvailablePorts(serial_ports)
@@ -136,14 +138,14 @@ class Arancino(Thread):
                     LOG.debug('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))
                     LOG.debug('Connected Ports: ' + str(len(self.__ports_connected)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_connected.items()))
 
-                    # log that every hour
-                    if (time.time() - self.__thread_start_reset) >= 3600:
-                        LOG.info('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))
-                        LOG.info('Connected Ports: ' + str(len(self.__ports_connected)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_connected.items()))
-                        #LOG.info('Uptime: ' + str(timedelta(seconds=int(time.time() - self.__thread_start))))
-                        LOG.info('Uptime :' + self.__uptime_str)
-
-                        self.__thread_start_reset = time.time()
+                    # # log that every hour
+                    # if (time.time() - self.__thread_start_reset) >= 3600:
+                    #     LOG.info('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))
+                    #     LOG.info('Connected Ports: ' + str(len(self.__ports_connected)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_connected.items()))
+                    #     #LOG.info('Uptime: ' + str(timedelta(seconds=int(time.time() - self.__thread_start))))
+                    #     LOG.info('Uptime :' + self.__uptime_str)
+                    #
+                    #     self.__thread_start_reset = time.time()
 
 
                     # for each discovered port

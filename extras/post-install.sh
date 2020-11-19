@@ -73,7 +73,8 @@ systemctl daemon-reload
 #enable services
 #systemctl enable redis-volatile
 #systemctl enable redis-persistent
-#systemctl enable arancino
+systemctl enable arancino
+systemctl restart arancino
 
 #start services
 #systemctl start redis-volatile
