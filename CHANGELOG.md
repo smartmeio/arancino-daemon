@@ -1,7 +1,7 @@
 # Changelog
 
-#### v 2.1.1 2020.11.12
-* Fixed compatibility matrix for Serial Port #108
+#### v 2.1.1 2020.11.29
+* Fixed compatibility matrix for Serial Port #108 #CU-acuxb1
 
 #### v 2.1.0 2020.10.28
 * Introduced a new State called "STARTED". It represents the state of the communication between a port and Aracino Module. #99
