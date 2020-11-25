@@ -24,13 +24,6 @@ chown 644 extras/arancino.service
 chown 644 config/arancino.cfg
 chown 644 config/arancino.test.cfg
 
-#Issue 62
-chmod +x extras/fix-aof.sh
-cp extras/fix-aof.sh /etc/redis/fix-aof.sh
-
-chmod +x extras/redis-test.sh
-cp extras/redis-test.sh /etc/arancino/redis-test.sh
-
 #copy arancino service file to /ectc/systemd directory
 cp extras/arancino.service /etc/systemd/system/
 
