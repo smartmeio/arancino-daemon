@@ -1,5 +1,8 @@
 # Changelog
 
+### v 2.1.2 2020.11.25
+* Fixed Post Install Script #CU-apw16v
+
 #### v 2.1.1 2020.11.19
 * Fixed compatibility matrix for Serial Port #108 #CU-acuxb1
 
