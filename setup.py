@@ -77,4 +77,8 @@ setup(
 
     provides=['arancino'],
 
+    cmdclass={
+        'install': ArancinoPostInstallCommand
+    },
+
 )
