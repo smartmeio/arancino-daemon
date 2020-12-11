@@ -77,24 +77,6 @@ setup(
 
     provides=['arancino'],
 
-    packages=find_packages(exclude=["test"]),
-
-    python_requires='>3',
-
-    data_files=[('arancino',
-        ['extras/pre-install.sh',
-        'extras/post-install.sh',
-        'extras/arancino.service',
-        'config/arancino.cfg',
-        'config/arancino.test.cfg',
-        'LICENSE'])],
-
-    install_requires=['pyserial>=3.4', 'redis>=2.10.6', 'setuptools>=41.4.0', 'semantic-version>=2.8.4', 'uptime>=3.0.1', 'Flask>=1.1.1', 'Flask_HTTPAuth>=3.3.0', 'requests>=2.23.0', 'netifaces>=0.10.9'],
-
-    include_package_data=True,
-
-    zip_safe=False,
-
     cmdclass={
         'install': ArancinoPostInstallCommand
     },
