@@ -77,13 +77,4 @@ setup(
 
     provides=['arancino'],
 
-    cmdclass={
-        'install': ArancinoPostInstallCommand
-    },
-
-    entry_points={
-        'console_scripts': [
-            'arancino=arancino.ArancinoStart:run'
-        ]
-    }
 )
