@@ -423,7 +423,7 @@ class ArancinoApi():
 
                 if 'enable' in config:
                     curr_status = port.isEnabled()
-                    new_status = config['enable'].lower() == 'true'
+                    new_status = str(config['enable']).lower() == 'true'
                     if new_status != curr_status:
                         port.setEnabled(new_status)
                         self.__synchronizer.writePortConfig(port)  # Note: maybe it's better wrapping this call inside Arancino class.
@@ -433,7 +433,7 @@ class ArancinoApi():
 
                 if 'hide' in config:
                     curr_status = port.isHidden()
-                    new_status = config['hide'].lower() == 'true'
+                    new_status = str(config['hide']).lower() == 'true'
                     if new_status != curr_status:
                         port.setHide(new_status)
                         self.__synchronizer.writePortConfig(port)  # Note: maybe it's better wrapping this call inside Arancino class.
