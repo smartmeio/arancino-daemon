@@ -1,5 +1,10 @@
 # Changelog
 
+#### v 2.1.2 2021.01.XX
+* Fixed log level in config file: INFO #CU-b0ymd9
+* Fixed api change status: errors with boolean values #CU-c2w294
+* Fixed a problem that does not retrieve alias from db #CU-bx2hyk
+
 #### v 2.1.1 2020.11.29
 * Fixed compatibility matrix for Serial Port #108 #CU-acuxb1
 
