@@ -614,7 +614,7 @@ class ArancinoApi():
             response[DB_KEYS.S_PLUGGED] = port.isPlugged()
             response[DB_KEYS.B_CREATION_DATE] = port.getCreationDate()
             response[DB_KEYS.S_LAST_USAGE_DATE] = port.getLastUsageDate()
-            response[DB_KEYS.S_UPTIME] = None if port.getUptime() is None else secondsToHumanString(port.getUptime())
+            response[DB_KEYS.S_UPTIME] = None if port.getUptime() is None else [port.getUptime(), secondsToHumanString(port.getUptime())]
             response[DB_KEYS.S_COMPATIBILITY] = port.isCompatible()
             response[DB_KEYS.S_STARTED] = port.isStarted()
 
