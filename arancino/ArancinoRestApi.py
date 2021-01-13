@@ -277,7 +277,7 @@ class ArancinoApi():
                 return response, 200
 
             else:
-                return self.getArancinoConf(), 200
+                return self.__getArancinoConf(), 200
 
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=True)
