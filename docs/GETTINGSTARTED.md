@@ -26,13 +26,35 @@ To install a develpment version of the Arancino Module please go to smartme.io [
 and then browse [pypi-snapshot/arancino](https://packages.smartme.io/#browse/browse:pypi-snapshot) to your desiderd package.
 Select the _tar.gz_ file and finally from the _Summary_ tab find the _Path_ field and copy the package url.
 It looks like this: https://packages.smartme.io/repository/pypi-snapshot/packages/arancino/VERS.YYYY-MM-DD-HH-MM-SS-BRANCH-COMMIT/arancino-VERS.YYYY-MM-DD-HH-MM-SS-BRANCH-COMMIT.tar.gz.
-Open a terminal window in Arancino OS and run the following (pasting the preovious copied url)
+Open a terminal window in Arancino OS and run the following (pasting the previous copied url)
 
 ```shell
 
 $ sudo pip3 install https://packages.smartme.io/repository/pypi-snapshot/packages/arancino/VERS.YYYY-MM-DD-HH-MM-SS-BRANCH-COMMIT/arancino-VERS.YYYY-MM-DD-HH-MM-SS-BRANCH-COMMIT.tar.gz
 
 ```
+
+From Arancino OS version `1.1.0`, Arancino Package Repository is included in the source list and you can simply run `pip` to install Arancino Module:
+
+Specific version (eg. `2.1.1`): 
+```shell
+$ sudo pip3 install arancino==2.1.1
+```
+
+Specific test/dev version (e.g. `2.1.1-test.1`):
+```shell
+$ sudo pip3 install arancino==2.1.1-test.1
+``` 
+ 
+Latest stable version:
+```shell
+$ sudo pip3 install arancino
+``` 
+
+NOTE: 
+>Consider that in the latest versions of Arancino OS dependencies are already installed so you can use `--no-dependencies` option. 
+
+
 
 #### Install from Release Repository
 To install a release package is quite more simple, just use the Release Repository Packages url:
