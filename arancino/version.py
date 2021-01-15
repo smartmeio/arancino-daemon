@@ -2,7 +2,7 @@
 """
 SPDX-license-identifier: Apache-2.0
 
-Copyright (c) 2019 SmartMe.IO
+Copyright (c) 2020 smartme.IO
 
 Authors:  Arturo Rinaldi <arturo@smartme.io>
 
@@ -27,4 +27,4 @@ under the License
     SPDX-license-identifier: Apache-2.0, see LICENSE for details.
 """
 
-__version__ = '2.1.1'
+__version__ = '2.1.3'

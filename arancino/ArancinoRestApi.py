@@ -401,7 +401,7 @@ class ArancinoApi():
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_UPLOAD, internal_message=[None, str(ex)]), 500
 
-    def setPortConfig(self, port_id, config = None):
+    def setPortConfig(self, port_id, config=None):
         try:
 
             if not config:

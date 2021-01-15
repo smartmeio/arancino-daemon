@@ -1,9 +1,15 @@
 # Changelog
 
-#### v 2.1.2 2021.01.XX
+#### v 2.1.3 2021.01.XX
 * Fixed log level in config file: INFO #CU-b0ymd9
 * Fixed api change status: errors with boolean values #CU-c2w294
 * Fixed a problem that does not retrieve alias from db #CU-bx2hyk
+* Fixed api port uptime: now returns even uptime in seconds #CU-bz02rz
+* Fixed log stack trace. Logs stack trace by default in case of errors: #CU-cjwqxg
+* Fixed setup process #CU-bav3y6
+
+### v 2.1.2 2020.11.25
+* Fixed Post Install Script #CU-apw16v
 
 #### v 2.1.1 2020.11.29
 * Fixed compatibility matrix for Serial Port #108 #CU-acuxb1
