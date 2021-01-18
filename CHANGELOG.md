@@ -1,6 +1,6 @@
 # Changelog
 
-#### v 2.1.3 2021.01.XX
+#### v 2.1.3 2021.01.18
 * Fixed log level in config file: INFO #CU-b0ymd9
 * Fixed api change status: errors with boolean values #CU-c2w294
 * Fixed a problem that does not retrieve alias from db #CU-bx2hyk

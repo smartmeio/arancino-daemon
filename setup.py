@@ -1,7 +1,7 @@
 '''
 SPDX-license-identifier: Apache-2.0
 
-Copyright (c) 2019 SmartMe.IO
+Copyright (c) 2019 smartme.IO
 
 Authors:  Sergio Tomasello <sergio@smartme.io>
 
