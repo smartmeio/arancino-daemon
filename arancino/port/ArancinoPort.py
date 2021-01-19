@@ -383,7 +383,7 @@ class ArancinoPort(object):
 
     def setAlias(self, alias):
 
-        if alias is not None:
+        if alias is None:
             alias = ""
 
         self._m_c_alias = alias

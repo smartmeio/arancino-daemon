@@ -174,7 +174,7 @@ class ArancinoTestHandler(threading.Thread):
         #fw_name = ""
             # arancino library version
 
-        lib_version = "1.0.0"
+        lib_version = "1.2.0"
         core_version = "1.0.0"
 
         # 1. START
@@ -209,24 +209,22 @@ class ArancinoTestHandler(threading.Thread):
 
         # 7. HSET
         list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_1" + specChars.CHR_SEP + "TEST_VAL_1" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_2" + specChars.CHR_SEP + "TEST_VAL_2" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_3" + specChars.CHR_SEP + "TEST_VAL_3" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_4" + specChars.CHR_SEP + "TEST_VAL_4" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_5" + specChars.CHR_SEP + "TEST_VAL_5" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_6" + specChars.CHR_SEP + "TEST_VAL_6" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_7" + specChars.CHR_SEP + "TEST_VAL_7" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_8" + specChars.CHR_SEP + "TEST_VAL_8" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_9" + specChars.CHR_SEP + "TEST_VAL_9" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_1" + specChars.CHR_SEP + "TEST_VAL_10" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_2" + specChars.CHR_SEP + "TEST_VAL_2" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_3" + specChars.CHR_SEP + "TEST_VAL_3" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_4" + specChars.CHR_SEP + "TEST_VAL_4" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_5" + specChars.CHR_SEP + "TEST_VAL_5" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_6" + specChars.CHR_SEP + "TEST_VAL_6" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_7" + specChars.CHR_SEP + "TEST_VAL_7" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_8" + specChars.CHR_SEP + "TEST_VAL_8" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_9" + specChars.CHR_SEP + "TEST_VAL_9" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_1" + specChars.CHR_SEP + "TEST_VAL_10" + specChars.CHR_EOT)
 
             # 7.2 HSET PERS OK
-        #list.append(cmdId.CMD_APP_HSET_PERS["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET_PERS" + specChars.CHR_SEP + "TEST_FIELD_1" + specChars.CHR_SEP + "TEST_VAL_1" + specChars.CHR_EOT)
-        #list.append(cmdId.CMD_APP_HSET_PERS["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET_PERS" + specChars.CHR_SEP + "TEST_FIELD_2" + specChars.CHR_SEP + "TEST_VAL_2" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HSET_PERS["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET_PERS" + specChars.CHR_SEP + "TEST_FIELD_1" + specChars.CHR_SEP + "TEST_VAL_1" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_HSET_PERS["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET_PERS" + specChars.CHR_SEP + "TEST_FIELD_2" + specChars.CHR_SEP + "TEST_VAL_2" + specChars.CHR_EOT)
 
             # 7.3 HSET PERS KO -> keys exists in volatile dastatore
         list.append(cmdId.CMD_APP_HSET_PERS["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_1" + specChars.CHR_SEP + "TEST_VAL_1" + specChars.CHR_EOT)
-
-
 
         # HGET
             # 8.1 HGET OK
@@ -277,13 +275,13 @@ class ArancinoTestHandler(threading.Thread):
         list.append(cmdId.CMD_APP_MSET_STD["id"] + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
 
             # 14.2 MSET STD KO
-        #keys = str(self.__id) + "_TEST_MSET_KEY_1" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MSET_KEY_2"
-        #list.append(cmdId.CMD_APP_MSET_STD["id"] + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
+        keys = str(self.__id) + "_TEST_MSET_KEY_1" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MSET_KEY_2"
+        list.append(cmdId.CMD_APP_MSET_STD["id"] + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
 
             # 14.3 MSET PERS
-        # keys = str(self.__id) + "_TEST_MSET_KEY_PERS_1" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MSET_KEY_PERS_2" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MSET_KEY_PERS_3"
-        # values = "TEST_MSET_VAL_1" + specChars.CHR_ARR_SEP + "TEST_MSET_VAL_2" + specChars.CHR_ARR_SEP + "TEST_MSET_VAL_3"
-        # list.append(cmdId.CMD_APP_MSET_PERS["id"] + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
+        keys = str(self.__id) + "_TEST_MSET_KEY_PERS_1" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MSET_KEY_PERS_2" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MSET_KEY_PERS_3"
+        values = "TEST_MSET_VAL_1" + specChars.CHR_ARR_SEP + "TEST_MSET_VAL_2" + specChars.CHR_ARR_SEP + "TEST_MSET_VAL_3"
+        list.append(cmdId.CMD_APP_MSET_PERS["id"] + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
 
             # 14.4 MSET PERS KO - keys exists in standard datastore
         keys = str(self.__id) + "_TEST_MSET_KEY_1" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MSET_KEY_2" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MSET_KEY_3"

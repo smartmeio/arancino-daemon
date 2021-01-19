@@ -1,7 +1,7 @@
 '''
 SPDX-license-identifier: Apache-2.0
 
-Copyright (c) 2019 SmartMe.IO
+Copyright (c) 2019 smartme.IO
 
 Authors:  Sergio Tomasello <sergio@smartme.io>
 
@@ -73,64 +73,12 @@ with open("arancino/version.py", encoding="utf8") as f:
 
 setup(
 
-    name='arancino',
-
     version=version,
 
-    description='Arancino Module for Arancino Library',
-
-    long_description='Receives commands from Arancino Library (uC) trough the Arancino Cortex Protocol over serial connection. It is designed to run under Arancino OS and can manage multiple serial connections.',
-
-    long_description_content_type="text/markdown",
-
-    author='Sergio Tomasello',
-
-    author_email='sergio@smartme.io',
-
-    license='Apache License, Version 2.0',
-
-    url='http://www.arancino.cc',
-
-    classifiers=[   'Development Status :: 5 - Production/Stable',
-                    'License :: OSI Approved :: Apache Software License',
-                    'Programming Language :: Python :: 3',
-                    'Environment :: Console',
-                    'Operating System :: Unix'
-                ],
-
-    platforms=['Unix'],
-
-    scripts=[],
-
     provides=['arancino'],
-
-    packages=find_packages(exclude=["test"]),
-
-    python_requires='>3',
-
-    data_files=[('arancino',
-        ['extras/pre-install.sh',
-        'extras/post-install.sh',
-        'extras/arancino.service',
-        'config/arancino.cfg',
-        'config/arancino.test.cfg',
-        'LICENSE'])],
-
-    #package_data={'arancino':['LICENSE','README.md','extras/*.*','config/*.*']},
-
-    install_requires=['pyserial>=3.4', 'redis>=2.10.6', 'setuptools>=41.4.0', 'semantic-version>=2.8.4', 'uptime>=3.0.1', 'Flask>=1.1.1', 'Flask_HTTPAuth>=3.3.0', 'requests>=2.23.0', 'netifaces>=0.10.9'],
-
-    include_package_data=True,
-
-    zip_safe=False,
 
     cmdclass={
         'install': ArancinoPostInstallCommand
     },
 
-    entry_points={
-        'console_scripts': [
-            'arancino=arancino.ArancinoStart:run'
-        ]
-    }
 )

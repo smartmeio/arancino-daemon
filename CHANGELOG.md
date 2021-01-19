@@ -1,10 +1,19 @@
 # Changelog
 
-### v 2.1.2 2020.11.25
-* Fixed Post Install Script #CU-apw16v
+#### v 2.1.3 2021.01.19
+* Fixed log level in config file: INFO [#b0ymd9](https://app.clickup.com/t/b0ymd9)
+* Fixed api change status: errors with boolean values [#c2w294](https://app.clickup.com/t/c2w294)
+* Fixed a problem that does not retrieve alias from db [#bx2hyk](https://app.clickup.com/t/bx2hyk)
+* Fixed api port uptime: now returns even uptime in seconds [#bz02rz](https://app.clickup.com/t/bz02rz)
+* Fixed log stack trace. Logs stack trace by default in case of errors: [#cjwqxg](https://app.clickup.com/t/cjwqxg)
+* Fixed setup process [#bav3y6](https://app.clickup.com/t/bav3y6)
+* Fixed api get config [#cgw47y](https://app.clickup.com/t/cgw47y)
 
-#### v 2.1.1 2020.11.19
-* Fixed compatibility matrix for Serial Port #108 #CU-acuxb1
+### v 2.1.2 2020.11.25
+* Fixed Post Install Script [#apw16v](https://app.clickup.com/t/apw16v)
+
+#### v 2.1.1 2020.11.29
+* Fixed compatibility matrix for Serial Port #108 [#acuxb1](https://app.clickup.com/t/acuxb1)
 
 #### v 2.1.0 2020.10.28
 * Introduced a new State called "STARTED". It represents the state of the communication between a port and Aracino Module. #99
