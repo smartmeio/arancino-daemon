@@ -1,5 +1,9 @@
 # Changelog
 
+#### v 2.1.4 2021.02.5
+* Fixed missing env var [#crvwm8](https://app.clickup.com/t/crvwm8)
+* Fixed the way SERIAL PORT data is decoded [#dk226t](https://app.clickup.com/t/dk226t)
+
 #### v 2.1.3 2021.01.19
 * Fixed log level in config file: INFO [#b0ymd9](https://app.clickup.com/t/b0ymd9)
 * Fixed api change status: errors with boolean values [#c2w294](https://app.clickup.com/t/c2w294)
