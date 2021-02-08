@@ -41,8 +41,8 @@ class ArancinoSerialHandler(threading.Thread):
         self.__connectionLostHandler = connectionLostHandler    # handler to be called when a connection is lost or stopped
 
         self.__partial_command = ""
+        self.__partial_bytes_command = bytearray(b'')
         self.__stop = False
-
 
     def run(self):
         time.sleep(1.5)  # do il tempo ad Arancino di inserire la porta in lista
@@ -55,18 +55,28 @@ class ArancinoSerialHandler(threading.Thread):
                 # Read bytes one by one
                 data = self.__serial_port.read(1)
 
-                data_dec = data.decode()
-                self.__partial_command += data_dec
+                if len(data) > 0:
+                    self.__partial_bytes_command.append(data[0])
 
-                if self.__partial_command.endswith(ArancinoSpecialChars.CHR_EOT) is True:
-                    # now command is completed and can be used
+                    #https://app.clickup.com/t/dk226t
+                    if (data == ArancinoSpecialChars.CHR_EOT.encode()) is True:
 
-                    # send back the raw command
-                    if self.__commandReceivedHandler is not None:
-                        self.__commandReceivedHandler(self.__partial_command)
+                        # now command is completed and can be used
+                        try:
+                            self.__partial_command = self.__partial_bytes_command.decode('utf-8', errors='strict')
 
-                    # clear the handy variable and start again
-                    self.__partial_command = ""
+                        except UnicodeDecodeError as ex:
+
+                            LOG.warning("{}Decode Warning while reading data from serial port: {}".format(self.__log_prefix, str(ex)))
+                            self.__partial_command = self.__partial_bytes_command.decode('utf-8', errors='backslashreplace')
+
+                        if self.__commandReceivedHandler is not None:
+                            self.__commandReceivedHandler(self.__partial_command)
+
+                        # clear the handy variables and start again
+                        self.__partial_command = ""
+                        self.__partial_bytes_command = bytearray(b'')
+
 
             except Exception as ex:
                 # probably some I/O problem such as disconnected USB serial
@@ -75,9 +85,7 @@ class ArancinoSerialHandler(threading.Thread):
                 self.__stop = True
                 break
 
-
         self.__connection_lost()
-
 
     def __connection_lost(self):
         '''

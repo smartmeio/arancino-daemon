@@ -12,8 +12,8 @@ Environment="ARANCINO=/etc/arancino"
 Environment="ARANCINOCONF=/etc/arancino/config"
 Environment="ARANCINOLOG=/var/log/arancino"
 Environment="ARANCINOENV=PROD"
+Environment="FLASK_ENV=production"
 
-#ExecStart=/usr/bin/python3 /usr/local/lib/python3.5/dist-packages/arancino/ArancinoStart.py
 ExecStart=/usr/local/bin/arancino
 Restart=on-failure
 RestartSec=15

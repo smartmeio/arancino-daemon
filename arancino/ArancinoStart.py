@@ -282,7 +282,7 @@ def __runArancinoApi():
     def allowed_file(filename):
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-    app.run(host='0.0.0.0', port=1475, debug=False, use_reloader=False)
+    app.run(host='0.0.0.0', port=1475, use_reloader=False)
 
 def run():
     __runArancino()

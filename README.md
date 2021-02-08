@@ -39,19 +39,9 @@ implement the Arancino Cortex Protocol. It can manage multiple connection at tim
 | `2.1.0`			| `>=`	| `0.4.0`			|
 | 					| `<`	| `1.0.0`			|
 |					| `>=`	| `1.3.0`			|
-| `2.1.1`			|		|					|
-| `2.1.2`			|		|					|
-| `2.1.3`			|		|					|
-					|		|					|
+| `2.1.1`			| 		| 					|
+| `2.1.2`			| 		| 					|
+| `2.1.3`			| 		| 					|
+| `2.1.4`			| 		| 					|
+| 					| 		| 					|
 
-
-### Compatibility with Test Port
-
-|Module Version		|		|Library Version	|
-|---				|---	|---				|
-| `2.0.0`			| `>=`	|`1.0.0`			|
-| `2.1.0`			|		|					|
-| `2.1.1`			|		|					|
-| `2.1.2`			|		|					|
-| `2.1.3`			|		|					|
-|					|		|					|
