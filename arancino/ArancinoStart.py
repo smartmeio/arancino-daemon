@@ -286,6 +286,13 @@ def __get_arancinoapi_app():
 app = __get_arancinoapi_app()
 __runArancino()
 
+if os.getenv('ARANCINOENV', 'DEV') == 'PROD':
+    def stop_gunicorn(*args, **kwargs):
+        __kill()
+
+    signal.signal(signal.SIGINT, stop_gunicorn)
+    signal.signal(signal.SIGTERM, stop_gunicorn)
+
 def run():
     def stop_werkzeug(*args, **kwargs):
         __kill()
