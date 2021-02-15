@@ -95,7 +95,7 @@ def __get_arancinoapi_app():
         #    return False
 
     if os.getenv('ARANCINOENV', 'DEV') == 'DEV':
-        @app.route('/api/v1/shutdown-not-easy-to-find-api', methods=['GET'])
+        @app.route('/api/v1/shutdown-not-easy-to-find-api', methods=['POST'])
         def shutdown():
             shutdown_server()
             return 'Server shutting down...'
