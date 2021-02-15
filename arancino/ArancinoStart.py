@@ -32,7 +32,7 @@ from flask_httpauth import HTTPBasicAuth
 from flask import Flask, jsonify, request
 import logging
 
-from gevent.pywsgi import WSGIServer
+# from gevent.pywsgi import WSGIServer
 from arancino.ArancinoRestApi import ArancinoApi
 
 
@@ -86,10 +86,11 @@ def __get_arancinoapi_app():
 
         #users_list = c.get_general_users()
         #if username in users_list:
-            if pamAuthentication(username, password):
-                return True
-            else:
-                return False
+        # return True
+        if pamAuthentication(username, password):
+            return True
+        else:
+            return False
         #else:
         #    return False
 
@@ -282,40 +283,19 @@ def __get_arancinoapi_app():
 
     return app
 
+app = __get_arancinoapi_app()
+__runArancino()
+
 def run():
-    __runArancino()
+    def stop_werkzeug(*args, **kwargs):
+        __kill()
+        requests.post('http://0.0.0.0:1475/api/v1/shutdown-not-easy-to-find-api')
 
-    ARANCINOENV = os.getenv('ARANCINOENV', 'DEV')
-    app = __get_arancinoapi_app()
+    signal.signal(signal.SIGINT, stop_werkzeug)
+    signal.signal(signal.SIGTERM, stop_werkzeug)
 
-    if ARANCINOENV == 'DEV':
-        # run with werkzeug
-        def stop_werkzeug(*args, **kwargs):
-            __kill()
-            requests.post('http://0.0.0.0:1475/api/v1/shutdown-not-easy-to-find-api')
-
-        signal.signal(signal.SIGINT, stop_werkzeug)
-        signal.signal(signal.SIGTERM, stop_werkzeug)
-
-        api = Thread(name='ArancinoAPI', target=app.run, kwargs={'host': '0.0.0.0', 'port': 1475, 'use_reloader': False})
-        api.start()
-        # app.run(host='0.0.0.0', port=1475, use_reloader=False)
-    elif ARANCINOENV == 'PROD': # run with gevent wsgi
-        http_server = WSGIServer(('', 1475), app)
-
-        def stop_server(*args, **kwargs):
-            __kill()
-            http_server.stop()
-            http_server.close()
-
-        signal.signal(signal.SIGTERM, stop_server)
-        signal.signal(signal.SIGINT, stop_server)
-        
-        http_server.serve_forever()
-        # api = Thread(name='ArancinoAPI', target=http_server.serve_forever, args=())
-        # api.start()
-    # api = Thread(name='ArancinoAPI', target=__runArancinoApi, args=())
-    # api.start()
+    api = Thread(name='ArancinoAPI', target=app.run, kwargs={'host': '0.0.0.0', 'port': 1475, 'use_reloader': False})
+    api.start()
 
 if __name__ == '__main__':
     run()
