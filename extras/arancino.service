@@ -15,7 +15,7 @@ Environment="ARANCINOENV=PROD"
 Environment="FLASK_ENV=production"
 
 #ExecStart=/usr/bin/python3 /usr/local/lib/python3.5/dist-packages/arancino/ArancinoStart.py
-ExecStart=gunicorn -c "$ARANCINOCONF/gunicorn.cfg.py" arancino.ArancinoStart:app
+ExecStart=/bin/bash -c '/usr/local/bin/gunicorn -c "$ARANCINOCONF/gunicorn.cfg.py" arancino.ArancinoStart:app'
 Restart=on-failure
 RestartSec=15
 TimeoutStopSec=10
