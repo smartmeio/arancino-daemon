@@ -43,6 +43,7 @@ implement the Arancino Cortex Protocol. It can manage multiple connection at tim
 | `2.1.2`			| 		| 					|
 | `2.1.3`			| 		| 					|
 | `2.1.4`			| 		| 					|
+| `2.2.0`			| 		| 					|
 
 
 
