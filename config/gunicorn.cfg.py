@@ -18,4 +18,4 @@ logger_class = GunicornLogger
 # errorlog = os.path.join(os.getenv('ARANCINOLOG'), 'arancino.error.log')
 # loglevel = 'info'
 # accesslog = os.path.join(os.getenv('ARANCINOLOG'), 'arancino.log')
-daemon = True
+daemon = False
