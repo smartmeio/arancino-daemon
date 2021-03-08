@@ -18,7 +18,7 @@ Environment="FLASK_ENV=production"
 ExecStart=/bin/bash -c '/usr/local/bin/gunicorn -c "$ARANCINOCONF/gunicorn.cfg.py" arancino.ArancinoStart:app'
 Restart=on-failure
 RestartSec=15
-TimeoutStopSec=10
+TimeoutStopSec=60
 #on-abort
 
 [Install]
