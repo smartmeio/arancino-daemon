@@ -1,5 +1,8 @@
 # Changelog
 
+#### v 2.1.5 2021.03.11
+* arancino.service should start just after network.target and rc.local
+
 #### v 2.1.4 2021.02.5
 * Fixed missing env var [#crvwm8](https://app.clickup.com/t/crvwm8)
 * Fixed the way SERIAL PORT data is decoded [#dk226t](https://app.clickup.com/t/dk226t)

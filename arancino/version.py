@@ -27,4 +27,4 @@ under the License
     SPDX-license-identifier: Apache-2.0, see LICENSE for details.
 """
 
-__version__ = '2.1.4'
+__version__ = '2.1.5'
