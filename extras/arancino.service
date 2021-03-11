@@ -1,6 +1,6 @@
 [Unit]
 Description=Arancino
-After=network.target rc.local
+After=network.target rc-local.service
 
 [Service]
 Type=simple
