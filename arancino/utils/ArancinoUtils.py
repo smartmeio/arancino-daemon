@@ -436,7 +436,7 @@ class ArancinoLogger:
         return console_handler
 
     def __getFileHandler(self):
-        file_handler = RotatingFileHandler(os.path.join(self.__dirlog, self.__filename), mode='a', maxBytes=1000 * 1024 * self.__log_size, backupCount=self.__log_rotate)
+        file_handler = RotatingFileHandler(os.path.join(self.__dirlog, self.__filename), encoding='utf-8', mode='a', maxBytes=1000 * 1024 * self.__log_size, backupCount=self.__log_rotate)
         file_handler.setFormatter(self.__format)
         return file_handler
 

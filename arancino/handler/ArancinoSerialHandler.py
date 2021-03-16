@@ -44,42 +44,6 @@ class ArancinoSerialHandler(threading.Thread):
         self.__partial_bytes_command = bytearray(b'')
         self.__stop = False
 
-    #
-    # def run(self):
-    #     time.sleep(1.5)  # do il tempo ad Arancino di inserire la porta in lista
-    #     count = 0
-    #     str_data = ""
-    #     while not self.__stop:
-    #         # Ricezione dati
-    #         try:
-    #
-    #             # Read bytes one by one
-    #             data = self.__serial_port.read(1)
-    #
-    #
-    #             data_dec = data.decode('')#, errors='backslashreplace')
-    #             self.__partial_command += data_dec
-    #
-    #             if self.__partial_command.endswith(ArancinoSpecialChars.CHR_EOT) is True:
-    #                 # now command is completed and can be used
-    #
-    #                 # send back the raw command
-    #                 if self.__commandReceivedHandler is not None:
-    #                     self.__commandReceivedHandler(self.__partial_command)
-    #
-    #                 # clear the handy variable and start again
-    #                 self.__partial_command = ""
-    #
-    #         except Exception as ex:
-    #             # probably some I/O problem such as disconnected USB serial
-    #             LOG.error("{}I/O Error while reading data from serial port: {}".format(self.__log_prefix, str(ex)))
-    #
-    #             self.__stop = True
-    #             break
-    #
-    #
-    #     self.__connection_lost()
-
     def run(self):
         time.sleep(1.5)  # do il tempo ad Arancino di inserire la porta in lista
         count = 0
