@@ -32,8 +32,7 @@ from flask_httpauth import HTTPBasicAuth
 from flask import Flask, jsonify, request
 import logging
 
-
-
+# from gevent.pywsgi import WSGIServer
 from arancino.ArancinoRestApi import ArancinoApi
 
 
@@ -53,16 +52,14 @@ def shutdown_server():
         LOG.info("HTTP Server is shutting down...")
         func()
 
-def __kill(signum, frame):
+def __kill():
     m.stop()
-    requests.post('http://0.0.0.0:1475/api/v1/shutdown-not-easy-to-find-api')
     #m.join()
 
 def __runArancino():
     m.start()
 
-def __runArancinoApi():
-
+def __get_arancinoapi_app():
     api = ArancinoApi()
 
     app = Flask(__name__)
@@ -89,17 +86,19 @@ def __runArancinoApi():
 
         #users_list = c.get_general_users()
         #if username in users_list:
-            if pamAuthentication(username, password):
-                return True
-            else:
-                return False
+        # return True
+        if pamAuthentication(username, password):
+            return True
+        else:
+            return False
         #else:
         #    return False
 
-    @app.route('/api/v1/shutdown-not-easy-to-find-api', methods=['POST'])
-    def shutdown():
-        shutdown_server()
-        return 'Server shutting down...'
+    if os.getenv('ARANCINOENV', 'DEV') == 'DEV':
+        @app.route('/api/v1/shutdown-not-easy-to-find-api', methods=['POST'])
+        def shutdown():
+            shutdown_server()
+            return 'Server shutting down...'
 
     #### QUERIES ####
     @app.route('/api/v1/', methods=['GET'])
@@ -282,15 +281,27 @@ def __runArancinoApi():
     def allowed_file(filename):
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-    app.run(host='0.0.0.0', port=1475, use_reloader=False)
+    return app
+
+app = __get_arancinoapi_app()
+__runArancino()
+
+if os.getenv('ARANCINOENV', 'DEV') == 'PROD':
+    def stop_gunicorn(*args, **kwargs):
+        __kill()
+
+    signal.signal(signal.SIGINT, stop_gunicorn)
+    signal.signal(signal.SIGTERM, stop_gunicorn)
 
 def run():
-    __runArancino()
+    def stop_werkzeug(*args, **kwargs):
+        __kill()
+        requests.post('http://0.0.0.0:1475/api/v1/shutdown-not-easy-to-find-api')
 
-    signal.signal(signal.SIGINT, __kill)
-    signal.signal(signal.SIGTERM, __kill)
+    signal.signal(signal.SIGINT, stop_werkzeug)
+    signal.signal(signal.SIGTERM, stop_werkzeug)
 
-    api = Thread(name='ArancinoAPI', target=__runArancinoApi, args=())
+    api = Thread(name='ArancinoAPI', target=app.run, kwargs={'host': '0.0.0.0', 'port': 1475, 'use_reloader': False})
     api.start()
 
 if __name__ == '__main__':
