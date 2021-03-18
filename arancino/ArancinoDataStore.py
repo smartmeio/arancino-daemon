@@ -84,7 +84,7 @@ class ArancinoDataStore:
             except Exception as ex:
                 if self.__attempts_tot != -1:
                     if self.__attempts == self.__attempts_tot:
-                        LOG.error("Cannot connect to Redis: {}".format(str(ex)), exc_info=TRACE)
+                        LOG.error("Cannot connect to Redis: {}".format(str(ex)))
                         sys.exit(-1)
 
                     self.__attempts += 1
