@@ -41,6 +41,7 @@ class ArancinoCommandExecutor:
         # Redis Data Stores
         redis = ArancinoDataStore.Instance()
         self.__datastore = redis.getDataStoreStd()
+        self.__datastore_rsvd = redis.getDataStoreRsvd()
         self.__devicestore = redis.getDataStoreDev()
         self.__datastore_pers = redis.getDataStorePer()
 
@@ -95,6 +96,10 @@ class ArancinoCommandExecutor:
             # GET
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_GET['id']:
                 raw_response = self.__OPTS_GET(cmd_args)
+                return raw_response
+            # GET RSVD
+            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_GET_RSVD['id']:
+                raw_response = self.__OPTS_GET_RSVD(cmd_args)
                 return raw_response
             # DEL
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_DEL['id']:
@@ -336,8 +341,10 @@ class ArancinoCommandExecutor:
             '''
             # if it's the reserverd key __LIBVERSION__,
             # then add port id to associate the device and the running version of the library
+            ''' # DEPRECATED
             if key.upper() == ArancinoReservedChars.RSVD_KEY_LIBVERSION:
                 key += self.__port_id + ArancinoReservedChars.RSVD_CHARS
+            '''
 
             # first get from standard datastore
             rsp = self.__datastore.get(key)
@@ -347,6 +354,44 @@ class ArancinoCommandExecutor:
                 rsp = self.__datastore_pers.get(key)
 
             # check again, if None send back Null Value.
+            if rsp is None:
+                rsp = ArancinoSpecialChars.CHR_NULL_VALUE
+
+            # return the value
+            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + rsp + ArancinoSpecialChars.CHR_EOT
+
+
+        except RedisError as ex:
+            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
+
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
+
+    # endregion
+
+    # region GET RSVD
+    def __OPTS_GET_RSVD(self, args):
+        '''
+        Get the value of reseved key. If the key does not exist the special value nil is returned.
+        An error is returned if the value stored at key is not a string,
+        because GET only handles string values.
+            https://redis.io/commands/get
+
+        MCU → GET#<key>@
+
+        MCU ← 100#<value>@ (OK)
+        MCU ← 200@ (KO) - Generic Error
+        MCU ← 206@ (KO) - Redis Error
+        '''
+
+        key = args[0]
+        rsp = None
+
+        try:
+
+            # first get from reserved datastore
+            rsp = self.__datastore_rsvd.get(key)
+
             if rsp is None:
                 rsp = ArancinoSpecialChars.CHR_NULL_VALUE
 

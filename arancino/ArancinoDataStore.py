@@ -39,7 +39,8 @@ class ArancinoDataStore:
 
         self.__redis_dts_std = redis_instance_type[0]   # Standard Data Store
         self.__redis_dts_dev = redis_instance_type[1]   # Device Data Store
-        self.__redis_dts_per = redis_instance_type[2]   # Persistent Data Store
+        self.__redis_dts_pers = redis_instance_type[2]   # Persistent Data Store
+        self.__redis_dts_rsvd = redis_instance_type[3]  # Reserved Data Store
 
         # data store
         self.__redis_pool_dts = redis.ConnectionPool(host=self.__redis_dts_std['host'],
@@ -47,23 +48,31 @@ class ArancinoDataStore:
                                                      db=self.__redis_dts_std['db'],
                                                      decode_responses=self.__redis_dts_std['dcd_resp'])
 
+        # data store (reserved keys)
+        self.__redis_pool_dts_rsvd = redis.ConnectionPool(host=self.__redis_dts_rsvd['host'],
+                                                          port=self.__redis_dts_rsvd['port'],
+                                                          db=self.__redis_dts_rsvd['db'],
+                                                          decode_responses=self.__redis_dts_rsvd['dcd_resp'])
+
+
         # device store
         self.__redis_pool_dvs = redis.ConnectionPool(host=self.__redis_dts_dev['host'],
                                                      port=self.__redis_dts_dev['port'],
                                                      db=self.__redis_dts_dev['db'],
                                                      decode_responses=self.__redis_dts_dev['dcd_resp'])
 
-        # data store (reserved keys)
-        self.__redis_pool_dts_rsvd = redis.ConnectionPool(host=self.__redis_dts_per['host'],
-                                                          port=self.__redis_dts_per['port'],
-                                                          db=self.__redis_dts_per['db'],
-                                                          decode_responses=self.__redis_dts_per['dcd_resp'])
+        # data store persistent
+        self.__redis_pool_dts_pers = redis.ConnectionPool(host=self.__redis_dts_pers['host'],
+                                                          port=self.__redis_dts_pers['port'],
+                                                          db=self.__redis_dts_pers['db'],
+                                                          decode_responses=self.__redis_dts_pers['dcd_resp'])
 
 
 
         self._redis_conn_dts = redis.Redis(connection_pool=self.__redis_pool_dts)
         self._redis_conn_dvs = redis.Redis(connection_pool=self.__redis_pool_dvs)
         self._redis_conn_dts_rsvd = redis.Redis(connection_pool=self.__redis_pool_dts_rsvd)
+        self._redis_conn_dts_pers = redis.Redis(connection_pool=self.__redis_pool_dts_pers)
 
         self.__attempts = 1
         self.__attempts_tot = CONF.get_redis_connection_attempts()
@@ -79,6 +88,7 @@ class ArancinoDataStore:
                 self._redis_conn_dts.ping()
                 self._redis_conn_dvs.ping()
                 self._redis_conn_dts_rsvd.ping()
+                self._redis_conn_dts_pers.ping()
                 break
 
             except Exception as ex:
@@ -103,6 +113,15 @@ class ArancinoDataStore:
 
         return self._redis_conn_dts
 
+    def getDataStoreRsvd(self):
+        """
+        Gets a redis client from a connection pool. This client is used to
+            manage data received from the microcontrollers.
+        :return:
+        """
+
+        return self._redis_conn_dts_rsvd
+
 
     def getDataStoreDev(self):
         """
@@ -120,7 +139,7 @@ class ArancinoDataStore:
         :return:
         """
 
-        return self._redis_conn_dts_rsvd
+        return self._redis_conn_dts_pers
 
 
     def closeAll(self):
@@ -128,5 +147,6 @@ class ArancinoDataStore:
             self.getDataStoreStd().connection_pool.disconnect()
             self.getDataStoreDev().connection_pool.disconnect()
             self.getDataStorePer().connection_pool.disconnect()
+            self.getDataStoreRsvd().connection_pool.disconnect()
         except Exception as ex:
             pass
