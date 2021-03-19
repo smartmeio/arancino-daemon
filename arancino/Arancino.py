@@ -29,6 +29,7 @@ from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
 from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoConstants import ArancinoApiResponseCode
 from arancino.ArancinoDataStore import ArancinoDataStore
+from arancino.ArancinoConstants import ArancinoReservedChars
 
 import time
 
@@ -75,6 +76,10 @@ class Arancino(Thread):
 
             self.__synchronizer = ArancinoPortSynch()
             self.__datastore = ArancinoDataStore.Instance()
+
+            # store in datastore: module version, module environment running mode
+            self.__datastore.getDataStoreRsvd().set(ArancinoReservedChars.RSVD_KEY_MODVERSION, str(self.__version))
+            self.__datastore.getDataStoreRsvd().set(ArancinoReservedChars.RSVD_KEY_MODENVIRONMENT, CONF.get_general_env())
 
             # signal.signal(signal.SIGINT, self.__kill)
             # signal.signal(signal.SIGTERM, self.__kill)
