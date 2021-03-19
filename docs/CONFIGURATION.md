@@ -119,16 +119,19 @@ The database to use in each configuration are setted in the specific section: `r
 datastore_std_db = 0
 datastore_dev_db = 1
 datastore_per_db = 2
+datastore_rsvd_db = 3
 
 [redis.persistent]
 
 datastore_std_db = 0
 datastore_dev_db = 1
 datastore_per_db = 2
+datastore_rsvd_db = 3
 
 [redis.volatile_persistent]
 
 datastore_std_db = 0
+datastore_rsvd_db = 1
 datastore_dev_db = 0
 datastore_per_db = 1
 ```
