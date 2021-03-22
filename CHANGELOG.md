@@ -1,6 +1,6 @@
 # Changelog
 
-#### v 2.2.0 2021.MM.DD
+#### v 2.2.0 2021.03.22
 * Changed server, now use GUnicorn in production. [#crw02w](https://app.clickup.com/t/crw02w)
 * Removed stack trace in case of Redis connection error at start. [#f53nzb](https://app.clickup.com/t/f53nzb)
 * Introduced new Reserverd Key `___MODENV___` to store the environment of the running Arancino Module. [#fz4f66](https://app.clickup.com/t/fz4f66)
