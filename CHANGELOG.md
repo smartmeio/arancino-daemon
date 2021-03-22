@@ -1,7 +1,14 @@
 # Changelog
 
+#### v 2.2.0 2021.03.22
+* Changed server, now use GUnicorn in production. [#crw02w](https://app.clickup.com/t/crw02w)
+* Removed stack trace in case of Redis connection error at start. [#f53nzb](https://app.clickup.com/t/f53nzb)
+* Introduced new Reserverd Key `___MODENV___` to store the environment of the running Arancino Module. [#fz4f66](https://app.clickup.com/t/fz4f66)
+* Now use the Reserverd Key `___MODVERS___` to store the version of the running Arancino Module. [#fz4baj](https://app.clickup.com/t/fz4baj)
+* Introduced new Cortex Command  `GETRSVD` to retrieve values from Reserved Datastore. [#acujnq](https://app.clickup.com/t/acujnq)
+
 #### v 2.1.5 2021.03.11
-* arancino.service should start just after network.target and rc.local
+* Fixed: arancino.service should start just after network.target and rc.local. Mandatory for buster based systems. [#fh5fv7](https://app.clickup.com/t/fh5fv7)
 
 #### v 2.1.4 2021.02.5
 * Fixed missing env var [#crvwm8](https://app.clickup.com/t/crvwm8)

@@ -63,11 +63,13 @@ class ArancinoReservedChars:
     RSVD_KEY_MONITOR    = RSVD_CHARS + "MONITOR" + RSVD_CHARS
     RSVD_KEY_LIBVERSION = RSVD_CHARS + "LIBVERS" + RSVD_CHARS
     RSVD_KEY_MODVERSION = RSVD_CHARS + "MODVERS" + RSVD_CHARS
+    RSVD_KEY_MODENVIRONMENT = RSVD_CHARS + "MODENV" + RSVD_CHARS
 
     # Reseverd keys list
     RESERVEDKEYSLIST = [RSVD_KEY_MONITOR,
                         RSVD_KEY_LIBVERSION,
-                        RSVD_KEY_MODVERSION]
+                        RSVD_KEY_MODVERSION,
+                        RSVD_KEY_MODENVIRONMENT]
 
 
 class ArancinoCommandErrorCodes:
@@ -157,6 +159,10 @@ class ArancinoCommandIdentifiers:
     CMD_APP_GET = {"id": __CMD_APP_GET, "args": 1, "op": ArancinoOperators.EQUAL}
     "Get value at key"
 
+    __CMD_APP_GET_RSVD = 'GETRSVD'
+    CMD_APP_GET_RSVD = {"id": __CMD_APP_GET_RSVD, "args": 1, "op": ArancinoOperators.EQUAL}
+    "Get value at reserverd key"
+
     __CMD_APP_SET = 'SET'
     CMD_APP_SET = {"id": __CMD_APP_SET, "args": 2, "op": ArancinoOperators.EQUAL}
     "Set value at key"
@@ -231,6 +237,7 @@ class ArancinoCommandIdentifiers:
     COMMANDS_DICT = {
         __CMD_SYS_START: CMD_SYS_START,
         __CMD_APP_GET: CMD_APP_GET,
+        __CMD_APP_GET_RSVD: CMD_APP_GET_RSVD,
         __CMD_APP_SET: CMD_APP_SET,
         __CMD_APP_SET_STD: CMD_APP_SET_STD,
         __CMD_APP_SET_PERS: CMD_APP_SET_PERS,
@@ -256,6 +263,7 @@ class ArancinoCommandIdentifiers:
 
     COMMANDS_LIST = [__CMD_SYS_START,
                      __CMD_APP_GET,
+                     __CMD_APP_GET_RSVD,
                      __CMD_APP_SET,
                      __CMD_APP_SET_STD,
                      __CMD_APP_SET_PERS,
@@ -566,6 +574,7 @@ COMPATIBILITY_MATRIX_MOD_SERIAL = {
     "2.1.3": [">=0.4.0,<1.0.0", ">=1.3.0"],
     "2.1.4": [">=0.4.0,<1.0.0", ">=1.3.0"],
     "2.1.5": [">=0.4.0,<1.0.0", ">=1.3.0"],
+    "2.2.0": [">=0.4.0,<1.0.0", ">=1.3.0"],
     #"2.0.0": ["<0.3.0", ">=1.2.0"], # for tests
 }
 
@@ -579,4 +588,5 @@ COMPATIBILITY_MATRIX_MOD_TEST = {
     "2.1.3": [">=1.0.0"],
     "2.1.4": [">=1.0.0"],
     "2.1.5": [">=1.0.0"],
+    "2.2.0": [">=1.0.0"],
 }

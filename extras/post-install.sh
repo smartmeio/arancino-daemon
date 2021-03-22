@@ -54,6 +54,7 @@ timestamp=$(date +%Y%m%d_%H%M%S)
 [ -f /etc/arancino/config/arancino.test.cfg ] && mv /etc/arancino/config/arancino.test.cfg /etc/arancino/config/arancino_$timestamp.test.cfg
 cp config/arancino.cfg /etc/arancino/config/arancino.cfg
 cp config/arancino.test.cfg /etc/arancino/config/arancino.test.cfg
+cp config/gunicorn.cfg.py /etc/arancino/config/gunicorn.cfg.py
 
 echo --------------------------------------
 
