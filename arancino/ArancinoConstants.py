@@ -64,12 +64,14 @@ class ArancinoReservedChars:
     RSVD_KEY_LIBVERSION = RSVD_CHARS + "LIBVERS" + RSVD_CHARS
     RSVD_KEY_MODVERSION = RSVD_CHARS + "MODVERS" + RSVD_CHARS
     RSVD_KEY_MODENVIRONMENT = RSVD_CHARS + "MODENV" + RSVD_CHARS
+    RSVD_KEY_MODLOGLEVEL = RSVD_CHARS + "MODLOGLVL" + RSVD_CHARS
 
     # Reseverd keys list
     RESERVEDKEYSLIST = [RSVD_KEY_MONITOR,
                         RSVD_KEY_LIBVERSION,
                         RSVD_KEY_MODVERSION,
-                        RSVD_KEY_MODENVIRONMENT]
+                        RSVD_KEY_MODENVIRONMENT,
+                        RSVD_KEY_MODLOGLEVEL]
 
 
 class ArancinoCommandErrorCodes:
