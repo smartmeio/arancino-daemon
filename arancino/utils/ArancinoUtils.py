@@ -59,10 +59,10 @@ class ArancinoConfig:
     def __init__(self):
 
         env = os.environ.get('ARANCINOENV')
-        if env.upper() == "DEV" or env.upper() == "TEST" or env.upper() == "DEBUG" or env.upper() == "DEVELOPMENT":
-            self.__cfg_file = "arancino.test.cfg"
+        if env.upper() == "DEV" or env.upper() == "TEST" or env.upper() == "DEVELOPMENT":
+            self.__cfg_file = "arancino.dev.cfg"
         elif env.upper() == "PROD" or env.upper() == "PRODUCTION":
-            self.__cfg_file = "arancino.cfg"
+            self.__cfg_file = "arancino.prod.cfg"
 
         self.Config = configparser.ConfigParser()
         self.Config.read(os.path.join(os.environ.get('ARANCINOCONF'), self.__cfg_file))

@@ -39,7 +39,7 @@ class ArancinoTestDiscovery:
     def getAvailablePorts(self, collection):
         """
         Create Arancino Port for test purpose.
-            It simulates a disovery service and create a number of Test Ports as by setted in the port.test section of arancino.cfg.
+            It simulates a disovery service and create a number of Test Ports as by setted in the port.test section of arancino.*.cfg.
             Usually this function is called periodically and a list of Test Port is passed as argument.
         """
 
