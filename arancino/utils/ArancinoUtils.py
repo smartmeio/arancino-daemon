@@ -79,7 +79,9 @@ class ArancinoConfig:
         self.__redis_instance_type = self.Config.get("redis", "instance_type")
         self.__redis_connection_attempts = int(self.Config.get("redis", "connection_attempts"))
 
-        self.__redis_host = self.Config.get("redis", "host")
+        self.__redis_host_volatile = self.Config.get("redis", "host_volatile")
+        self.__redis_host_persistent = self.Config.get("redis", "host_persistent")
+
         self.__redis_port_volatile = self.Config.get("redis", "port_volatile")
         self.__redis_port_persistent = self.Config.get("redis", "port_persistent")
         self.__redis_decode_response = stringToBool(self.Config.get("redis", "decode_response"))
@@ -190,10 +192,12 @@ class ArancinoConfig:
         redis_dts_per: persistent data store => contains application data which must be available after device reboot or application restart (default persistent)
         '''
         # DEFAULT -> VOLATILE PERSISTENT
-        host = self.__redis_host
+        #host = self.__redis_host
         dec_rsp = self.__redis_decode_response
 
         if redis_instance == RedisInstancesType.VOLATILE:
+            host_vol = self.__redis_host_volatile
+            host_per = self.__redis_host_volatile
             port_vol = self.__redis_port_volatile
             port_per = self.__redis_port_volatile
             dts_std_db = self.__redis_volatile_datastore_std_db
@@ -202,6 +206,8 @@ class ArancinoConfig:
             dts_rsvd_db = self.__redis_volatile_datastore_rsvd_db
 
         elif redis_instance == RedisInstancesType.PERSISTENT:
+            host_vol = self.__redis_host_persistent
+            host_per = self.__redis_host_persistent
             port_vol = self.__redis_port_persistent
             port_per = self.__redis_port_persistent
             dts_std_db = self.__redis_persistent_datastore_std_db
@@ -210,6 +216,8 @@ class ArancinoConfig:
             dts_rsvd_db = self.__redis_persistent_datastore_rsvd_db
 
         elif redis_instance == RedisInstancesType.VOLATILE_PERSISTENT:
+            host_vol = self.__redis_host_volatile
+            host_per = self.__redis_host_persistent
             port_vol = self.__redis_port_volatile
             port_per = self.__redis_port_persistent
             dts_std_db = self.__redis_volatile_persistent_datastore_std_db
@@ -218,6 +226,8 @@ class ArancinoConfig:
             dts_rsvd_db = self.__redis_volatile_persistent_datastore_rsvd_db
 
         else:  # DEFAULT is VOLATILE_PERSISTENT
+            host_vol = self.__redis_host_volatile
+            host_per = self.__redis_host_persistent
             port_vol = self.__redis_port_volatile
             port_per = self.__redis_port_persistent
             dts_std_db = self.__redis_volatile_persistent_datastore_std_db
@@ -225,10 +235,10 @@ class ArancinoConfig:
             dts_dev_db = self.__redis_volatile_persistent_datastore_dev_db
             dts_rsvd_db = self.__redis_volatile_persistent_datastore_rsvd_db
 
-        redis_dts_std = {'host': host, 'port': port_vol, 'dcd_resp': dec_rsp, 'db': dts_std_db}
-        redis_dts_dev = {'host': host, 'port': port_per, 'dcd_resp': dec_rsp, 'db': dts_dev_db}
-        redis_dts_per = {'host': host, 'port': port_per, 'dcd_resp': dec_rsp, 'db': dts_per_db}
-        redis_dts_rsvd = {'host': host, 'port': port_vol, 'dcd_resp': dec_rsp, 'db': dts_rsvd_db}
+        redis_dts_std = {'host': host_vol, 'port': port_vol, 'dcd_resp': dec_rsp, 'db': dts_std_db}
+        redis_dts_dev = {'host': host_per, 'port': port_per, 'dcd_resp': dec_rsp, 'db': dts_dev_db}
+        redis_dts_per = {'host': host_per, 'port': port_per, 'dcd_resp': dec_rsp, 'db': dts_per_db}
+        redis_dts_rsvd = {'host': host_vol, 'port': port_vol, 'dcd_resp': dec_rsp, 'db': dts_rsvd_db}
 
         return redis_dts_std, redis_dts_dev, redis_dts_per, redis_dts_rsvd
 
