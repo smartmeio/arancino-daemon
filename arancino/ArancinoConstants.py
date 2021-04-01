@@ -109,6 +109,9 @@ class ArancinoCommandErrorCodes:
     ERR_INVALID_ARGUMENTS = '210'
     "Generic Invalid Arguments"
 
+    ERR_VALUE = '211'
+    "Invalid Value"
+
     ERRORS_CODE_LIST = [
                             ERR,
                             ERR_NULL,
@@ -121,6 +124,7 @@ class ArancinoCommandErrorCodes:
                             ERR_REDIS_KEY_EXISTS_IN_PERS,
                             ERR_NON_COMPATIBILITY,
                             ERR_INVALID_ARGUMENTS,
+                            ERR_VALUE,
                         ]
 
 
@@ -147,6 +151,7 @@ class ArancinoOperators:
     GREATER_THAN = "GT"
     GREATER_THAN_OR_EQUAL = "GTE"
     NOT_EQUAL = "NEQ"
+    BETWEEN = "BET"
 
 class ArancinoCommandIdentifiers:
     # Commands sent by the Port w/ Cortex Protocol
@@ -236,6 +241,11 @@ class ArancinoCommandIdentifiers:
     CMD_APP_MGET = {"id": __CMD_APP_MGET, "args": 1, "op": ArancinoOperators.EQUAL}
     "Sets more than one key value at the same time"
 
+    __CMD_APP_STORE = 'STORE'
+    # sCMD_APP_STORE = [__CMD_APP_STORE, 2]
+    CMD_APP_STORE = {"id": __CMD_APP_STORE, "args": 2, "args2": 3, "op": ArancinoOperators.BETWEEN}
+    "Store the current value in TimeSeries data structure at the key"
+
     COMMANDS_DICT = {
         __CMD_SYS_START: CMD_SYS_START,
         __CMD_APP_GET: CMD_APP_GET,
@@ -259,6 +269,7 @@ class ArancinoCommandIdentifiers:
         __CMD_APP_MSET_STD: CMD_APP_MSET_STD,
         __CMD_APP_MSET_PERS: CMD_APP_MSET_PERS,
         __CMD_APP_MGET: CMD_APP_MGET,
+        __CMD_APP_STORE: CMD_APP_STORE,
     }
     "Complete dictionary of all available commands: " \
     "{ 'SET': {'id': 'SET', 'args': 2} , ... }"
@@ -285,6 +296,7 @@ class ArancinoCommandIdentifiers:
                      __CMD_APP_MSET_STD,
                      __CMD_APP_MSET_PERS,
                      __CMD_APP_MGET,
+                     __CMD_APP_STORE,
                      ]
     "Complete list of all available commands:" \
     "[ 'SET', 'GET', ... ]"

@@ -208,12 +208,15 @@ class ArancinoPort(object):
 
             # call the Command Executor and get a raw response
             raw_response = self._executor.exec(acmd)
+            arsp = self._executor.exec(acmd)
 
             # create the Arancino Response object
-            arsp = ArancinoResponse(raw_response=raw_response)
+            #arsp = ArancinoResponse(raw_response=raw_response)
 
             # if the command is START command, the ArancinoResponse is generic and it should
-            # evaluated here and not in the CommandExecutor
+            # evaluated here and not in the CommandExecutor. CommandExecutor only uses the datastore
+            # and not the port itself. The START command contains information about the connecting port
+            # that the command executor is not able to use.
             if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
                 self._retrieveStartCmdArgs(acmd.getArguments())
 

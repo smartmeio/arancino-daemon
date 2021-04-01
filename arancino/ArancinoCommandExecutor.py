@@ -18,10 +18,14 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 """
+import decimal
+
 from redis import RedisError
 
 from arancino.ArancinoConstants import *
 import semantic_version as semver
+
+from arancino.ArancinoCortex import ArancinoResponse
 from arancino.ArancinoExceptions import *
 from arancino.ArancinoDataStore import ArancinoDataStore
 from arancino.utils.ArancinoUtils import ArancinoConfig
@@ -44,6 +48,7 @@ class ArancinoCommandExecutor:
         self.__datastore_rsvd = redis.getDataStoreRsvd()
         self.__devicestore = redis.getDataStoreDev()
         self.__datastore_pers = redis.getDataStorePer()
+        self.__datastore_tser = redis.getDataStoreTse()
 
         self.__conf = ArancinoConfig.Instance()
 #        self.__compatibility_array_serial = COMPATIBILITY_MATRIX_MOD_SERIAL[str(self.__conf.get_metadata_version().truncate())]
@@ -84,83 +89,87 @@ class ArancinoCommandExecutor:
             # START
             if cmd_id == ArancinoCommandIdentifiers.CMD_SYS_START['id']:
                 raw_response = self.__OPTS_START(cmd_args)
-                return raw_response
+                return ArancinoResponse(raw_response=raw_response)
             # SET
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_SET_STD['id']:
                 raw_response = self.__OPTS_SET_STD(cmd_args)
-                return raw_response
+                return ArancinoResponse(raw_response=raw_response)
             # SET PERSISTENT
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_SET_PERS['id']:
                 raw_response = self.__OPTS_SET_PERS(cmd_args)
-                return raw_response
+                return ArancinoResponse(raw_response=raw_response)
             # GET
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_GET['id']:
                 raw_response = self.__OPTS_GET(cmd_args)
-                return raw_response
+                return ArancinoResponse(raw_response=raw_response)
             # GET RSVD
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_GET_RSVD['id']:
                 raw_response = self.__OPTS_GET_RSVD(cmd_args)
-                return raw_response
+                return ArancinoResponse(raw_response=raw_response)
             # DEL
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_DEL['id']:
                 raw_response = self.__OPTS_DEL(cmd_args)
-                return raw_response
+                return ArancinoResponse(raw_response=raw_response)
             # KEYS
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_KEYS['id']:
                 raw_response = self.__OPTS_KEYS(cmd_args)
-                return raw_response
+                return ArancinoResponse(raw_response=raw_response)
             # HSET
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HSET_STD['id']:
                 raw_response = self.__OPTS_HSET_STD(cmd_args)
-                return raw_response
+                return ArancinoResponse(raw_response=raw_response)
             # HSET PERSISTENT
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HSET_PERS['id']:
                 raw_response = self.__OPTS_HSET_PERS(cmd_args)
-                return raw_response
+                return ArancinoResponse(raw_response=raw_response)
             # HGET
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HGET['id']:
                 raw_response = self.__OPTS_HGET(cmd_args)
-                return raw_response
+                return ArancinoResponse(raw_response=raw_response)
             # HGETALL
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HGETALL['id']:
                 raw_response = self.__OPTS_HGETALL(cmd_args)
-                return raw_response
+                return ArancinoResponse(raw_response=raw_response)
             # HKEYS
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HKEYS['id']:
                 raw_response = self.__OPTS_HKEYS(cmd_args)
-                return raw_response
+                return ArancinoResponse(raw_response=raw_response)
             # HVALS
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HVALS['id']:
                 raw_response = self.__OPTS_HVALS(cmd_args)
-                return raw_response
+                return ArancinoResponse(raw_response=raw_response)
             # HDEL
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HDEL['id']:
                 raw_response = self.__OPTS_HDEL(cmd_args)
-                return raw_response
+                return ArancinoResponse(raw_response=raw_response)
             # PUB
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_PUB['id']:
                 raw_response = self.__OPTS_PUB(cmd_args)
-                return raw_response
+                return ArancinoResponse(raw_response=raw_response)
             # FLUSH
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_FLUSH['id']:
                 raw_response = self.__OPTS_FLUSH(cmd_args)
-                return raw_response
+                return ArancinoResponse(raw_response=raw_response)
             # MSET
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_MSET_STD['id']:
                 raw_response = self.__OPTS_MSET_STD(cmd_args)
-                return raw_response
+                return ArancinoResponse(raw_response=raw_response)
             # MSET PERSISTENT
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_MSET_PERS['id']:
                 raw_response = self.__OPTS_MSET_PERS(cmd_args)
-                return raw_response
+                return ArancinoResponse(raw_response=raw_response)
             # MGET
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_MGET['id']:
                 raw_response = self.__OPTS_MGET(cmd_args)
-                return raw_response
+                return ArancinoResponse(raw_response=raw_response)
+            # STORE
+            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_STORE['id']:
+                raw_response = self.__OPTS_STORE(cmd_args)
+                return ArancinoResponse(raw_response=raw_response)
             # Default
             else:
                 raw_response = ArancinoCommandErrorCodes.ERR_CMD_NOT_FND + ArancinoSpecialChars.CHR_SEP
-                return raw_response
+                return ArancinoResponse(raw_response=raw_response)
 
             # endregion
             #cmd = ArancinoComamnd(cmd_id=cmd_id, cmd_args=cmd_args)
@@ -418,14 +427,17 @@ class ArancinoCommandExecutor:
         MCU ← 100#<num-of-deleted-keys>@
         '''
 
-
         try:
 
             num = self.__datastore.delete(*args)
 
-            # then try get from reserved datastore
+            # then try to delete key in the persistent datastore
             if num == 0:
                 num = self.__datastore_pers.delete(*args)
+
+            # then try to delete key in the time series datastore
+            if num == 0:
+                num = self.__datastore_tser.redis.delete(*args)
 
             return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(num) + ArancinoSpecialChars.CHR_EOT
 
@@ -936,6 +948,49 @@ class ArancinoCommandExecutor:
             raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
 
     # endregion
+
+    #region STORE
+    def __OPTS_STORE(self, args):
+        '''
+        Store the value in a Time Series data structure at key
+        Optional args are:
+            - Timestamp (int): UNIX timestamp of the sample. '*' can be used for automatic timestamp (using the system clock)
+
+        MCU → STORE#<key>#<values>@
+        MCU → STORE#<key>#<values>#<timestamp>@
+
+        MCU ← 100#<timestamp>@
+        '''
+
+        try:
+
+            key = args[0]
+            value = float(decimal.Decimal(args[1]))
+            timestamp = "*"
+
+            if len(args) > 2:
+                # the 3th element is the timestamp in unix format. '*' by default
+                timestamp = args[2]
+
+            # exist = self.__datastore_tser.redis.exists(key)
+            # if not exist:
+            #     self.__datastore_tser.create(key, labels={"port_id": "", "port_type": "", "device_id": ""})
+
+            ts = self.__datastore_tser.add(key, timestamp, value)
+
+            #self.__datastore_tser
+            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
+
+        except RedisError as ex:
+            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
+
+        except decimal.DecimalException as ex:
+            raise ArancinoException("Conversion Error: " + str(ex), ArancinoCommandErrorCodes.ERR_VALUE)
+
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
+
+    #endregion
 
     def __get_args_nr_by_cmd_id(self, cmd_id):
         '''
