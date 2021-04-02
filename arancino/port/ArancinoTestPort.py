@@ -42,7 +42,7 @@ class ArancinoTestPort(ArancinoPort):
         self._id = id if id is not None else uuid.uuid1()
         self.__stop = False
 
-        self._executor = ArancinoCommandExecutor(self._id, self._device, self._port_type)
+        self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
 
         self._compatibility_array = COMPATIBILITY_MATRIX_MOD_TEST[str(CONF.get_metadata_version().truncate())]
 

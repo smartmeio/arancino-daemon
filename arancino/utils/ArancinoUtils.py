@@ -67,6 +67,9 @@ class ArancinoConfig:
         self.Config = configparser.ConfigParser()
         self.Config.read(os.path.join(os.environ.get('ARANCINOCONF'), self.__cfg_file))
 
+
+        self.__serial_number = self.__retrieve_serial_number()
+
         # CONFIG METADATA SECTION
         self.__metadata_version = semantic_version.Version(arancino.__version__)
 
@@ -152,6 +155,21 @@ class ArancinoConfig:
 
         self.__dirlog = os.environ.get('ARANCINOLOG')
 
+    def __retrieve_serial_number(self):
+        # Extract serial from cpuinfo file
+        cpuserial = "0000000000000000"
+        try:
+            f = open('/proc/cpuinfo', 'r')
+            for line in f:
+                if line[0:6] == 'Serial':
+                    cpuserial = line[10:26]
+            f.close()
+        except Exception as ex:
+            print(ex)
+            cpuserial = "ERROR000000000"
+
+        return cpuserial
+
 
     def __get_or_override_bool(self, cfg, mine_sect, mine_opt, main_sec, main_opt):
         val = ""
@@ -176,6 +194,9 @@ class ArancinoConfig:
     # def get_general_users(self):
     #     return json.loads(self.__general_users)
 
+
+    def get_serial_number(self):
+        return self.__serial_number
 
     ######## REDIS ########
     def get_redis_instances_conf(self):

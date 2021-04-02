@@ -964,7 +964,7 @@ class ArancinoCommandExecutor:
 
         try:
 
-            key = args[0]
+            key = args[0] + ":" + self.__port_id
             value = float(decimal.Decimal(args[1]))
             timestamp = "*"
 
@@ -972,9 +972,14 @@ class ArancinoCommandExecutor:
                 # the 3th element is the timestamp in unix format. '*' by default
                 timestamp = args[2]
 
-            # exist = self.__datastore_tser.redis.exists(key)
-            # if not exist:
-            #     self.__datastore_tser.create(key, labels={"port_id": "", "port_type": "", "device_id": ""})
+            exist = self.__datastore_tser.redis.exists(key)
+            if not exist:
+                labels = {
+                    "device_id": self.__conf.get_serial_number(),
+                    "port_id": self.__port_id,
+                    "port_type": self.__port_type.name
+                }
+                self.__datastore_tser.create(key, labels=labels)
 
             ts = self.__datastore_tser.add(key, timestamp, value)
 
