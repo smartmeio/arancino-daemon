@@ -975,10 +975,15 @@ class ArancinoCommandExecutor:
             exist = self.__datastore_tser.redis.exists(key)
             if not exist:
                 labels = {
-                    "device_id": self.__conf.get_serial_number(),
+                    #"device_id": self.__conf.get_serial_number(),
                     "port_id": self.__port_id,
                     "port_type": self.__port_type.name
                 }
+
+                if not self.__conf.get_serial_number() == "0000000000000000" \
+                        and not self.__conf.get_serial_number() == "ERROR000000000":
+                    labels["device_id"] = self.__conf.get_serial_number()
+
                 self.__datastore_tser.create(key, labels=labels)
 
             ts = self.__datastore_tser.add(key, timestamp, value)

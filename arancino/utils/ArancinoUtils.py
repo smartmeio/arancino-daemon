@@ -155,20 +155,26 @@ class ArancinoConfig:
 
         self.__dirlog = os.environ.get('ARANCINOLOG')
 
+
+    #TODO: rivedere questo metodo.
     def __retrieve_serial_number(self):
         # Extract serial from cpuinfo file
-        cpuserial = "0000000000000000"
+        serial = "0000000000000000"
         try:
             f = open('/proc/cpuinfo', 'r')
             for line in f:
                 if line[0:6] == 'Serial':
-                    cpuserial = line[10:26]
+                    serial = line[10:26]
             f.close()
         except Exception as ex:
-            print(ex)
-            cpuserial = "ERROR000000000"
+            try:
+                f = open('cat /sys/class/dmi/id/product_uuid')
+                serial = f.readline().strip()
+                f.close()
+            except Exception as ex:
+                serial = "ERROR000000000"
 
-        return cpuserial
+        return serial
 
 
     def __get_or_override_bool(self, cfg, mine_sect, mine_opt, main_sec, main_opt):
