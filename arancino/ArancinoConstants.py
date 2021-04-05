@@ -153,6 +153,7 @@ class ArancinoOperators:
     NOT_EQUAL = "NEQ"
     BETWEEN = "BET"
 
+
 class ArancinoCommandIdentifiers:
     # Commands sent by the Port w/ Cortex Protocol
 
@@ -604,3 +605,6 @@ COMPATIBILITY_MATRIX_MOD_TEST = {
     "2.2.0": [">=1.0.0"],
     "2.3.0": [">=1.0.0"],
 }
+
+
+SUFFIX_TMSTP = "TMSTP"

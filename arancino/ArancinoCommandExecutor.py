@@ -964,7 +964,7 @@ class ArancinoCommandExecutor:
 
         try:
 
-            key = args[0] + ":" + self.__port_id
+            key = "{}:{}".format(args[0], self.__port_id)
             value = float(decimal.Decimal(args[1]))
             timestamp = "*"
 
@@ -978,13 +978,13 @@ class ArancinoCommandExecutor:
                     #"device_id": self.__conf.get_serial_number(),
                     "port_id": self.__port_id,
                     "port_type": self.__port_type.name
-                }
+                    }
 
-                if not self.__conf.get_serial_number() == "0000000000000000" \
-                        and not self.__conf.get_serial_number() == "ERROR000000000":
+                if not self.__conf.get_serial_number() == "0000000000000000" and not self.__conf.get_serial_number() == "ERROR000000000":
                     labels["device_id"] = self.__conf.get_serial_number()
 
-                self.__datastore_tser.create(key, labels=labels)
+                self.__datastore_tser.create(key, labels=labels, duplicate_policy='last')
+                self.__datastore_tser.redis.set("{}:{}".format(key, SUFFIX_TMSTP), "-")  # Starting timestamp "-"
 
             ts = self.__datastore_tser.add(key, timestamp, value)
 
