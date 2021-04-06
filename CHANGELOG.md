@@ -1,5 +1,10 @@
 # Changelog
 
+#### v 2.3.0 2021.04.06
+* Fixed arancino config files name, now binded to ARANCINOENV var. [#g97519](https://app.clickup.com/t/g97519)
+* Introduced new reserved key `___MODLOGLVL___`. [#g9786m](https://app.clickup.com/t/g9786m)
+* Introduced different config "host" variables for the redis instances. [#g97ayp](https://app.clickup.com/t/g97ayp)
+
 #### v 2.2.0 2021.03.22
 * Changed server, now use GUnicorn in production. [#crw02w](https://app.clickup.com/t/crw02w)
 * Removed stack trace in case of Redis connection error at start. [#f53nzb](https://app.clickup.com/t/f53nzb)

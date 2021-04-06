@@ -64,12 +64,14 @@ class ArancinoReservedChars:
     RSVD_KEY_LIBVERSION = RSVD_CHARS + "LIBVERS" + RSVD_CHARS
     RSVD_KEY_MODVERSION = RSVD_CHARS + "MODVERS" + RSVD_CHARS
     RSVD_KEY_MODENVIRONMENT = RSVD_CHARS + "MODENV" + RSVD_CHARS
+    RSVD_KEY_MODLOGLEVEL = RSVD_CHARS + "MODLOGLVL" + RSVD_CHARS
 
     # Reseverd keys list
     RESERVEDKEYSLIST = [RSVD_KEY_MONITOR,
                         RSVD_KEY_LIBVERSION,
                         RSVD_KEY_MODVERSION,
-                        RSVD_KEY_MODENVIRONMENT]
+                        RSVD_KEY_MODENVIRONMENT,
+                        RSVD_KEY_MODLOGLEVEL]
 
 
 class ArancinoCommandErrorCodes:
@@ -567,14 +569,15 @@ COMPATIBILITY_MATRIX_MOD_SERIAL = {
     "1.1.1": ["=0.2.0"],
     "1.2.0": ["=0.2.0"],
     "1.2.1": ["=0.2.0"],
-    "2.0.0": [">=0.3.0,<1.0.0", ">=1.2.0"],
-    "2.1.0": [">=0.4.0,<1.0.0", ">=1.3.0"],
-    "2.1.1": [">=0.4.0,<1.0.0", ">=1.3.0"],
-    "2.1.2": [">=0.4.0,<1.0.0", ">=1.3.0"],
-    "2.1.3": [">=0.4.0,<1.0.0", ">=1.3.0"],
-    "2.1.4": [">=0.4.0,<1.0.0", ">=1.3.0"],
-    "2.1.5": [">=0.4.0,<1.0.0", ">=1.3.0"],
+    "2.0.0": [">=0.3.0,<1.0.0", ">=1.2.0,<2.0.0"],
+    "2.1.0": [">=0.4.0,<1.0.0", ">=1.3.0,<2.0.0"],
+    "2.1.1": [">=0.4.0,<1.0.0", ">=1.3.0,<2.0.0"],
+    "2.1.2": [">=0.4.0,<1.0.0", ">=1.3.0,<2.0.0"],
+    "2.1.3": [">=0.4.0,<1.0.0", ">=1.3.0,<2.0.0"],
+    "2.1.4": [">=0.4.0,<1.0.0", ">=1.3.0,<2.0.0"],
+    "2.1.5": [">=0.4.0,<1.0.0", ">=1.3.0,<2.0.0"],
     "2.2.0": [">=0.4.0,<1.0.0", ">=1.3.0"],
+    "2.3.0": [">=1.3.0", ">=1.3.0"],
     #"2.0.0": ["<0.3.0", ">=1.2.0"], # for tests
 }
 
@@ -589,4 +592,5 @@ COMPATIBILITY_MATRIX_MOD_TEST = {
     "2.1.4": [">=1.0.0"],
     "2.1.5": [">=1.0.0"],
     "2.2.0": [">=1.0.0"],
+    "2.3.0": [">=1.0.0"],
 }

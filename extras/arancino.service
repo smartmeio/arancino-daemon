@@ -7,11 +7,25 @@ Type=simple
 User=root
 Group=root
 
-#ARANCINO ENV VARS
+### ARANCINO ENV VARS ###
+
+# Arancino Module Directory
 Environment="ARANCINO=/etc/arancino"
+
+# Arancino Module Configuration Directory
 Environment="ARANCINOCONF=/etc/arancino/config"
+
+# Arancino Module Logs Directory
 Environment="ARANCINOLOG=/var/log/arancino"
-Environment="ARANCINOENV=PROD"
+
+# Arancino Module Runnning Environment:
+#   "production" -> Production Environment
+#   "development" -> Development Environment
+Environment="ARANCINOENV=production"
+
+# Flask Runnning Environment:
+#   "production" -> Production Environment
+#   "development" -> Development Environment
 Environment="FLASK_ENV=production"
 
 ExecStart=/bin/bash -c 'gunicorn -c "$ARANCINOCONF/gunicorn.cfg.py" arancino.ArancinoStart:app'

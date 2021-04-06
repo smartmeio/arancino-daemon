@@ -80,6 +80,7 @@ class Arancino(Thread):
             # store in datastore: module version, module environment running mode
             self.__datastore.getDataStoreRsvd().set(ArancinoReservedChars.RSVD_KEY_MODVERSION, str(self.__version))
             self.__datastore.getDataStoreRsvd().set(ArancinoReservedChars.RSVD_KEY_MODENVIRONMENT, CONF.get_general_env())
+            self.__datastore.getDataStoreRsvd().set(ArancinoReservedChars.RSVD_KEY_MODLOGLEVEL, CONF.get_log_level())
 
             # signal.signal(signal.SIGINT, self.__kill)
             # signal.signal(signal.SIGTERM, self.__kill)
