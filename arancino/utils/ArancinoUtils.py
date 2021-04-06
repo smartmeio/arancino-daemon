@@ -157,30 +157,34 @@ class ArancinoConfig:
 
         # region TRANSMITTER SECTION
         self.__transmitter_reader_cycle_time = int(self.Config.get("transmitter.reader", "cycle_time"))
+
+        # region TRANSMITTER PARSER
+        self.__transmitter_parser_class = self.Config.get("transmitter.parser", "class")
+
+        # region TRANSMITTER PARSER SIMPLE
+        # ####
+        # endregion
+
+        # endregion
+
+        # region TRANSMITTER SENDER
+        self.__transmitter_sender_class = self.Config.get("transmitter.sender", "class")
+
+        # region TRANSMITTER SENDER DO NOTHING
+        # #####
+        # endregion
+
+        # region TRANSMITTER SENDER DO TCP SOCKET
+        self.__transmitter_sender_class_tcp_socket_host = self.Config.get("transmitter.sender.tcpsocket", "host")
+        self.__transmitter_sender_class_tcp_socket_port = int(self.Config.get("transmitter.sender.tcpsocket", "port"))
+        # endregion
+        # endregion
         # endregion
 
         self.__dirlog = os.environ.get('ARANCINOLOG')
 
 
-    #TODO: rivedere questo metodo.
-    def __retrieve_serial_number(self):
-        # Extract serial from cpuinfo file
-        serial = "0000000000000000"
-        try:
-            f = open('/proc/cpuinfo', 'r')
-            for line in f:
-                if line[0:6] == 'Serial':
-                    serial = line[10:26]
-            f.close()
-        except Exception as ex:
-            try:
-                f = open('cat /sys/class/dmi/id/product_uuid')
-                serial = f.readline().strip()
-                f.close()
-            except Exception as ex:
-                serial = "ERROR000000000"
 
-        return serial
 
 
     def __get_or_override_bool(self, cfg, mine_sect, mine_opt, main_sec, main_opt):
@@ -205,6 +209,26 @@ class ArancinoConfig:
 
     # def get_general_users(self):
     #     return json.loads(self.__general_users)
+
+    # TODO: rivedere questo metodo.
+    def __retrieve_serial_number(self):
+        # Extract serial from cpuinfo file
+        serial = "0000000000000000"
+        try:
+            f = open('/proc/cpuinfo', 'r')
+            for line in f:
+                if line[0:6] == 'Serial':
+                    serial = line[10:26]
+            f.close()
+        except Exception as ex:
+            try:
+                f = open('cat /sys/class/dmi/id/product_uuid')
+                serial = f.readline().strip()
+                f.close()
+            except Exception as ex:
+                serial = "ERROR000000000"
+
+        return serial
 
 
     def get_serial_number(self):
@@ -453,10 +477,21 @@ class ArancinoConfig:
             self.Config.write(configfile)
 
 
-    # Transmitter
+    ######## TRANSMITTER ########
     def get_transmitter_reader_cycle_time(self):
         return self.__transmitter_reader_cycle_time
 
+    def get_transmitter_parser_class(self):
+        return self.__transmitter_parser_class
+
+    def get_transmitter_sender_class(self):
+        return self.__transmitter_sender_class
+
+    def get_transmitter_sender_tcp_socket_host(self):
+        return self.__transmitter_sender_class_tcp_socket_host
+
+    def get_transmitter_sender_tcp_socket_port(self):
+        return self.__transmitter_sender_class_tcp_socket_port
 
 @Singleton
 class ArancinoLogger:

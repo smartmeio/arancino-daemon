@@ -28,15 +28,17 @@ from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
+TRACE = CONF.get_log_print_stack_trace()
 
 
-class ArancinoReader(Thread):
+class Reader(Thread):
 
-    def __init__(self):
-        Thread.__init__(self, name='Arancino')
+    def __init__(self, transmitter_handler):
+        Thread.__init__(self, name='ArancinoReader')
         self.__stop = False
         self.__cycle_time = CONF.get_transmitter_reader_cycle_time()
         self.__log_prefix = ""
+        self.__transmitter_handler = transmitter_handler
         self.__arancino = Arancino()
 
         # Redis Data Stores
@@ -44,7 +46,7 @@ class ArancinoReader(Thread):
         self.__datastore_tser = redis.getDataStoreTse()
 
     def stop(self):
-        LOG.info("Stopping Reader...")
+        LOG.info("Stopping reader...")
         self.__stop = True
 
     def run(self):
@@ -57,16 +59,15 @@ class ArancinoReader(Thread):
                 for key in ts_keys:
                     series.append( self.__retrieve_ts_values_by_key(key) )
 
-                # TODO sends data elsewhere
-                # parser.receive(series)
                 LOG.debug("Time Series Data: " + str(series))
+                self.__transmitter_handler(series)
 
             except Exception as ex:
-                LOG.exception("{}Error in the Arancino Reader main loop: {}".format(self.__log_prefix, str(ex)))
+                LOG.exception("{}Error in the Arancino reader main loop: {}".format(self.__log_prefix, str(ex)), exc_info=TRACE)
 
             time.sleep(self.__cycle_time)
 
-        LOG.info("Reader Stopped.")
+        LOG.info("reader Stopped.")
 
 
 
@@ -94,7 +95,7 @@ class ArancinoReader(Thread):
             #endregion
 
         except Exception as ex:
-            LOG.exception("{}Error while getting Time Series values: {}".format(self.__log_prefix, str(ex)))
+            LOG.exception("{}Error while getting Time Series values: {}".format(self.__log_prefix, str(ex)), exc_info=TRACE)
 
         finally:
             return timeseries
@@ -112,7 +113,7 @@ class ArancinoReader(Thread):
             #endregion
 
         except Exception as ex:
-            LOG.exception("{}Error while getting Time Series keys: {}".format(self.__log_prefix, str(ex)))
+            LOG.exception("{}Error while getting Time Series keys: {}".format(self.__log_prefix, str(ex)), exc_info=TRACE)
 
         finally:
             return keys
