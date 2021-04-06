@@ -26,6 +26,7 @@ from arancino.ArancinoCortex import ArancinoCommandIdentifiers as cmdId
 from arancino.ArancinoConstants import ArancinoSpecialChars as specChars
 from arancino.ArancinoConstants import ArancinoCommandResponseCodes as respCodes
 from arancino.ArancinoConstants import ArancinoCommandErrorCodes as errorCodes
+from arancino.ArancinoConstants import SUFFIX_TMSTP
 import time
 
 LOG = ArancinoLogger.Instance().getLogger()
@@ -81,8 +82,8 @@ class ArancinoTestHandler(threading.Thread):
 
                     self.__stop = True
                     break
-            else:
-                LOG.warning("{}No commands list defined for test port.".format(self.__log_prefix))
+        else:
+            LOG.warning("{}No commands list defined for test port.".format(self.__log_prefix))
 
 
         self.__connection_lost()
@@ -148,7 +149,10 @@ class ArancinoTestHandler(threading.Thread):
         list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_MSET_KEY_PERS_3" + specChars.CHR_EOT)
 
         # DEL
-        list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1:" + str(self.__id) + ":" + SUFFIX_TMSTP + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1:" + str(self.__id) + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2:" + str(self.__id) + ":" + SUFFIX_TMSTP + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2:" + str(self.__id) + specChars.CHR_EOT)
 
         return list
 
@@ -314,24 +318,30 @@ class ArancinoTestHandler(threading.Thread):
 
         # 16. STORE
             # 16.1 OK
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "1" +specChars.CHR_EOT)
+        #list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "1" +specChars.CHR_EOT)
 
             # 16.2 OK
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "1.1" + specChars.CHR_EOT)
+        #list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "1.1" + specChars.CHR_EOT)
 
             # 16.3 KO
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "1A" + specChars.CHR_EOT)
+        #list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "1A" + specChars.CHR_EOT)
 
             # 16.4 OK
         list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
 
             # 16.5 OK
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "1" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
 
             # 16.6 KO
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "1" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
 
             # 16.7 KO
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "1" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+
+            # 16.8 KO
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
         return list
 

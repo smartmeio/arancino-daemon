@@ -67,18 +67,19 @@ class ArancinoConfig:
         self.Config = configparser.ConfigParser()
         self.Config.read(os.path.join(os.environ.get('ARANCINOCONF'), self.__cfg_file))
 
-
         self.__serial_number = self.__retrieve_serial_number()
 
-        # CONFIG METADATA SECTION
+        # region CONFIG METADATA SECTION
         self.__metadata_version = semantic_version.Version(arancino.__version__)
+        # endregion
 
-        # CONFIG GENERAL SECTION
+        # region CONFIG GENERAL SECTION
         self.__general_env = env
         self.__general_cycle_time = int(self.Config.get("general", "cycle_time"))
         #self.__general_users = Config.get("general", "users")
+        # endregion
 
-        # CONFIG REDIS SECTION
+        # region CONFIG REDIS SECTION
         self.__redis_instance_type = self.Config.get("redis", "instance_type")
         self.__redis_connection_attempts = int(self.Config.get("redis", "connection_attempts"))
 
@@ -106,15 +107,14 @@ class ArancinoConfig:
         self.__redis_volatile_persistent_datastore_per_db = int(self.Config.get("redis.volatile_persistent", "datastore_per_db"))
         self.__redis_volatile_persistent_datastore_rsvd_db = int(self.Config.get("redis.volatile_persistent", "datastore_rsvd_db"))
         self.__redis_volatile_persistent_datastore_tse_db = int(self.Config.get("redis.volatile_persistent", "datastore_tse_db"))
+        # endregion
 
-
-
-        # CONFIG PORT SECTION
+        # region CONFIG PORT SECTION
         self.__port_firmware_path = self.Config.get("port", "firmware_path")
         self.__port_firmware_file_types = self.Config.get("port", "firmware_file_types")
         self.__port_reset_on_connect = stringToBool(self.Config.get("port", "reset_on_connect"))
 
-        # CONFIG SERIAL PORT SECTION
+        # region CONFIG SERIAL PORT SECTION
         self.__port_serial_enabled = stringToBool(self.Config.get("port.serial", "enabled"))
         self.__port_serial_hide = stringToBool(self.Config.get("port.serial", "hide"))
         self.__port_serial_comm_baudrate = int(self.Config.get("port.serial", "comm_baudrate"))
@@ -124,8 +124,9 @@ class ArancinoConfig:
         self.__port_serial_upload_command = self.Config.get("port.serial", "upload_command")
         self.__port_serial_timeout = int(self.Config.get("port.serial", "timeout"))
         self.__port_serial_reset_on_connect = self.__get_or_override_bool(self.Config, "port.serial", "reset_on_connect", "port", "reset_on_connect")
+        # endregion
 
-        # CONFIG TEST PORT SECTION
+        # region CONFIG TEST PORT SECTION
         self.__port_test_enabled = stringToBool(self.Config.get("port.test", "enabled"))
         self.__port_test_hide = stringToBool(self.Config.get("port.test", "hide"))
         self.__port_test_filter_type = self.Config.get("port.test", "filter_type")
@@ -135,8 +136,10 @@ class ArancinoConfig:
         self.__port_test_id_template = self.Config.get("port.test", "id_template")
         self.__port_test_upload_command = self.Config.get("port.test", "upload_command")
         self.__port_test_reset_on_connect = self.__get_or_override_bool(self.Config, "port.test", "reset_on_connect", "port", "reset_on_connect")
+        # endregion
+        # endregion
 
-        # CONFIG LOG SECTION
+        # region CONFIG LOG SECTION
         self.__log_level = self.Config.get("log", "level")
         self.__log_name = self.Config.get("log", "name")
         self.__log_size = int(self.Config.get("log", "size")) if 0 < int(self.Config.get("log", "size")) <= 5 else 1
@@ -150,31 +153,38 @@ class ArancinoConfig:
         self.__log_file_error = self.Config.get("log", "file_error")
         #self.__log_file_stats = Config.get("log", "file_stats")
         self.__log_print_stack_trace = stringToBool(self.Config.get("log", "print_stack_trace"))
+        # endregion
 
+        # region TRANSMITTER SECTION
+        self.__transmitter_reader_cycle_time = int(self.Config.get("transmitter.reader", "cycle_time"))
 
+        # region TRANSMITTER PARSER
+        self.__transmitter_parser_class = self.Config.get("transmitter.parser", "class")
+
+        # region TRANSMITTER PARSER SIMPLE
+        # ####
+        # endregion
+
+        # endregion
+
+        # region TRANSMITTER SENDER
+        self.__transmitter_sender_class = self.Config.get("transmitter.sender", "class")
+
+        # region TRANSMITTER SENDER DO NOTHING
+        # #####
+        # endregion
+
+        # region TRANSMITTER SENDER DO TCP SOCKET
+        self.__transmitter_sender_class_tcp_socket_host = self.Config.get("transmitter.sender.tcpsocket", "host")
+        self.__transmitter_sender_class_tcp_socket_port = int(self.Config.get("transmitter.sender.tcpsocket", "port"))
+        # endregion
+        # endregion
+        # endregion
 
         self.__dirlog = os.environ.get('ARANCINOLOG')
 
 
-    #TODO: rivedere questo metodo.
-    def __retrieve_serial_number(self):
-        # Extract serial from cpuinfo file
-        serial = "0000000000000000"
-        try:
-            f = open('/proc/cpuinfo', 'r')
-            for line in f:
-                if line[0:6] == 'Serial':
-                    serial = line[10:26]
-            f.close()
-        except Exception as ex:
-            try:
-                f = open('cat /sys/class/dmi/id/product_uuid')
-                serial = f.readline().strip()
-                f.close()
-            except Exception as ex:
-                serial = "ERROR000000000"
 
-        return serial
 
 
     def __get_or_override_bool(self, cfg, mine_sect, mine_opt, main_sec, main_opt):
@@ -199,6 +209,26 @@ class ArancinoConfig:
 
     # def get_general_users(self):
     #     return json.loads(self.__general_users)
+
+    # TODO: rivedere questo metodo.
+    def __retrieve_serial_number(self):
+        # Extract serial from cpuinfo file
+        serial = "0000000000000000"
+        try:
+            f = open('/proc/cpuinfo', 'r')
+            for line in f:
+                if line[0:6] == 'Serial':
+                    serial = line[10:26]
+            f.close()
+        except Exception as ex:
+            try:
+                f = open('cat /sys/class/dmi/id/product_uuid')
+                serial = f.readline().strip()
+                f.close()
+            except Exception as ex:
+                serial = "ERROR000000000"
+
+        return serial
 
 
     def get_serial_number(self):
@@ -446,6 +476,22 @@ class ArancinoConfig:
         with open(filename, 'w') as configfile:
             self.Config.write(configfile)
 
+
+    ######## TRANSMITTER ########
+    def get_transmitter_reader_cycle_time(self):
+        return self.__transmitter_reader_cycle_time
+
+    def get_transmitter_parser_class(self):
+        return self.__transmitter_parser_class
+
+    def get_transmitter_sender_class(self):
+        return self.__transmitter_sender_class
+
+    def get_transmitter_sender_tcp_socket_host(self):
+        return self.__transmitter_sender_class_tcp_socket_host
+
+    def get_transmitter_sender_tcp_socket_port(self):
+        return self.__transmitter_sender_class_tcp_socket_port
 
 @Singleton
 class ArancinoLogger:
