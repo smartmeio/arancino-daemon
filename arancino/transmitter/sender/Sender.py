@@ -39,5 +39,9 @@ class Sender(object):
         return True
 
     @abstractmethod
+    def start(self):
+        pass
+
+    @abstractmethod
     def stop(self):
         pass

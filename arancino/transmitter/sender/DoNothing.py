@@ -33,13 +33,14 @@ class DoNothing(Sender):
         super()
         self.__log_prefix = "Sender [Do Nothing] - "
 
-
     def send(self, data=None):
         return self.__do_trasmission(data)
 
-
     def __do_trasmission(self, data=None):
         return True
+
+    def start(self):
+        pass
 
     def stop(self):
         pass

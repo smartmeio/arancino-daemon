@@ -38,5 +38,9 @@ class Parser(object):
         return data
 
     @abstractmethod
+    def start(self):
+        pass
+
+    @abstractmethod
     def stop(self):
         pass

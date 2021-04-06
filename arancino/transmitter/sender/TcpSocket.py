@@ -35,7 +35,7 @@ class TcpSocket(Sender):
         self.__server_host = CONF.get_transmitter_sender_tcp_socket_host()
         self.__server_port = CONF.get_transmitter_sender_tcp_socket_port()
         self.__log_prefix = "Sender [Tcp Socket] - "
-        self.__connection = self.__get_connection(self.__server_host, self.__server_port)
+        self.__connection = None
 
 
     def send(self, data=None):
@@ -56,6 +56,8 @@ class TcpSocket(Sender):
             LOG.warning("{}Can not send data to {}:{}".format(self.__log_prefix, self.__server_host, str(self.__server_port)))
             return False
 
+    def start(self):
+        self.__connection = self.__get_connection(self.__server_host, self.__server_port)
 
     def stop(self):
         if self.__connection:

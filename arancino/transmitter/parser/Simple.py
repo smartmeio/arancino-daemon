@@ -48,5 +48,8 @@ class Simple(Parser):
         else:
             return {}
 
+    def start(self):
+        pass
+
     def stop(self):
         pass

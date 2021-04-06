@@ -30,40 +30,51 @@ class Transmitter():
 
     def __init__(self):
 
-        # TODO: TRY EXCEPTION HERE
-        # region # .1 instance of reader class
-        self.__reader = Reader(self.__do_elaboration)
-        # endregion
+        self.__log_prefix = "Arancino Transmitter - "
 
-        # region # .2 instance of parser class
-        class_parser_name = CONF.get_transmitter_parser_class()
-        module_parser = importlib.import_module("arancino.transmitter.parser." + class_parser_name)
-        class_parser = getattr(module_parser, class_parser_name)
-        self.__parser = class_parser()
-        # endregion
+        try:
 
-        # region # .3 instance of sender class
-        class_sender_name = CONF.get_transmitter_sender_class()
-        module_sender = importlib.import_module("arancino.transmitter.sender." + class_sender_name)
-        class_sender = getattr(module_sender, class_sender_name)
-        self.__sender = class_sender()
-        # endregion
+            # region # .1 instance of reader class
+            self.__reader = Reader(self.__do_elaboration)
+            # endregion
+
+            # region # .2 instance of parser class
+            class_parser_name = CONF.get_transmitter_parser_class()
+            module_parser = importlib.import_module("arancino.transmitter.parser." + class_parser_name)
+            class_parser = getattr(module_parser, class_parser_name)
+            self.__parser = class_parser()
+            # endregion
+
+            # region # .3 instance of sender class
+            class_sender_name = CONF.get_transmitter_sender_class()
+            module_sender = importlib.import_module("arancino.transmitter.sender." + class_sender_name)
+            class_sender = getattr(module_sender, class_sender_name)
+            self.__sender = class_sender()
+            # endregion
+        except Exception as ex:
+            LOG.error("{}Error while starting Trasmitter's componentes : {}".format(self.__log_prefix, str(ex)), exc_info=TRACE)
 
     def start(self):
+
+        self.__sender.start()
+        self.__parser.start()
         self.__reader.start()
 
     def stop(self):
+
         self.__sender.stop()
         self.__parser.stop()
         self.__reader.stop()
 
     def __do_elaboration(self, data):
+
         parsed_data = self.__parser.parse(data)
         sent = self.__sender.send(parsed_data)
+
         if sent:
-            # update timestamp in the time series
+            # TODO update timestamp in the time series
             pass
         else:
-            # do not update timestamp in the time series
+            # TODO do not update timestamp in the time series
             pass
 
