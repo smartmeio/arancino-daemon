@@ -72,9 +72,9 @@ class Transmitter():
         sent = self.__sender.send(parsed_data)
 
         if sent:
-            # TODO update timestamp in the time series
-            pass
+            self.__reader.ack()
         else:
             # TODO do not update timestamp in the time series
+            self.__reader.ack()
             pass
 

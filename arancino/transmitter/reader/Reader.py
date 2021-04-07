@@ -37,37 +37,60 @@ class Reader(Thread):
         Thread.__init__(self, name='ArancinoReader')
         self.__stop = False
         self.__cycle_time = CONF.get_transmitter_reader_cycle_time()
-        self.__log_prefix = ""
+        self.__log_prefix = "Arancino Reader - "
         self.__transmitter_handler = transmitter_handler
         self.__arancino = Arancino()
+        self.__handy_series = []
 
         # Redis Data Stores
         redis = ArancinoDataStore.Instance()
         self.__datastore_tser = redis.getDataStoreTse()
 
     def stop(self):
-        LOG.info("Stopping reader...")
+
+        LOG.info("Stopping reader...".format(self.__log_prefix))
         self.__stop = True
 
     def run(self):
         while not self.__stop:
 
             try:
+                # get all the time series keys.
                 ts_keys = self.__retrieve_ts_keys()
 
-                series = []
+                #series = []
                 for key in ts_keys:
-                    series.append( self.__retrieve_ts_values_by_key(key) )
+                    self.__handy_series.append( self.__retrieve_ts_values_by_key(key) )
 
-                LOG.debug("Time Series Data: " + str(series))
-                self.__transmitter_handler(series)
+                LOG.debug("Time Series Data: " + str(self.__handy_series))
+                self.__transmitter_handler(self.__handy_series)
 
             except Exception as ex:
-                LOG.exception("{}Error in the Arancino reader main loop: {}".format(self.__log_prefix, str(ex)), exc_info=TRACE)
+                LOG.exception("{}Error in the main loop: {}".format(self.__log_prefix, str(ex)), exc_info=TRACE)
 
             time.sleep(self.__cycle_time)
 
-        LOG.info("reader Stopped.")
+        LOG.info("{}Stopped.".format(self.__log_prefix))
+
+
+    def ack(self):
+
+        # when ack is called, the timestamp of the latest read series is updated.
+        for series in self.__handy_series:
+            key = series["key"]
+            values = series["values"]
+            index = len(values)
+            if index > 0:
+                ending_tms_ts = int(values[index - 1][0]) + 1
+                self.__datastore_tser.redis.set("{}:{}".format(key, CONST.SUFFIX_TMSTP), str(ending_tms_ts))
+
+
+
+        # index = len(self.__handy_values)
+        # if index > 0:
+        #     ending_tms_ts = int(self.__handy_values[index - 1][0]) + 1
+        #     self.__datastore_tser.redis.set("{}:{}".format(key, CONST.SUFFIX_TMSTP), str(ending_tms_ts))
+
 
 
 
@@ -81,17 +104,12 @@ class Reader(Thread):
             values = self.__datastore_tser.range(key, starting_tms_ts, "+")
             #endregion
 
-            #region # 2. get last timestamp and update the starting one
+            #region # 3. aggregate timeseries data
             index = len(values)
             if index > 0:
-                ending_tms_ts = int(values[index-1][0]) + 1
-                self.__datastore_tser.redis.set("{}:{}".format(key, CONST.SUFFIX_TMSTP), str(ending_tms_ts))
-            #endregion
-
-            #region # 3. aggregate timeseries data
-            timeseries["key"] = key
-            timeseries["values"] = values
-            timeseries["labels"] = self.__datastore_tser.info(key).labels
+                timeseries["key"] = key
+                timeseries["values"] = values
+                timeseries["labels"] = self.__datastore_tser.info(key).labels
             #endregion
 
         except Exception as ex:
