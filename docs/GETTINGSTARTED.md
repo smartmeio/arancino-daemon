@@ -20,50 +20,33 @@ NOTE:
 > $ rootrw
 > ```
 
-
 #### Install from Development Repository
-To install a develpment version of the Arancino Module please go to smartme.io [packages repository](https://packages.smartme.io)
-and then browse [pypi-snapshot/arancino](https://packages.smartme.io/#browse/browse:pypi-snapshot) to your desiderd package.
-Select the _tar.gz_ file and finally from the _Summary_ tab find the _Path_ field and copy the package url.
-It looks like this: https://packages.smartme.io/repository/pypi-snapshot/packages/arancino/VERS.YYYY-MM-DD-HH-MM-SS-BRANCH-COMMIT/arancino-VERS.YYYY-MM-DD-HH-MM-SS-BRANCH-COMMIT.tar.gz.
-Open a terminal window in Arancino OS and run the following (pasting the previous copied url)
-
-```shell
-
-$ sudo pip3 install https://packages.smartme.io/repository/pypi-snapshot/packages/arancino/VERS.YYYY-MM-DD-HH-MM-SS-BRANCH-COMMIT/arancino-VERS.YYYY-MM-DD-HH-MM-SS-BRANCH-COMMIT.tar.gz
-
-```
-
-From Arancino OS version `1.1.0`, Arancino Package Repository is included in the source list and you can simply run `pip` to install Arancino Module:
+Open a terminal window in Arancino OS and run the following:
 
 Specific version (eg. `2.1.1`): 
 ```shell
-$ sudo pip3 install arancino==2.1.1
+$ pip3 install --no-cache-dir --no-dependencies arancino==2.1.1
 ```
 
 Specific test/dev version (e.g. `2.1.1-test.1`):
 ```shell
-$ sudo pip3 install arancino==2.1.1-test.1
+$ pip3 install --no-cache-dir --no-dependencies arancino==2.1.1-test.1
 ``` 
  
 Latest stable version:
 ```shell
-$ sudo pip3 install arancino
+$ pip3 install --no-cache-dir --no-dependencies arancino
 ``` 
 
-NOTE: 
->Consider that in the latest versions of Arancino OS dependencies are already installed so you can use `--no-dependencies` option. 
-
-
-
-#### Install from Release Repository
-To install a release package is quite more simple, just use the Release Repository Packages url:
-
-```shell
-
-$ sudo pip3 install arancino --extra-index-url https://packages.smartme.io/repository/pypi/simple
+Please note that in Arancino OS releases earlier than `1.1.0`, the Arancino Package Repository is not included as default entry in the extra-index-url list. So, for this reason, you have to manually create or edit the general purpose `/etc/pip.conf` settings file and add the following section to it:
 
 ```
+[global]
+extra-index-url= https://packages.smartme.io/repository/pypi/simple
+                 https://packages.smartme.io/repository/pypi-snapshot/simple
+```
+
+after that, please follow the steps listed above to install the module.
 
 ### Environmental Variables
 Arancino Module sets up 4 environmental variables during installation. Some of they referes to Arancino OS file system. These variables are setted up by systemd arancino service:
@@ -118,7 +101,7 @@ During installation a systemd service for Arancino will be set up. The Arancino 
 **Note**
 > Please don't run directly `arancino` from the terminal
 > ```shell
-> $ aracino
+> $ arancino
 > ```
 > This will doesn't work because making a direct call will not set environmental variables.
 
