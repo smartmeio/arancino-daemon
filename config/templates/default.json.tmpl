@@ -1,0 +1,15 @@
+{
+  [
+    {%- for item in data %}
+      {
+        "key": "{{item['key']}}",
+        "values":
+          [
+            {%- for value in item['values'] %}
+              { {{value[0]}}: {{value[1]}} },
+            {%- endfor %}
+          ]
+      },
+    {%- endfor %}
+  ]
+}

@@ -33,48 +33,61 @@ class Transmitter():
         self.__log_prefix = "Arancino Transmitter - "
 
         try:
+            if CONF.is_transmitter_enabled():
+                # region # .1 instance of reader class
+                self.__reader = Reader(self.__do_elaboration)
+                # endregion
 
-            # region # .1 instance of reader class
-            self.__reader = Reader(self.__do_elaboration)
-            # endregion
+                # region # .2 instance of parser class
+                class_parser_name = CONF.get_transmitter_parser_class()
+                module_parser = importlib.import_module("arancino.transmitter.parser." + class_parser_name)
+                class_parser = getattr(module_parser, class_parser_name)
+                self.__parser = class_parser()
+                # endregion
 
-            # region # .2 instance of parser class
-            class_parser_name = CONF.get_transmitter_parser_class()
-            module_parser = importlib.import_module("arancino.transmitter.parser." + class_parser_name)
-            class_parser = getattr(module_parser, class_parser_name)
-            self.__parser = class_parser()
-            # endregion
+                # region # .3 instance of sender class
+                class_sender_name = CONF.get_transmitter_sender_class()
+                module_sender = importlib.import_module("arancino.transmitter.sender." + class_sender_name)
+                class_sender = getattr(module_sender, class_sender_name)
+                self.__sender = class_sender()
+                # endregion
+            else:
+                LOG.warning("{} Can Not Start: Disabled".format(self.__log_prefix))
 
-            # region # .3 instance of sender class
-            class_sender_name = CONF.get_transmitter_sender_class()
-            module_sender = importlib.import_module("arancino.transmitter.sender." + class_sender_name)
-            class_sender = getattr(module_sender, class_sender_name)
-            self.__sender = class_sender()
-            # endregion
         except Exception as ex:
-            LOG.error("{}Error while starting Trasmitter's componentes : {}".format(self.__log_prefix, str(ex)), exc_info=TRACE)
+            LOG.error("{}Error while starting Transmitter's components : {}".format(self.__log_prefix, str(ex)), exc_info=TRACE)
 
     def start(self):
-
-        self.__sender.start()
-        self.__parser.start()
-        self.__reader.start()
+        if CONF.is_transmitter_enabled():
+            self.__sender.start()
+            self.__parser.start()
+            self.__reader.start()
 
     def stop(self):
-
-        self.__sender.stop()
-        self.__parser.stop()
-        self.__reader.stop()
+        if CONF.is_transmitter_enabled():
+            self.__sender.stop()
+            self.__parser.stop()
+            self.__reader.stop()
 
     def __do_elaboration(self, data):
 
         parsed_data = self.__parser.parse(data)
-        sent = self.__sender.send(parsed_data)
 
-        if sent:
-            self.__reader.ack()
+        # send data only if parsing is ok.
+        if parsed_data:
+
+            sent = self.__sender.send(parsed_data)
+
+            # if parsing
+            if sent:
+                # DO update the time series calling "ack" of the Reader
+                self.__reader.ack()
+            else:
+                # DO NOT update timestamp in the time series
+                pass
+
         else:
-            # TODO do not update timestamp in the time series
-            self.__reader.ack()
+            # DO NOT update timestamp in the time series
             pass
+
 

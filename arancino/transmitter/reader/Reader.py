@@ -60,10 +60,14 @@ class Reader(Thread):
 
                 #series = []
                 for key in ts_keys:
-                    self.__handy_series.append( self.__retrieve_ts_values_by_key(key) )
+                    values = self.__retrieve_ts_values_by_key(key)
+                    if(values):
+                        self.__handy_series.append(values)
 
                 LOG.debug("Time Series Data: " + str(self.__handy_series))
                 self.__transmitter_handler(self.__handy_series)
+                #clear the handy variables
+                self.__handy_series = []
 
             except Exception as ex:
                 LOG.exception("{}Error in the main loop: {}".format(self.__log_prefix, str(ex)), exc_info=TRACE)

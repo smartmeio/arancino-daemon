@@ -29,27 +29,35 @@ CONF = ArancinoConfig.Instance()
 TRACE = CONF.get_log_print_stack_trace()
 
 
-class Simple(Parser):
+class ParserSimple(Parser):
 
     def __init__(self):
-        self.__log_prefix = "Parser [Simple] - "
         super()
+        self.__log_prefix = "Parser [Simple] - "
 
     def parse(self, data=None):
+
         LOG.info("{}Start Parsing Data...".format(self.__log_prefix))
         data = self.__do_elaboration(data)
-        LOG.info("{}Finish Parsing Data.")
+        LOG.info("{}Finish Parsing Data.".format(self.__log_prefix))
         return data
 
     def __do_elaboration(self, data=None):
-        LOG.debug("{}Parsing Data...")
-        if data:
-            return json.dumps(data)
-        else:
-            return {}
+        LOG.debug("{}Parsing Data...".format(self.__log_prefix))
 
-    def start(self):
-        pass
+        try:
 
-    def stop(self):
-        pass
+            # do parsing only if data contains data
+            if data or len(data) > 0:
+
+                output = json.dumps(data)
+                LOG.debug("{}Parsed data: {}".format(self.__log_prefix, output))
+                return output
+
+            else:
+                LOG.warning("{}No data to parse.".format(self.__log_prefix))
+                return None
+
+        except Exception as ex:
+            LOG.error("{}Parsing Error: {}".format(self.__log_prefix, ex), exc_info=TRACE)
+            return None

@@ -27,20 +27,10 @@ TRACE = CONF.get_log_print_stack_trace()
 
 
 
-class DoNothing(Sender):
+class SenderDoNothing(Sender):
 
     def __init__(self):
         super()
         self.__log_prefix = "Sender [Do Nothing] - "
 
-    def send(self, data=None):
-        return self.__do_trasmission(data)
 
-    def __do_trasmission(self, data=None):
-        return True
-
-    def start(self):
-        pass
-
-    def stop(self):
-        pass

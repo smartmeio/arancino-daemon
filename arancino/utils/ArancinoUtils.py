@@ -64,8 +64,12 @@ class ArancinoConfig:
         elif env.upper() == "PROD" or env.upper() == "PRODUCTION":
             self.__cfg_file = "arancino.prod.cfg"
 
+
+        self.__arancino_config_path = os.environ.get('ARANCINOCONF')
+        self.__arancino_template_path = os.path.join(self.__arancino_config_path, "templates")
+
         self.Config = configparser.ConfigParser()
-        self.Config.read(os.path.join(os.environ.get('ARANCINOCONF'), self.__cfg_file))
+        self.Config.read(os.path.join(self.__arancino_config_path, self.__cfg_file))
 
         self.__serial_number = self.__retrieve_serial_number()
 
@@ -82,6 +86,7 @@ class ArancinoConfig:
         # region CONFIG REDIS SECTION
         self.__redis_instance_type = self.Config.get("redis", "instance_type")
         self.__redis_connection_attempts = int(self.Config.get("redis", "connection_attempts"))
+        self.__redis_timeseris_retention = int(self.Config.get("redis", "retetion"))
 
         self.__redis_host_volatile = self.Config.get("redis", "host_volatile")
         self.__redis_host_persistent = self.Config.get("redis", "host_persistent")
@@ -157,12 +162,17 @@ class ArancinoConfig:
 
         # region TRANSMITTER SECTION
         self.__transmitter_reader_cycle_time = int(self.Config.get("transmitter.reader", "cycle_time"))
+        self.__is_transmitter_enabled = stringToBool(self.Config.get("transmitter", "enabled"))
 
         # region TRANSMITTER PARSER
         self.__transmitter_parser_class = self.Config.get("transmitter.parser", "class")
 
         # region TRANSMITTER PARSER SIMPLE
         # ####
+        # endregion
+
+        # region TRANSMITTER PARSER TEMPLATE
+        self.__transmitter_parser_template_file = self.Config.get("transmitter.parser.template", "file")
         # endregion
 
         # endregion
@@ -195,6 +205,13 @@ class ArancinoConfig:
             val = cfg.get(main_sec, main_opt)
         finally:
             return stringToBool(val)
+
+
+    def get_arancino_config_path(self):
+        return self.__arancino_config_path
+
+    def get_arancino_template_path(self):
+        return self.__arancino_template_path
 
     ######## METADATA ########
     def get_metadata_version(self):
@@ -311,6 +328,8 @@ class ArancinoConfig:
     def get_redis_connection_attempts(self):
         return self.__redis_connection_attempts
 
+    def get_redis_timeseries_retation(self):
+        return self.__redis_timeseris_retention
 
     ####### PORT #######
     def get_port_firmware_path(self):
@@ -478,11 +497,17 @@ class ArancinoConfig:
 
 
     ######## TRANSMITTER ########
+    def is_transmitter_enabled(self):
+        return self.__is_transmitter_enabled
+
     def get_transmitter_reader_cycle_time(self):
         return self.__transmitter_reader_cycle_time
 
     def get_transmitter_parser_class(self):
         return self.__transmitter_parser_class
+
+    def get_transmitter_parser_template_file(self):
+        return self.__transmitter_parser_template_file
 
     def get_transmitter_sender_class(self):
         return self.__transmitter_sender_class

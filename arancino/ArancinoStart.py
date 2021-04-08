@@ -41,7 +41,7 @@ auth = HTTPBasicAuth()
 
 c = ArancinoConfig.Instance()
 m = Arancino()
-#t = Transmitter()
+t = Transmitter()
 
 LOG = ArancinoLogger.Instance().getLogger()
 ENV = os.environ.get('ARANCINOENV')
@@ -55,12 +55,12 @@ def shutdown_server():
         func()
 
 def __kill():
-    #t.stop()
+    t.stop()
     m.stop()
 
 def __runArancino():
     m.start()
-    #t.start()
+    t.start()
 
 def __get_arancinoapi_app():
     api = ArancinoApi()

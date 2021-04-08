@@ -26,9 +26,7 @@ LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
 TRACE = CONF.get_log_print_stack_trace()
 
-
-
-class TcpSocket(Sender):
+class SenderTcpSocket(Sender):
 
     def __init__(self):
         super()
@@ -64,14 +62,20 @@ class TcpSocket(Sender):
             self.__connection.close()
 
     def __get_connection(self, ip, port):
+
         LOG.debug("{}Connecting to {}:{}...".format(self.__log_prefix, self.__server_host, str(self.__server_port)))
         connection = None
+
         try:
+
             connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             connection.connect((self.__server_host, self.__server_port))
+
         except Exception as ex:
+
             del connection
             connection = None
             LOG.error("{}Error during connecting to {}:{}: {}".format(self.__log_prefix, str(ex), self.__server_host, str(self.__server_port)), exc_info=TRACE)
+
         finally:
             return connection

@@ -983,7 +983,7 @@ class ArancinoCommandExecutor:
                 if not self.__conf.get_serial_number() == "0000000000000000" and not self.__conf.get_serial_number() == "ERROR000000000":
                     labels["device_id"] = self.__conf.get_serial_number()
 
-                self.__datastore_tser.create(key, labels=labels, duplicate_policy='last')
+                self.__datastore_tser.create(key, labels=labels, duplicate_policy='last', retation=self.__conf.get_redis_timeseries_retation())
                 self.__datastore_tser.redis.set("{}:{}".format(key, SUFFIX_TMSTP), "-")  # Starting timestamp "-"
 
             ts = self.__datastore_tser.add(key, timestamp, value)
