@@ -6,7 +6,13 @@
         "values":
           [
             {%- for value in item['values'] %}
-              { {{value[0]}}: {{value[1]}} },
+              { "{{value[0]}}": {{value[1]}} },
+            {%- endfor %}
+          ],
+        "labels":
+          [
+            {%- for key, value in item['labels'].items() %}
+              { {{key}}: {{value}} },
             {%- endfor %}
           ]
       },

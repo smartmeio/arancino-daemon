@@ -89,5 +89,3 @@ class Transmitter():
         else:
             # DO NOT update timestamp in the time series
             pass
-
-
