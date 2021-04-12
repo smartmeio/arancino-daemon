@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+{%- for item in data %}
+<data>
+    <key>{{item['key']}}</key>
+    {%- for value in item['values'] %}
+    <values>
+        <{{value[0]}}>{{value[1]}}</{{value[0]}}>
+    </values>
+    {%- endfor %}
+    {%- for key, value in item['labels'].items() %}
+    <labels>
+        <{{key}}>{{value}}</{{key}}>
+    </labels>
+    {%- endfor %}
+</data>
+{%- endfor %}

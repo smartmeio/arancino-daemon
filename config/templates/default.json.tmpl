@@ -1,21 +1,22 @@
 {
-  [
-    {%- for item in data %}
-      {
-        "key": "{{item['key']}}",
-        "values":
-          [
-            {%- for value in item['values'] %}
-              { "{{value[0]}}": {{value[1]}} },
-            {%- endfor %}
-          ],
-        "labels":
-          [
-            {%- for key, value in item['labels'].items() %}
-              { {{key}}: {{value}} },
-            {%- endfor %}
-          ]
-      },
-    {%- endfor %}
-  ]
+  "data":
+      [
+        {%- for item in data %}
+          {
+            "key": "{{item['key']}}",
+            "values":
+              [
+                {%- for value in item['values'] %}
+                  { "{{value[0]}}": {{value[1]}} } {{ ", " if not loop.last else ""}}
+                {%- endfor %}
+              ],
+            "labels":
+              [
+                {%- for key, value in item['labels'].items() %}
+                  { "{{key}}": "{{value}}" } {{ ", " if not loop.last else ""}}
+                {%- endfor %}
+              ]
+          } {{ ", " if not loop.last else ""}}
+        {%- endfor %}
+      ]
 }
