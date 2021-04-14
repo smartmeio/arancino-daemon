@@ -1,5 +1,8 @@
 # Changelog
 
+#### v 2.4.0 2021.MM.DD
+* Introduced new Arancino Transmitter [#gn8b8f](https://app.clickup.com/t/gn8b8f)
+
 #### v 2.3.0 2021.MM.DD
 * Fixed arancino config files name, now binded to ARANCINOENV var. [#g97519](https://app.clickup.com/t/g97519)
 * Introduced new reserved key `___MODLOGLVL___`. [#g9786m](https://app.clickup.com/t/g9786m)

@@ -184,10 +184,32 @@ class ArancinoConfig:
         # #####
         # endregion
 
-        # region TRANSMITTER SENDER DO TCP SOCKET
-        self.__transmitter_sender_class_tcp_socket_host = self.Config.get("transmitter.sender.tcpsocket", "host")
-        self.__transmitter_sender_class_tcp_socket_port = int(self.Config.get("transmitter.sender.tcpsocket", "port"))
+        # region TRANSMITTER SENDER TCP SOCKET
+        self.__transmitter_sender_tcp_socket_host = self.Config.get("transmitter.sender.tcpsocket", "host")
+        self.__transmitter_sender_tcp_socket_port = int(self.Config.get("transmitter.sender.tcpsocket", "port"))
         # endregion
+
+        # region TRANSMITTER SENDER MQTT
+        self.__transmitter_sender_mqtt_use_tls = stringToBool(self.Config.get("transmitter.sender.mqtt", "use_tls"))
+        self.__transmitter_sender_mqtt_qos = int(self.Config.get("transmitter.sender.mqtt", "qos"))
+        self.__transmitter_sender_mqtt_retain = stringToBool(self.Config.get("transmitter.sender.mqtt", "retain"))
+        self.__transmitter_sender_mqtt_topic = self.Config.get("transmitter.sender.mqtt", "topic")
+
+            # plain
+        self.__transmitter_sender_mqtt_host = self.Config.get("transmitter.sender.mqtt", "host")
+        self.__transmitter_sender_mqtt_port = int(self.Config.get("transmitter.sender.mqtt", "port"))
+        self.__transmitter_sender_mqtt_username = self.Config.get("transmitter.sender.mqtt", "username")
+        self.__transmitter_sender_mqtt_password = self.Config.get("transmitter.sender.mqtt", "password")
+
+            # secure
+        self.__transmitter_sender_mqtt_ca_path = self.Config.get("transmitter.sender.mqtt", "ca_path")
+        self.__transmitter_sender_mqtt_cert_path = self.Config.get("transmitter.sender.mqtt", "cert_path")
+        self.__transmitter_sender_mqtt_key_path = self.Config.get("transmitter.sender.mqtt", "key_path")
+
+
+
+        # endregion
+
         # endregion
         # endregion
 
@@ -513,10 +535,44 @@ class ArancinoConfig:
         return self.__transmitter_sender_class
 
     def get_transmitter_sender_tcp_socket_host(self):
-        return self.__transmitter_sender_class_tcp_socket_host
+        return self.__transmitter_sender_tcp_socket_host
 
     def get_transmitter_sender_tcp_socket_port(self):
-        return self.__transmitter_sender_class_tcp_socket_port
+        return self.__transmitter_sender_tcp_socket_port
+
+    def get_transmitter_sender_mqtt_use_tls(self):
+        return self.__transmitter_sender_mqtt_use_tls
+
+    def get_transmitter_sender_mqtt_qos(self):
+        return self.__transmitter_sender_mqtt_qos
+
+    def get_transmitter_sender_mqtt_retain(self):
+        return self.__transmitter_sender_mqtt_retain
+
+    def get_transmitter_sender_mqtt_topic(self):
+        return self.__transmitter_sender_mqtt_topic
+
+    def get_transmitter_sender_mqtt_host(self):
+        return self.__transmitter_sender_mqtt_host
+
+    def get_transmitter_sender_mqtt_port(self):
+        return self.__transmitter_sender_mqtt_port
+
+    def get_transmitter_sender_mqtt_username(self):
+        return self.__transmitter_sender_mqtt_username
+
+    def get_transmitter_sender_mqtt_password(self):
+        return self.__transmitter_sender_mqtt_password
+
+    def get_transmitter_sender_mqtt_ca_path(self):
+        return self.__transmitter_sender_mqtt_ca_path
+
+    def get_transmitter_sender_mqtt_cert_path(self):
+        return self.__transmitter_sender_mqtt_cert_path
+
+    def get_transmitter_sender_mqtt_key_path(self):
+        return self.__transmitter_sender_mqtt_key_path
+
 
 @Singleton
 class ArancinoLogger:

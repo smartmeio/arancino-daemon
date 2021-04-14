@@ -19,6 +19,7 @@ under the License
 '''
 
 from arancino.transmitter.reader.Reader import Reader
+from arancino.transmitter.sender.SenderMqtt import SenderMqtt
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 import importlib
 

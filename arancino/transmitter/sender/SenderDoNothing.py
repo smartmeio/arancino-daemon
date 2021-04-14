@@ -34,3 +34,5 @@ class SenderDoNothing(Sender):
         self.__log_prefix = "Sender [Do Nothing] - "
 
 
+    def __do_trasmission(self, data=None):
+        return True

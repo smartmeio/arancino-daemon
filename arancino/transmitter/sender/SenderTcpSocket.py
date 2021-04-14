@@ -36,10 +36,6 @@ class SenderTcpSocket(Sender):
         self.__connection = None
 
 
-    def send(self, data=None):
-        return self.__do_trasmission(data)
-
-
     def __do_trasmission(self, data=None):
         if self.__connection:
             LOG.debug("{}Sending data to {}:{}...".format(self.__log_prefix, self.__server_host, str(self.__server_port)))
@@ -55,13 +51,13 @@ class SenderTcpSocket(Sender):
             return False
 
     def start(self):
-        self.__connection = self.__get_connection(self.__server_host, self.__server_port)
+        self.__connection = self.__get_connection()
 
     def stop(self):
         if self.__connection:
             self.__connection.close()
 
-    def __get_connection(self, ip, port):
+    def __get_connection(self):
 
         LOG.debug("{}Connecting to {}:{}...".format(self.__log_prefix, self.__server_host, str(self.__server_port)))
         connection = None

@@ -19,11 +19,11 @@ License for the specific language governing permissions and limitations
 under the License
 """
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 
-class Sender(object):
+class Sender():
 
-    __metaclass__ = ABCMeta
+    #__metaclass__ = ABCMeta
 
     def __init__(self):
         #self.__log_prefix = "Sender [Abstract] - "
@@ -31,12 +31,12 @@ class Sender(object):
 
     @abstractmethod
     def send(self, data=None):
-        done = self.__do_trasmission(data)
+        done = self.do_trasmission(data)
         return done
 
     @abstractmethod
     def __do_trasmission(self, data=None):
-        return True
+        pass
 
     @abstractmethod
     def start(self):
