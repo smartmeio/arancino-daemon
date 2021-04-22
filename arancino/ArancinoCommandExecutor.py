@@ -166,6 +166,10 @@ class ArancinoCommandExecutor:
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_STORE['id']:
                 raw_response = self.__OPTS_STORE(cmd_args)
                 return ArancinoResponse(raw_response=raw_response)
+            # STORETAGS
+            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_STORETAGS['id']:
+                raw_response = self.__OPTS_STORETAGS(cmd_args)
+                return ArancinoResponse(raw_response=raw_response)
             # Default
             else:
                 raw_response = ArancinoCommandErrorCodes.ERR_CMD_NOT_FND + ArancinoSpecialChars.CHR_SEP
@@ -291,7 +295,6 @@ class ArancinoCommandExecutor:
             else:
                 # store the value at key
                 rsp = first_datastore.set(key, value)
-
 
             if rsp:
                 # return ok response
@@ -429,15 +432,21 @@ class ArancinoCommandExecutor:
 
         try:
 
-            num = self.__datastore.delete(*args)
+            key = args[0]
+
+            num = self.__datastore.delete(key)
 
             # then try to delete key in the persistent datastore
             if num == 0:
-                num = self.__datastore_pers.delete(*args)
+                num = self.__datastore_pers.delete(key)
 
             # then try to delete key in the time series datastore
             if num == 0:
-                num = self.__datastore_tser.redis.delete(*args)
+
+                key = "{}*".format(key)
+                keys = self.__datastore_tser.redis.keys(key)
+                if len(keys) > 0:
+                    num = self.__datastore_tser.redis.delete(*keys)
 
             return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(num) + ArancinoSpecialChars.CHR_EOT
 
@@ -940,6 +949,54 @@ class ArancinoCommandExecutor:
             else:
                 # return the error code
                 return ArancinoCommandErrorCodes.ERR_NULL + ArancinoSpecialChars.CHR_EOT
+
+        except RedisError as ex:
+            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
+
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
+
+    # endregion
+
+    # region STORE TAGS
+    def __OPTS_STORETAGS(self, args):
+        '''
+        Store tags for a Time Series
+        Optional args are:
+            - Timestamp (int): UNIX timestamp of the sample. '*' can be used for automatic timestamp (using the system clock)
+
+        MCU → STORE#<key>#<tag1>%<tag2>%<tag3>#<value1>%<value2>%<value3>#<timestamp>@
+        MCU → STORE#<key>#<tag1>%<tag2>%<tag3>#<value1>%<value2>%<value3>@
+
+        MCU ← 100@
+        '''
+
+        try:
+            key = args[0] #"{}:{}".format(args[0], self.__port_id)      # mandatory
+            tags = args[1]                                              # mandatory
+            values = args[2]                                            # mandatory
+            timestamp = None                                            # optional
+
+            if len(args) > 3:
+                # the 3th element is the timestamp in unix format. '*' by default
+                timestamp = args[3]
+            else:
+                timestamp = str(datetime.now().timestamp())  # TODO lo devo calcolare vedere nel dettaglio perche mi da un numero in virgola
+
+            tags_array = tags.split(ArancinoSpecialChars.CHR_ARR_SEP)
+            values_array = values.split(ArancinoSpecialChars.CHR_ARR_SEP)
+
+            if tags_array and values_array and len(tags_array) > 0 and len(values_array) and len(tags_array) == len(values_array):
+
+                for idx, tag in enumerate(tags_array):
+                    d_key = "{}:{}:{}:{}".format(key, self.__port_id, SUFFIX_TAG, tag)
+                    d_val = values_array[idx]
+
+                    self.__datastore_tser.redis.lpush(d_key, d_val)
+                    self.__datastore_tser.redis.lpush(d_key, timestamp)
+
+
+            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
 
         except RedisError as ex:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)

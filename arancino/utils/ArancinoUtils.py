@@ -62,7 +62,7 @@ class ArancinoConfig:
         if env.upper() == "DEV" or env.upper() == "TEST" or env.upper() == "DEVELOPMENT":
             self.__cfg_file = "arancino.dev.cfg"
         elif env.upper() == "PROD" or env.upper() == "PRODUCTION":
-            self.__cfg_file = "arancino.prod.cfg"
+            self.__cfg_file = "arancino.cfg"
 
 
         self.__arancino_config_path = os.environ.get('ARANCINOCONF')

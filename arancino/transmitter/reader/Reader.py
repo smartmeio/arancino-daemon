@@ -58,15 +58,16 @@ class Reader(Thread):
                 # get all the time series keys.
                 ts_keys = self.__retrieve_ts_keys()
 
-                #series = []
+                # series = []
                 for key in ts_keys:
                     values = self.__retrieve_ts_values_by_key(key)
-                    if(values):
+                    # tag_keys = self.__retrieve_tags_keys(key)
+                    if values:
                         self.__handy_series.append(values)
 
                 LOG.debug("Time Series Data: " + str(self.__handy_series))
                 self.__transmitter_handler(self.__handy_series)
-                #clear the handy variables
+                # clear the handy variables
                 self.__handy_series = []
 
             except Exception as ex:
@@ -94,9 +95,6 @@ class Reader(Thread):
         # if index > 0:
         #     ending_tms_ts = int(self.__handy_values[index - 1][0]) + 1
         #     self.__datastore_tser.redis.set("{}:{}".format(key, CONST.SUFFIX_TMSTP), str(ending_tms_ts))
-
-
-
 
     def __retrieve_ts_values_by_key(self, key):
 
@@ -136,6 +134,27 @@ class Reader(Thread):
 
         except Exception as ex:
             LOG.exception("{}Error while getting Time Series keys: {}".format(self.__log_prefix, str(ex)), exc_info=TRACE)
+
+        finally:
+            return keys
+
+
+    def __retrieve_tags_keys(self, starting_key):
+
+        starting_key = "{}:TAG:*".format(starting_key)
+
+        keys = []
+        try:
+
+            #region # 1.  Retrieve all the Keys of List type which matches the patttern
+            keys_iter = self.__datastore_tser.redis.scan_iter(starting_key)
+            for key in keys_iter:
+                if self.__datastore_tser.redis.type(key) == "list":
+                    keys.append(key)
+            #endregion
+
+        except Exception as ex:
+            LOG.exception("{}Error while getting Tags Keys keys: {}".format(self.__log_prefix, str(ex)), exc_info=TRACE)
 
         finally:
             return keys
