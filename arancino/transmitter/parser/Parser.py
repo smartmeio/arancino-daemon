@@ -20,27 +20,48 @@ under the License
 """
 
 from abc import ABCMeta, abstractmethod
+import os
+
+from jinja2 import Template
+
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+
+LOG = ArancinoLogger.Instance().getLogger()
+CONF = ArancinoConfig.Instance()
+TRACE = CONF.get_log_print_stack_trace()
 
 class Parser(object):
 
     __metaclass__ = ABCMeta
 
     def __init__(self):
-        self.__log_prefix = "Sender [Abstract] - "
+        #private
+        self.__template_file = os.path.join(CONF.get_arancino_template_path(), CONF.get_transmitter_parser_template_file())
+
+        #protected
+        self._log_prefix = "Parser [Abstract] - "
+        self._tmpl = None
+        try:
+            with open(self.__template_file) as f:
+                self._tmpl = Template(f.read())
+        except Exception as ex:
+            LOG.error("{}Error while loading template file [{}]: {}".format(self._log_prefix, self.__template_file, ex), exc_info=TRACE)
 
     @abstractmethod
     def parse(self, data=None):
-        data = self.__do_elaboration(data)
-        return data
+        LOG.debug("{}Start Parsing Data...".format(self._log_prefix))
+        data, metadata = self._do_elaboration(data)
+        LOG.debug("{}Finish Parsing Data.".format(self._log_prefix))
+        return data, metadata
 
     @abstractmethod
-    def __do_elaboration(self, data=None):
-        return data
+    def _do_elaboration(self, data=None):
+        raise NotImplementedError
 
     @abstractmethod
     def start(self):
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def stop(self):
-        pass
+        raise NotImplementedError

@@ -18,8 +18,10 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 """
-from arancino.transmitter.sender.Sender import Sender
+
+from arancino.transmitter.parser.ParserSimple import ParserSimple
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
@@ -27,17 +29,26 @@ TRACE = CONF.get_log_print_stack_trace()
 
 
 
-class SenderDoNothing(Sender):
+class ParserS4T(ParserSimple):
 
     def __init__(self):
         super().__init__()
-        self._log_prefix = "Sender [Do Nothing] - "
+        #private
+        self.__db_name = CONF.get_transmitter_parser_s4t_db_name()
+
+        #protected
+        self._log_prefix = "Parser [S4T] - "
     
-    def start(self):
-        pass
+    def _do_elaboration(self, data=None):
 
-    def stop(self):
-        pass
+        rendered_data, metadata = super()._do_elaboration(data)
 
-    def _do_trasmission(self, data=None, metadata=None):
-        return True
+        if metadata:
+            for index, md in enumerate(metadata):
+                md["tags"] = data[index]["tags"]
+                md["labels"] = data[index]["labels"]
+                md["db_name"] = self.__db_name
+        
+        return rendered_data, metadata
+
+

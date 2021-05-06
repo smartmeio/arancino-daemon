@@ -31,16 +31,15 @@ TRACE = CONF.get_log_print_stack_trace()
 class SenderMqtt(Sender):
 
     def __init__(self):
-        super()
+        super().__init__()
+
+        #private
         self.__use_tls = CONF.get_transmitter_sender_mqtt_use_tls()
         self.__qos = CONF.get_transmitter_sender_mqtt_qos()
-        self.__topic = CONF.get_transmitter_sender_mqtt_topic()
         self.__broker_host = CONF.get_transmitter_sender_mqtt_host()
         self.__broker_port = CONF.get_transmitter_sender_mqtt_port()
         self.__retain = CONF.get_transmitter_sender_mqtt_retain()
-        self.__client_id = CONF.get_serial_number() if not CONF.get_serial_number() == "0000000000000000" and \
-                                                       not CONF.get_serial_number() == "ERROR000000000" \
-                                                    else None
+        self.__client = None
 
         if self.__use_tls:
             self.__ca_file = CONF.get_transmitter_sender_mqtt_ca_path()
@@ -49,9 +48,11 @@ class SenderMqtt(Sender):
         else:
             self.__username = CONF.get_transmitter_sender_mqtt_username()
             self.__password = CONF.get_transmitter_sender_mqtt_password()
+        
+        #protected
+        self._log_prefix = "Sender [Mqtt] - "
+        self._topic = CONF.get_transmitter_sender_mqtt_topic()
 
-        self.__log_prefix = "Sender [Mqtt Socket] - "
-        self.__client = None
 
 
     def start(self):
@@ -63,42 +64,36 @@ class SenderMqtt(Sender):
             self.__client.loop_stop()
             self.__client.disconnect()
 
-
-    def send(self, data=None):
-        done = self.__do_trasmission(data)
-        return done
-
-
-    def __do_trasmission(self, data=None):
+    def _do_trasmission(self, data=None, metadata=None):
         if self.__client and self.__client.connected_flag:
 
-            LOG.debug("{}Sending data to {}:{}...".format(self.__log_prefix, self.__broker_host, str(self.__broker_port)))
-            info = self.__client.publish(topic=self.__topic, payload=data, qos=self.__qos, retain=self.__retain)
+            LOG.debug("{}Sending data to {}:{}...".format(self._log_prefix, self.__broker_host, str(self.__broker_port)))
+            info = self.__client.publish(topic=self._topic, payload=data, qos=self.__qos, retain=self.__retain)
 
             if info.rc == mqtt.MQTT_ERR_SUCCESS:
-                LOG.info("{}Data sent to {}:{}".format(self.__log_prefix, self.__broker_host, str(self.__broker_port)))
+                LOG.info("{}Data sent to {}:{}".format(self._log_prefix, self.__broker_host, str(self.__broker_port)))
                 return True
             else:
-                LOG.warning("{}Warning while sending data to {}:{} - {}".format(self.__log_prefix, self.__broker_host, str(self.__broker_port), mqtt.error_string(info.rc)))
+                LOG.warning("{}Warning while sending data to {}:{} - {}".format(self._log_prefix, self.__broker_host, str(self.__broker_port), mqtt.error_string(info.rc)))
                 return False
 
         else:
-            LOG.warning("{}Can not send data to {}:{}".format(self.__log_prefix, self.__broker_host, str(self.__broker_port)))
+            LOG.warning("{}Can not send data to {}:{}".format(self._log_prefix, self.__broker_host, str(self.__broker_port)))
             return False
 
 
     def __get_connection(self):
 
-        LOG.debug("{}Connecting to {}:{}...".format(self.__log_prefix, self.__broker_host, str(self.__broker_port)))
+        LOG.debug("{}Connecting to {}:{}...".format(self._log_prefix, self.__broker_host, str(self.__broker_port)))
         client = None
 
         # region Connect Handler
         def on_connect(client, userdata, flags, rc):
             if rc == 0:
-                LOG.debug("{}Connected to {}:{}...".format(self.__log_prefix, self.__broker_host, str(self.__broker_port)))
+                LOG.debug("{}Connected to {}:{}...".format(self._log_prefix, self.__broker_host, str(self.__broker_port)))
                 client.connected_flag = True
             else:
-                LOG.warning("{}Failed to connect to {}:{} - {}".format(self.__log_prefix, self.__broker_host,str(self.__broker_port), mqtt.connack_string(rc)))
+                LOG.warning("{}Failed to connect to {}:{} - {}".format(self._log_prefix, self.__broker_host,str(self.__broker_port), mqtt.connack_string(rc)))
                 client.connected_flag = False
 
         # endregion
@@ -106,7 +101,7 @@ class SenderMqtt(Sender):
         # region Disconnect Handler
         def on_disconnect(client, userdata, rc):
             client.connected_flag = False
-            LOG.debug("{}Disconnected from {}:{}...".format(self.__log_prefix, self.__broker_host, str(self.__broker_port)))
+            LOG.debug("{}Disconnected from {}:{}...".format(self._log_prefix, self.__broker_host, str(self.__broker_port)))
         # endregion
 
         try:
@@ -130,7 +125,7 @@ class SenderMqtt(Sender):
 
             del client
             client = None
-            LOG.error("{}Error during connecting to {}:{}: {}".format(self.__log_prefix, str(ex), self.__broker_host, str(self.__broker_port)), exc_info=TRACE)
+            LOG.error("{}Error during connecting to {}:{}: {}".format(self._log_prefix, str(ex), self.__broker_host, str(self.__broker_port)), exc_info=TRACE)
 
         finally:
             return client

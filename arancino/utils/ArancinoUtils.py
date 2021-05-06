@@ -168,11 +168,11 @@ class ArancinoConfig:
         self.__transmitter_parser_class = self.Config.get("transmitter.parser", "class")
 
         # region TRANSMITTER PARSER SIMPLE
-        # ####
+        self.__transmitter_parser_template_file = self.Config.get("transmitter.parser", "file")
         # endregion
 
-        # region TRANSMITTER PARSER TEMPLATE
-        self.__transmitter_parser_template_file = self.Config.get("transmitter.parser.template", "file")
+        # region TRANSMITTER PARSER S4T
+        self.__transmitter_parser_s4t_db_name = self.Config.get("transmitter.parser.s4t", "db_name")
         # endregion
 
         # endregion
@@ -530,6 +530,9 @@ class ArancinoConfig:
 
     def get_transmitter_parser_template_file(self):
         return self.__transmitter_parser_template_file
+
+    def get_transmitter_parser_s4t_db_name(self):
+        return self.__transmitter_parser_s4t_db_name
 
     def get_transmitter_sender_class(self):
         return self.__transmitter_sender_class
