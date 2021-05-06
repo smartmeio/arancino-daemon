@@ -23,9 +23,9 @@ under the License
 from redis import RedisError
 
 from arancino.ArancinoDataStore import ArancinoDataStore
-from arancino.ArancinoConstants import ArancinoDBKeys
+from arancino.ArancinoConstants import ArancinoDBKeys, SUFFIX_LBL
 from arancino.utils.ArancinoUtils import stringToBool, stringToDatetime, datetimeToString, ArancinoLogger, ArancinoConfig
-from arancino.port.ArancinoPort import PortTypes
+from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from datetime import datetime
 
 LOG = ArancinoLogger.Instance().getLogger()
@@ -37,6 +37,7 @@ class ArancinoPortSynch:
 
     def __init__(self):
         self.__devicestore = ArancinoDataStore.Instance().getDataStoreDev()
+        self.__lblstore = ArancinoDataStore.Instance().getDataStoreTse()
 
 
     def readPortConfig(self, port):
@@ -68,12 +69,27 @@ class ArancinoPortSynch:
         is_hidden = str(port.isHidden())
         alias = port.getAlias()
 
+        p = ArancinoPort(id)
+        p = self.readPortConfig(p)
+
         try:
             pipeline = self.__devicestore.pipeline()
-            pipeline.hset(id, ArancinoDBKeys.C_ENABLED, is_enabled)
-            pipeline.hset(id, ArancinoDBKeys.C_HIDE_DEVICE, is_hidden)
-            pipeline.hset(id, ArancinoDBKeys.C_ALIAS, alias)
+            if p.isEnabled() != is_enabled:
+                pipeline.hset(id, ArancinoDBKeys.C_ENABLED, is_enabled)
+            if p.isHidden() != is_hidden:
+                pipeline.hset(id, ArancinoDBKeys.C_HIDE_DEVICE, is_hidden)
+            if p.getAlias() != alias:
+                pipeline.hset(id, ArancinoDBKeys.C_ALIAS, alias)
+
+                key = "{}:{}:alias".format(id, SUFFIX_LBL)
+                timestamp = str(int(datetime.now().timestamp() * 1000))
+                self.__lblstore.redis.lpush(key, alias)
+                self.__lblstore.redis.lpush(key, timestamp)
+
+            
             pipeline.execute()
+
+
         except RedisError as ex:
             LOG.error("Redis Error: {}".format(str(ex)), exc_info=TRACE)
         except Exception as ex:

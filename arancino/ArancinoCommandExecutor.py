@@ -235,7 +235,7 @@ class ArancinoCommandExecutor:
         #         #ts = datetime.timestamp(now)
         #         ts = datetime.now().timestamp()
 
-        ts = datetime.now().timestamp()
+        ts = str(int(datetime.now().timestamp() * 1000))
         return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + self.__port_id + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
 
         # NOTE: If the device is not disconnected, it will try to START every 2,5 seconds.
@@ -981,7 +981,7 @@ class ArancinoCommandExecutor:
                 # the 3th element is the timestamp in unix format. '*' by default
                 timestamp = args[3]
             else:
-                timestamp = str(datetime.now().timestamp())  # TODO lo devo calcolare vedere nel dettaglio perche mi da un numero in virgola
+                timestamp = str(int(datetime.now().timestamp() * 1000))
 
             tags_array = tags.split(ArancinoSpecialChars.CHR_ARR_SEP)
             values_array = values.split(ArancinoSpecialChars.CHR_ARR_SEP)
@@ -989,11 +989,17 @@ class ArancinoCommandExecutor:
             if tags_array and values_array and len(tags_array) > 0 and len(values_array) and len(tags_array) == len(values_array):
 
                 for idx, tag in enumerate(tags_array):
-                    d_key = "{}:{}:{}:{}".format(key, self.__port_id, SUFFIX_TAG, tag)
+                    d_key = "{}:{}:{}:{}".format(self.__port_id, key, SUFFIX_TAG, tag)
                     d_val = values_array[idx]
 
-                    self.__datastore_tser.redis.lpush(d_key, d_val)
-                    self.__datastore_tser.redis.lpush(d_key, timestamp)
+                    saved_tags = []
+
+                    if self.__datastore_tser.redis.exists(d_key):
+                        saved_tags = self.__datastore_tser.redis.lrange(d_key, 0, -1)
+
+                    if not len(saved_tags) or d_val != saved_tags[1]:
+                        self.__datastore_tser.redis.lpush(d_key, d_val)
+                        self.__datastore_tser.redis.lpush(d_key, timestamp)
 
 
             return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
@@ -1021,7 +1027,7 @@ class ArancinoCommandExecutor:
 
         try:
 
-            key = "{}:{}".format(args[0], self.__port_id)
+            key = "{}:{}".format(self.__port_id, args[0])
             value = float(decimal.Decimal(args[1]))
             timestamp = "*"
 
@@ -1041,7 +1047,7 @@ class ArancinoCommandExecutor:
                     labels["device_id"] = self.__conf.get_serial_number()
 
                 self.__datastore_tser.create(key, labels=labels, duplicate_policy='last', retation=self.__conf.get_redis_timeseries_retation())
-                self.__datastore_tser.redis.set("{}:{}".format(key, SUFFIX_TMSTP), "-")  # Starting timestamp "-"
+                self.__datastore_tser.redis.set("{}:{}".format(key, SUFFIX_TMSTP), 0)  # Starting timestamp 
 
             ts = self.__datastore_tser.add(key, timestamp, value)
 

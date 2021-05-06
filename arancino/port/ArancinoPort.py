@@ -38,10 +38,10 @@ class ArancinoPort(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, device=None, m_s_plugged=False, m_c_enabled=True, m_c_alias="", m_c_hide=False, port_type=None, upload_cmd=None, receivedCommandHandler=None, disconnectionHandler=None):
+    def __init__(self, id=None, device=None, m_s_plugged=False, m_c_enabled=True, m_c_alias="", m_c_hide=False, port_type=None, upload_cmd=None, receivedCommandHandler=None, disconnectionHandler=None):
 
         #region BASE METADATA
-        self._id = None                 # Id is the Serial Number. It will have a value when the Serial Port is connected
+        self._id = id                 # Id is the Serial Number. It will have a value when the Serial Port is connected
         self._device = device           # the plugged tty or ip adddress, i.e: "/dev/tty.ACM0"
         self._port_type = port_type     # Type of port, i.e: Serial, Network, etc...
         self._library_version = None
