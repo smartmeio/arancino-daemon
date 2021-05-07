@@ -64,29 +64,33 @@ file_error = arancino.error.log
 
 >In __Arancino OS__ by default there are two running instances of Redis with six databases each one.
 >The first instance is volatile and the second one is persistent.
->The volatile one is used to store application data of the Arancino firmware (e.g date read by a sensor like Temperature, Humidity etc...) (first instance first database)
->it is called _datastore_, The Persistent one is used to store devices informations (second instance first database) and configuration data for Arancino Firmware (second instance second database) they are called _devicestore_ and _datastore_persistant_.
+>The volatile one is used to store application data of the Arancino firmware (e.g date read by a sensor like Temperature, Humidity etc...)
+>it is called _Datastore_, The Persistent one is used to store devices informations and configuration 
+>data for the Arancino Firmwares, they are called _Devicestore_ and _Persistent Datastore_. 
+>From version `2.4.0` were introduced two new databases in the volatile instances: _Reserved Datastore_ used to manage working data and configurations,
+>and _Time Series Store_ that introduced a new data type used to store Time Series data in Redis.
 
 Usually you don't need to change Redis configuration in Production environment, but it's useful to change this if you are
 in Development or Test environment and you don't have a second Redis instance. The default (Production) configuration
 in Arancino OS are the following:
 
 
-|Parameters         |Data Store         |Device Store       |Persistent Device Store        |
-|-------------------|-------------------|-------------------|-------------------------------|
-|Host               |localhost          |localhost          |localhost                      |
-|Port               |6379               |6380               |6380                           |
-|Decode Response    |True               |True               |True                           |
-|Database Number    |0                  |0                  |1                              |
+|Parameters         |Data Store         |Device Store       |Persistent Data Store  |Reserved Data Store   |Time Series Store   |
+|-------------------|-------------------|-------------------|-----------------------|----------------------|--------------------|
+|Host               |localhost          |localhost          |localhost              |localhost             |localhost           |
+|Port               |6379               |6380               |6380                   |6379                  |6379                |
+|Decode Response    |True               |True               |True                   |True                  |True                |
+|Database Number    |0                  |0                  |1                      |1                     |2                   |
+
 
 During development we assume that is only one Redis instance running in volatile mode, and the configuration is:
 
-|Parameters         |Data Store         |Device Store       |Persistent Device Store        |
-|-------------------|-------------------|-------------------|-------------------------------|
-|Host               |localhost          |localhost          |localhost                      |
-|Port               |6379               |6379               |6379                           |
-|Decode Response    |True               |True               |True                           |
-|Database Number    |0                  |1                  |2                              |
+|Parameters         |Data Store         |Device Store       |Persistent Device Store  |Reserved Data Store   |Time Series Store   |
+|-------------------|-------------------|-------------------|-------------------------|----------------------|--------------------|
+|Host               |localhost          |localhost          |localhost                |localhost             |localhost           |
+|Port               |6379               |6379               |6379                     |6379                  |6379                |
+|Decode Response    |True               |True               |True                     |True                  |True                |
+|Database Number    |0                  |1                  |2                        |3                     |4                   |
 
 Port, host and others are configured inside the `/etc/arancino/config/arancino.cfg`, in the Redis section
 
@@ -120,6 +124,7 @@ datastore_std_db = 0
 datastore_dev_db = 1
 datastore_per_db = 2
 datastore_rsvd_db = 3
+datastore_tse_db = 4
 
 [redis.persistent]
 
@@ -127,13 +132,18 @@ datastore_std_db = 0
 datastore_dev_db = 1
 datastore_per_db = 2
 datastore_rsvd_db = 3
+datastore_tse_db = 4
+
 
 [redis.volatile_persistent]
 
 datastore_std_db = 0
 datastore_rsvd_db = 1
+datastore_tse_db = 2
+
 datastore_dev_db = 0
 datastore_per_db = 1
+
 ```
 
 [//]: # (### Environment)
