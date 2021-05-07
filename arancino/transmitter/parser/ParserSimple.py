@@ -18,46 +18,61 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 """
-import json
 
 from arancino.transmitter.parser.Parser import Parser
-
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
 TRACE = CONF.get_log_print_stack_trace()
 
 
+
 class ParserSimple(Parser):
 
     def __init__(self):
-        super()
-        self.__log_prefix = "Parser [Simple] - "
+        super().__init__()
+        self._log_prefix = "Parser [Simple] - "
 
-    def parse(self, data=None):
+    def start(self):
+        pass
 
-        LOG.info("{}Start Parsing Data...".format(self.__log_prefix))
-        data = self.__do_elaboration(data)
-        LOG.info("{}Finish Parsing Data.".format(self.__log_prefix))
-        return data
+    def stop(self):
+        pass
 
-    def __do_elaboration(self, data=None):
-        LOG.debug("{}Parsing Data...".format(self.__log_prefix))
-
+    def _do_elaboration(self, data=None):
+        LOG.debug("{}Parsing Data...".format(self._log_prefix))
+        metadata = []
+        rendered_data = []
         try:
 
             # do parsing only if data contains data
             if data or len(data) > 0:
 
-                output = json.dumps(data)
-                LOG.debug("{}Parsed data: {}".format(self.__log_prefix, output))
-                return output
+                # do parsing only if template is loaded
+                if self._tmpl:
+                    for d in data:
+                        md = {}
+                        md["key"] = d["key"]
+                        md["last_ts"] = max(d["timestamps"])
+                        metadata.append(md)
+
+                        rd = self._tmpl.render(data=d)
+                        rendered_data.append(rd)
+
+                    LOG.debug("{}Parsed data: {}".format(self._log_prefix, rendered_data))
+                    return rendered_data, metadata
+                else:
+                    LOG.warning("{}No template to be parsed.".format(self._log_prefix))
+                    return None, None
 
             else:
-                LOG.warning("{}No data to parse.".format(self.__log_prefix))
-                return None
+                LOG.warning("{}No data to parse.".format(self._log_prefix))
+                return None, None
 
         except Exception as ex:
-            LOG.error("{}Parsing Error: {}".format(self.__log_prefix, ex), exc_info=TRACE)
-            return None
+            LOG.error("{}Parsing Error: {}".format(self._log_prefix, ex), exc_info=TRACE)
+            return None, None
+
+

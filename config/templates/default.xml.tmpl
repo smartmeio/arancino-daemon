@@ -1,16 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-{%- for item in data %}
 <data>
-    <key>{{item['key']}}</key>
-    {%- for value in item['values'] %}
+    <key>{{data['key']}}</key>
     <values>
-        <{{value[0]}}>{{value[1]}}</{{value[0]}}>
+    {%- for value in data['values'] %}
+        <value>{{value}}</value>
+    {%- endfor %}
     </values>
+    <timestamps>
+    {%- for value in data['timestamps'] %}
+        <timestamp>{{value}}</timestamp>
     {%- endfor %}
-    {%- for key, value in item['labels'].items() %}
+    </timestamps>
     <labels>
+    {%- for key, value in data['labels'].items() %}
         <{{key}}>{{value}}</{{key}}>
-    </labels>
     {%- endfor %}
+    </labels>
+    <tags>
+    {%- for key, value in data['tags'].items() %}
+        <{{key}}>{{value}}</{{key}}>
+    {%- endfor %}
+    </tags>
 </data>
-{%- endfor %}

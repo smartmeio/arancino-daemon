@@ -19,7 +19,6 @@ under the License
 '''
 
 from arancino.transmitter.reader.Reader import Reader
-from arancino.transmitter.sender.SenderMqtt import SenderMqtt
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 import importlib
 
@@ -72,20 +71,21 @@ class Transmitter():
 
     def __do_elaboration(self, data):
 
-        parsed_data = self.__parser.parse(data)
+        parsed_data, parsed_metadata = self.__parser.parse(data)
 
         # send data only if parsing is ok.
         if parsed_data:
 
-            sent = self.__sender.send(parsed_data)
+            for index, segment_to_send in enumerate(parsed_data):
+                sent = self.__sender.send(segment_to_send, parsed_metadata[index])
 
-            # if parsing
-            if sent:
-                # DO update the time series calling "ack" of the Reader
-                self.__reader.ack()
-            else:
-                # DO NOT update timestamp in the time series
-                pass
+                # if parsing
+                if sent:
+                    # DO update the time series calling "ack" of the Reader
+                    self.__reader.ack(parsed_metadata[index])
+                else:
+                    # DO NOT update timestamp in the time series
+                    return
 
         else:
             # DO NOT update timestamp in the time series

@@ -18,26 +18,29 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 """
-from arancino.transmitter.sender.Sender import Sender
+
+from arancino.transmitter.sender.SenderMqtt import SenderMqtt
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+import paho.mqtt.client as mqtt
+
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
 TRACE = CONF.get_log_print_stack_trace()
 
-
-
-class SenderDoNothing(Sender):
+class SenderMqttS4T(SenderMqtt):
 
     def __init__(self):
         super().__init__()
-        self._log_prefix = "Sender [Do Nothing] - "
-    
-    def start(self):
-        pass
-
-    def stop(self):
-        pass
-
+        self._log_prefix = "Sender [Mqtt S4T] - "
+        
     def _do_trasmission(self, data=None, metadata=None):
-        return True
+        tags = ""
+        for key, value in metadata["labels"].items():
+            tmp = "{}={}".format(key,value)
+            tags += tmp + '/'
+        for key, value in metadata["tags"].items():
+            tmp = "{}={}".format(key,value)
+            tags += tmp + '/'
+        self._topic = "{}/{}{}".format(metadata["db_name"], tags,metadata["key"].split(':')[1][:-2])
+        return super()._do_trasmission(data = data, metadata = metadata)

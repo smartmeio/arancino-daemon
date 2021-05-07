@@ -26,22 +26,25 @@ class Sender():
     #__metaclass__ = ABCMeta
 
     def __init__(self):
-        #self.__log_prefix = "Sender [Abstract] - "
-        pass
+
+        #protected
+        self._log_prefix = "Sender [Abstract] - "
 
     @abstractmethod
-    def send(self, data=None):
-        done = self.do_trasmission(data)
+    def send(self, data=None, metadata=None):
+        done = self._do_trasmission(data, metadata)
         return done
 
     @abstractmethod
-    def __do_trasmission(self, data=None):
-        pass
+    def _do_trasmission(self, data=None, metadata=None):
+        raise NotImplementedError
 
     @abstractmethod
     def start(self):
-        pass
+        raise NotImplementedError
+
 
     @abstractmethod
     def stop(self):
-        pass
+        raise NotImplementedError
+

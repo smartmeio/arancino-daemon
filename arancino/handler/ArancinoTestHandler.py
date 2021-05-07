@@ -329,23 +329,47 @@ class ArancinoTestHandler(threading.Thread):
         keys = "TAG_1" + specChars.CHR_ARR_SEP + "TAG_2" + specChars.CHR_ARR_SEP + "TAG_3"
         values = "VAL_1" + specChars.CHR_ARR_SEP + "VAL_2" + specChars.CHR_ARR_SEP + "VAL_3"
 
-        list.append(cmdId.CMD_APP_STORETAGS["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_STORETAGS["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
 
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
 
             # 16.5 OK
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
 
             # 16.6 KO
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
 
             # 16.7 KO
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
 
             # 16.8 KO
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+
+        keys = "TAG_1" + specChars.CHR_ARR_SEP + "TAG_2" + specChars.CHR_ARR_SEP + "TAG_3"
+        values = "VAL_1-1" + specChars.CHR_ARR_SEP + "VAL_2-1" + specChars.CHR_ARR_SEP + "VAL_3-1"
+
+        list.append(cmdId.CMD_APP_STORETAGS["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
+
+
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+
+            # 16.5 OK
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+
+            # 16.6 KO
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+
+            # 16.7 KO
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+
+            # 16.8 KO
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        
         return list
 

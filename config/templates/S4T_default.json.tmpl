@@ -1,0 +1,14 @@
+{
+  "v":
+    [
+      {%- for value in data['values'] %}
+        {{value}}{{", " if not loop.last else ""}}
+      {%- endfor %}
+    ],
+  "t": 
+    [
+      {%- for timestamp in data['timestamps'] %}
+        {{timestamp}}{{", " if not loop.last else ""}}
+      {%- endfor %}
+    ]
+}
