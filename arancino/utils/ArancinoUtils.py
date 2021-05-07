@@ -66,7 +66,8 @@ class ArancinoConfig:
 
 
         self.__arancino_config_path = os.environ.get('ARANCINOCONF')
-        self.__arancino_template_path = os.path.join(self.__arancino_config_path, "templates")
+        self.__arancino_home_path =  os.environ.get('ARANCINO')
+        self.__arancino_template_path = os.path.join(self.__arancino_home_path, "templates")
 
         self.Config = configparser.ConfigParser()
         self.Config.read(os.path.join(self.__arancino_config_path, self.__cfg_file))
@@ -228,6 +229,9 @@ class ArancinoConfig:
         finally:
             return stringToBool(val)
 
+
+    def get_arancino_home_path(self):
+        return self.__arancino_home_path
 
     def get_arancino_config_path(self):
         return self.__arancino_config_path

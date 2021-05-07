@@ -1,22 +1,22 @@
 #!/bin/bash
 
-echo --------------------------------------
-echo Making Logs and Conf directories
+echo ---------Making Logs and Conf directories--------
+
 # create logs dir
 mkdir -p /var/log/arancino
 #mkdir -p "$ARANCINOLOG"
 
 # create arancino dir
 mkdir -p /etc/arancino/config
-#mkdir -p "$ARANCINOCONF"
+mkdir -p /etc/arancino/templates
+
 
 mkdir -p /etc/redis/cwd
 chown -R redis:redis /etc/redis/cwd
 
-echo --------------------------------------
+echo -------------------------------------------------
 
-echo --------------------------------------
-echo Giving grants 644 and copying services file
+echo ---Giving grants 644 and copying services file---
 #change permissions to services files
 chown 644 extras/arancino.service
 #chown 644 extras/redis-persistent.service
@@ -32,9 +32,9 @@ cp extras/arancino.service /etc/systemd/system/
 
 #copy redis conf files
 #cp extras/*.conf /etc/redis/
-echo --------------------------------------
+echo -------------------------------------------------
 
-echo --------------------------------------
+#echo --------------------------------------
 #echo Checking diff of configuration file and making a backup
 ##copy arancino config file to /etc/arancino/config <== ARANCINOCONF and make a backup of current conf file, if different
 #crc_new=$(md5sum config/arancino.cfg | awk {'print $1'})
@@ -48,20 +48,23 @@ echo --------------------------------------
 #    cp config/arancino.cfg /etc/arancino/config/arancino.cfg
 #fi
 
+echo ------Backup previous configurations files-------
 echo Backup previous configurations files
 timestamp=$(date +%Y%m%d_%H%M%S)
 [ -f /etc/arancino/config/arancino.cfg ] && mv /etc/arancino/config/arancino.cfg /etc/arancino/config/arancino_$timestamp.cfg
-#[ -f /etc/arancino/config/arancino.dev.cfg ] && mv /etc/arancino/config/arancino.dev.cfg /etc/arancino/config/arancino_$timestamp.dev.cfg
+echo -------------------------------------------------
+echo -------------------Copy files--------------------
 cp config/arancino.cfg /etc/arancino/config/arancino.cfg
-#cp config/arancino.dev.cfg /etc/arancino/config/arancino.dev.cfg
 cp config/gunicorn.cfg.py /etc/arancino/config/gunicorn.cfg.py
 
-echo --------------------------------------
+cp templates/default.json.tmpl /etc/arancino/templates/default.json.tmpl
+cp templates/default.xml.tmpl /etc/arancino/templates/default.xml.tmpl
+cp templates/default.yaml.tmpl /etc/arancino/templates/default.yaml.tmpl
+cp templates/S4T_default.json.tmpl /etc/arancino/templates/S4T_default.json.tmpl
+echo -------------------------------------------------
 
-echo --------------------------------------
-echo Reloading daemons
-
-#daemon reload
+echo -------------Reloading daemons--------------------
+ #daemon reload
 systemctl daemon-reload
 
 #enable services
@@ -74,7 +77,7 @@ systemctl restart arancino
 #systemctl start redis-volatile
 #systemctl start redis-persistent
 #systemctl start arancino
-echo --------------------------------------
+echo -------------------------------------------------
 
 #echo --------------------------------------
 #echo Resetting main microcontroller
