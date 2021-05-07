@@ -1,0 +1,30 @@
+{ 
+  "data": 
+    {
+      "key": "{{data['key']}}",
+      "values":
+        [
+          {%- for value in data['values'] %}
+            "{{value}}"{{ ", " if not loop.last else ""}}
+          {%- endfor %}
+        ],
+      "timestamps":
+        [
+          {%- for value in data['timestamps'] %}
+            "{{value}}"{{ ", " if not loop.last else ""}}
+          {%- endfor %}
+        ],
+      "labels":
+        {
+          {%- for key, value in data['labels'].items() %}
+            "{{key}}": "{{value}}"{{ ", " if not loop.last else ""}}
+          {%- endfor %}
+        },
+      "tags":
+        {
+          {%- for key, value in data['tags'].items() %}
+            "{{key}}": "{{value}}"{{ ", " if not loop.last else ""}}
+          {%- endfor %}
+        }
+    }
+}

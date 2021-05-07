@@ -67,7 +67,7 @@ class ArancinoSerialPort(ArancinoPort):
         # Command Executor
         # self.__executor = ArancinoCommandExecutor(self.__id, self.__device)
 
-        self._executor = ArancinoCommandExecutor(self._id, self._device, self._port_type)
+        self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
 
         self._compatibility_array = COMPATIBILITY_MATRIX_MOD_SERIAL[str(CONF.get_metadata_version().truncate())]
 

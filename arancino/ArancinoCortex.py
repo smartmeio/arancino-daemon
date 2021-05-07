@@ -179,20 +179,34 @@ class ArancinoComamnd:
         :return: {Integer} the number of arguments for the specified Command Identifier.
         '''
 
+        # command = ArancinoCommandIdentifiers.COMMANDS_DICT[cmd_id]
+        # num = command["args"]
+        # op = command["op"]
+
         command = ArancinoCommandIdentifiers.COMMANDS_DICT[cmd_id]
         num = command["args"]
+        num2 = command["args2"] if "args2" in command else None
         op = command["op"]
 
-        return num, op
+
+        #return num, op
+
+        return num, num2, op
 
 
     def __checkAndGetArgsByCmdId(self, cmd_id, cmd_args):
         # retrieve the number of arguments required for the command
-        res = self.__getArgsNumberByCmdId(cmd_id)
-        n_args_required = res[0]
-        n_args_operator = res[1]
-        n_args = len(cmd_args)
+        # res = self.__getArgsNumberByCmdId(cmd_id)
+        # n_args_required = res[0]
+        # n_args_operator = res[1]
+        # n_args = len(cmd_args)
 
+        # retrieve the number of arguments required for the command
+        res = self.__getArgsNumberByCmdId(cmd_id)
+        n_args_required = res[0]  # inferior edge
+        n_args_required_2 = res[1]  # superior edge
+        n_args_operator = res[2]
+        n_args = len(cmd_args)
 
         if n_args_operator == ArancinoOperators.EQUAL:
 
@@ -230,6 +244,12 @@ class ArancinoComamnd:
                 return cmd_args
             else:
                 raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: != (Not Equal) " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+
+        elif n_args_operator == ArancinoOperators.BETWEEN:
+            if n_args >= n_args_required and n_args <= n_args_required_2:
+                return cmd_args
+            else:
+                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: != (Between) " + str(n_args_required) + " and " + str(n_args_required_2) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
 
 
 

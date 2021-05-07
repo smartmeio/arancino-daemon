@@ -109,6 +109,9 @@ class ArancinoCommandErrorCodes:
     ERR_INVALID_ARGUMENTS = '210'
     "Generic Invalid Arguments"
 
+    ERR_VALUE = '211'
+    "Invalid Value"
+
     ERRORS_CODE_LIST = [
                             ERR,
                             ERR_NULL,
@@ -121,6 +124,7 @@ class ArancinoCommandErrorCodes:
                             ERR_REDIS_KEY_EXISTS_IN_PERS,
                             ERR_NON_COMPATIBILITY,
                             ERR_INVALID_ARGUMENTS,
+                            ERR_VALUE,
                         ]
 
 
@@ -147,6 +151,8 @@ class ArancinoOperators:
     GREATER_THAN = "GT"
     GREATER_THAN_OR_EQUAL = "GTE"
     NOT_EQUAL = "NEQ"
+    BETWEEN = "BET"
+
 
 class ArancinoCommandIdentifiers:
     # Commands sent by the Port w/ Cortex Protocol
@@ -231,10 +237,17 @@ class ArancinoCommandIdentifiers:
     CMD_APP_MSET_PERS = {"id": __CMD_APP_MSET_PERS, "args": 2, "op": ArancinoOperators.EQUAL}
     "Sets more than one value at the specified keys, at the same time (Persistent for User)"
 
-
     __CMD_APP_MGET = 'MGET'
     CMD_APP_MGET = {"id": __CMD_APP_MGET, "args": 1, "op": ArancinoOperators.EQUAL}
     "Sets more than one key value at the same time"
+
+    __CMD_APP_STORETAGS = 'STORETAGS'
+    CMD_APP_STORETAGS = {"id": __CMD_APP_STORETAGS, "args": 3, "args2": 4, "op": ArancinoOperators.BETWEEN}
+    "Store tags for a Time Series at key"
+
+    __CMD_APP_STORE = 'STORE'
+    CMD_APP_STORE = {"id": __CMD_APP_STORE, "args": 2, "args2": 3, "op": ArancinoOperators.BETWEEN}
+    "Store the current value in TimeSeries data structure at the key"
 
     COMMANDS_DICT = {
         __CMD_SYS_START: CMD_SYS_START,
@@ -259,6 +272,8 @@ class ArancinoCommandIdentifiers:
         __CMD_APP_MSET_STD: CMD_APP_MSET_STD,
         __CMD_APP_MSET_PERS: CMD_APP_MSET_PERS,
         __CMD_APP_MGET: CMD_APP_MGET,
+        __CMD_APP_STORE: CMD_APP_STORE,
+        __CMD_APP_STORETAGS: CMD_APP_STORETAGS
     }
     "Complete dictionary of all available commands: " \
     "{ 'SET': {'id': 'SET', 'args': 2} , ... }"
@@ -285,6 +300,8 @@ class ArancinoCommandIdentifiers:
                      __CMD_APP_MSET_STD,
                      __CMD_APP_MSET_PERS,
                      __CMD_APP_MGET,
+                     __CMD_APP_STORE,
+                     __CMD_APP_STORETAGS,
                      ]
     "Complete list of all available commands:" \
     "[ 'SET', 'GET', ... ]"
@@ -577,6 +594,7 @@ COMPATIBILITY_MATRIX_MOD_SERIAL = {
     "2.1.4": [">=0.4.0,<1.0.0", ">=1.3.0,<2.0.0"],
     "2.2.0": [">=0.4.0,<1.0.0", ">=1.3.0"],
     "2.3.0": [">=1.3.0", ">=1.3.0"],
+    "2.4.0": [">=2.0.0"],
     #"2.0.0": ["<0.3.0", ">=1.2.0"], # for tests
 }
 
@@ -591,4 +609,10 @@ COMPATIBILITY_MATRIX_MOD_TEST = {
     "2.1.4": [">=1.0.0"],
     "2.2.0": [">=1.0.0"],
     "2.3.0": [">=1.0.0"],
+    "2.4.0": [">=1.0.0"],
 }
+
+
+SUFFIX_TMSTP = "TSTMP"
+SUFFIX_TAG = "TSTAG"
+SUFFIX_LBL = "TSLBL"
