@@ -314,6 +314,39 @@ class ArancinoCommandExecutor:
             raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
 
     # endregion
+    # region SET RSVD
+    def __OPTS_SET_RSVD(self, args):
+
+
+        key = args[0]
+        value = args[1]
+        rsp = False
+
+        try:
+
+            if key in ArancinoReservedChars:
+
+                rsp = self.__datastore_rsvd.set(key, value)
+
+                if rsp:
+                    # return ok response
+                    return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
+                else:
+                    # return the error code
+                    return ArancinoSpecialChars.ERR_SET + ArancinoSpecialChars.CHR_EOT
+            else:
+                raise ArancinoException("Generic Error: Reserved Keys Not Exists", ArancinoCommandErrorCodes.ERR)
+
+
+        except RedisError as ex:
+            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
+
+        except ArancinoException as ex:
+            raise ex
+
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
+    # endregion
     # endregion
 
     #region GET

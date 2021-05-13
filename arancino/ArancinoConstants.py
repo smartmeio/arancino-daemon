@@ -186,6 +186,10 @@ class ArancinoCommandIdentifiers:
     CMD_APP_SET_PERS = {"id": __CMD_APP_SET_PERS, "args": 2, "op": ArancinoOperators.EQUAL}
     "Set value at key (Persistent for User)"
 
+    __CMD_APP_SET_RSVD = 'SETRSVD'
+    CMD_APP_SET_RSVD = {"id": __CMD_APP_SET_RSVD, "args": 2, "op": ArancinoOperators.EQUAL}
+    "Set value at key (Reserved keys)"
+
     __CMD_APP_DEL = 'DEL'
     CMD_APP_DEL = {"id": __CMD_APP_DEL, "args": 1, "op": ArancinoOperators.EQUAL}
     "Delete one or multiple keys"
@@ -259,6 +263,7 @@ class ArancinoCommandIdentifiers:
         __CMD_APP_SET: CMD_APP_SET,
         __CMD_APP_SET_STD: CMD_APP_SET_STD,
         __CMD_APP_SET_PERS: CMD_APP_SET_PERS,
+        __CMD_APP_SET_RSVD: CMD_APP_SET_RSVD,
         __CMD_APP_DEL: CMD_APP_DEL,
         __CMD_APP_KEYS: CMD_APP_KEYS,
         __CMD_APP_HGET: CMD_APP_HGET,
@@ -287,6 +292,7 @@ class ArancinoCommandIdentifiers:
                      __CMD_APP_SET,
                      __CMD_APP_SET_STD,
                      __CMD_APP_SET_PERS,
+                     __CMD_APP_SET_RSVD,
                      __CMD_APP_DEL,
                      __CMD_APP_KEYS,
                      __CMD_APP_HGET,
