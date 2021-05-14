@@ -206,8 +206,7 @@ class ArancinoPort(object):
             if self._received_command_handler is not None:
                 self._received_command_handler(self._id, acmd)
 
-            # call the Command Executor and get a raw response
-            raw_response = self._executor.exec(acmd)
+            # call the Command Executor and get a arancino response
             arsp = self._executor.exec(acmd)
 
             # create the Arancino Response object
