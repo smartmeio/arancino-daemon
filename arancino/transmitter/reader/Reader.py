@@ -45,6 +45,7 @@ class Reader(Thread):
         # Redis Data Stores
         redis = ArancinoDataStore.Instance()
         self.__datastore_tser = redis.getDataStoreTse()
+        self.__datastore_tag = redis.getDataStoreTag()
 
     def stop(self):
 
@@ -69,7 +70,7 @@ class Reader(Thread):
                     
                     for tk in tag_keys:
                         k = tk.split(':')[-1]
-                        val = self.__datastore_tser.redis.lrange(tk, 0, -1)
+                        val = self.__datastore_tag.lrange(tk, 0, -1)
                         tags[k] = {}
                         tags[k] = list(zip(list(map(int, val[::2])), val[1::2]))
 
@@ -206,9 +207,9 @@ class Reader(Thread):
         try:
 
             #region # 1.  Retrieve all the Keys of List type which matches the patttern
-            keys_iter = self.__datastore_tser.redis.scan_iter(starting_key)
+            keys_iter = self.__datastore_tag.scan_iter(starting_key)
             for key in keys_iter:
-                if self.__datastore_tser.redis.type(key) == "list":
+                if self.__datastore_tag.type(key) == "list":
                     keys.append(key)
             #endregion
 
@@ -226,14 +227,14 @@ class Reader(Thread):
         try:
 
             #region # 1.  Retrieve all the Keys of List type which matches the patttern
-            keys_iter = self.__datastore_tser.redis.scan_iter(starting_key)
+            keys_iter = self.__datastore_tag.scan_iter(starting_key)
             for key in keys_iter:
-                if self.__datastore_tser.redis.type(key) == "list":
+                if self.__datastore_tag.type(key) == "list":
                     keys.append(key)
             #endregion
 
         except Exception as ex:
-            LOG.exception("{}Error while getting Tags Keys keys: {}".format(self.__log_prefix, str(ex)), exc_info=TRACE)
+            LOG.exception("{}Error while getting Label Keys keys: {}".format(self.__log_prefix, str(ex)), exc_info=TRACE)
 
         finally:
             return keys

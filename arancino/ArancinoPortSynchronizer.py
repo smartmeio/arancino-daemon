@@ -37,7 +37,7 @@ class ArancinoPortSynch:
 
     def __init__(self):
         self.__devicestore = ArancinoDataStore.Instance().getDataStoreDev()
-        self.__lblstore = ArancinoDataStore.Instance().getDataStoreTse()
+        self.__lblstore = ArancinoDataStore.Instance().getDataStoreTag()
 
 
     def readPortConfig(self, port):
@@ -83,8 +83,8 @@ class ArancinoPortSynch:
 
                 key = "{}:{}:alias".format(id, SUFFIX_LBL)
                 timestamp = str(int(datetime.now().timestamp() * 1000))
-                self.__lblstore.redis.lpush(key, alias)
-                self.__lblstore.redis.lpush(key, timestamp)
+                self.__lblstore.lpush(key, alias)
+                self.__lblstore.lpush(key, timestamp)
 
             
             pipeline.execute()

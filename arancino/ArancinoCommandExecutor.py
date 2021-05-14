@@ -49,6 +49,7 @@ class ArancinoCommandExecutor:
         self.__devicestore = redis.getDataStoreDev()
         self.__datastore_pers = redis.getDataStorePer()
         self.__datastore_tser = redis.getDataStoreTse()
+        self.__datastore_tag = redis.getDataStoreTag()
 
         self.__conf = ArancinoConfig.Instance()
 #        self.__compatibility_array_serial = COMPATIBILITY_MATRIX_MOD_SERIAL[str(self.__conf.get_metadata_version().truncate())]
@@ -1027,12 +1028,12 @@ class ArancinoCommandExecutor:
 
                     saved_tags = []
 
-                    if self.__datastore_tser.redis.exists(d_key):
-                        saved_tags = self.__datastore_tser.redis.lrange(d_key, 0, -1)
+                    if self.__datastore_tag.exists(d_key):
+                        saved_tags = self.__datastore_tag.lrange(d_key, 0, -1)
 
                     if not len(saved_tags) or d_val != saved_tags[1]:
-                        self.__datastore_tser.redis.lpush(d_key, d_val)
-                        self.__datastore_tser.redis.lpush(d_key, timestamp)
+                        self.__datastore_tag.lpush(d_key, d_val)
+                        self.__datastore_tag.lpush(d_key, timestamp)
 
 
             return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
