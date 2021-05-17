@@ -474,6 +474,8 @@ class ArancinoApiResponseCode:
 
     OK_ARANCINO_CONFIGURATED = 18
 
+    OK_ARANCINO_PORT_IDENTIFYING = 19
+
     ERR_PORT_NOT_FOUND = 20
     ERR_CAN_NOT_CONNECT_PORT_DISABLED = 21
     ERR_GENERIC = 22
@@ -523,7 +525,9 @@ class ArancinoApiResponseCode:
 
         OK_CONFIGURATED: "Port configured successfully",
 
-        OK_ARANCINO_CONFIGURATED: "Arancino configured successfully"
+        OK_ARANCINO_CONFIGURATED: "Arancino configured successfully",
+
+        OK_ARANCINO_PORT_IDENTIFYING: "Start Port Identifying"
 
     }
 
@@ -565,7 +569,9 @@ class ArancinoApiResponseCode:
 
         OK_CONFIGURATED: "Port configured successfully",
 
-        OK_ARANCINO_CONFIGURATED: "Arancino configured successfully"
+        OK_ARANCINO_CONFIGURATED: "Arancino configured successfully",
+
+        OK_ARANCINO_PORT_IDENTIFYING: "Start Port Identifying"
 
     }
 

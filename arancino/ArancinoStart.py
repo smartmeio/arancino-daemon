@@ -281,7 +281,14 @@ def __get_arancinoapi_app():
         response.status_code = result[1]
         return response
 
-        
+    @app.route('/api/v1/ports/<port_id>/identify', methods=['POST'])
+    @auth.login_required
+    def api_port_identify(port_id=None):
+        result = api.identifyPort(port_id)
+        response = jsonify(result[0])
+        response.status_code = result[1]
+        return response
+
     def allowed_file(filename):
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 

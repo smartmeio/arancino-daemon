@@ -534,6 +534,21 @@ class ArancinoApi():
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
+    def identifyPort(self, port_id):
+        try:
+
+            port = self.__arancino.findPort(port_id)
+
+            if port:
+                self.__arancino.identifyPort(port_id)
+                return self.__apiCreateOkMessage(response_code=API_CODE.OK_ARANCINO_PORT_IDENTIFYING), 200
+
+            else:
+                return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 500
+
+        except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
     #### UTILS ####
     def __getOsInfo(self):

@@ -265,3 +265,6 @@ class Arancino(Thread):
 
     def getDiscoveredPorts(self):
         return self.__ports_discovered
+
+    def identifyPort(self, port_id):
+        self.__datastore.getDataStoreRsvd().set(ArancinoReservedChars.RSVD_KEY_BLINK_ID, "1")

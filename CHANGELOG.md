@@ -1,9 +1,14 @@
 # Changelog
 
 #### v 2.4.0 2021.MM.DD
-* Introduced new Arancino Transmitter [#gn8b8f](https://app.clickup.com/t/gn8b8f)
-* Changed timestamp sent in response of `START` command. [#j1b6yc](https://app.clickup.com/t/j1b6yc)
-* Introduced Redis Time Series and the `STORE` and `STORETAGS` commands. [#acuhwp](https://app.clickup.com/t/acuhwp)
+* Introduced Arancino Transmitter [#gn8b8f](https://app.clickup.com/t/gn8b8f)
+* Changed timestamp format sent in response of `START` command. [#j1b6yc](https://app.clickup.com/t/j1b6yc)
+* Introduced Redis Time Series with the `STORE` and `STORETAGS` commands. [#acuhwp](https://app.clickup.com/t/acuhwp)
+* Introduced `SETRSVD` command used to change the status of a Reserved Key value [#jtb0ya](https://app.clickup.com/t/jtb0ya)
+* Introduced the Reserved Key `___BLNK_ID___` used to start the identification process on the microcontroller: blink for 5 seconds. [#jtaq9w](https://app.clickup.com/t/jtaq9w)
+* Introduced a new API endpoint to indentify a Port (if the port implements the identify process) [#jtaq9w](https://app.clickup.com/t/jtaq9w)
+* Fixed a double execution of _Arancino Commands_ [#jtb6gm](https://app.clickup.com/t/jtb6gm)
+* Introduced `MSETPERS` and `HSETPER` to store persistently even with the `mset` and `hset` api: [j594nt](https://app.clickup.com/t/j594nt)
 
 #### v 2.3.0 2021.MM.DD
 * Fixed arancino config files name, now binded to ARANCINOENV var. [#g97519](https://app.clickup.com/t/g97519)
@@ -15,7 +20,7 @@
 * Removed stack trace in case of Redis connection error at start. [#f53nzb](https://app.clickup.com/t/f53nzb)
 * Introduced new Reserverd Key `___MODENV___` to store the environment of the running Arancino Module. [#fz4f66](https://app.clickup.com/t/fz4f66)
 * Now use the Reserverd Key `___MODVERS___` to store the version of the running Arancino Module. [#fz4baj](https://app.clickup.com/t/fz4baj)
-* Introduced new Cortex Command  `GETRSVD` to retrieve values from Reserved Datastore. [#acujnq](https://app.clickup.com/t/acujnq)
+* Introduced new Cortex Command `GETRSVD` to retrieve values from Reserved Datastore. [#acujnq](https://app.clickup.com/t/acujnq)
 
 #### v 2.1.5 2021.03.11
 * Fixed: arancino.service should start just after network.target and rc.local. Mandatory for buster based systems. [#fh5fv7](https://app.clickup.com/t/fh5fv7)
