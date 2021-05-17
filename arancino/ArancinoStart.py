@@ -268,6 +268,7 @@ def __get_arancinoapi_app():
         return response
 
     @app.route('/api/v1/arancino/config', methods=['POST'])
+    @auth.login_required
     def api_arancino_conf_set():
 
         """
