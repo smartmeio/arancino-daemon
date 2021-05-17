@@ -43,6 +43,7 @@ class ArancinoDataStore:
         self.__redis_dts_pers = redis_instance_type[2]  # Persistent Data Store
         self.__redis_dts_rsvd = redis_instance_type[3]  # Reserved Data Store
         self.__redis_dts_tse = redis_instance_type[4]   # Time Series Data Store
+        self.__redis_dts_tag = redis_instance_type[5]   # Time Series Data Store
 
         # data store
         self.__redis_pool_dts = redis(host=self.__redis_dts_std['host'],
@@ -77,6 +78,12 @@ class ArancinoDataStore:
                                                      db=self.__redis_dts_tse['db'],
                                                      decode_responses=self.__redis_dts_tse['dcd_resp'])
 
+        # time series tags
+        self.__redis_pool_tag = redis(host=self.__redis_dts_tag['host'],
+                                                     port=self.__redis_dts_tag['port'],
+                                                     db=self.__redis_dts_tag['db'],
+                                                     decode_responses=self.__redis_dts_tag['dcd_resp'])
+
 
 
 
@@ -85,6 +92,7 @@ class ArancinoDataStore:
         self._redis_conn_dts_rsvd = self.__redis_pool_dts_rsvd.redis#redis.Redis(connection_pool=self.__redis_pool_dts_rsvd)
         self._redis_conn_dts_pers = self.__redis_pool_dts_pers.redis#redis.Redis(connection_pool=self.__redis_pool_dts_pers)
         self._redis_conn_tse = self.__redis_pool_tse#redis.Redis(connection_pool=self.__redis_pool_tse)
+        self._redis_conn_tag = self.__redis_pool_tag.redis
 
         self.__attempts = 1
         self.__attempts_tot = CONF.get_redis_connection_attempts()
@@ -162,6 +170,16 @@ class ArancinoDataStore:
         """
 
         return self._redis_conn_tse
+
+    def getDataStoreTag(self):
+        """
+        Gets a redis client from a connection pool. This client is used to
+            manage yags of time series data.
+        :return:
+        """
+
+        return self._redis_conn_tag
+
 
 
     def closeAll(self):
