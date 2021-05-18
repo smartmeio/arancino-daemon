@@ -34,9 +34,8 @@ TRACE = CONF.get_log_print_stack_trace()
 class ArancinoDataStore:
 
     def __init__(self):
-        conf = ArancinoConfig.Instance()
 
-        redis_instance_type = conf.get_redis_instances_conf()
+        redis_instance_type = CONF.get_redis_instances_conf()
 
         self.__redis_dts_std = redis_instance_type[0]   # Standard Data Store
         self.__redis_dts_dev = redis_instance_type[1]   # Device Data Store
@@ -179,7 +178,6 @@ class ArancinoDataStore:
         """
 
         return self._redis_conn_tag
-
 
 
     def closeAll(self):

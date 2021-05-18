@@ -51,6 +51,7 @@ class ArancinoPort(object):
         self._firmware_name = None
         self._firmware_upload_datetime = None
         self._firmware_core_version = None
+        self._generic_attributes = {}
         #endregion
 
         #region BASE STATUS METADATA
@@ -88,6 +89,73 @@ class ArancinoPort(object):
 
 
 
+    def __retrieveStartCmdArgs(self, args):
+        """
+            https://app.clickup.com/t/jz9rjq
+            https://app.clickup.com/t/k1518r
+        """
+
+        # HP1:
+        arg_num = len(args)
+
+        if arg_num > 0: #forse questo non é necessario (il numero di argomenti passati viene controllato prima da verificare)
+            keys = args[0]
+            values = args[1]
+
+            keys_array = keys.split(ArancinoSpecialChars.CHR_ARR_SEP)
+            values_array = values.split(ArancinoSpecialChars.CHR_ARR_SEP)
+
+            if keys_array and values_array and len(keys_array) > 0 and len(values_array) and len(keys_array) == len(values_array):
+                map = {}
+                for idx, key in enumerate(keys_array):
+                    map[key] = values_array[idx]
+
+                #arancino_lib_version = None if ArancinoPortAttributes.LibraryVersion not in map else semantic_version.Version(map[ArancinoPortAttributes.LibraryVersion])
+                arancino_micro_family = None if ArancinoPortAttributes.MicrocontrollerFamily not in map else semantic_version.Version(map[ArancinoPortAttributes.MicrocontrollerFamily])
+                arancino_fw_name = None if ArancinoPortAttributes.FirmwareName not in map else semantic_version.Version(map[ArancinoPortAttributes.FirmwareName])
+                arancino_fw_version = None if ArancinoPortAttributes.FirmwareVersion not in map else semantic_version.Version(map[ArancinoPortAttributes.FirmwareVersion])
+                arancino_firmware_upload_datetime = None if ArancinoPortAttributes.FirmwareBuildTime not in map else semantic_version.Version(map[ArancinoPortAttributes.FirmwareBuildTime])
+                arancino_fw_core_version = None if ArancinoPortAttributes.FirmwareCoreVersion not in map else semantic_version.Version(map[ArancinoPortAttributes.FirmwareCoreVersion])
+
+                arancino_lib_version = None
+                if ArancinoPortAttributes.LibraryVersion in map:
+                    arancino_lib_version = map[ArancinoPortAttributes.LibraryVersion]
+                    arancino_lib_version = semantic_version.Version(arancino_lib_version)
+                    del map[ArancinoPortAttributes.LibraryVersion]
+
+
+
+
+
+                #TODO: arancino_micro_family
+
+
+                self._setLibVersion(arancino_lib_version)
+
+                self._setFirmwareName(arancino_fw_name)
+
+                arancino_fw_version = semantic_version.Version(arancino_fw_version)
+                self._setFirmwareVersion(arancino_fw_version)
+
+                arancino_fw_core_version = semantic_version.Version(arancino_fw_core_version)
+                self._setFirmwareCoreVersion(arancino_fw_core_version)
+
+                arancino_firmware_upload_datetime = datetime.strptime(arancino_firmware_upload_datetime, '%b %d %Y %H:%M:%S %z')
+                arancino_firmware_upload_datetime = datetime.timestamp(arancino_firmware_upload_datetime)
+                arancino_firmware_upload_datetime = datetime.fromtimestamp(arancino_firmware_upload_datetime)
+                self._setFirmwareUploadDate(arancino_firmware_upload_datetime)
+
+
+
+            else:
+                raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
+
+        else:
+            pass
+            # paramentri non sufficienti
+
+
+
     def _retrieveStartCmdArgs(self, args):
         arg_num = len(args)
 
@@ -99,6 +167,16 @@ class ArancinoPort(object):
             self._setLibVersion(arancino_lib_version)
 
             LOG.debug("{} Arancino Library Compatibile Versions: {}".format(self._log_prefix, self._compatibility_array))
+
+# #version checkpoint
+# checkpoint_version = semantic_version.SimpleSpec("2.0.0")
+# if arancino_lib_version < checkpoint_version:
+
+# - 1 - library version
+# - 2 - firmware name
+# - 3 - firmware version
+# - 4 - upload datetime
+# - 5 - core version
 
             for compatible_ver in self._compatibility_array:
                 semver_compatible_ver = semantic_version.SimpleSpec(compatible_ver)

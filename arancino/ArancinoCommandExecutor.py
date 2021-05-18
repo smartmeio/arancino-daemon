@@ -37,7 +37,7 @@ class ArancinoCommandExecutor:
 
     def __init__(self, port_id, port_device, port_type):
 
-        # Port Idientifiers
+        # Port Identifiers
         self.__port_id = port_id
         self.__port_device = port_device
         self.__port_type = port_type

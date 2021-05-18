@@ -582,6 +582,23 @@ class ArancinoApiResponseCode:
         return self.__INTERNAL_MESSAGES[response_code]
 
 
+class ArancinoPortAttributes:
+
+    LibraryVersion = "LIB_VER"
+    MicrocontrollerFamily = "MCU_FAMILY"
+    FirmwareName = "FW_NAME"
+    FirmwareVersion = "FW_VER"
+    FirmwareBuildTime = "FW_BUILD_TIME"
+    FirmwareCoreVersion = "FW_CORE_VER"
+
+    AttributesKeysList = [LibraryVersion,
+                            MicrocontrollerFamily,
+                            FirmwareName,
+                            FirmwareVersion,
+                            FirmwareBuildTime,
+                            FirmwareCoreVersion]
+
+
 COMPATIBILITY_MATRIX_MOD_SERIAL = {
     #MODULE : #LIBRARY
 #    "0.0.1" : ["0.0.1"],
