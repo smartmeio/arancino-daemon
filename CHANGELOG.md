@@ -9,6 +9,7 @@
 * Introduced a new API endpoint to indentify a Port (if the port implements the identify process) [#jtaq9w](https://app.clickup.com/t/jtaq9w)
 * Fixed a double execution of _Arancino Commands_ [#jtb6gm](https://app.clickup.com/t/jtb6gm)
 * Introduced `MSETPERS` and `HSETPER` to store persistently even with the `mset` and `hset` api: [j594nt](https://app.clickup.com/t/j594nt)
+* Updated `FLUSH` command; persistent datastore will no longer be flushed, only the volatile one: [kd64rw](https://app.clickup.com/t/kd64rw)
 
 #### v 2.3.0 2021.MM.DD
 * Fixed arancino config files name, now binded to ARANCINOENV var. [#g97519](https://app.clickup.com/t/g97519)

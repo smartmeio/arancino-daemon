@@ -842,22 +842,25 @@ class ArancinoCommandExecutor:
 
         try:
 
+            #### Do not save reserved keys before flush anymore https://app.clickup.com/t/kd64rw becouse:
+            #### 1- the reseverd keys are stored in a different database
+            #### 2- the persistent db is not flushed anymore.
             # before flush, save all Reserved Keys
-            rsvd_keys = self.__datastore.keys(ArancinoReservedChars.RSVD_CHARS + "*" + ArancinoReservedChars.RSVD_CHARS)
-            rsvd_keys_value = {}
-            for k in rsvd_keys:
-                rsvd_keys_value[k] = self.__datastore.get(k)
+            # rsvd_keys = self.__datastore.keys(ArancinoReservedChars.RSVD_CHARS + "*" + ArancinoReservedChars.RSVD_CHARS)
+            # rsvd_keys_value = {}
+            # for k in rsvd_keys:
+            #     rsvd_keys_value[k] = self.__datastore.get(k)
 
             # flush
             rsp = self.__datastore.flushdb()
-            rsp = self.__datastore_pers.flushdb()
 
+            #### Disable flush of persistent datastore: https://app.clickup.com/t/kd64rw
+            #rsp = self.__datastore_pers.flushdb()
+
+            #### Se above:
             # finally set them all again
-            for k, v in rsvd_keys_value.items():
-                self.__datastore.set(k, v)
-
-            # flush directly the datastore; reserved keys are stored separately
-            # rsp = self.datastore.flushdb()
+            # for k, v in rsvd_keys_value.items():
+            #     self.__datastore.set(k, v)
 
             return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
 
