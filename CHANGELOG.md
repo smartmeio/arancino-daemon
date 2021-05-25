@@ -3,7 +3,7 @@
 #### v 2.4.0 2021.MM.DD
 * Introduced Arancino Transmitter [#gn8b8f](https://app.clickup.com/t/gn8b8f)
 * Changed timestamp format sent in response of `START` command. [#j1b6yc](https://app.clickup.com/t/j1b6yc)
-* Introduced Redis Time Series with the `STORE` and `STORETAGS` commands. [#acuhwp](https://app.clickup.com/t/acuhwp)
+* Introduced Redis Time Series with the `STORE`, `MSTORE` and `STORETAGS` commands. [#acuhwp](https://app.clickup.com/t/k16ge0), [#acuhwp](https://app.clickup.com/t/k16ge0)
 * Introduced `SETRSVD` command used to change the status of a Reserved Key value [#jtb0ya](https://app.clickup.com/t/jtb0ya)
 * Introduced the Reserved Key `___BLNK_ID___` used to start the identification process on the microcontroller: blink for 5 seconds. [#jtaq9w](https://app.clickup.com/t/jtaq9w)
 * Introduced a new API endpoint to indentify a Port (if the port implements the identify process) [#jtaq9w](https://app.clickup.com/t/jtaq9w)

@@ -1102,6 +1102,79 @@ class ArancinoCommandExecutor:
 
     #endregion
 
+    #region MSTORE
+    def __OPTS_MSTORE(self, args):
+        '''
+        Store the value in a Time Series data structure at key
+        Optional args are:
+            - Timestamp (int): UNIX timestamp of the sample. '*' can be used for automatic timestamp (using the system clock)
+
+        MCU → STORE#<key>#<values>@
+        MCU → STORE#<key>#<values>#<timestamp>@
+
+        MCU ← 100#<timestamp>@
+        '''
+
+
+        keys = args[0]
+        values = args[1]
+        timestamp = "*"
+
+        try:
+
+            if len(args) > 2:
+                # the 3th element is the timestamp in unix format. '*' by default
+                timestamp = args[2]
+
+            keys_array = keys.split(ArancinoSpecialChars.CHR_ARR_SEP)
+            values_array = values.split(ArancinoSpecialChars.CHR_ARR_SEP)
+
+            if keys_array and values_array and len(keys_array) > 0 and len(values_array) and len(keys_array) == len(values_array):
+
+                list = []
+                for idx, k in enumerate(keys_array):
+                    key = "{}:{}".format(self.__port_id, k)
+                    value = float(decimal.Decimal(values_array[idx]))
+                    tmstp = timestamp
+                    tuple = (key, value, tmstp)
+                    list.append(tuple)
+
+                    exist = self.__datastore_tser.redis.exists(key)
+                    if not exist:
+                        labels = {
+                            # "device_id": self.__conf.get_serial_number(),
+                            "port_id": self.__port_id,
+                            "port_type": self.__port_type.name
+                            }
+
+                        if not self.__conf.get_serial_number() == "0000000000000000" and not self.__conf.get_serial_number() == "ERROR000000000":
+                            labels["device_id"] = self.__conf.get_serial_number()
+
+                        self.__datastore_tser.create(key, labels=labels, duplicate_policy='last', retation=self.__conf.get_redis_timeseries_retation())
+                        self.__datastore_tser.redis.set("{}:{}".format(key, SUFFIX_TMSTP), 0) #Starting timestamp
+
+                #self.__datastore_tser.add(key, timestamp, value)
+                ts_array = self.__datastore_tser.madd(list)
+                ts = ArancinoSpecialChars.CHR_ARR_SEP.join(ts_array)
+
+                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
+
+            else:
+                raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
+
+        except RedisError as ex:
+            raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
+
+        except decimal.DecimalException as ex:
+            raise ArancinoException("Conversion Error: " + str(ex), ArancinoCommandErrorCodes.ERR_VALUE)
+
+        except Exception as ex:
+            raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
+
+    #endregion
+
+
+
     def __get_args_nr_by_cmd_id(self, cmd_id):
         '''
         Get the number of Argument for the specified Command Identifier.

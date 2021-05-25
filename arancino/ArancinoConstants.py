@@ -2,7 +2,7 @@
 """
 SPDX-license-identifier: Apache-2.0
 
-Copyright (c) 2019 SmartMe.IO
+Copyright (c) 2019 smartme.IO
 
 Authors:  Sergio Tomasello <sergio@smartme.io>
 
@@ -256,6 +256,10 @@ class ArancinoCommandIdentifiers:
     CMD_APP_STORE = {"id": __CMD_APP_STORE, "args": 2, "args2": 3, "op": ArancinoOperators.BETWEEN}
     "Store the current value in TimeSeries data structure at the key"
 
+    __CMD_APP_MSTORE = 'MSTORE'
+    CMD_APP_MSTORE = {"id": __CMD_APP_MSTORE, "args": 2, "args2": 3, "op": ArancinoOperators.BETWEEN}
+    "Store more than one value in TimeSeries data structure at the key"
+
     COMMANDS_DICT = {
         __CMD_SYS_START: CMD_SYS_START,
         __CMD_APP_GET: CMD_APP_GET,
@@ -281,7 +285,8 @@ class ArancinoCommandIdentifiers:
         __CMD_APP_MSET_PERS: CMD_APP_MSET_PERS,
         __CMD_APP_MGET: CMD_APP_MGET,
         __CMD_APP_STORE: CMD_APP_STORE,
-        __CMD_APP_STORETAGS: CMD_APP_STORETAGS
+        __CMD_APP_STORETAGS: CMD_APP_STORETAGS,
+        __CMD_APP_MSTORE: CMD_APP_MSTORE,
     }
     "Complete dictionary of all available commands: " \
     "{ 'SET': {'id': 'SET', 'args': 2} , ... }"
@@ -311,6 +316,7 @@ class ArancinoCommandIdentifiers:
                      __CMD_APP_MGET,
                      __CMD_APP_STORE,
                      __CMD_APP_STORETAGS,
+                     __CMD_APP_MSTORE,
                      ]
     "Complete list of all available commands:" \
     "[ 'SET', 'GET', ... ]"
