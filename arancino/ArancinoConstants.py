@@ -162,7 +162,7 @@ class ArancinoCommandIdentifiers:
 
     # Init commands
     __CMD_SYS_START = 'START'
-    CMD_SYS_START = {"id": __CMD_SYS_START, "args": 1, "op": ArancinoOperators.GREATER_THAN_OR_EQUAL}
+    CMD_SYS_START = {"id": __CMD_SYS_START, "args": 2, "op": ArancinoOperators.EQUAL}
     "Start Commmand"
 
     # Simple Operation Commands
@@ -334,6 +334,8 @@ class ArancinoDBKeys:
     B_FW_NAME = "B_FW_NAME"                 # String
     B_FW_COMPILE_DATE = "B_FW_COMPILE_DATE" # Datetime
     B_FW_CORE_VER = "B_FW_CORE_VER"         # String
+    B_MCU_FAMILY = "B_MCU_FAMILY"           # String
+    B_ATTRIBUTES = "B_ATTRIBUTES"           # Dict
     
     # LINK ARANCINO METADATA (L)ink
     L_DEVICE = "L_DEVICE"                   # String
@@ -375,6 +377,8 @@ class ArancinoDBKeys:
         B_FW_NAME: "B_FW_NAME",                 # String
         B_FW_COMPILE_DATE: "B_FW_COMPILE_DATE", # Datetime
         B_FW_CORE_VER: "B_FW_CORE_VER",         # String
+        B_MCU_FAMILY: "B_MCU_FAMILY",           # String
+        B_ATTRIBUTES: "B_ATTRIBUTES",           # Dict
         
         # LINK ARANCINO METADATA (L)ink
         L_DEVICE: "L_DEVICE",                   # String
@@ -416,6 +420,9 @@ class ArancinoDBKeys:
         B_FW_NAME: "Firmware Name",                 # String
         B_FW_COMPILE_DATE: "Firmware Compile Date", # Datetime
         B_FW_CORE_VER: "Firmware Core Version",     # String
+        B_MCU_FAMILY: "Microcontroller Family",     # String
+        B_ATTRIBUTES: "Generic Port Attributes",    # Dict
+
         # LINK ARANCINO METADATA (L)ink
         L_DEVICE: "Connection Id",                  # String
 

@@ -23,7 +23,7 @@ import threading
 from arancino.utils.ArancinoUtils import *
 from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoCortex import ArancinoCommandIdentifiers as cmdId
-from arancino.ArancinoConstants import ArancinoSpecialChars as specChars
+from arancino.ArancinoConstants import ArancinoSpecialChars as specChars, ArancinoPortAttributes
 from arancino.ArancinoConstants import ArancinoCommandResponseCodes as respCodes
 from arancino.ArancinoConstants import ArancinoCommandErrorCodes as errorCodes
 from arancino.ArancinoConstants import SUFFIX_TMSTP
@@ -182,9 +182,42 @@ class ArancinoTestHandler(threading.Thread):
         lib_version = "1.2.0"
         core_version = "1.0.0"
 
+            # micro controller family
+        micro_family = "Test Family"
+
+            # generic attributes
+        custom_attrib_key_1 = "CUSTOM1"
+        custom_attrib_val_1 = "foo"
+
+        custom_attrib_key_2 = "CUSTOM2"
+        custom_attrib_val_2 = "bar"
+
+        start_args_keys_array = [ArancinoPortAttributes.LibraryVersion,
+                                 ArancinoPortAttributes.FirmwareBuildTime,
+                                 ArancinoPortAttributes.FirmwareCoreVersion,
+                                 ArancinoPortAttributes.FirmwareName,
+                                 ArancinoPortAttributes.MicrocontrollerFamily,
+                                 ArancinoPortAttributes.FirmwareVersion,
+                                 custom_attrib_key_1,
+                                 custom_attrib_key_2
+                                 ]
+
+        start_args_vals_array = [lib_version,
+                                 fw_datetime_str,
+                                 core_version,
+                                 fw_name,
+                                 micro_family,
+                                 fw_version,
+                                 custom_attrib_val_1,
+                                 custom_attrib_val_2]
+
+        start_args_keys = specChars.CHR_ARR_SEP.join(start_args_keys_array)
+        start_args_vals = specChars.CHR_ARR_SEP.join(start_args_vals_array)
+
         # 1. START
-        list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + lib_version + specChars.CHR_SEP + fw_name + specChars.CHR_SEP + fw_version + specChars.CHR_SEP + fw_datetime_str + specChars.CHR_SEP + core_version + specChars.CHR_EOT)
-        #list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + lib_version + specChars.CHR_EOT)
+        # list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + lib_version + specChars.CHR_EOT)
+        # list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + lib_version + specChars.CHR_SEP + fw_name + specChars.CHR_SEP + fw_version + specChars.CHR_SEP + fw_datetime_str + specChars.CHR_SEP + core_version + specChars.CHR_EOT)
+        list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + start_args_keys + specChars.CHR_SEP + start_args_vals + specChars.CHR_EOT)
         
         # # 2. SET
         # list.append(cmdId.CMD_APP_SET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_KEY" + specChars.CHR_SEP + "TEST_VAL" + specChars.CHR_EOT)

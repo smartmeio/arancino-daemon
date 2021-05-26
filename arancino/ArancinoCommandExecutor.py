@@ -191,7 +191,7 @@ class ArancinoCommandExecutor:
         """
         Microcontroller sends START command to start communication
 
-        MCU → START@
+        MCU → START#LIB_VER%FW_NAME%FW_VER%FW_BUILD_TIME%FW_CORE_VER%<metadata1>%<metadata2>%<metadata3>#LIB_VER_VAL%FW_NAME_VAL%FW_VER_VAL%FW_BUILD_TIME_VAL%FW_CORE_VER_VAL%<value1>%<value2>%<value3>@
 
         MCU ← 100@ (OK)
         """
