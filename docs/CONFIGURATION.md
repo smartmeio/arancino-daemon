@@ -5,7 +5,7 @@ All available configurations can be setted up in the configuration file: `/etc/a
 
 
 ### Log Configuration
-Arancino Module uses python logging system and writes logs to three files in `/var/log/arancino/`. To manage logs go to `[log]` section of the configuration file.
+Arancino Daemon uses python logging system and writes logs to three files in `/var/log/arancino/`. To manage logs go to `[log]` section of the configuration file.
 
 #### Log Files
 You can change the logs file name changing the following properties
@@ -160,8 +160,8 @@ cycle_time = 10
 ```
 
 ### Arancino Ports
-Arancino Module scans serial ports for new devices to connect to. If a new device is plugged Arancino Module applies
-the configuration of the `[port]` section of the configuration file. From version `2.0.0` Arancino module supports
+Arancino Daemon scans serial ports for new devices to connect to. If a new device is plugged Arancino Daemon applies
+the configuration of the `[port]` section of the configuration file. From version `2.0.0` Arancino Daemon supports
 multiple port types, and configurations are now specific for each type in a dedicated section of configuration file.
 
 
@@ -171,7 +171,7 @@ multiple port types, and configurations are now specific for each type in a dedi
 > the filter is based on VID and PID of serial devices. In general, there are three kind of filters: ALL (filter is disabled),
 > EXCLUDE (excludes every _port_ specified in the list) and ONLY (accepts only the _port_ specified_ in the list ).
 >
-> Upload: With the introduction of Rest API in arancino module, it's possible to upload a firmware to a specified Port.
+> Upload: With the introduction of Rest API in Arancino Daemon, it's possible to upload a firmware to a specified Port.
 > The Upload command is defined in the section of the port kind. The `upload_command` can accepts placeholder in order to compose
 > a real command to be spawn as sub process. Placeholder are the attributes of the class `Port` and its subclasses
 > (every subclass represent a kind of port ) and must be passed between `{{` and `}}`

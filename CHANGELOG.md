@@ -10,6 +10,8 @@
 * Fixed a double execution of _Arancino Commands_ [#jtb6gm](https://app.clickup.com/t/jtb6gm)
 * Introduced `MSETPERS` and `HSETPER` to store persistently even with the `mset` and `hset` api: [j594nt](https://app.clickup.com/t/j594nt)
 * Updated `FLUSH` command; persistent datastore will no longer be flushed, only the volatile one: [kd64rw](https://app.clickup.com/t/kd64rw)
+* Change the Args of the `START` command: [k1518r](https://app.clickup.com/t/k1518r)
+* Introduced a new data structure used for generic attributes and a new metadata for the MCU Family: [k1518r](https://app.clickup.com/t/k1518r)
 
 #### v 2.3.0 2021.MM.DD
 * Fixed arancino config files name, now binded to ARANCINOENV var. [#g97519](https://app.clickup.com/t/g97519)
@@ -19,8 +21,8 @@
 #### v 2.2.0 2021.03.22
 * Changed server, now use GUnicorn in production. [#crw02w](https://app.clickup.com/t/crw02w)
 * Removed stack trace in case of Redis connection error at start. [#f53nzb](https://app.clickup.com/t/f53nzb)
-* Introduced new Reserverd Key `___MODENV___` to store the environment of the running Arancino Module. [#fz4f66](https://app.clickup.com/t/fz4f66)
-* Now use the Reserverd Key `___MODVERS___` to store the version of the running Arancino Module. [#fz4baj](https://app.clickup.com/t/fz4baj)
+* Introduced new Reserverd Key `___MODENV___` to store the environment of the running Arancino Daemon. [#fz4f66](https://app.clickup.com/t/fz4f66)
+* Now use the Reserverd Key `___MODVERS___` to store the version of the running Arancino Daemon. [#fz4baj](https://app.clickup.com/t/fz4baj)
 * Introduced new Cortex Command `GETRSVD` to retrieve values from Reserved Datastore. [#acujnq](https://app.clickup.com/t/acujnq)
 
 #### v 2.1.5 2021.03.11
