@@ -567,7 +567,7 @@ class ArancinoPort(object):
 
     #region GENERIC ATTRIBUTES
 
-    def getGenericAttributs(self):
+    def getGenericAttributes(self):
         return self._generic_attributes
 
     def _setGenericAttributes(self, attributes):
