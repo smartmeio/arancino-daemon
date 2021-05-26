@@ -9,16 +9,16 @@ Group=root
 
 ### ARANCINO ENV VARS ###
 
-# Arancino Module Directory
+# Arancino Daemon Directory
 Environment="ARANCINO=/etc/arancino"
 
-# Arancino Module Configuration Directory
+# Arancino Daemon Configuration Directory
 Environment="ARANCINOCONF=/etc/arancino/config"
 
-# Arancino Module Logs Directory
+# Arancino Daemon Logs Directory
 Environment="ARANCINOLOG=/var/log/arancino"
 
-# Arancino Module Runnning Environment:
+# Arancino Daemon Runnning Environment:
 #   "production" -> Production Environment
 #   "development" -> Development Environment
 Environment="ARANCINOENV=production"

@@ -13,7 +13,7 @@ the second one in peristent mode. From version 2.4.0 you must install the
 >redis databases. Many keys have different names and others have been eliminated.
 
 
-### Install Arancino Module using CLI
+### Install Arancino Daemon using CLI
 There are two repositories, one for release packages and one for development (snapshot), both are available in [packages.smartme.io](https://packages.smartme.io).
 
 NOTE:
@@ -52,7 +52,7 @@ extra-index-url= https://packages.smartme.io/repository/pypi/simple
 after that, please follow the steps listed above to install the module.
 
 ### Environmental Variables
-Arancino Module sets up 4 environmental variables during installation. Some of they referes to Arancino OS file system. These variables are setted up by systemd arancino service:
+Arancino Daemon sets up 4 environmental variables during installation. Some of they referes to Arancino OS file system. These variables are setted up by systemd arancino service:
 
 ```ini
 ARANCINO=/etc/arancino
@@ -61,7 +61,7 @@ ARANCINOLOG=/var/log/arancino
 ARANCINOENV=PROD
 ```
 
-To run locally Arancino Module please set up the same variables and change the values based on your environment
+To run locally Arancino Daemon please set up the same variables and change the values based on your environment
 
 #### Visual Studio Code
 Following a _configuration_ for `launch.json` of Visual Studio Code

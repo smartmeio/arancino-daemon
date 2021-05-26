@@ -107,7 +107,7 @@ class ArancinoCommandErrorCodes:
     "Key exists in the Persistent Data Store"
 
     ERR_NON_COMPATIBILITY = '209'
-    "Non compatibility between Arancino Module and Library"
+    "Non compatibility between Arancino Daemon and Library"
 
     ERR_INVALID_ARGUMENTS = '210'
     "Generic Invalid Arguments"

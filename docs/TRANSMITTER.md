@@ -1,6 +1,6 @@
 ## Introduction
 
-From version `2.4.0` a new component has been introduced in Arancino Module called *Transmitter*. Transmitter works to get Times Series data from Redis and send them outside the edge devices.
+From version `2.4.0` a new component has been introduced in Arancino Daemon called *Transmitter*. Transmitter works to get Times Series data from Redis and send them outside the edge devices.
 
 Transmitter is composed of three main parts: _Reader_, _Parser_, _Sender_, that runs sequentially. Each part can be configured separately, but only _Parser_ and _Sender_ can be extended and customized.
 
@@ -24,7 +24,7 @@ Parser arranges and organizes the data retrieved by the Reader. It can be extend
 
 
 ## Sender
-It' the final step of the Transmitter component and it is used to send data outside the Arancino Module using standard
+It' the final step of the Transmitter component and it is used to send data outside the Arancino Daemon using standard
 communications channels. The Sender implementations are:
 - TCP Socket
 - MQTT

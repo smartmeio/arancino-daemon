@@ -1,8 +1,8 @@
-# Project:          Arancino Module
+# Project:          Arancino Daemon
 # Author:           Sergio Tomasello <sergio@smartme.io>
 # Created:          2018.10.11
 # Last Change:      2020.06.05
-# Notes:            La pipeline esegue la creazione del pacchetto di Arancino Module e lo carica su repository
+# Notes:            La pipeline esegue la creazione del pacchetto di Arancino Daemon e lo carica su repository
 #                     La pipeline viene eseguita solo su tag, per evitare il proliferare di pacchetti generati
 #                     per ogni push.
 # External Vars:    Lista delle variabili definite estarnamente ed usate nella pipeline:
