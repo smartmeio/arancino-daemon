@@ -49,8 +49,9 @@ class ArancinoPort(object):
         self._start_thread_time = None
         self._firmware_version = None
         self._firmware_name = None
-        self._firmware_upload_datetime = None
+        self._firmware_build_datetime = None
         self._firmware_core_version = None
+        self._microcontroller_family = None
         self._generic_attributes = {}
         #endregion
 
@@ -89,74 +90,121 @@ class ArancinoPort(object):
 
 
 
-    def __retrieveStartCmdArgs(self, args):
+    def _retrieveStartCmdArgs(self, args):
         """
             https://app.clickup.com/t/jz9rjq
             https://app.clickup.com/t/k1518r
         """
-
-        # HP1:
+        """
+            HP2
+        """
         arg_num = len(args)
 
-        if arg_num > 0: #forse questo non é necessario (il numero di argomenti passati viene controllato prima da verificare)
-            keys = args[0]
-            values = args[1]
+        #if arg_num > 0: #forse questo non é necessario (il numero di argomenti passati viene controllato prima da verificare)
 
-            keys_array = keys.split(ArancinoSpecialChars.CHR_ARR_SEP)
-            values_array = values.split(ArancinoSpecialChars.CHR_ARR_SEP)
+        keys = args[0]
+        values = args[1]
 
-            if keys_array and values_array and len(keys_array) > 0 and len(values_array) and len(keys_array) == len(values_array):
-                map = {}
-                for idx, key in enumerate(keys_array):
-                    map[key] = values_array[idx]
+        keys_array = keys.split(ArancinoSpecialChars.CHR_ARR_SEP)
+        values_array = values.split(ArancinoSpecialChars.CHR_ARR_SEP)
 
-                #arancino_lib_version = None if ArancinoPortAttributes.LibraryVersion not in map else semantic_version.Version(map[ArancinoPortAttributes.LibraryVersion])
-                arancino_micro_family = None if ArancinoPortAttributes.MicrocontrollerFamily not in map else semantic_version.Version(map[ArancinoPortAttributes.MicrocontrollerFamily])
-                arancino_fw_name = None if ArancinoPortAttributes.FirmwareName not in map else semantic_version.Version(map[ArancinoPortAttributes.FirmwareName])
-                arancino_fw_version = None if ArancinoPortAttributes.FirmwareVersion not in map else semantic_version.Version(map[ArancinoPortAttributes.FirmwareVersion])
-                arancino_firmware_upload_datetime = None if ArancinoPortAttributes.FirmwareBuildTime not in map else semantic_version.Version(map[ArancinoPortAttributes.FirmwareBuildTime])
-                arancino_fw_core_version = None if ArancinoPortAttributes.FirmwareCoreVersion not in map else semantic_version.Version(map[ArancinoPortAttributes.FirmwareCoreVersion])
+        if keys_array and values_array and len(keys_array) > 0 and len(values_array) and len(keys_array) == len(values_array):
+            attributes = {}
+            for idx, key in enumerate(keys_array):
+                attributes[key] = values_array[idx]
 
-                arancino_lib_version = None
-                if ArancinoPortAttributes.LibraryVersion in map:
-                    arancino_lib_version = map[ArancinoPortAttributes.LibraryVersion]
-                    arancino_lib_version = semantic_version.Version(arancino_lib_version)
-                    del map[ArancinoPortAttributes.LibraryVersion]
+            #region LIBRARY VERSION
 
+            arancino_lib_version = None
 
+            if ArancinoPortAttributes.LibraryVersion in attributes:
+                arancino_lib_version = attributes[ArancinoPortAttributes.LibraryVersion]
+                arancino_lib_version = semantic_version.Version(arancino_lib_version)
+                del attributes[ArancinoPortAttributes.LibraryVersion]
 
+            self._setLibVersion(arancino_lib_version)
+            #endregion
 
+            #region MICRO FAMILY
 
-                #TODO: arancino_micro_family
+            arancino_micro_family = None
 
+            if ArancinoPortAttributes.MicrocontrollerFamily in attributes:
+                arancino_micro_family = attributes[ArancinoPortAttributes.MicrocontrollerFamily]
+                del attributes[ArancinoPortAttributes.MicrocontrollerFamily]
 
-                self._setLibVersion(arancino_lib_version)
+            self._setMicrocontrollerFamily(arancino_micro_family)
 
-                self._setFirmwareName(arancino_fw_name)
+            #endregion
 
+            #region FIRMWARE NAME
+
+            arancino_fw_name = None
+            if ArancinoPortAttributes.FirmwareName in attributes:
+                arancino_fw_name = attributes[ArancinoPortAttributes.FirmwareName]
+                del attributes[ArancinoPortAttributes.FirmwareName]
+
+            self._setFirmwareName(arancino_fw_name)
+
+            #endregion
+
+            #region FIRMWARE VERSION
+
+            arancino_fw_version = None
+
+            if ArancinoPortAttributes.FirmwareVersion in attributes:
+                arancino_fw_version = attributes[ArancinoPortAttributes.FirmwareVersion]
                 arancino_fw_version = semantic_version.Version(arancino_fw_version)
-                self._setFirmwareVersion(arancino_fw_version)
+                del attributes[ArancinoPortAttributes.FirmwareVersion]
 
+            self._setFirmwareVersion(arancino_fw_version)
+
+            #endregion
+
+            #region FIRMWARE CORE VERSION
+
+            arancino_fw_core_version = None
+
+            if ArancinoPortAttributes.FirmwareCoreVersion in attributes:
+                arancino_fw_core_version = attributes[ArancinoPortAttributes.FirmwareCoreVersion]
                 arancino_fw_core_version = semantic_version.Version(arancino_fw_core_version)
-                self._setFirmwareCoreVersion(arancino_fw_core_version)
+                del attributes[ArancinoPortAttributes.FirmwareCoreVersion]
 
+            self._setFirmwareCoreVersion(arancino_fw_core_version)
+
+            #endregion
+
+            # region FIRMWARE BUILD DATE TIME
+
+            arancino_firmware_upload_datetime = None
+
+            if ArancinoPortAttributes.FirmwareBuildTime in attributes:
+                arancino_firmware_upload_datetime = attributes[ArancinoPortAttributes.FirmwareBuildTime]
                 arancino_firmware_upload_datetime = datetime.strptime(arancino_firmware_upload_datetime, '%b %d %Y %H:%M:%S %z')
                 arancino_firmware_upload_datetime = datetime.timestamp(arancino_firmware_upload_datetime)
                 arancino_firmware_upload_datetime = datetime.fromtimestamp(arancino_firmware_upload_datetime)
-                self._setFirmwareUploadDate(arancino_firmware_upload_datetime)
+                del attributes[ArancinoPortAttributes.FirmwareBuildTime]
 
+            self._setFirmwareBuildDate(arancino_firmware_upload_datetime)
 
+            # endregion
 
-            else:
-                raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
+            #region GENERIC ATTRIBUTES
+
+            self._setGenericAttributes(attributes)
+
+            #endregion
 
         else:
-            pass
+            raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
+
+        # else:
+        #     pass
             # paramentri non sufficienti
 
 
 
-    def _retrieveStartCmdArgs(self, args):
+    def __retrieveStartCmdArgs(self, args):
         arg_num = len(args)
 
         ### Retrieving some info and metadata: ###
@@ -203,13 +251,12 @@ class ArancinoPort(object):
             arancino_firmware_upload_datetime = None if args[3].strip() == "" else datetime.strptime(args[3], '%b %d %Y %H:%M:%S %z')
             arancino_firmware_upload_datetime = datetime.timestamp(arancino_firmware_upload_datetime)
             arancino_firmware_upload_datetime = datetime.fromtimestamp(arancino_firmware_upload_datetime)
-            self._setFirmwareUploadDate(arancino_firmware_upload_datetime)
+            self._setFirmwareBuildDate(arancino_firmware_upload_datetime)
 
         #Arancino Core Version
         if arg_num > 4:
             arancino_core_version = None if args[4].strip() == "" else semantic_version.Version(args[4])
             self._setFirmwareCoreVersion(arancino_core_version)
-
 
 
         if not self.isCompatible():
@@ -317,7 +364,6 @@ class ArancinoPort(object):
                 LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex), exc_info=TRACE)
 
 
-
     @abstractmethod
     def __connectionLostHandler(self):
         """
@@ -331,6 +377,7 @@ class ArancinoPort(object):
 
     #region BASE METADATA Encapsulators
 
+    # region ID
     def getId(self):
         return self._id
 
@@ -338,7 +385,9 @@ class ArancinoPort(object):
     def _setId(self, id):
         self._id(id)
 
+    #endregion
 
+    # region DEVICE
     def getDevice(self):
         return self._device
 
@@ -346,7 +395,9 @@ class ArancinoPort(object):
     def _setDevice(self, device):
         self._device = device
 
+    # endregion
 
+    # region PORT TYPE
     def getPortType(self):
         return self._port_type
 
@@ -354,7 +405,9 @@ class ArancinoPort(object):
     def _setPortType(self, port_type):
         self._port_type = port_type
 
+    # endregion
 
+    # region LIBRARY VERSION
     def getLibVersion(self):
         return self._library_version
 
@@ -362,7 +415,9 @@ class ArancinoPort(object):
     def _setLibVersion(self, library_version):
         self._library_version = library_version
 
+    # endregion
 
+    # region PORT CREATION DATE
     def getCreationDate(self):
         return self._m_b_creation_date
 
@@ -370,7 +425,9 @@ class ArancinoPort(object):
     def setCreationDate(self, creation_date):
         self._m_b_creation_date = creation_date
 
+    # endregion
 
+    # region LAST USAGE DATE
     def getLastUsageDate(self):
         return self._m_s_last_usage_date
 
@@ -378,14 +435,18 @@ class ArancinoPort(object):
     def setLastUsageDate(self, last_usage_date):
         self._m_s_last_usage_date = last_usage_date
 
+    # endregion
 
+    # region UPTIME
     def getUptime(self):
         if self._start_thread_time:
             return time.time() - self._start_thread_time
         else:
             return 0
 
+    # endregion
 
+    # region FIRMWARE VERSION
     def getFirmwareVersion(self):
         return self._firmware_version
 
@@ -393,7 +454,9 @@ class ArancinoPort(object):
     def _setFirmwareVersion(self, firmware_version):
         self._firmware_version = firmware_version
 
+    # endregion
 
+    # region FIRMWARE NAME
     def getFirmwareName(self):
         return self._firmware_name
 
@@ -401,18 +464,33 @@ class ArancinoPort(object):
     def _setFirmwareName(self, firmware_name):
         self._firmware_name = firmware_name
 
+    # endregion
 
-    def getFirmwareUploadDate(self):
-        return self._firmware_upload_datetime
+    # region FIRMWARE BUILD DATE
+    def getFirmwareBuildDate(self):
+        return self._firmware_build_datetime
 
+    def _setFirmwareBuildDate(self, firmware_build_datetime):
+        self._firmware_build_datetime = firmware_build_datetime
+
+    # endregion
+
+    # region CORE VERSION
     def getFirmwareCoreVersion(self):
         return self._firmware_core_version
 
     def _setFirmwareCoreVersion(self, firmware_core_version):
         self._firmware_core_version = firmware_core_version
 
-    def _setFirmwareUploadDate(self, firmware_upload_datetime):
-        self._firmware_upload_datetime = firmware_upload_datetime
+    # endregion
+
+    # region MICRO CONTROLLER FAMILY
+
+    def getMicrocontrollerFamily(self):
+        return self._microcontroller_family
+
+    def _setMicrocontrollerFamily(self, microcontroller_family):
+        self._microcontroller_family = microcontroller_family
 
     #endregion
 
@@ -484,6 +562,19 @@ class ArancinoPort(object):
             return True
         else:
             return False
+
+    #endregion
+
+    #region GENERIC ATTRIBUTES
+
+    def getGenericAttributs(self):
+        return self._generic_attributes
+
+    def _setGenericAttributes(self, attributes):
+        if attributes:
+            self._generic_attributes = attributes
+        else:
+            self._generic_attributes = {}
 
     #endregion
 
