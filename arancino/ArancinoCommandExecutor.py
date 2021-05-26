@@ -64,8 +64,6 @@ class ArancinoCommandExecutor:
         :return: {ArancinoResponse} The response to send back for the Arancino Command.
         """
 
-
-
         raw_response = None
         response = None
 
@@ -1109,10 +1107,11 @@ class ArancinoCommandExecutor:
         Optional args are:
             - Timestamp (int): UNIX timestamp of the sample. '*' can be used for automatic timestamp (using the system clock)
 
-        MCU → STORE#<key>#<values>@
-        MCU → STORE#<key>#<values>#<timestamp>@
+        MCU → MSTORE#<key1>%<key2>%<key3>#<value1>%<value2>%<value3>@
+        MCU → MSTORE#<key1>%<key2>%<key3>#<value1>%<value2>%<value3>#<timestamp>@
 
-        MCU ← 100#<timestamp>@
+        MCU ← 100#<timestamp1>%<timestamp2>%<timestamp3>@
+        MCU ← 100#<timestamp>%<timestamp>%<timestamp>@
         '''
 
 
