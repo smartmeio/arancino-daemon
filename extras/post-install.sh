@@ -1,14 +1,19 @@
 #!/bin/bash
 
+source extras/vars.env
+
+
 echo ---------Making Logs and Conf directories--------
+#read this configuration from the env
+
 
 # create logs dir
-mkdir -p /var/log/arancino
+#mkdir -p /var/log/arancino
 #mkdir -p "$ARANCINOLOG"
 
 # create arancino dir
-mkdir -p /etc/arancino/config
-mkdir -p /etc/arancino/templates
+#mkdir -p /etc/arancino/config
+#mkdir -p /etc/arancino/templates
 
 
 mkdir -p /etc/redis/cwd
@@ -51,16 +56,16 @@ echo -------------------------------------------------
 echo ------Backup previous configurations files-------
 echo Backup previous configurations files
 timestamp=$(date +%Y%m%d_%H%M%S)
-[ -f /etc/arancino/config/arancino.cfg ] && mv /etc/arancino/config/arancino.cfg /etc/arancino/config/arancino_$timestamp.cfg
+[ -f /etc/arancino/config/arancino.cfg ] && mv $ARANCINOCONF/arancino.cfg $ARANCINOCONF/arancino_$timestamp.cfg
 echo -------------------------------------------------
 echo -------------------Copy files--------------------
 cp config/arancino.cfg /etc/arancino/config/arancino.cfg
-cp config/gunicorn.cfg.py /etc/arancino/config/gunicorn.cfg.py
+cp config/gunicorn.cfg.py $ARANCINOCONF/gunicorn.cfg.py
 
-cp templates/default.json.tmpl /etc/arancino/templates/default.json.tmpl
-cp templates/default.xml.tmpl /etc/arancino/templates/default.xml.tmpl
-cp templates/default.yaml.tmpl /etc/arancino/templates/default.yaml.tmpl
-cp templates/S4T_default.json.tmpl /etc/arancino/templates/S4T_default.json.tmpl
+cp templates/default.json.tmpl $ARANCINO/templates/default.json.tmpl
+cp templates/default.xml.tmpl $ARANCINO/templates/default.xml.tmpl
+cp templates/default.yaml.tmpl $ARANCINO/templates/default.yaml.tmpl
+cp templates/S4T_default.json.tmpl $ARANCINO/templates/S4T_default.json.tmpl
 echo -------------------------------------------------
 
 echo -------------Reloading daemons--------------------
