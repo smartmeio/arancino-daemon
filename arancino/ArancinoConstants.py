@@ -260,6 +260,10 @@ class ArancinoCommandIdentifiers:
     CMD_APP_MSTORE = {"id": __CMD_APP_MSTORE, "args": 2, "args2": 3, "op": ArancinoOperators.BETWEEN}
     "Store more than one value in TimeSeries data structure at the key"
 
+    __CMD_APP_INTEROCEP = 'INTEROCEP'
+    CMD_APP_INTEROCEP = {"id": __CMD_APP_INTEROCEP, "args": 2, "args2": 3, "op": ArancinoOperators.BETWEEN}
+    "Store `interoception` datain TimeSeries data structure, like temperature, memory etc.."
+
     COMMANDS_DICT = {
         __CMD_SYS_START: CMD_SYS_START,
         __CMD_APP_GET: CMD_APP_GET,
@@ -287,6 +291,7 @@ class ArancinoCommandIdentifiers:
         __CMD_APP_STORE: CMD_APP_STORE,
         __CMD_APP_STORETAGS: CMD_APP_STORETAGS,
         __CMD_APP_MSTORE: CMD_APP_MSTORE,
+        __CMD_APP_INTEROCEP: CMD_APP_INTEROCEP,
     }
     "Complete dictionary of all available commands: " \
     "{ 'SET': {'id': 'SET', 'args': 2} , ... }"
@@ -317,6 +322,7 @@ class ArancinoCommandIdentifiers:
                      __CMD_APP_STORE,
                      __CMD_APP_STORETAGS,
                      __CMD_APP_MSTORE,
+                     __CMD_APP_INTEROCEP,
                      ]
     "Complete list of all available commands:" \
     "[ 'SET', 'GET', ... ]"
@@ -597,19 +603,27 @@ class ArancinoApiResponseCode:
 
 class ArancinoPortAttributes:
 
-    LibraryVersion = "LIB_VER"
-    MicrocontrollerFamily = "MCU_FAMILY"
-    FirmwareName = "FW_NAME"
-    FirmwareVersion = "FW_VER"
-    FirmwareBuildTime = "FW_BUILD_TIME"
-    FirmwareCoreVersion = "FW_CORE_VER"
+    MCU_FAMILY = "MCU_FAMILY"
+    FIRMWARE_LIBRARY_VERSION = "FW_LIB_VER"
+    FIRMWARE_NAME = "FW_NAME"
+    FIRMWARE_VERSION = "FW_VER"
+    FIRMWARE_BUILD_TIME = "FW_BUILD_TIME"
+    FIRMWARE_CORE_VERSION = "FW_CORE_VER"
 
-    AttributesKeysList = [LibraryVersion,
-                            MicrocontrollerFamily,
-                            FirmwareName,
-                            FirmwareVersion,
-                            FirmwareBuildTime,
-                            FirmwareCoreVersion]
+    AttributesKeysList = [MCU_FAMILY,
+                          FIRMWARE_LIBRARY_VERSION,
+                          FIRMWARE_NAME,
+                          FIRMWARE_VERSION,
+                          FIRMWARE_BUILD_TIME,
+                          FIRMWARE_CORE_VERSION]
+
+
+class ArancinoPortInteroceptionAttributes:
+    MEMORY_TOTAL = "MEM_TOT" #
+    MEMORY_FREE = "MEM_FREE" # nel samd21 invia la free
+    MEMORY_USED = "MEM_USED"
+    TEMPERATURE = "TEMP"
+
 
 
 COMPATIBILITY_MATRIX_MOD_SERIAL = {

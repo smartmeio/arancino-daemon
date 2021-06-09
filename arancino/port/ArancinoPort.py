@@ -117,10 +117,10 @@ class ArancinoPort(object):
 
             arancino_lib_version = None
 
-            if ArancinoPortAttributes.LibraryVersion in attributes:
-                arancino_lib_version = attributes[ArancinoPortAttributes.LibraryVersion]
+            if ArancinoPortAttributes.FIRMWARE_LIBRARY_VERSION in attributes:
+                arancino_lib_version = attributes[ArancinoPortAttributes.FIRMWARE_LIBRARY_VERSION]
                 arancino_lib_version = semantic_version.Version(arancino_lib_version)
-                del attributes[ArancinoPortAttributes.LibraryVersion]
+                del attributes[ArancinoPortAttributes.FIRMWARE_LIBRARY_VERSION]
 
             self._setLibVersion(arancino_lib_version)
             #endregion
@@ -129,9 +129,9 @@ class ArancinoPort(object):
 
             arancino_micro_family = None
 
-            if ArancinoPortAttributes.MicrocontrollerFamily in attributes:
-                arancino_micro_family = attributes[ArancinoPortAttributes.MicrocontrollerFamily]
-                del attributes[ArancinoPortAttributes.MicrocontrollerFamily]
+            if ArancinoPortAttributes.MCU_FAMILY in attributes:
+                arancino_micro_family = attributes[ArancinoPortAttributes.MCU_FAMILY]
+                del attributes[ArancinoPortAttributes.MCU_FAMILY]
 
             self._setMicrocontrollerFamily(arancino_micro_family)
 
@@ -140,9 +140,9 @@ class ArancinoPort(object):
             #region FIRMWARE NAME
 
             arancino_fw_name = None
-            if ArancinoPortAttributes.FirmwareName in attributes:
-                arancino_fw_name = attributes[ArancinoPortAttributes.FirmwareName]
-                del attributes[ArancinoPortAttributes.FirmwareName]
+            if ArancinoPortAttributes.FIRMWARE_NAME in attributes:
+                arancino_fw_name = attributes[ArancinoPortAttributes.FIRMWARE_NAME]
+                del attributes[ArancinoPortAttributes.FIRMWARE_NAME]
 
             self._setFirmwareName(arancino_fw_name)
 
@@ -152,10 +152,10 @@ class ArancinoPort(object):
 
             arancino_fw_version = None
 
-            if ArancinoPortAttributes.FirmwareVersion in attributes:
-                arancino_fw_version = attributes[ArancinoPortAttributes.FirmwareVersion]
+            if ArancinoPortAttributes.FIRMWARE_VERSION in attributes:
+                arancino_fw_version = attributes[ArancinoPortAttributes.FIRMWARE_VERSION]
                 arancino_fw_version = semantic_version.Version(arancino_fw_version)
-                del attributes[ArancinoPortAttributes.FirmwareVersion]
+                del attributes[ArancinoPortAttributes.FIRMWARE_VERSION]
 
             self._setFirmwareVersion(arancino_fw_version)
 
@@ -165,10 +165,10 @@ class ArancinoPort(object):
 
             arancino_fw_core_version = None
 
-            if ArancinoPortAttributes.FirmwareCoreVersion in attributes:
-                arancino_fw_core_version = attributes[ArancinoPortAttributes.FirmwareCoreVersion]
+            if ArancinoPortAttributes.FIRMWARE_CORE_VERSION in attributes:
+                arancino_fw_core_version = attributes[ArancinoPortAttributes.FIRMWARE_CORE_VERSION]
                 arancino_fw_core_version = semantic_version.Version(arancino_fw_core_version)
-                del attributes[ArancinoPortAttributes.FirmwareCoreVersion]
+                del attributes[ArancinoPortAttributes.FIRMWARE_CORE_VERSION]
 
             self._setFirmwareCoreVersion(arancino_fw_core_version)
 
@@ -178,12 +178,12 @@ class ArancinoPort(object):
 
             arancino_firmware_upload_datetime = None
 
-            if ArancinoPortAttributes.FirmwareBuildTime in attributes:
-                arancino_firmware_upload_datetime = attributes[ArancinoPortAttributes.FirmwareBuildTime]
+            if ArancinoPortAttributes.FIRMWARE_BUILD_TIME in attributes:
+                arancino_firmware_upload_datetime = attributes[ArancinoPortAttributes.FIRMWARE_BUILD_TIME]
                 arancino_firmware_upload_datetime = datetime.strptime(arancino_firmware_upload_datetime, '%b %d %Y %H:%M:%S %z')
                 arancino_firmware_upload_datetime = datetime.timestamp(arancino_firmware_upload_datetime)
                 arancino_firmware_upload_datetime = datetime.fromtimestamp(arancino_firmware_upload_datetime)
-                del attributes[ArancinoPortAttributes.FirmwareBuildTime]
+                del attributes[ArancinoPortAttributes.FIRMWARE_BUILD_TIME]
 
             self._setFirmwareBuildDate(arancino_firmware_upload_datetime)
 

@@ -1070,23 +1070,10 @@ class ArancinoCommandExecutor:
                 # the 3th element is the timestamp in unix format. '*' by default
                 timestamp = args[2]
 
-            exist = self.__datastore_tser.redis.exists(key)
-            if not exist:
-                labels = {
-                    #"device_id": self.__conf.get_serial_number(),
-                    "port_id": self.__port_id,
-                    "port_type": self.__port_type.name
-                    }
-
-                if not self.__conf.get_serial_number() == "0000000000000000" and not self.__conf.get_serial_number() == "ERROR000000000":
-                    labels["device_id"] = self.__conf.get_serial_number()
-
-                self.__datastore_tser.create(key, labels=labels, duplicate_policy='last', retation=self.__conf.get_redis_timeseries_retation())
-                self.__datastore_tser.redis.set("{}:{}".format(key, SUFFIX_TMSTP), 0)  # Starting timestamp 
+            self.__check_ts_exist_and_create(key)
 
             ts = self.__datastore_tser.add(key, timestamp, value)
 
-            #self.__datastore_tser
             return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
 
         except RedisError as ex:
@@ -1138,21 +1125,9 @@ class ArancinoCommandExecutor:
                     tuple = (key, value, tmstp)
                     list.append(tuple)
 
-                    exist = self.__datastore_tser.redis.exists(key)
-                    if not exist:
-                        labels = {
-                            # "device_id": self.__conf.get_serial_number(),
-                            "port_id": self.__port_id,
-                            "port_type": self.__port_type.name
-                            }
+                    #create the timeseries if it doesn't exists
+                    self.__check_ts_exist_and_create(key)
 
-                        if not self.__conf.get_serial_number() == "0000000000000000" and not self.__conf.get_serial_number() == "ERROR000000000":
-                            labels["device_id"] = self.__conf.get_serial_number()
-
-                        self.__datastore_tser.create(key, labels=labels, duplicate_policy='last', retation=self.__conf.get_redis_timeseries_retation())
-                        self.__datastore_tser.redis.set("{}:{}".format(key, SUFFIX_TMSTP), 0) #Starting timestamp
-
-                #self.__datastore_tser.add(key, timestamp, value)
                 ts_array = self.__datastore_tser.madd(list)
                 ts = ArancinoSpecialChars.CHR_ARR_SEP.join(ts_array)
 
@@ -1172,6 +1147,32 @@ class ArancinoCommandExecutor:
 
     #endregion
 
+
+    #region INTEROCEPTION
+    def __OPTS_INTEROCEP(self, args):
+        return self.__OPTS_MSTORE(args)
+
+    #endregion
+
+
+    #region ts utilities
+
+    def __check_ts_exist_and_create(self, key):
+        exist = self.__datastore_tser.redis.exists(key)
+        if not exist:
+            labels = {
+                # "device_id": self.__conf.get_serial_number(),
+                "port_id": self.__port_id,
+                "port_type": self.__port_type.name
+            }
+
+            if not self.__conf.get_serial_number() == "0000000000000000" and not self.__conf.get_serial_number() == "ERROR000000000":
+                labels["device_id"] = self.__conf.get_serial_number()
+
+            self.__datastore_tser.create(key, labels=labels, duplicate_policy='last', retation=self.__conf.get_redis_timeseries_retation())
+            self.__datastore_tser.redis.set("{}:{}".format(key, SUFFIX_TMSTP), 0)  # Starting timestamp
+
+    #endregion
 
 
     def __get_args_nr_by_cmd_id(self, cmd_id):

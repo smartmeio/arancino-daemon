@@ -192,12 +192,12 @@ class ArancinoTestHandler(threading.Thread):
         custom_attrib_key_2 = "CUSTOM2"
         custom_attrib_val_2 = "bar"
 
-        start_args_keys_array = [ArancinoPortAttributes.LibraryVersion,
-                                 ArancinoPortAttributes.FirmwareBuildTime,
-                                 ArancinoPortAttributes.FirmwareCoreVersion,
-                                 ArancinoPortAttributes.FirmwareName,
-                                 ArancinoPortAttributes.MicrocontrollerFamily,
-                                 ArancinoPortAttributes.FirmwareVersion,
+        start_args_keys_array = [ArancinoPortAttributes.FIRMWARE_LIBRARY_VERSION,
+                                 ArancinoPortAttributes.FIRMWARE_BUILD_TIME,
+                                 ArancinoPortAttributes.FIRMWARE_CORE_VERSION,
+                                 ArancinoPortAttributes.FIRMWARE_NAME,
+                                 ArancinoPortAttributes.MCU_FAMILY,
+                                 ArancinoPortAttributes.FIRMWARE_VERSION,
                                  custom_attrib_key_1,
                                  custom_attrib_key_2
                                  ]
