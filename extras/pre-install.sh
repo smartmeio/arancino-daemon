@@ -19,9 +19,16 @@ echo -----Override New Environment Vars File----------
 #cp extras/vars.env /ect/arancino/vars.env
 
 source extras/vars.env
+
+echo $ARANCINO
 mkdir -p $ARANCINO
+
+echo $ARANCINOLOG
 mkdir -p $ARANCINOLOG
+
+echo $ARANCINOCONF
 mkdir -p $ARANCINOCONF
+
 cp extras/vars.env $ARANCINO/vars.env
 
 echo -------------------------------------------------

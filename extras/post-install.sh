@@ -9,11 +9,13 @@ echo ---------Making Logs and Conf directories--------
 
 # create logs dir
 #mkdir -p /var/log/arancino
-#mkdir -p "$ARANCINOLOG"
+mkdir -p $ARANCINOLOG
 
 # create arancino dir
 #mkdir -p /etc/arancino/config
+mkdir -p $ARANCINOCONF
 #mkdir -p /etc/arancino/templates
+mkdir -p $ARANCINO/templates
 
 
 mkdir -p /etc/redis/cwd
