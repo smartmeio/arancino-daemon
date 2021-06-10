@@ -10,7 +10,8 @@ Group=root
 ### ARANCINO ENV VARS ###
 
 # Environment File
-EnvironmentFile="/ect/arancino/vars.env"
+#EnvironmentFile=/etc/arancino/vars.env
+EnvironmentFile="$ARANCINO/vars.env"
 
 # Arancino Daemon Directory
 ######Environment="ARANCINO=/etc/arancino"

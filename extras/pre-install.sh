@@ -11,27 +11,27 @@ systemctl disable arancino
 #systemctl disable redis-persistent
 echo -------------------------------------------------
 
-echo -----Override New Environment Vars File----------
+#echo -----Override New Environment Vars File----------
 # first create arancino path
 #mkdir -p "/ect/arancino"
 
 # put the new environment file
 #cp extras/vars.env /ect/arancino/vars.env
 
-source extras/vars.env
+#source extras/vars.env
+#
+#echo $ARANCINO
+#mkdir -p $ARANCINO
 
-echo $ARANCINO
-mkdir -p $ARANCINO
+#echo $ARANCINOLOG
+#mkdir -p $ARANCINOLOG
+#
+#echo $ARANCINOCONF
+#mkdir -p $ARANCINOCONF
 
-echo $ARANCINOLOG
-mkdir -p $ARANCINOLOG
+#cp extras/vars.env $ARANCINO/vars.env
 
-echo $ARANCINOCONF
-mkdir -p $ARANCINOCONF
-
-cp extras/vars.env $ARANCINO/vars.env
-
-echo -------------------------------------------------
+#echo -------------------------------------------------
 
 
 #echo ---------------Unsetting env vars----------------

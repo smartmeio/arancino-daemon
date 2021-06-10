@@ -6,18 +6,26 @@ source extras/vars.env
 echo ---------Making Logs and Conf directories--------
 #read this configuration from the env
 
-
 # create logs dir
-#mkdir -p /var/log/arancino
-mkdir -p $ARANCINOLOG
+#mkdir -p /etc/arancino
+echo creating directory: $ARANCINO
+mkdir -p $ARANCINO
 
 # create arancino dir
 #mkdir -p /etc/arancino/config
+echo creating directory: $ARANCINOCONF
 mkdir -p $ARANCINOCONF
+
 #mkdir -p /etc/arancino/templates
+echo creating directory: $ARANCINO/templates
 mkdir -p $ARANCINO/templates
 
+# create logs dir
+#mkdir -p /var/log/arancino
+echo creating directory: $ARANCINOLOG
+mkdir -p $ARANCINOLOG
 
+echo creating directory: /etc/redis/cwd
 mkdir -p /etc/redis/cwd
 chown -R redis:redis /etc/redis/cwd
 
