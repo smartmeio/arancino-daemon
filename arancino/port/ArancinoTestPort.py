@@ -116,6 +116,65 @@ class ArancinoTestPort(ArancinoPort):
 
     # TODO implement the method in the abstract class:
     # NOTA: per farlo astratto, si deve muovere l'handler nella super classe e chiamarlo con un nome generico ed anche il log prefix
+    
+    #"Override" __commandReceivedHandlerAbs(self, raw_command)
+    def _commandReceivedHandler(self, raw_command):
+        """
+        This is an Asynchronous function, and represent the "handler" to be used by an ArancinoHandler implementation to receive data.
+            It first receives a Raw Command from the a "Port" (eg. a Serial Port, a Network Port, etc...) , then translate
+            it to an ArancinoCommand object and send it back to another callback function
+
+        :param raw_command: the Raw Command received from a "Port"
+        :return: void.
+        """
+        try:
+
+            # create an Arancino Comamnd from the raw command
+            acmd = ArancinoComamnd(raw_command=raw_command)
+            LOG.debug("{} Received: {}: {}".format(
+                self._log_prefix, acmd.getId(), str(acmd.getArguments())))
+
+            # check if the received command handler callback function is defined
+            if self._received_command_handler is not None:
+                self._received_command_handler(self._id, acmd)
+
+            # call the Command Executor and get a arancino response
+            arsp = self._executor.exec(acmd)
+
+            # create the Arancino Response object
+            #arsp = ArancinoResponse(raw_response=raw_response)
+
+            # if the command is START command, the ArancinoResponse is generic and it should
+            # evaluated here and not in the CommandExecutor. CommandExecutor only uses the datastore
+            # and not the port itself. The START command contains information about the connecting port
+            # that the command executor is not able to use.
+            if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
+                self._retrieveStartCmdArgs(acmd.getArguments())
+
+        except ArancinoException as ex:
+            arsp = ArancinoResponse(rsp_id=ex.error_code, rsp_args=[])
+            LOG.error("{} {}".format(
+                self._log_prefix, str(ex)), exc_info=TRACE)
+
+        # Generic Exception uses a generic Error Code
+        except Exception as ex:
+            arsp = ArancinoResponse(
+                rsp_id=ArancinoCommandErrorCodes.ERR, rsp_args=[])
+            LOG.error("{} {}".format(
+                self._log_prefix, str(ex)), exc_info=TRACE)
+
+        finally:
+
+            try:
+                # send the response back.
+                LOG.debug("{} Sending: {}: {}".format(
+                    self._log_prefix, arsp.getId(), str(arsp.getArguments())))
+                return arsp
+
+            except Exception as ex:
+                LOG.error("{} Error while transmitting a Response: {}".format(
+                    self._log_prefix), str(ex), exc_info=TRACE)
+
     def __connectionLostHandler(self):
         self._m_s_connected = False
         #self._m_s_plugged = False
@@ -146,7 +205,7 @@ class ArancinoTestPort(ArancinoPort):
                             # first resetting
                             self.reset()
 
-                        self.__test_handler = ArancinoTestHandler("ArancinoTestHandler-"+self._id, self._id, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
+                        self.__test_handler = ArancinoTestHandler("ArancinoTestHandler-"+self._id, self._id, self._device, self._commandReceivedHandler, self.__connectionLostHandler)
                         self.__test_handler.start()
                         self._m_s_connected = True
                         LOG.info("{} Connected".format(self._log_prefix))

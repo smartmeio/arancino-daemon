@@ -32,6 +32,12 @@ from arancino.utils.ArancinoUtils import ArancinoConfig
 from arancino.port.ArancinoPort import PortTypes
 from datetime import datetime
 
+#import for asimmetric authentication
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives import hashes
+import os
+from base64 import b64encode
+
 
 class ArancinoCommandExecutor:
 
@@ -89,6 +95,10 @@ class ArancinoCommandExecutor:
             if cmd_id == ArancinoCommandIdentifiers.CMD_SYS_START['id']:
                 raw_response = self.__OPTS_START(cmd_args)
                 return ArancinoResponse(raw_response=raw_response)
+            # SIGN
+            elif cmd_id == ArancinoCommandIdentifiers.CMD_SYS_SIGN['id']:
+                raw_response = self.__OPTS_SIGN(cmd_args)
+                return ArancinoResponse(raw_response=raw_response)  
             # SET
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_SET_STD['id']:
                 raw_response = self.__OPTS_SET_STD(cmd_args)
@@ -234,9 +244,33 @@ class ArancinoCommandExecutor:
         #         #ts = datetime.timestamp(now)
         #         ts = datetime.now().timestamp()
 
-        ts = str(int(datetime.now().timestamp() * 1000))
-        return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + self.__port_id + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
+        #consume certificates in argumets if present (policy??)
+        #recostruction if possible (not here, but in Arancino Port in retrieve sart command args)
 
+        #verify cetrificates (CAMBIARE NUMERO, ATTUALMENTE CASUALE)
+        '''
+        signer_cert=args[5]
+        device_cert=args[6]
+        if not verifyCert(signer_cert):
+            pass
+        if not verifyCert(device_cert):
+            pass
+
+            #extract device public key
+        device_public_key = device_cert.public_key()
+
+            #first check in whitelist (Aggiungere la whitelist)
+        if checkPubKey(device_public_key):
+            pass
+        else:
+            pass
+        '''
+        #create and send challlenge if all is ok else policy for connection refused (aggiungere la challenge alla risposta)
+        challenge = os.urandom(32)
+
+        ts = str(int(datetime.now().timestamp() * 1000))
+        return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + self.__port_id + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_SEP + str(b64encode(challenge).decode('utf-8')) + ArancinoSpecialChars.CHR_EOT
+        
         # NOTE: If the device is not disconnected, it will try to START every 2,5 seconds.
 #        raise NonCompatibilityException(
 #            "Module version " + str(self.__conf.get_metadata_version()) + " can not work with Library version " + value_libvers,
@@ -1187,3 +1221,31 @@ class ArancinoCommandExecutor:
         num = command["args"]
 
         return num
+
+
+    def verifyCert(public_key, certificate):
+        try:
+            public_key.verify(
+                signature=certificate.signature,
+                data=certificate.tbs_certificate_bytes,
+                signature_algorithm=ec.ECDSA(certificate.signature_hash_algorithm)
+            )
+        except:
+            return False
+        return True
+
+
+    def checkPubKey(whitelist, public_key):
+        for pubKey in whitelist:
+            if pubKey == public_key:
+                return True
+        return False
+
+
+    def verifySign(public_key, data, signature):
+        #public_key = private_key.public_key()
+        try:
+            public_key.verify(signature, data, ec.ECDSA(hashes.SHA256()))
+        except:
+            return False
+        return True

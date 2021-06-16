@@ -29,6 +29,10 @@ import time
 
 import semantic_version
 
+#import for asimmetric authentication
+import os
+from cryptography import x509
+
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
 TRACE = CONF.get_log_print_stack_trace()
@@ -85,6 +89,12 @@ class ArancinoPort(object):
         self.setReceivedCommandHandler(receivedCommandHandler)  # this is the handler to be used to receive an ArancinoCommand and exec that command.
         self.setDisconnectionHandler(disconnectionHandler)  # this is the handler to be used whene a disconnection event is triggered
         #endregion
+
+        #region Asimmetric Authentication
+        self.signer_cert = None
+        self.device_cert = None
+        self.challenge = None
+        #end region
 
         self.__first_time = True
 
@@ -193,6 +203,21 @@ class ArancinoPort(object):
 
             self._setGenericAttributes(attributes)
 
+            #endregion
+
+            #region Asimmetric Authentication
+            # Retrieve Arancino Certificates for Asimmetric Authentication
+            if "SIGNER_CERT" in attributes:
+                self.setSignerCertificate(attributes["SIGNER_CERT"])
+                del attributes["SIGNER_CERT"]
+            if "DEVICE_CERT" in attributes:
+                self.setDeviceCertificate(attributes["DEVICE_CERT"])
+                del attributes["DEVICE_CERT"]
+
+            #Verify Certificates
+
+            #Verify device public key presence in whitelist   
+                     
             #endregion
 
         else:
@@ -359,6 +384,59 @@ class ArancinoPort(object):
                 # send the response back.
                 self.sendResponse(arsp.getRaw())
                 LOG.debug("{} Sending: {}: {}".format(self._log_prefix, arsp.getId(), str(arsp.getArguments())))
+
+            except Exception as ex:
+                LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex), exc_info=TRACE)
+
+    
+    #"Override" __commandReceivedHandlerAbs(self, raw_command)
+    def __commandReceivedHandler(self, raw_command):
+        """
+        This is an Asynchronous function, and represent the "handler" to be used by an ArancinoHandler implementation to receive data.
+            It first receives a Raw Command from the a "Port" (eg. a Serial Port, a Network Port, etc...) , then translate
+            it to an ArancinoCommand object and send it back to another callback function
+
+        :param raw_command: the Raw Command received from a "Port"
+        :return: void.
+        """
+        try:
+
+            # create an Arancino Comamnd from the raw command
+            acmd = ArancinoComamnd(raw_command=raw_command)
+            LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.getId(), str(acmd.getArguments())))
+
+            # check if the received command handler callback function is defined
+            if self._received_command_handler is not None:
+                self._received_command_handler(self._id, acmd)
+
+            # call the Command Executor and get a arancino response
+            arsp = self._executor.exec(acmd)
+
+            # create the Arancino Response object
+            #arsp = ArancinoResponse(raw_response=raw_response)
+
+            # if the command is START command, the ArancinoResponse is generic and it should
+            # evaluated here and not in the CommandExecutor. CommandExecutor only uses the datastore
+            # and not the port itself. The START command contains information about the connecting port
+            # that the command executor is not able to use.
+            if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
+                self._retrieveStartCmdArgs(acmd.getArguments())
+
+        except ArancinoException as ex:
+            arsp = ArancinoResponse(rsp_id=ex.error_code, rsp_args=[])
+            LOG.error("{} {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
+
+        # Generic Exception uses a generic Error Code
+        except Exception as ex:
+            arsp = ArancinoResponse(rsp_id=ArancinoCommandErrorCodes.ERR, rsp_args=[])
+            LOG.error("{} {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
+
+        finally:
+
+            try:
+                # send the response back.
+                LOG.debug("{} Sending: {}: {}".format(self._log_prefix, arsp.getId(), str(arsp.getArguments())))
+                return arsp
 
             except Exception as ex:
                 LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex), exc_info=TRACE)
@@ -595,6 +673,28 @@ class ArancinoPort(object):
 
     #endregion
 
+    #region Asimmetric Authentication
+
+    def setSignerCertificate(self, received_signer_certificate):
+        self.signer_cert = x509.load_pem_x509_certificate(
+            received_signer_certificate)
+
+    def setDeviceCertificate(self, received_device_certificate):
+        self.device_cert = x509.load_pem_x509_certificate(
+            received_device_certificate)
+
+    def getSignerCertificate(self):
+        return self.signer_cert
+
+    def getDeviceCertificate(self):
+        return self.device_cert
+
+    def setChallenge(self):
+        self.challenge = os.urandom(32)
+
+    def getChallenge(self):
+        return self.challenge
+    #endregion
 
 class PortTypes(Enum):
 

@@ -165,6 +165,11 @@ class ArancinoCommandIdentifiers:
     CMD_SYS_START = {"id": __CMD_SYS_START, "args": 2, "op": ArancinoOperators.EQUAL}
     "Start Commmand"
 
+    # Sign commands
+    __CMD_SYS_SIGN = 'SIGN'
+    CMD_SYS_SIGN = {"id": __CMD_SYS_SIGN, "args": 1}  # Arancino Operators??
+    "Sign the challenge for the asimmetric authentication"
+    
     # Simple Operation Commands
     __CMD_APP_GET = 'GET'
     CMD_APP_GET = {"id": __CMD_APP_GET, "args": 1, "op": ArancinoOperators.EQUAL}

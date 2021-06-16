@@ -29,6 +29,16 @@ from arancino.ArancinoConstants import ArancinoCommandErrorCodes as errorCodes
 from arancino.ArancinoConstants import SUFFIX_TMSTP
 import time
 
+#import for asimmetric authentication
+from cryptography import x509
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.backends import default_backend
+import datetime
+import os
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
 
@@ -49,6 +59,10 @@ class ArancinoTestHandler(threading.Thread):
 
         self.__stop = False
 
+        #load certificates from files
+        self.__signer_cert = self.__retrieve_signer_cert()
+        self.__device_cert = self.__retrive_device_cert()
+        
         self.__command_test_list = self.__getCommnandsList()
         self.__command_test_del_list = self.__getCommnandsDelList()
 
@@ -67,7 +81,8 @@ class ArancinoTestHandler(threading.Thread):
 
                     # send back the raw command
                     if self.__commandReceivedHandler is not None:
-                        self.__commandReceivedHandler(raw_cmd)
+                        response = self.__commandReceivedHandler(raw_cmd)
+                        #self.__commandReceivedHandler(raw_cmd)
 
                     if count == commands_test_num-1:
                         count = 0  # reset the counter and start again
@@ -82,6 +97,11 @@ class ArancinoTestHandler(threading.Thread):
 
                     self.__stop = True
                     break
+                
+                # Ricezione dati
+                LOG.debug("{} Response received: {}: {}".format(self.__log_prefix, response.getId(), str(response.getArguments())))
+                self.__consumeResponse(response)
+
         else:
             LOG.warning("{}No commands list defined for test port.".format(self.__log_prefix))
 
@@ -154,6 +174,15 @@ class ArancinoTestHandler(threading.Thread):
 
         return list
 
+    def __consumeResponse(self, arsp):
+        #If response to START COMMAND is the challenge (policy) then sign it and send another command with the signed challenge in itself
+        if arsp.getId() == cmdId.CMD_SYS_SIGN:
+
+            LOG.debug("{} Response to consume: {}: {}".format(
+                self.__log_prefix, arsp.getId(), str(arsp.getArguments())))
+
+        #other command for consume response not defined, so they need to be implement if it's usefull
+    
     def __getCommnandsList(self):
 
         ### keys used:
@@ -192,12 +221,21 @@ class ArancinoTestHandler(threading.Thread):
         custom_attrib_key_2 = "CUSTOM2"
         custom_attrib_val_2 = "bar"
 
+            #asimmetric authentication attributes
+        signer_cert_key = "SIGNER_CERT"
+        signer_cert_val = self.__retrieve_signer_cert()
+
+        device_cert_key = "DEVICE_CERT"
+        device_cert_val = self.__retrive_device_cert()
+
         start_args_keys_array = [ArancinoPortAttributes.FIRMWARE_LIBRARY_VERSION,
                                  ArancinoPortAttributes.FIRMWARE_BUILD_TIME,
                                  ArancinoPortAttributes.FIRMWARE_CORE_VERSION,
                                  ArancinoPortAttributes.FIRMWARE_NAME,
                                  ArancinoPortAttributes.MCU_FAMILY,
                                  ArancinoPortAttributes.FIRMWARE_VERSION,
+                                 signer_cert_key,
+                                 device_cert_key,
                                  custom_attrib_key_1,
                                  custom_attrib_key_2
                                  ]
@@ -208,6 +246,10 @@ class ArancinoTestHandler(threading.Thread):
                                  fw_name,
                                  micro_family,
                                  fw_version,
+                                 str(signer_cert_val.public_bytes(
+                                     encoding=serialization.Encoding.PEM)),
+                                 str(device_cert_val.public_bytes(
+                                     encoding=serialization.Encoding.PEM)),
                                  custom_attrib_val_1,
                                  custom_attrib_val_2]
 
@@ -358,7 +400,7 @@ class ArancinoTestHandler(threading.Thread):
         #list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "1A" + specChars.CHR_EOT)
 
             # 16.4 OK
-
+        '''
         keys = "TAG_1" + specChars.CHR_ARR_SEP + "TAG_2" + specChars.CHR_ARR_SEP + "TAG_3"
         values = "VAL_1" + specChars.CHR_ARR_SEP + "VAL_2" + specChars.CHR_ARR_SEP + "VAL_3"
 
@@ -403,6 +445,24 @@ class ArancinoTestHandler(threading.Thread):
         list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
         list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
         list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-        
+        '''
         return list
+
+    def __retrieve_signer_cert(self):
+        cur_path = os.path.dirname(__file__)
+        cur_path = cur_path[:-16]
+        add_path = 'extras/certificates/signerCert.pem'
+        new_path = cur_path + add_path
+        file_signer_cert = open(new_path, "rb")
+        signer_data_cert = file_signer_cert.read()
+        return x509.load_pem_x509_certificate(signer_data_cert)
+
+    def __retrive_device_cert(self):
+        cur_path = os.path.dirname(__file__)
+        cur_path = cur_path[:-16]
+        add_path = 'extras/certificates/deviceCert.pem'
+        new_path = cur_path + add_path
+        file_device_cert = open(new_path, "rb")
+        device_data_cert = file_device_cert.read()
+        return x509.load_pem_x509_certificate(device_data_cert)
 
