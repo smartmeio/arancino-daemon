@@ -32,6 +32,9 @@ import semantic_version
 #import for asimmetric authentication
 import os
 from cryptography import x509
+from cryptography.hazmat.primitives.asymmetric import ec
+
+
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
@@ -207,6 +210,7 @@ class ArancinoPort(object):
 
             #region Asimmetric Authentication
             # Retrieve Arancino Certificates for Asimmetric Authentication
+            LOG.debug("\nCertificato del signer: "+ attributes["SIGNER_CERT"] + "\nCertificato del device: "+ attributes["DEVICE_CERT"])
             if "SIGNER_CERT" in attributes:
                 self.setSignerCertificate(attributes["SIGNER_CERT"])
                 del attributes["SIGNER_CERT"]
@@ -214,7 +218,18 @@ class ArancinoPort(object):
                 self.setDeviceCertificate(attributes["DEVICE_CERT"])
                 del attributes["DEVICE_CERT"]
 
-            #Verify Certificates
+            #retrieve root certificate from file 
+            root_cert = self.retrieveRootCertificate()
+
+            #Verify Certificates    (forse bisogna prendere il certificato del device da file)
+            if self.verifyCert(root_cert.public_key(), self.signer_cert):
+                LOG.debug("Certificato del signer verificato!")
+                if self.verifyCert(self.signer_cert.public_key(), self.device_cert):
+                    LOG.debug("Certificato del device verificato!")
+                else:
+                    LOG.debug("Certificato del device non verificato")
+            else:
+                LOG.debug("Certificato del signer non verificato!")
 
             #Verify device public key presence in whitelist   
                      
@@ -387,60 +402,6 @@ class ArancinoPort(object):
 
             except Exception as ex:
                 LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex), exc_info=TRACE)
-
-    
-    #"Override" __commandReceivedHandlerAbs(self, raw_command)
-    def __commandReceivedHandler(self, raw_command):
-        """
-        This is an Asynchronous function, and represent the "handler" to be used by an ArancinoHandler implementation to receive data.
-            It first receives a Raw Command from the a "Port" (eg. a Serial Port, a Network Port, etc...) , then translate
-            it to an ArancinoCommand object and send it back to another callback function
-
-        :param raw_command: the Raw Command received from a "Port"
-        :return: void.
-        """
-        try:
-
-            # create an Arancino Comamnd from the raw command
-            acmd = ArancinoComamnd(raw_command=raw_command)
-            LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.getId(), str(acmd.getArguments())))
-
-            # check if the received command handler callback function is defined
-            if self._received_command_handler is not None:
-                self._received_command_handler(self._id, acmd)
-
-            # call the Command Executor and get a arancino response
-            arsp = self._executor.exec(acmd)
-
-            # create the Arancino Response object
-            #arsp = ArancinoResponse(raw_response=raw_response)
-
-            # if the command is START command, the ArancinoResponse is generic and it should
-            # evaluated here and not in the CommandExecutor. CommandExecutor only uses the datastore
-            # and not the port itself. The START command contains information about the connecting port
-            # that the command executor is not able to use.
-            if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
-                self._retrieveStartCmdArgs(acmd.getArguments())
-
-        except ArancinoException as ex:
-            arsp = ArancinoResponse(rsp_id=ex.error_code, rsp_args=[])
-            LOG.error("{} {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
-
-        # Generic Exception uses a generic Error Code
-        except Exception as ex:
-            arsp = ArancinoResponse(rsp_id=ArancinoCommandErrorCodes.ERR, rsp_args=[])
-            LOG.error("{} {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
-
-        finally:
-
-            try:
-                # send the response back.
-                LOG.debug("{} Sending: {}: {}".format(self._log_prefix, arsp.getId(), str(arsp.getArguments())))
-                return arsp
-
-            except Exception as ex:
-                LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex), exc_info=TRACE)
-
 
     @abstractmethod
     def __connectionLostHandler(self):
@@ -676,12 +637,27 @@ class ArancinoPort(object):
     #region Asimmetric Authentication
 
     def setSignerCertificate(self, received_signer_certificate):
-        self.signer_cert = x509.load_pem_x509_certificate(
-            received_signer_certificate)
+        truncated = received_signer_certificate[2:-1]
+        truncatedBytes = bytes(
+            truncated, encoding='ascii').decode("unicode-escape")
+        data = bytes(truncatedBytes, encoding='ascii')
+        self.signer_cert = x509.load_pem_x509_certificate(data)
 
     def setDeviceCertificate(self, received_device_certificate):
-        self.device_cert = x509.load_pem_x509_certificate(
-            received_device_certificate)
+        truncated = received_device_certificate[2:-1]
+        truncatedBytes = bytes(
+            truncated, encoding='ascii').decode("unicode-escape")
+        data = bytes(truncatedBytes, encoding='ascii')
+        self.device_cert = x509.load_pem_x509_certificate(data)
+
+    def retrieveRootCertificate(self):
+        cur_path = os.path.dirname(__file__)
+        cur_path = cur_path[:-13]
+        add_path = 'extras/certificates/rootCert.pem'
+        new_path = cur_path + add_path
+        file_root_cert = open(new_path, "rb")
+        root_data_cert = file_root_cert.read()
+        return x509.load_pem_x509_certificate(root_data_cert)
 
     def getSignerCertificate(self):
         return self.signer_cert
@@ -694,7 +670,21 @@ class ArancinoPort(object):
 
     def getChallenge(self):
         return self.challenge
+
+    def verifyCert(self, public_key, certificate):
+        try:
+            public_key.verify(
+                signature=certificate.signature,
+                data=certificate.tbs_certificate_bytes,
+                signature_algorithm=ec.ECDSA(
+                    certificate.signature_hash_algorithm)
+            )
+        except:
+            return False
+        return True
+    
     #endregion
+
 
 class PortTypes(Enum):
 
