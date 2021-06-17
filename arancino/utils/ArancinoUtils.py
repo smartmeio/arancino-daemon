@@ -32,7 +32,7 @@ from logging.handlers import RotatingFileHandler
 import semantic_version
 
 from arancino.ArancinoConstants import RedisInstancesType
-from arancino.filter.ArancinoPortFilter import FilterTypes
+from arancino.port.ArancinoPortFilter import FilterTypes
 
 class Singleton:
 

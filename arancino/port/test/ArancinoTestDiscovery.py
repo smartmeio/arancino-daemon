@@ -22,7 +22,7 @@ under the License
 from arancino.utils.ArancinoUtils import ArancinoConfig
 # from arancino.filter import FilterTypes
 
-from arancino.port.ArancinoTestPort import ArancinoTestPort
+from arancino.port.test.ArancinoTestPort import ArancinoTestPort
 
 CONF = ArancinoConfig.Instance()
 

@@ -20,7 +20,7 @@ License for the specific language governing permissions and limitations
 under the License
 """
 
-from arancino.filter.ArancinoPortFilter import ArancinoPortFilter
+from arancino.port.ArancinoPortFilter import ArancinoPortFilter
 
 class ArancinoSerialPortFilter(ArancinoPortFilter):
 

@@ -20,9 +20,8 @@ under the License
 """
 
 import serial
-from serial import SerialException
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
-from arancino.handler.ArancinoSerialHandler import ArancinoSerialHandler
+from arancino.port.serial.ArancinoSerialHandler import ArancinoSerialHandler
 from arancino.ArancinoCortex import *
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
