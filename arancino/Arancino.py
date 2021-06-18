@@ -25,6 +25,7 @@ from datetime import datetime
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, secondsToHumanString
 from arancino.port.serial.ArancinoSerialDiscovery import ArancinoSerialDiscovery
 from arancino.port.test.ArancinoTestDiscovery import ArancinoTestDiscovery
+from arancino.port.usb_cdc.ArancinoUSBCDCDiscovery import ArancinoUSBCDCDiscovery
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
 from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoConstants import ArancinoApiResponseCode
@@ -73,6 +74,7 @@ class Arancino(Thread):
 
             self.__serial_discovery = ArancinoSerialDiscovery()
             self.__test_discovery = ArancinoTestDiscovery()
+            self.__usb_cdc_discovery = ArancinoUSBCDCDiscovery()
 
             self.__synchronizer = ArancinoPortSynch()
             self.__datastore = ArancinoDataStore.Instance()
@@ -123,6 +125,7 @@ class Arancino(Thread):
 
         serial_ports = {}
         test_ports = {}
+        usb_cdc_ports = {}
 
         while not self.__stop:
             if not self.__pause:
@@ -136,6 +139,7 @@ class Arancino(Thread):
 
                     serial_ports = self.__serial_discovery.getAvailablePorts(serial_ports)
                     test_ports = self.__test_discovery.getAvailablePorts(test_ports)
+                    usb_cdc_ports = self.__usb_cdc_discovery.getAvailablePorts(usb_cdc_ports)
 
                     # works only in python 3.5 and above
                     self.__ports_discovered = {**serial_ports, **test_ports}

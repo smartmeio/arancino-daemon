@@ -604,3 +604,4 @@ class PortTypes(Enum):
     MQTT = 4          # Network MQTT
     BLUETOOTH = 5     # Bluetooth
     TEST = 6          # Fake Port for Test purpose
+    USB_CDC = 7       # USB CDC Port

@@ -135,6 +135,16 @@ class ArancinoConfig:
         self.__port_serial_reset_on_connect = self.__get_or_override_bool(self.Config, "port.serial", "reset_on_connect", "port", "reset_on_connect")
         # endregion
 
+        # region CONFIG USB CDC PORT SECTION
+        self.__port_usb_cdc_enabled = stringToBool(self.Config.get("port.usb_cdc", "enabled"))
+        self.__port_usb_cdc_hide = stringToBool(self.Config.get("port.usb_cdc", "hide"))
+        self.__port_usb_cdc_filter_type = self.Config.get("port.usb_cdc", "filter_type")
+        self.__port_usb_cdc_filter_list = self.Config.get("port.usb_cdc", "filter_list")
+        self.__port_usb_cdc_upload_command = self.Config.get("port.usb_cdc", "upload_command")
+        self.__port_usb_cdc_discovery_command = self.Config.get("port.usb_cdc", "discovery_command")
+        self.__port_usb_cdc_reset_on_connect = self.__get_or_override_bool(self.Config, "port.usb_cdc", "reset_on_connect", "port", "reset_on_connect")
+        # endregion
+
         # region CONFIG TEST PORT SECTION
         self.__port_test_enabled = stringToBool(self.Config.get("port.test", "enabled"))
         self.__port_test_hide = stringToBool(self.Config.get("port.test", "hide"))
@@ -146,6 +156,7 @@ class ArancinoConfig:
         self.__port_test_upload_command = self.Config.get("port.test", "upload_command")
         self.__port_test_reset_on_connect = self.__get_or_override_bool(self.Config, "port.test", "reset_on_connect", "port", "reset_on_connect")
         # endregion
+
         # endregion
 
         # region CONFIG LOG SECTION
@@ -409,6 +420,32 @@ class ArancinoConfig:
 
     def get_port_serial_reset_on_connect(self):
         return self.__port_serial_reset_on_connect
+
+    ######## USB CDC PORT ########
+    def get_port_usb_cdc_enabled(self):
+        return self.__port_usb_cdc_enabled
+
+    def get_port_usb_cdc_hide(self):
+        return self.__port_usb_cdc_hide
+
+    def get_port_usb_cdc_filter_type(self):
+        if self.__port_usb_cdc_filter_type not in FilterTypes.__members__:
+            return FilterTypes.DEFAULT.value
+        else:
+            return FilterTypes[self.__port_usb_cdc_filter_type]
+
+    def get_port_usb_cdc_filter_list(self):
+        return json.loads(self.__port_usb_cdc_filter_list.upper())
+
+    def get_port_usb_cdc_upload_command(self):
+        return self.__port_usb_cdc_upload_command
+
+    def get_port_usb_cdc_discovery_command(self):
+        return self.__port_usb_cdc_discovery_command
+
+    def get_port_usb_cdc_reset_on_connect(self):
+        return self.__port_usb_cdc_reset_on_connect
+
 
     ######## TEST PORT ########
     def get_port_test_enabled(self):

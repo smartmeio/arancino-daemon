@@ -36,7 +36,6 @@ import logging
 # from gevent.pywsgi import WSGIServer
 from arancino.ArancinoRestApi import ArancinoApi
 
-
 auth = HTTPBasicAuth()
 
 c = ArancinoConfig.Instance()
