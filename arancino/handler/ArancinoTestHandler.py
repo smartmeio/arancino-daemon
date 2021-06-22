@@ -22,8 +22,8 @@ under the License
 import threading
 from arancino.utils.ArancinoUtils import *
 from arancino.port.ArancinoPort import PortTypes
-from arancino.ArancinoCortex import ArancinoCommandIdentifiers as cmdId
-from arancino.ArancinoConstants import ArancinoSpecialChars as specChars, ArancinoPortAttributes
+from arancino.ArancinoCortex import ArancinoComamnd, ArancinoCommandIdentifiers as cmdId
+from arancino.ArancinoConstants import ArancinoCommandIdentifiers, ArancinoSpecialChars as specChars, ArancinoPortAttributes
 from arancino.ArancinoConstants import ArancinoCommandResponseCodes as respCodes
 from arancino.ArancinoConstants import ArancinoCommandErrorCodes as errorCodes
 from arancino.ArancinoConstants import SUFFIX_TMSTP
@@ -38,6 +38,8 @@ import os
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+from base64 import b64decode
+
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
@@ -62,6 +64,7 @@ class ArancinoTestHandler(threading.Thread):
         #load certificates from files
         self.__signer_cert = self.__retrieve_signer_cert()
         self.__device_cert = self.__retrive_device_cert()
+        self.challenge = None
         
         self.__command_test_list = self.__getCommnandsList()
         self.__command_test_del_list = self.__getCommnandsDelList()
@@ -78,11 +81,21 @@ class ArancinoTestHandler(threading.Thread):
 
 
                     raw_cmd = self.__command_test_list[count]
+                    acmd = ArancinoComamnd(raw_command=raw_cmd)
+                    if acmd.getId() != ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
+                        #crea e aggiungi firma
+                        signature = self.__signChallenge(self.challenge)
+                        acmd = self.addSign(acmd, signature)
+                        LOG.debug("Siamo nel test handler: Signature = {} | Comamnd = {}".format(str(signature), acmd.getRaw()))
 
                     # send back the raw command
                     if self.__commandReceivedHandler is not None:
                         response = self.__commandReceivedHandler(raw_cmd)
-                        #self.__commandReceivedHandler(raw_cmd)
+                        self.challenge = response.retrieveChallenge()
+
+                    if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
+                        self.addSignCommand()
+                        count = 0
 
                     if count == commands_test_num-1:
                         count = 0  # reset the counter and start again
@@ -99,8 +112,8 @@ class ArancinoTestHandler(threading.Thread):
                     break
                 
                 # Ricezione dati
+                self.__consumeResponse(acmd, response)
                 LOG.debug("{} Response received: {}: {}".format(self.__log_prefix, response.getId(), str(response.getArguments())))
-                self.__consumeResponse(response)
 
         else:
             LOG.warning("{}No commands list defined for test port.".format(self.__log_prefix))
@@ -169,20 +182,11 @@ class ArancinoTestHandler(threading.Thread):
         # list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_MSET_KEY_PERS_3" + specChars.CHR_EOT)
 
         # DEL
-        list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_EOT)
-        list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2" + specChars.CHR_EOT)
+        #list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_EOT)
+        #list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2" + specChars.CHR_EOT)
 
         return list
 
-    def __consumeResponse(self, arsp):
-        #If response to START COMMAND is the challenge (policy) then sign it and send another command with the signed challenge in itself
-        if arsp.getId() == cmdId.CMD_SYS_SIGN:
-
-            LOG.debug("{} Response to consume: {}: {}".format(
-                self.__log_prefix, arsp.getId(), str(arsp.getArguments())))
-
-        #other command for consume response not defined, so they need to be implement if it's usefull
-    
     def __getCommnandsList(self):
 
         ### keys used:
@@ -466,3 +470,49 @@ class ArancinoTestHandler(threading.Thread):
         device_data_cert = file_device_cert.read()
         return x509.load_pem_x509_certificate(device_data_cert)
 
+    def getPrivateKey(self):
+        return ec.derive_private_key(
+            2, ec.SECP384R1(), default_backend())
+
+    def addSign(self, acmd, signature):
+        args = acmd.getArguments()
+        keys = args[0]
+        values = args[1]
+
+        keys_array = keys.split(specChars.CHR_ARR_SEP)
+        values_array = values.split(specChars.CHR_ARR_SEP)
+
+        start_args_keys = specChars.CHR_ARR_SEP.join(keys_array)
+        start_args_vals = specChars.CHR_ARR_SEP.join(values_array)
+
+        keys_array.append("sign")
+        values_array.append(str(signature))
+        command = acmd.getId() + specChars.CHR_SEP + start_args_keys + specChars.CHR_SEP + start_args_vals + specChars.CHR_EOT
+        LOG.debug("Add sign to command: "+ command)
+        acmd = ArancinoComamnd(raw_command=command)
+        return acmd
+
+        
+    def addSignCommand(self):
+        signature = self.__signChallenge(self.challenge)
+        signCommand = cmdId.CMD_SYS_SIGN["id"] + specChars.CHR_SEP + "sign" + specChars.CHR_SEP + str(signature) + specChars.CHR_EOT
+        self.__command_test_list[0] = signCommand
+        LOG.debug("Add SIGN command to TestHandler: "+ signCommand)
+
+    def __consumeResponse(self, arcm, arsp):
+        #If response to START COMMAND is the challenge (policy) then sign it and send another command with the signed challenge in itself
+        LOG.debug("Response to consume: " + str(arcm.getId()))
+        if arcm.getId() == cmdId.CMD_SYS_START:
+            self.__signChallenge(self.challenge)
+
+        #other command for consume response not defined, so they need to be implement if it's usefull
+
+    # get challenge from response and sign it
+
+    def __signChallenge(self, challenge):
+        data = b64decode(challenge)
+        LOG.debug("data = "+str(data))
+        return self.getPrivateKey().sign(data, ec.ECDSA(hashes.SHA256()))
+
+    def __addSignToCommand(self, command):
+        pass

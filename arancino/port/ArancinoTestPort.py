@@ -18,6 +18,11 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 """
+from base64 import b64decode, b64encode
+import os
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import ec
+from arancino.ArancinoConstants import ArancinoCommandIdentifiers, ArancinoSpecialChars as specChars
 import semantic_version
 from serial import SerialException
 
@@ -26,6 +31,7 @@ from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.ArancinoCortex import *
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
+from arancino.ArancinoCortex import ArancinoCommandIdentifiers as cmdId
 import uuid
 import time
 
@@ -47,6 +53,8 @@ class ArancinoTestPort(ArancinoPort):
         self._compatibility_array = COMPATIBILITY_MATRIX_MOD_TEST[str(CONF.get_metadata_version().truncate())]
 
         self._log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
+
+        self.challenge = self.setChallenge()
 
     # TODO implement the method in the abstract class:
     # NOTA: per farlo astratto, si deve muovere l'handler nella super classe e chiamarlo con un nome generico ed anche il log prefix
@@ -138,8 +146,23 @@ class ArancinoTestPort(ArancinoPort):
             if self._received_command_handler is not None:
                 self._received_command_handler(self._id, acmd)
 
-            # call the Command Executor and get a arancino response
-            arsp = self._executor.exec(acmd)
+            if acmd.getId() != cmdId.CMD_SYS_START["id"]:
+                challenge=self.getChallenge()
+                # verifica challenge
+                signature = self.getSignature(acmd)
+
+                LOG.debug("Signature = {} | Challenge = {}".format(signature, challenge))
+                
+                # chiedere per la politica
+                if self.verifySign(self.device_cert.public_key(), b64decode(challenge), signature):
+                    # call the Command Executor and get a arancino response
+                    arsp = self._executor.exec(acmd)
+                self.setChallenge()
+            
+            else:
+                arsp = self._executor.exec(acmd)
+                arsp.addChallenge(self.challenge) #aggiunge alla fine degli argomenti della risposta la challenge
+            
 
             # create the Arancino Response object
             #arsp = ArancinoResponse(raw_response=raw_response)
@@ -261,3 +284,46 @@ class ArancinoTestPort(ArancinoPort):
     def sendResponse(self, raw_response):
         # Do nothing
         pass
+
+    def verifySign(self, public_key, data, signature):
+        #public_key = private_key.public_key()
+        try:
+            public_key.verify(signature, data, ec.ECDSA(hashes.SHA256()))
+        except:
+            LOG.debug("Dispositivo non riconosciuto")
+            return False
+        LOG.debug("Dispositivo riconosciuto")
+        return True
+
+    def getSignature(self, acmd):
+        args = acmd.getArguments()
+        keys = args[0]
+        values = args[1]
+
+        if keys == "sign":
+            LOG.debug("Retrieve sign from command SIGN: "+values)
+            return values
+        else:
+            keys_array = keys.split(specChars.CHR_ARR_SEP)
+            values_array = values.split(specChars.CHR_ARR_SEP)
+            count = 0
+            for i in keys_array:
+                if keys_array=="sign":
+                    break
+                count += 1
+        LOG.debug("Retrieve sign from command: "+values_array[count])
+        return values_array[count]
+
+
+
+    def setChallenge(self):
+        challenge = os.urandom(32)
+        command = cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self._id) + "_CHALLENGE" + specChars.CHR_SEP + str(self._id) + specChars.CHR_SEP + str(b64encode(challenge).decode('utf-8')) + specChars.CHR_EOT
+        acmd = ArancinoComamnd(raw_command=command)
+        arsp = self._executor.exec(acmd)
+        if arsp.getId()!=ArancinoCommandErrorCodes.ERR:
+            LOG.debug("Challenge insert to redis: " + str(b64encode(challenge).decode('utf-8')))
+            return str(b64encode(challenge).decode('utf-8'))
+        else:
+            LOG.debug("Error inserting challenge to redis!!! " + arsp.getId() +
+                      "diverso da " + ArancinoCommandResponseCodes.RSP_OK)

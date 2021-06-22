@@ -33,6 +33,11 @@ import semantic_version
 import os
 from cryptography import x509
 from cryptography.hazmat.primitives.asymmetric import ec
+from redis import RedisError
+from arancino.ArancinoCortex import ArancinoCommandIdentifiers as cmdId
+from arancino.ArancinoConstants import ArancinoSpecialChars as specChars
+from base64 import b64encode, b64decode
+
 
 
 
@@ -210,7 +215,7 @@ class ArancinoPort(object):
 
             #region Asimmetric Authentication
             # Retrieve Arancino Certificates for Asimmetric Authentication
-            LOG.debug("\nCertificato del signer: "+ attributes["SIGNER_CERT"] + "\nCertificato del device: "+ attributes["DEVICE_CERT"])
+            #LOG.debug("\nCertificato del signer: "+ attributes["SIGNER_CERT"] + "\nCertificato del device: "+ attributes["DEVICE_CERT"])
             if "SIGNER_CERT" in attributes:
                 self.setSignerCertificate(attributes["SIGNER_CERT"])
                 del attributes["SIGNER_CERT"]
@@ -666,10 +671,24 @@ class ArancinoPort(object):
         return self.device_cert
 
     def setChallenge(self):
-        self.challenge = os.urandom(32)
+        challenge = os.urandom(32)
+        command = cmdId.CMD_APP_HSET["id"] + specChars.CHR_SEP + str(self._id) + "CHALLENGE" + specChars.CHR_SEP + str(self._id) + specChars.CHR_SEP + str(b64encode(challenge).decode('utf-8')) + specChars.CHR_EOT
+        arsp = self._executor.exec(command)
+        if arsp.getId()==ArancinoCommandResponseCodes.RSP_OK:
+            LOG.debug("Challenge insert to redis: " + str(b64encode(challenge).decode('utf-8')))
+        else:
+            LOG.debug("Error inserting challenge to redis!!!")
 
     def getChallenge(self):
-        return self.challenge
+        command = cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self._id) + "_CHALLENGE" + specChars.CHR_SEP + str(self._id) + specChars.CHR_EOT
+        acmd = ArancinoComamnd(raw_command=command)
+        response = self._executor.exec(acmd)
+        challenge = response.retrieveChallenge()
+        if response.getId() == ArancinoCommandResponseCodes.RSP_OK:
+            LOG.debug("Challenge from redis: " + str(challenge))
+        else:
+            LOG.debug("Error retrieving challenge from redis!!!")
+        return challenge
 
     def verifyCert(self, public_key, certificate):
         try:
@@ -682,6 +701,12 @@ class ArancinoPort(object):
         except:
             return False
         return True
+    
+    def checkPubKey(whitelist, public_key):
+        for pubKey in whitelist:
+            if pubKey == public_key:
+                return True
+        return False
     
     #endregion
 

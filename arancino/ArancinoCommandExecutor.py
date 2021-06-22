@@ -123,6 +123,18 @@ class ArancinoCommandExecutor:
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_KEYS['id']:
                 raw_response = self.__OPTS_KEYS(cmd_args)
                 return ArancinoResponse(raw_response=raw_response)
+            # HSETL STD
+            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HSETL_STD['id']:
+                raw_response = self.__OPTS_HSETL_STD(cmd_args)
+                return ArancinoResponse(raw_response=raw_response)
+            # HSETL PERSISTENT
+            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HSETL_PERS['id']:
+                raw_response = self.__OPTS_HSETL_PERS(cmd_args)
+                return ArancinoResponse(raw_response=raw_response)
+            # HSETL
+            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HSETL['id']:
+                raw_response = self.__OPTS_HSETL(cmd_args)
+                return ArancinoResponse(raw_response=raw_response)
             # HSET
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HSET_STD['id']:
                 raw_response = self.__OPTS_HSET_STD(cmd_args)
@@ -266,16 +278,21 @@ class ArancinoCommandExecutor:
             pass
         '''
         #create and send challlenge if all is ok else policy for connection refused (aggiungere la challenge alla risposta)
-        challenge = os.urandom(32)
 
         ts = str(int(datetime.now().timestamp() * 1000))
-        return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + self.__port_id + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_SEP + str(b64encode(challenge).decode('utf-8')) + ArancinoSpecialChars.CHR_EOT
+        return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + self.__port_id + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
         
         # NOTE: If the device is not disconnected, it will try to START every 2,5 seconds.
 #        raise NonCompatibilityException(
 #            "Module version " + str(self.__conf.get_metadata_version()) + " can not work with Library version " + value_libvers,
 #            ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
 
+    #endregion
+
+    #region SIGN
+    def __OPTS_SIGN(self, args):
+        value = args[0]
+        return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + self.__port_id + ArancinoSpecialChars.CHR_SEP + value + ArancinoSpecialChars.CHR_EOT
     #endregion
 
     #region SET
@@ -576,6 +593,62 @@ class ArancinoCommandExecutor:
 
     # endregion
 
+    # region HSETL
+    # region HSETL_STD
+    def __OPTS_HSETL_STD(self, args):
+        return self.__OPTS_HSETL(args, self.__datastore, self.__datastore_pers, "STD")
+    # endregion
+
+    # region HSETL_PERS
+    def __OPTS_HSETL_PERS(self, args):
+        return self.__OPTS_HSETL(args, self.__datastore_pers, self.__datastore, "PERS")
+    # endregion
+
+    # region HSETL
+    def __OPTS_HSETL(self, args, first_datastore, second_datastore, type):
+        '''
+        Sets field in the hash stored at key to value.
+        If key does not exist, a new key holding a hash is created.
+        If field already exists in the hash, it is overwritten.
+            https://redis.io/commands/hset
+
+        MCU → HSET#<key>#<field>#<value>@
+
+        MCU ← 101@
+        MCU ← 102@
+        '''
+
+        key = args[0]
+        field = args[1]
+        value = args[2]
+        rsp = None
+
+        try:
+            # store the value at key and field
+            rsp = first_datastore.hset(key, field, value)
+
+            if rsp is not None:
+                if rsp == 1:
+                    return ArancinoCommandResponseCodes.RSP_HSET_NEW + ArancinoSpecialChars.CHR_EOT
+                else:  # 0
+                    return ArancinoCommandResponseCodes.RSP_HSET_UPD + ArancinoSpecialChars.CHR_EOT
+            else:
+                # return the error code
+                return ArancinoSpecialChars.ERR_SET + ArancinoSpecialChars.CHR_EOT
+
+        except RedisError as ex:
+            raise RedisGenericException(
+                "Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
+
+        except ArancinoException as ex:
+            raise ex
+
+        except Exception as ex:
+            raise ArancinoException(
+                "Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
+
+    # endregion
+    
     # region HSET
     # region HSET STD
     def __OPTS_HSET_STD(self, args):
@@ -1221,31 +1294,3 @@ class ArancinoCommandExecutor:
         num = command["args"]
 
         return num
-
-
-    def verifyCert(public_key, certificate):
-        try:
-            public_key.verify(
-                signature=certificate.signature,
-                data=certificate.tbs_certificate_bytes,
-                signature_algorithm=ec.ECDSA(certificate.signature_hash_algorithm)
-            )
-        except:
-            return False
-        return True
-
-
-    def checkPubKey(whitelist, public_key):
-        for pubKey in whitelist:
-            if pubKey == public_key:
-                return True
-        return False
-
-
-    def verifySign(public_key, data, signature):
-        #public_key = private_key.public_key()
-        try:
-            public_key.verify(signature, data, ec.ECDSA(hashes.SHA256()))
-        except:
-            return False
-        return True

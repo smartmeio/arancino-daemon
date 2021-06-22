@@ -167,7 +167,7 @@ class ArancinoCommandIdentifiers:
 
     # Sign commands
     __CMD_SYS_SIGN = 'SIGN'
-    CMD_SYS_SIGN = {"id": __CMD_SYS_SIGN, "args": 1}  # Arancino Operators??
+    CMD_SYS_SIGN = {"id": __CMD_SYS_SIGN, "args": 2, "op": ArancinoOperators.EQUAL}  # Arancino Operators??
     "Sign the challenge for the asimmetric authentication"
     
     # Simple Operation Commands
@@ -218,6 +218,16 @@ class ArancinoCommandIdentifiers:
 
     __CMD_APP_HDEL = 'HDEL'  #
     CMD_APP_HDEL = {"id": __CMD_APP_HDEL, "args": 2, "op": ArancinoOperators.EQUAL}
+
+    #HSET con labels (HSETL)
+    __CMD_APP_HSETL = 'HSETL'
+    CMD_APP_HSETL = {"id": __CMD_APP_HSETL, "args": 3, "op": ArancinoOperators.EQUAL}
+
+    __CMD_APP_HSETL_STD = 'HSETLSTD'
+    CMD_APP_HSETL_STD = {"id": __CMD_APP_HSETL_STD, "args": 3, "op": ArancinoOperators.EQUAL}
+
+    __CMD_APP_HSETL_PERS = 'HSETLPERS'
+    CMD_APP_HSETL_PERS = {"id": __CMD_APP_HSETL_PERS, "args": 3, "op": ArancinoOperators.EQUAL}
 
     __CMD_APP_HSET = 'HSET'  #
     CMD_APP_HSET = {"id": __CMD_APP_HSET, "args": 3, "op": ArancinoOperators.EQUAL}
@@ -271,6 +281,7 @@ class ArancinoCommandIdentifiers:
 
     COMMANDS_DICT = {
         __CMD_SYS_START: CMD_SYS_START,
+        __CMD_SYS_SIGN: CMD_SYS_SIGN,
         __CMD_APP_GET: CMD_APP_GET,
         __CMD_APP_GET_RSVD: CMD_APP_GET_RSVD,
         __CMD_APP_SET: CMD_APP_SET,
@@ -284,6 +295,9 @@ class ArancinoCommandIdentifiers:
         __CMD_APP_HKEYS: CMD_APP_HKEYS,
         __CMD_APP_HVALS: CMD_APP_HVALS,
         __CMD_APP_HDEL: CMD_APP_HDEL,
+        __CMD_APP_HSETL: CMD_APP_HSETL,
+        __CMD_APP_HSETL_STD: CMD_APP_HSETL_STD,
+        __CMD_APP_HSETL_PERS: CMD_APP_HSETL_PERS,
         __CMD_APP_HSET: CMD_APP_HSET,
         __CMD_APP_HSET_STD: CMD_APP_HSET_STD,
         __CMD_APP_HSET_PERS: CMD_APP_HSET_PERS,
@@ -302,6 +316,7 @@ class ArancinoCommandIdentifiers:
     "{ 'SET': {'id': 'SET', 'args': 2} , ... }"
 
     COMMANDS_LIST = [__CMD_SYS_START,
+                     __CMD_SYS_SIGN,
                      __CMD_APP_GET,
                      __CMD_APP_GET_RSVD,
                      __CMD_APP_SET,
@@ -315,6 +330,9 @@ class ArancinoCommandIdentifiers:
                      __CMD_APP_HKEYS,
                      __CMD_APP_HVALS,
                      __CMD_APP_HDEL,
+                     __CMD_APP_HSETL,
+                     __CMD_APP_HSETL_STD,
+                     __CMD_APP_HSETL_PERS,
                      __CMD_APP_HSET,
                      __CMD_APP_HSET_STD,
                      __CMD_APP_HSET_PERS,

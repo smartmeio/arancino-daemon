@@ -252,7 +252,6 @@ class ArancinoComamnd:
                 raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: != (Between) " + str(n_args_required) + " and " + str(n_args_required_2) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
 
 
-
 class ArancinoResponse:
 
     def __init__(self, raw_response=None, rsp_id=None, rsp_args=None):
@@ -352,3 +351,10 @@ class ArancinoResponse:
             return True
         else:
             return False
+    
+    def addChallenge(self, challenge):
+        self.__args.append(challenge)
+
+    
+    def retrieveChallenge(self):
+        return self.__args[len(self.__args)-1]
