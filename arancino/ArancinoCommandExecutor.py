@@ -97,6 +97,10 @@ class ArancinoCommandExecutor:
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_SET_PERS['id']:
                 raw_response = self.__OPTS_SET_PERS(cmd_args)
                 return ArancinoResponse(raw_response=raw_response)
+            # SET RSVD
+            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_SET_RSVD['id']:
+                raw_response = self.__OPTS_SET_RSVD(cmd_args)
+                return ArancinoResponse(raw_response=raw_response)
             # GET
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_GET['id']:
                 raw_response = self.__OPTS_GET(cmd_args)
@@ -323,7 +327,7 @@ class ArancinoCommandExecutor:
 
         try:
 
-            if key in ArancinoReservedChars:
+            if key in ArancinoReservedChars.RESERVEDKEYSLIST:
 
                 rsp = self.__datastore_rsvd.set(key, value)
 
