@@ -173,6 +173,10 @@ class ArancinoCommandExecutor:
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_STORETAGS['id']:
                 raw_response = self.__OPTS_STORETAGS(cmd_args)
                 return ArancinoResponse(raw_response=raw_response)
+            # MSTORE
+            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_MSTORE['id']:
+                raw_response = self.__OPTS_MSTORE(cmd_args)
+                return ArancinoResponse(raw_response=raw_response)
             # Default
             else:
                 raw_response = ArancinoCommandErrorCodes.ERR_CMD_NOT_FND + ArancinoSpecialChars.CHR_SEP
@@ -1126,7 +1130,7 @@ class ArancinoCommandExecutor:
                     key = "{}:{}".format(self.__port_id, k)
                     value = float(decimal.Decimal(values_array[idx]))
                     tmstp = timestamp
-                    tuple = (key, value, tmstp)
+                    tuple = (key, tmstp, value)
                     list.append(tuple)
 
                     #create the timeseries if it doesn't exists
