@@ -150,14 +150,19 @@ class ArancinoTestPort(ArancinoPort):
                 challenge=self.getChallenge()
                 # verifica challenge
                 signature = self.getSignature(acmd)
-
-                LOG.debug("Signature = {} | Challenge = {}".format(signature, challenge))
                 
                 # chiedere per la politica
                 if self.verifySign(self.device_cert.public_key(), b64decode(challenge), signature):
                     # call the Command Executor and get a arancino response
                     arsp = self._executor.exec(acmd)
-                self.setChallenge()
+                    self.setChallenge()
+                    self.challenge = self.getChallenge()
+                    # aggiunge alla fine degli argomenti della risposta la challenge
+                    arsp.addChallenge(self.challenge)
+
+                else:
+                    # gestire caso in cui la firma non è verificata
+                    pass
             
             else:
                 arsp = self._executor.exec(acmd)
@@ -300,9 +305,10 @@ class ArancinoTestPort(ArancinoPort):
         keys = args[0]
         values = args[1]
 
+
         if keys == "sign":
+            signature = b64decode(values)
             LOG.debug("Retrieve sign from command SIGN: "+values)
-            return values
         else:
             keys_array = keys.split(specChars.CHR_ARR_SEP)
             values_array = values.split(specChars.CHR_ARR_SEP)
@@ -311,8 +317,9 @@ class ArancinoTestPort(ArancinoPort):
                 if keys_array=="sign":
                     break
                 count += 1
-        LOG.debug("Retrieve sign from command: "+values_array[count])
-        return values_array[count]
+            signature = b64decode(values_array[count])
+            LOG.debug("Retrieve sign from command: "+str(signature))
+        return signature
 
 
 
@@ -322,7 +329,6 @@ class ArancinoTestPort(ArancinoPort):
         acmd = ArancinoComamnd(raw_command=command)
         arsp = self._executor.exec(acmd)
         if arsp.getId()!=ArancinoCommandErrorCodes.ERR:
-            LOG.debug("Challenge insert to redis: " + str(b64encode(challenge).decode('utf-8')))
             return str(b64encode(challenge).decode('utf-8'))
         else:
             LOG.debug("Error inserting challenge to redis!!! " + arsp.getId() +

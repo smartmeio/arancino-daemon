@@ -30,6 +30,7 @@ from arancino.ArancinoConstants import SUFFIX_TMSTP
 import time
 
 #import for asimmetric authentication
+from arancino.ArancinoCortex import ArancinoResponse
 from cryptography import x509
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.backends import default_backend
@@ -38,7 +39,7 @@ import os
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
-from base64 import b64decode
+from base64 import b64decode, b64encode
 
 
 LOG = ArancinoLogger.Instance().getLogger()
@@ -82,6 +83,7 @@ class ArancinoTestHandler(threading.Thread):
 
                     raw_cmd = self.__command_test_list[count]
                     acmd = ArancinoComamnd(raw_command=raw_cmd)
+                    
                     if acmd.getId() != ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
                         #crea e aggiungi firma
                         signature = self.__signChallenge(self.challenge)
@@ -90,8 +92,9 @@ class ArancinoTestHandler(threading.Thread):
 
                     # send back the raw command
                     if self.__commandReceivedHandler is not None:
-                        response = self.__commandReceivedHandler(raw_cmd)
+                        response = self.__commandReceivedHandler(acmd.getRaw())
                         self.challenge = response.retrieveChallenge()
+                    
 
                     if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
                         self.addSignCommand()
@@ -479,15 +482,19 @@ class ArancinoTestHandler(threading.Thread):
         keys = args[0]
         values = args[1]
 
-        keys_array = keys.split(specChars.CHR_ARR_SEP)
-        values_array = values.split(specChars.CHR_ARR_SEP)
+        if keys == "sign":
+            values = str(signature)
+            command = acmd.getId() + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT
+        else:
+            keys_array = keys.split(specChars.CHR_ARR_SEP)
+            values_array = values.split(specChars.CHR_ARR_SEP)
 
-        start_args_keys = specChars.CHR_ARR_SEP.join(keys_array)
-        start_args_vals = specChars.CHR_ARR_SEP.join(values_array)
+            start_args_keys = specChars.CHR_ARR_SEP.join(keys_array)
+            start_args_vals = specChars.CHR_ARR_SEP.join(values_array)
 
-        keys_array.append("sign")
-        values_array.append(str(signature))
-        command = acmd.getId() + specChars.CHR_SEP + start_args_keys + specChars.CHR_SEP + start_args_vals + specChars.CHR_EOT
+            keys_array.append("sign")
+            values_array.append(str(signature))
+            command = acmd.getId() + specChars.CHR_SEP + start_args_keys + specChars.CHR_SEP + start_args_vals + specChars.CHR_EOT
         LOG.debug("Add sign to command: "+ command)
         acmd = ArancinoComamnd(raw_command=command)
         return acmd
@@ -511,8 +518,8 @@ class ArancinoTestHandler(threading.Thread):
 
     def __signChallenge(self, challenge):
         data = b64decode(challenge)
-        LOG.debug("data = "+str(data))
-        return self.getPrivateKey().sign(data, ec.ECDSA(hashes.SHA256()))
+        signature = self.getPrivateKey().sign(data, ec.ECDSA(hashes.SHA256()))
+        return b64encode(signature).decode('utf-8')
 
     def __addSignToCommand(self, command):
         pass
