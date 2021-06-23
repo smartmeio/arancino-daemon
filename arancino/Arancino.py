@@ -19,9 +19,12 @@ License for the specific language governing permissions and limitations
 under the License
 """
 
+
 import threading
 from threading import Thread
 from datetime import datetime
+
+from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, secondsToHumanString
 from arancino.discovery.ArancinoSerialDiscovery import ArancinoSerialDiscovery
 from arancino.discovery.ArancinoTestDiscovery import ArancinoTestDiscovery
@@ -30,6 +33,11 @@ from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoConstants import ArancinoApiResponseCode
 from arancino.ArancinoDataStore import ArancinoDataStore
 from arancino.ArancinoConstants import ArancinoReservedChars
+#temp import to create the whitelist
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.backends import default_backend
+from base64 import b64encode
+
 
 import time
 
@@ -76,6 +84,8 @@ class Arancino(Thread):
 
             self.__synchronizer = ArancinoPortSynch()
             self.__datastore = ArancinoDataStore.Instance()
+
+            self.setWhitelist()
 
             # store in datastore: module version, module environment running mode
             self.__datastore.getDataStoreRsvd().set(ArancinoReservedChars.RSVD_KEY_MODVERSION, str(self.__version))
@@ -268,3 +278,22 @@ class Arancino(Thread):
 
     def identifyPort(self, port_id):
         self.__datastore.getDataStoreRsvd().set(ArancinoReservedChars.RSVD_KEY_BLINK_ID, "1")
+
+    # Insert whitelist to redis, only in test phase
+    def setWhitelist(self):
+        privateKey = []
+        privateKey.append(ec.generate_private_key(ec.SECP384R1, default_backend()))
+        privateKey.append(ec.generate_private_key(ec.SECP384R1, default_backend()))
+        privateKey.append(ec.derive_private_key(1, ec.SECP384R1(), default_backend()))
+        privateKey.append(ec.derive_private_key(2, ec.SECP384R1(), default_backend()))
+        privateKey.append(ec.generate_private_key(ec.SECP384R1, default_backend()))
+        privateKey.append(ec.generate_private_key(ec.SECP384R1, default_backend()))
+        publicKey = []
+        for i in privateKey:
+            publicKey.append(i.public_key().public_bytes(format=PublicFormat.SubjectPublicKeyInfo,encoding=Encoding.PEM))
+        count = 0
+        for i in publicKey:
+            self.__datastore.getDataStorePer().hset("WHITELIST", str(count), i)
+            count += 1
+
+        
