@@ -1137,7 +1137,7 @@ class ArancinoCommandExecutor:
                     self.__check_ts_exist_and_create(key)
 
                 ts_array = self.__datastore_tser.madd(list)
-                ts = ArancinoSpecialChars.CHR_ARR_SEP.join(ts_array)
+                ts = ArancinoSpecialChars.CHR_ARR_SEP.join(str(item) for item in ts_array)
 
                 return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
 
