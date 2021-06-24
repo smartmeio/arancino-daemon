@@ -97,6 +97,10 @@ class ArancinoCommandExecutor:
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_SET_PERS['id']:
                 raw_response = self.__OPTS_SET_PERS(cmd_args)
                 return ArancinoResponse(raw_response=raw_response)
+            # SET RSVD
+            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_SET_RSVD['id']:
+                raw_response = self.__OPTS_SET_RSVD(cmd_args)
+                return ArancinoResponse(raw_response=raw_response)
             # GET
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_GET['id']:
                 raw_response = self.__OPTS_GET(cmd_args)
@@ -168,6 +172,10 @@ class ArancinoCommandExecutor:
             # STORETAGS
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_STORETAGS['id']:
                 raw_response = self.__OPTS_STORETAGS(cmd_args)
+                return ArancinoResponse(raw_response=raw_response)
+            # MSTORE
+            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_MSTORE['id']:
+                raw_response = self.__OPTS_MSTORE(cmd_args)
                 return ArancinoResponse(raw_response=raw_response)
             # Default
             else:
@@ -323,7 +331,7 @@ class ArancinoCommandExecutor:
 
         try:
 
-            if key in ArancinoReservedChars:
+            if key in ArancinoReservedChars.RESERVEDKEYSLIST:
 
                 rsp = self.__datastore_rsvd.set(key, value)
 
@@ -1122,7 +1130,7 @@ class ArancinoCommandExecutor:
                     key = "{}:{}".format(self.__port_id, k)
                     value = float(decimal.Decimal(values_array[idx]))
                     tmstp = timestamp
-                    tuple = (key, value, tmstp)
+                    tuple = (key, tmstp, value)
                     list.append(tuple)
 
                     #create the timeseries if it doesn't exists
