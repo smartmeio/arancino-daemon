@@ -219,16 +219,6 @@ class ArancinoCommandIdentifiers:
     __CMD_APP_HDEL = 'HDEL'  #
     CMD_APP_HDEL = {"id": __CMD_APP_HDEL, "args": 2, "op": ArancinoOperators.EQUAL}
 
-    #HSET con labels (HSETL)
-    __CMD_APP_HSETL = 'HSETL'
-    CMD_APP_HSETL = {"id": __CMD_APP_HSETL, "args": 3, "op": ArancinoOperators.EQUAL}
-
-    __CMD_APP_HSETL_STD = 'HSETLSTD'
-    CMD_APP_HSETL_STD = {"id": __CMD_APP_HSETL_STD, "args": 3, "op": ArancinoOperators.EQUAL}
-
-    __CMD_APP_HSETL_PERS = 'HSETLPERS'
-    CMD_APP_HSETL_PERS = {"id": __CMD_APP_HSETL_PERS, "args": 3, "op": ArancinoOperators.EQUAL}
-
     __CMD_APP_HSET = 'HSET'  #
     CMD_APP_HSET = {"id": __CMD_APP_HSET, "args": 3, "op": ArancinoOperators.EQUAL}
 
@@ -295,9 +285,6 @@ class ArancinoCommandIdentifiers:
         __CMD_APP_HKEYS: CMD_APP_HKEYS,
         __CMD_APP_HVALS: CMD_APP_HVALS,
         __CMD_APP_HDEL: CMD_APP_HDEL,
-        __CMD_APP_HSETL: CMD_APP_HSETL,
-        __CMD_APP_HSETL_STD: CMD_APP_HSETL_STD,
-        __CMD_APP_HSETL_PERS: CMD_APP_HSETL_PERS,
         __CMD_APP_HSET: CMD_APP_HSET,
         __CMD_APP_HSET_STD: CMD_APP_HSET_STD,
         __CMD_APP_HSET_PERS: CMD_APP_HSET_PERS,
@@ -330,9 +317,6 @@ class ArancinoCommandIdentifiers:
                      __CMD_APP_HKEYS,
                      __CMD_APP_HVALS,
                      __CMD_APP_HDEL,
-                     __CMD_APP_HSETL,
-                     __CMD_APP_HSETL_STD,
-                     __CMD_APP_HSETL_PERS,
                      __CMD_APP_HSET,
                      __CMD_APP_HSET_STD,
                      __CMD_APP_HSET_PERS,

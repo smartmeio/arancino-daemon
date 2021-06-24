@@ -32,13 +32,6 @@ from arancino.utils.ArancinoUtils import ArancinoConfig
 from arancino.port.ArancinoPort import PortTypes
 from datetime import datetime
 
-#import for asimmetric authentication
-from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.hazmat.primitives import hashes
-import os
-from base64 import b64encode
-
-
 class ArancinoCommandExecutor:
 
     def __init__(self, port_id, port_device, port_type):
@@ -122,18 +115,6 @@ class ArancinoCommandExecutor:
             # KEYS
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_KEYS['id']:
                 raw_response = self.__OPTS_KEYS(cmd_args)
-                return ArancinoResponse(raw_response=raw_response)
-            # HSETL STD
-            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HSETL_STD['id']:
-                raw_response = self.__OPTS_HSETL_STD(cmd_args)
-                return ArancinoResponse(raw_response=raw_response)
-            # HSETL PERSISTENT
-            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HSETL_PERS['id']:
-                raw_response = self.__OPTS_HSETL_PERS(cmd_args)
-                return ArancinoResponse(raw_response=raw_response)
-            # HSETL
-            elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HSETL['id']:
-                raw_response = self.__OPTS_HSETL(cmd_args)
                 return ArancinoResponse(raw_response=raw_response)
             # HSET
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_HSET_STD['id']:
@@ -593,62 +574,6 @@ class ArancinoCommandExecutor:
 
     # endregion
 
-    # region HSETL
-    # region HSETL_STD
-    def __OPTS_HSETL_STD(self, args):
-        return self.__OPTS_HSETL(args, self.__datastore, self.__datastore_pers, "STD")
-    # endregion
-
-    # region HSETL_PERS
-    def __OPTS_HSETL_PERS(self, args):
-        return self.__OPTS_HSETL(args, self.__datastore_pers, self.__datastore, "PERS")
-    # endregion
-
-    # region HSETL
-    def __OPTS_HSETL(self, args, first_datastore, second_datastore, type):
-        '''
-        Sets field in the hash stored at key to value.
-        If key does not exist, a new key holding a hash is created.
-        If field already exists in the hash, it is overwritten.
-            https://redis.io/commands/hset
-
-        MCU → HSET#<key>#<field>#<value>@
-
-        MCU ← 101@
-        MCU ← 102@
-        '''
-
-        key = args[0]
-        field = args[1]
-        value = args[2]
-        rsp = None
-
-        try:
-            # store the value at key and field
-            rsp = first_datastore.hset(key, field, value)
-
-            if rsp is not None:
-                if rsp == 1:
-                    return ArancinoCommandResponseCodes.RSP_HSET_NEW + ArancinoSpecialChars.CHR_EOT
-                else:  # 0
-                    return ArancinoCommandResponseCodes.RSP_HSET_UPD + ArancinoSpecialChars.CHR_EOT
-            else:
-                # return the error code
-                return ArancinoSpecialChars.ERR_SET + ArancinoSpecialChars.CHR_EOT
-
-        except RedisError as ex:
-            raise RedisGenericException(
-                "Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
-
-        except ArancinoException as ex:
-            raise ex
-
-        except Exception as ex:
-            raise ArancinoException(
-                "Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
-
-    # endregion
-    
     # region HSET
     # region HSET STD
     def __OPTS_HSET_STD(self, args):
