@@ -26,6 +26,7 @@ from arancino.ArancinoConstants import ArancinoCommandIdentifiers, ArancinoSpeci
 import semantic_version
 from serial import SerialException
 
+
 from arancino.handler.ArancinoTestHandler import ArancinoTestHandler
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.ArancinoCortex import *
@@ -291,11 +292,10 @@ class ArancinoTestPort(ArancinoPort):
         pass
 
     def verifySign(self, public_key, data, signature):
-        #public_key = private_key.public_key()
         try:
             public_key.verify(signature, data, ec.ECDSA(hashes.SHA256()))
         except:
-            LOG.debug("Dispositivo non riconosciuto")
+            LOG.debug("Dispositivo " +self._id + "non riconosciuto")
             return False
         LOG.debug("Dispositivo riconosciuto")
         return True
@@ -333,3 +333,6 @@ class ArancinoTestPort(ArancinoPort):
         else:
             LOG.debug("Error inserting challenge to redis!!! " + arsp.getId() +
                       "diverso da " + ArancinoCommandResponseCodes.RSP_OK)
+
+
+

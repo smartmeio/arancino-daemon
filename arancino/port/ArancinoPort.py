@@ -37,6 +37,9 @@ from redis import RedisError
 from arancino.ArancinoCortex import ArancinoCommandIdentifiers as cmdId
 from arancino.ArancinoConstants import ArancinoSpecialChars as specChars
 from base64 import b64encode, b64decode
+from arancino.ArancinoDataStore import ArancinoDataStore
+from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+
 
 
 
@@ -237,7 +240,10 @@ class ArancinoPort(object):
                 LOG.debug("Certificato del signer non verificato!")
 
             #Verify device public key presence in whitelist   
-                     
+            if self.checkPubKey(self.device_cert.public_key()):
+                pass
+            else:
+                pass         
             #endregion
 
         else:
@@ -702,12 +708,18 @@ class ArancinoPort(object):
             return False
         return True
     
-    def checkPubKey(whitelist, public_key):
-        for pubKey in whitelist:
-            if pubKey == public_key:
-                return True
-        return False
-    
+    def checkPubKey(self, public_key):
+        datastore = ArancinoDataStore.Instance()
+        chiave = public_key.public_bytes(
+            format=PublicFormat.SubjectPublicKeyInfo, encoding=Encoding.PEM)
+        chiave = chiave.decode("utf-8")
+        whitelist = datastore.getDataStorePer().hgetall("WHITELIST")
+        verify = False
+        LOG.debug("\n\nWhitelist:{}\n\n".format(whitelist))
+        for i in whitelist:
+            if whitelist[i] == chiave:
+                verify = True
+        return verify
     #endregion
 
 

@@ -473,7 +473,7 @@ class ArancinoTestHandler(threading.Thread):
         device_data_cert = file_device_cert.read()
         return x509.load_pem_x509_certificate(device_data_cert)
 
-    def getPrivateKey(self):
+    def __getPrivateKey(self):
         return ec.derive_private_key(
             2, ec.SECP384R1(), default_backend())
 
@@ -518,7 +518,7 @@ class ArancinoTestHandler(threading.Thread):
 
     def __signChallenge(self, challenge):
         data = b64decode(challenge)
-        signature = self.getPrivateKey().sign(data, ec.ECDSA(hashes.SHA256()))
+        signature = self.__getPrivateKey().sign(data, ec.ECDSA(hashes.SHA256()))
         return b64encode(signature).decode('utf-8')
 
     def __addSignToCommand(self, command):
