@@ -294,7 +294,6 @@ class Arancino(Thread):
             publicKey.append(i.public_key().public_bytes(format=PublicFormat.SubjectPublicKeyInfo,encoding=Encoding.PEM))
         count = 0
         for i in publicKey:
-            self.__datastore.getDataStorePer().hset("WHITELIST", str(count), i)
+            self.__datastore.getDataStoreDev().hset("WHITELIST", str(count), i)
             count += 1
 
-        

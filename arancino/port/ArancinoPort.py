@@ -29,7 +29,7 @@ import time
 
 import semantic_version
 
-#import for asimmetric authentication
+# import for asimmetric authentication
 import os
 from cryptography import x509
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -41,24 +41,23 @@ from arancino.ArancinoDataStore import ArancinoDataStore
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 
 
-
-
-
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
 TRACE = CONF.get_log_print_stack_trace()
 
-class ArancinoPort(object):
 
+class ArancinoPort(object):
 
     __metaclass__ = ABCMeta
 
     def __init__(self, id=None, device=None, m_s_plugged=False, m_c_enabled=True, m_c_alias="", m_c_hide=False, port_type=None, upload_cmd=None, receivedCommandHandler=None, disconnectionHandler=None):
 
-        #region BASE METADATA
-        self._id = id                 # Id is the Serial Number. It will have a value when the Serial Port is connected
+        # region BASE METADATA
+        # Id is the Serial Number. It will have a value when the Serial Port is connected
+        self._id = id
         self._device = device           # the plugged tty or ip adddress, i.e: "/dev/tty.ACM0"
-        self._port_type = port_type     # Type of port, i.e: Serial, Network, etc...
+        # Type of port, i.e: Serial, Network, etc...
+        self._port_type = port_type
         self._library_version = None
         self._m_b_creation_date = None
         self._start_thread_time = None
@@ -68,25 +67,25 @@ class ArancinoPort(object):
         self._firmware_core_version = None
         self._microcontroller_family = None
         self._generic_attributes = {}
-        #endregion
+        # endregion
 
-        #region BASE STATUS METADATA
+        # region BASE STATUS METADATA
         self._m_s_plugged = m_s_plugged
         self._m_s_connected = False
         self._m_s_last_usage_date = None
         self._m_s_compatible = None
         self._m_s_started = False
-        #endregion
+        # endregion
 
-        #region BASE CONFIGURATION METADATA
+        # region BASE CONFIGURATION METADATA
         self._m_c_enabled = m_c_enabled
         self._m_c_alias = m_c_alias
         self._m_c_hide = m_c_hide
-        #endregion
+        # endregion
 
-        #region OTHER
+        # region OTHER
         self._upload_cmd = upload_cmd
-        #endregion
+        # endregion
 
         # Command Executor
         # self._executor = ArancinoCommandExecutor(self._id, self._device)
@@ -94,22 +93,22 @@ class ArancinoPort(object):
         # Log Prefix to be print in each log
         #self._log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
 
-        #region CALLBACK FUNCTIONS
+        # region CALLBACK FUNCTIONS
         self._received_command_handler = None
         self._disconnection_handler = None
-        self.setReceivedCommandHandler(receivedCommandHandler)  # this is the handler to be used to receive an ArancinoCommand and exec that command.
-        self.setDisconnectionHandler(disconnectionHandler)  # this is the handler to be used whene a disconnection event is triggered
-        #endregion
+        # this is the handler to be used to receive an ArancinoCommand and exec that command.
+        self.setReceivedCommandHandler(receivedCommandHandler)
+        # this is the handler to be used whene a disconnection event is triggered
+        self.setDisconnectionHandler(disconnectionHandler)
+        # endregion
 
-        #region Asimmetric Authentication
+        # region Asimmetric Authentication
         self.signer_cert = None
         self.device_cert = None
         self.challenge = None
-        #end region
+        # end region
 
         self.__first_time = True
-
-
 
     def _retrieveStartCmdArgs(self, args):
         """
@@ -121,7 +120,7 @@ class ArancinoPort(object):
         """
         arg_num = len(args)
 
-        #if arg_num > 0: #forse questo non é necessario (il numero di argomenti passati viene controllato prima da verificare)
+        # if arg_num > 0: #forse questo non é necessario (il numero di argomenti passati viene controllato prima da verificare)
 
         keys = args[0]
         values = args[1]
@@ -134,19 +133,20 @@ class ArancinoPort(object):
             for idx, key in enumerate(keys_array):
                 attributes[key] = values_array[idx]
 
-            #region LIBRARY VERSION
+            # region LIBRARY VERSION
 
             arancino_lib_version = None
 
             if ArancinoPortAttributes.FIRMWARE_LIBRARY_VERSION in attributes:
                 arancino_lib_version = attributes[ArancinoPortAttributes.FIRMWARE_LIBRARY_VERSION]
-                arancino_lib_version = semantic_version.Version(arancino_lib_version)
+                arancino_lib_version = semantic_version.Version(
+                    arancino_lib_version)
                 del attributes[ArancinoPortAttributes.FIRMWARE_LIBRARY_VERSION]
 
             self._setLibVersion(arancino_lib_version)
-            #endregion
+            # endregion
 
-            #region MICRO FAMILY
+            # region MICRO FAMILY
 
             arancino_micro_family = None
 
@@ -156,9 +156,9 @@ class ArancinoPort(object):
 
             self._setMicrocontrollerFamily(arancino_micro_family)
 
-            #endregion
+            # endregion
 
-            #region FIRMWARE NAME
+            # region FIRMWARE NAME
 
             arancino_fw_name = None
             if ArancinoPortAttributes.FIRMWARE_NAME in attributes:
@@ -167,33 +167,35 @@ class ArancinoPort(object):
 
             self._setFirmwareName(arancino_fw_name)
 
-            #endregion
+            # endregion
 
-            #region FIRMWARE VERSION
+            # region FIRMWARE VERSION
 
             arancino_fw_version = None
 
             if ArancinoPortAttributes.FIRMWARE_VERSION in attributes:
                 arancino_fw_version = attributes[ArancinoPortAttributes.FIRMWARE_VERSION]
-                arancino_fw_version = semantic_version.Version(arancino_fw_version)
+                arancino_fw_version = semantic_version.Version(
+                    arancino_fw_version)
                 del attributes[ArancinoPortAttributes.FIRMWARE_VERSION]
 
             self._setFirmwareVersion(arancino_fw_version)
 
-            #endregion
+            # endregion
 
-            #region FIRMWARE CORE VERSION
+            # region FIRMWARE CORE VERSION
 
             arancino_fw_core_version = None
 
             if ArancinoPortAttributes.FIRMWARE_CORE_VERSION in attributes:
                 arancino_fw_core_version = attributes[ArancinoPortAttributes.FIRMWARE_CORE_VERSION]
-                arancino_fw_core_version = semantic_version.Version(arancino_fw_core_version)
+                arancino_fw_core_version = semantic_version.Version(
+                    arancino_fw_core_version)
                 del attributes[ArancinoPortAttributes.FIRMWARE_CORE_VERSION]
 
             self._setFirmwareCoreVersion(arancino_fw_core_version)
 
-            #endregion
+            # endregion
 
             # region FIRMWARE BUILD DATE TIME
 
@@ -201,59 +203,65 @@ class ArancinoPort(object):
 
             if ArancinoPortAttributes.FIRMWARE_BUILD_TIME in attributes:
                 arancino_firmware_upload_datetime = attributes[ArancinoPortAttributes.FIRMWARE_BUILD_TIME]
-                arancino_firmware_upload_datetime = datetime.strptime(arancino_firmware_upload_datetime, '%b %d %Y %H:%M:%S %z')
-                arancino_firmware_upload_datetime = datetime.timestamp(arancino_firmware_upload_datetime)
-                arancino_firmware_upload_datetime = datetime.fromtimestamp(arancino_firmware_upload_datetime)
+                arancino_firmware_upload_datetime = datetime.strptime(
+                    arancino_firmware_upload_datetime, '%b %d %Y %H:%M:%S %z')
+                arancino_firmware_upload_datetime = datetime.timestamp(
+                    arancino_firmware_upload_datetime)
+                arancino_firmware_upload_datetime = datetime.fromtimestamp(
+                    arancino_firmware_upload_datetime)
                 del attributes[ArancinoPortAttributes.FIRMWARE_BUILD_TIME]
 
             self._setFirmwareBuildDate(arancino_firmware_upload_datetime)
 
             # endregion
 
-            #region GENERIC ATTRIBUTES
+            # region GENERIC ATTRIBUTES
 
             self._setGenericAttributes(attributes)
 
-            #endregion
+            # endregion
 
-            #region Asimmetric Authentication
+            # region Asimmetric Authentication
             # Retrieve Arancino Certificates for Asimmetric Authentication
             #LOG.debug("\nCertificato del signer: "+ attributes["SIGNER_CERT"] + "\nCertificato del device: "+ attributes["DEVICE_CERT"])
             if "SIGNER_CERT" in attributes:
-                self.setSignerCertificate(attributes["SIGNER_CERT"])
+                self.__setSignerCertificate(attributes["SIGNER_CERT"])
                 del attributes["SIGNER_CERT"]
             if "DEVICE_CERT" in attributes:
-                self.setDeviceCertificate(attributes["DEVICE_CERT"])
+                self.__setDeviceCertificate(attributes["DEVICE_CERT"])
                 del attributes["DEVICE_CERT"]
 
-            #retrieve root certificate from file 
-            root_cert = self.retrieveRootCertificate()
+            # retrieve root certificate from file
+            root_cert = self.__retrieveRootCertificate()
 
-            #Verify Certificates    (forse bisogna prendere il certificato del device da file)
-            if self.verifyCert(root_cert.public_key(), self.signer_cert):
+            # Verify Certificates    (forse bisogna prendere il certificato del device da file)
+            if self.__verifyCert(root_cert.public_key(), self.signer_cert):
                 LOG.debug("Certificato del signer verificato!")
-                if self.verifyCert(self.signer_cert.public_key(), self.device_cert):
+                if self.__verifyCert(self.signer_cert.public_key(), self.device_cert):
                     LOG.debug("Certificato del device verificato!")
                 else:
                     LOG.debug("Certificato del device non verificato")
+                    raise  AuthenticationException("ERROR",ArancinoCommandErrorCodes.ERR_AUTENTICATION)
             else:
                 LOG.debug("Certificato del signer non verificato!")
+                raise  AuthenticationException("ERROR",ArancinoCommandErrorCodes.ERR_AUTENTICATION)
 
             #Verify device public key presence in whitelist   
             if self.checkPubKey(self.device_cert.public_key()):
+                LOG.debug("Chiave pubblica in whitelist")
                 pass
             else:
-                pass         
+                raise AuthorizationExcepetion("ERROR",ArancinoCommandErrorCodes.ERR_AUTHORIZATION)
+            
             #endregion
 
         else:
-            raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
+            raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty",
+                                    ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
 
         # else:
         #     pass
             # paramentri non sufficienti
-
-
 
     def __retrieveStartCmdArgs(self, args):
         arg_num = len(args)
@@ -265,20 +273,22 @@ class ArancinoPort(object):
             arancino_lib_version = semantic_version.Version(args[0])
             self._setLibVersion(arancino_lib_version)
 
-            LOG.debug("{} Arancino Library Compatibile Versions: {}".format(self._log_prefix, self._compatibility_array))
+            LOG.debug("{} Arancino Library Compatibile Versions: {}".format(
+                self._log_prefix, self._compatibility_array))
 
-# #version checkpoint
-# checkpoint_version = semantic_version.SimpleSpec("2.0.0")
-# if arancino_lib_version < checkpoint_version:
+        # #version checkpoint
+        # checkpoint_version = semantic_version.SimpleSpec("2.0.0")
+        # if arancino_lib_version < checkpoint_version:
 
-# - 1 - library version
-# - 2 - firmware name
-# - 3 - firmware version
-# - 4 - upload datetime
-# - 5 - core version
+        # - 1 - library version
+        # - 2 - firmware name
+        # - 3 - firmware version
+        # - 4 - upload datetime
+        # - 5 - core version
 
             for compatible_ver in self._compatibility_array:
-                semver_compatible_ver = semantic_version.SimpleSpec(compatible_ver)
+                semver_compatible_ver = semantic_version.SimpleSpec(
+                    compatible_ver)
                 if arancino_lib_version in semver_compatible_ver:
                     self._setComapitibility(True)
                     break
@@ -286,38 +296,42 @@ class ArancinoPort(object):
             started = True if self.isCompatible() else False
             self._setStarted(started)
 
-
         # Arancino Firmware Name
         if arg_num > 1:
-            arancino_fw_name = None if args[1].strip() == "" else args[1].strip()
+            arancino_fw_name = None if args[1].strip(
+            ) == "" else args[1].strip()
             self._setFirmwareName(arancino_fw_name)
 
         # Arancino Firmware Version
         if arg_num > 2:
-            arancino_fw_version = None if args[2].strip() == "" else semantic_version.Version(args[2])
+            arancino_fw_version = None if args[2].strip(
+            ) == "" else semantic_version.Version(args[2])
             self._setFirmwareVersion(arancino_fw_version)
 
         # Arancino Firmware Upload Datetime/Timestamp
         if arg_num > 3:
-            arancino_firmware_upload_datetime = None if args[3].strip() == "" else datetime.strptime(args[3], '%b %d %Y %H:%M:%S %z')
-            arancino_firmware_upload_datetime = datetime.timestamp(arancino_firmware_upload_datetime)
-            arancino_firmware_upload_datetime = datetime.fromtimestamp(arancino_firmware_upload_datetime)
+            arancino_firmware_upload_datetime = None if args[3].strip(
+            ) == "" else datetime.strptime(args[3], '%b %d %Y %H:%M:%S %z')
+            arancino_firmware_upload_datetime = datetime.timestamp(
+                arancino_firmware_upload_datetime)
+            arancino_firmware_upload_datetime = datetime.fromtimestamp(
+                arancino_firmware_upload_datetime)
             self._setFirmwareBuildDate(arancino_firmware_upload_datetime)
 
-        #Arancino Core Version
+        # Arancino Core Version
         if arg_num > 4:
-            arancino_core_version = None if args[4].strip() == "" else semantic_version.Version(args[4])
+            arancino_core_version = None if args[4].strip(
+            ) == "" else semantic_version.Version(args[4])
             self._setFirmwareCoreVersion(arancino_core_version)
-
 
         if not self.isCompatible():
             self._setComapitibility(False)
-            raise NonCompatibilityException("Module version " + str(CONF.get_metadata_version()) + " can not work with Library version " + str(self.getLibVersion()), ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
-            
+            raise NonCompatibilityException("Module version " + str(CONF.get_metadata_version(
+            )) + " can not work with Library version " + str(self.getLibVersion()), ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
+
     def unplug(self):
         self.disconnect()
         self._m_s_plugged = False
-
 
     @abstractmethod
     def connect(self):
@@ -327,7 +341,6 @@ class ArancinoPort(object):
         """
         pass
 
-
     @abstractmethod
     def disconnect(self):
         """
@@ -335,7 +348,6 @@ class ArancinoPort(object):
         :return:
         """
         pass
-
 
     @abstractmethod
     def sendResponse(self, response):
@@ -348,7 +360,6 @@ class ArancinoPort(object):
         """
         pass
 
-
     @abstractmethod
     def reset(self):
         """
@@ -357,12 +368,11 @@ class ArancinoPort(object):
         """
         pass
 
-
     @abstractmethod
     def upload(self, firmware):
         pass
 
-    #@abstractmethod
+    # @abstractmethod
     def _commandReceivedHandlerAbs(self, raw_command):
         """
         This is an Asynchronous function, and represent the "handler" to be used by an ArancinoHandler implementation to receive data.
@@ -376,7 +386,8 @@ class ArancinoPort(object):
 
             # create an Arancino Comamnd from the raw command
             acmd = ArancinoComamnd(raw_command=raw_command)
-            LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.getId(), str(acmd.getArguments())))
+            LOG.debug("{} Received: {}: {}".format(
+                self._log_prefix, acmd.getId(), str(acmd.getArguments())))
 
             # check if the received command handler callback function is defined
             if self._received_command_handler is not None:
@@ -397,22 +408,27 @@ class ArancinoPort(object):
 
         except ArancinoException as ex:
             arsp = ArancinoResponse(rsp_id=ex.error_code, rsp_args=[])
-            LOG.error("{} {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
+            LOG.error("{} {}".format(
+                self._log_prefix, str(ex)), exc_info=TRACE)
 
         # Generic Exception uses a generic Error Code
         except Exception as ex:
-            arsp = ArancinoResponse(rsp_id=ArancinoCommandErrorCodes.ERR, rsp_args=[])
-            LOG.error("{} {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
+            arsp = ArancinoResponse(
+                rsp_id=ArancinoCommandErrorCodes.ERR, rsp_args=[])
+            LOG.error("{} {}".format(
+                self._log_prefix, str(ex)), exc_info=TRACE)
 
         finally:
 
             try:
                 # send the response back.
                 self.sendResponse(arsp.getRaw())
-                LOG.debug("{} Sending: {}: {}".format(self._log_prefix, arsp.getId(), str(arsp.getArguments())))
+                LOG.debug("{} Sending: {}: {}".format(
+                    self._log_prefix, arsp.getId(), str(arsp.getArguments())))
 
             except Exception as ex:
-                LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex), exc_info=TRACE)
+                LOG.error("{} Error while transmitting a Response: {}".format(
+                    self._log_prefix), str(ex), exc_info=TRACE)
 
     @abstractmethod
     def __connectionLostHandler(self):
@@ -424,23 +440,21 @@ class ArancinoPort(object):
         """
         pass
 
-
-    #region BASE METADATA Encapsulators
+    # region BASE METADATA Encapsulators
 
     # region ID
+
     def getId(self):
         return self._id
-
 
     def _setId(self, id):
         self._id(id)
 
-    #endregion
+    # endregion
 
     # region DEVICE
     def getDevice(self):
         return self._device
-
 
     def _setDevice(self, device):
         self._device = device
@@ -451,7 +465,6 @@ class ArancinoPort(object):
     def getPortType(self):
         return self._port_type
 
-
     def _setPortType(self, port_type):
         self._port_type = port_type
 
@@ -460,7 +473,6 @@ class ArancinoPort(object):
     # region LIBRARY VERSION
     def getLibVersion(self):
         return self._library_version
-
 
     def _setLibVersion(self, library_version):
         self._library_version = library_version
@@ -471,7 +483,6 @@ class ArancinoPort(object):
     def getCreationDate(self):
         return self._m_b_creation_date
 
-
     def setCreationDate(self, creation_date):
         self._m_b_creation_date = creation_date
 
@@ -480,7 +491,6 @@ class ArancinoPort(object):
     # region LAST USAGE DATE
     def getLastUsageDate(self):
         return self._m_s_last_usage_date
-
 
     def setLastUsageDate(self, last_usage_date):
         self._m_s_last_usage_date = last_usage_date
@@ -500,7 +510,6 @@ class ArancinoPort(object):
     def getFirmwareVersion(self):
         return self._firmware_version
 
-
     def _setFirmwareVersion(self, firmware_version):
         self._firmware_version = firmware_version
 
@@ -509,7 +518,6 @@ class ArancinoPort(object):
     # region FIRMWARE NAME
     def getFirmwareName(self):
         return self._firmware_name
-
 
     def _setFirmwareName(self, firmware_name):
         self._firmware_name = firmware_name
@@ -542,25 +550,21 @@ class ArancinoPort(object):
     def _setMicrocontrollerFamily(self, microcontroller_family):
         self._microcontroller_family = microcontroller_family
 
-    #endregion
+    # endregion
 
-    #region BASE STATUS METADATA Encapsulators
+    # region BASE STATUS METADATA Encapsulators
 
     def isPlugged(self):
         return self._m_s_plugged
 
-
     def isConnected(self):
         return self._m_s_connected
-
 
     def isCompatible(self):
         return self._m_s_compatible
 
-
     def _setComapitibility(self, comp):
         self._m_s_compatible = comp
-
 
     def _setStarted(self, started):
         self._m_s_started = started
@@ -568,13 +572,12 @@ class ArancinoPort(object):
     def isStarted(self):
         return self._m_s_started
 
-    #endregion
+    # endregion
 
-    #region BASE CONFIGURATION METADATA Encapsulators
+    # region BASE CONFIGURATION METADATA Encapsulators
 
     def isEnabled(self):
         return self._m_c_enabled
-
 
     def setEnabled(self, enabled):
         self._m_c_enabled = enabled
@@ -588,7 +591,6 @@ class ArancinoPort(object):
 
         return self._m_c_alias if self._m_c_alias else ""
 
-
     def setAlias(self, alias):
 
         if alias is None:
@@ -596,15 +598,11 @@ class ArancinoPort(object):
 
         self._m_c_alias = alias
 
-
-
     def isHidden(self):
         return self._m_c_hide
 
-
     def setHide(self, hide):
         self._m_c_hide = hide
-
 
     def isFirstTimeLoaded(self):
         if(self.__first_time):
@@ -613,9 +611,9 @@ class ArancinoPort(object):
         else:
             return False
 
-    #endregion
+    # endregion
 
-    #region GENERIC ATTRIBUTES
+    # region GENERIC ATTRIBUTES
 
     def getGenericAttributes(self):
         return self._generic_attributes
@@ -626,9 +624,9 @@ class ArancinoPort(object):
         else:
             self._generic_attributes = {}
 
-    #endregion
+    # endregion
 
-    #region Set Handlers
+    # region Set Handlers
 
     def setDisconnectionHandler(self, disconnection_handler):
         if isinstance(disconnection_handler, FunctionType) or isinstance(disconnection_handler, MethodType):
@@ -636,32 +634,31 @@ class ArancinoPort(object):
         else:
             self._disconnection_handler = None
 
-
     def setReceivedCommandHandler(self, received_command_handler):
         if isinstance(received_command_handler, FunctionType) or isinstance(received_command_handler, MethodType):
             self._received_command_handler = received_command_handler
         else:
             self._received_command_handler = None
 
-    #endregion
+    # endregion
 
-    #region Asimmetric Authentication
+    # region Asimmetric Authentication
 
-    def setSignerCertificate(self, received_signer_certificate):
+    def __setSignerCertificate(self, received_signer_certificate):
         truncated = received_signer_certificate[2:-1]
         truncatedBytes = bytes(
             truncated, encoding='ascii').decode("unicode-escape")
         data = bytes(truncatedBytes, encoding='ascii')
         self.signer_cert = x509.load_pem_x509_certificate(data)
 
-    def setDeviceCertificate(self, received_device_certificate):
+    def __setDeviceCertificate(self, received_device_certificate):
         truncated = received_device_certificate[2:-1]
         truncatedBytes = bytes(
             truncated, encoding='ascii').decode("unicode-escape")
         data = bytes(truncatedBytes, encoding='ascii')
         self.device_cert = x509.load_pem_x509_certificate(data)
 
-    def retrieveRootCertificate(self):
+    def __retrieveRootCertificate(self):
         cur_path = os.path.dirname(__file__)
         cur_path = cur_path[:-13]
         add_path = 'extras/certificates/rootCert.pem'
@@ -670,23 +667,31 @@ class ArancinoPort(object):
         root_data_cert = file_root_cert.read()
         return x509.load_pem_x509_certificate(root_data_cert)
 
+    '''
     def getSignerCertificate(self):
         return self.signer_cert
 
     def getDeviceCertificate(self):
         return self.device_cert
+    '''
 
-    def setChallenge(self):
+    def _setChallenge(self):
         challenge = os.urandom(32)
-        command = cmdId.CMD_APP_HSET["id"] + specChars.CHR_SEP + str(self._id) + "CHALLENGE" + specChars.CHR_SEP + str(self._id) + specChars.CHR_SEP + str(b64encode(challenge).decode('utf-8')) + specChars.CHR_EOT
-        arsp = self._executor.exec(command)
-        if arsp.getId()==ArancinoCommandResponseCodes.RSP_OK:
-            LOG.debug("Challenge insert to redis: " + str(b64encode(challenge).decode('utf-8')))
+        command = cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self._id) + "_CHALLENGE" + specChars.CHR_SEP + str(
+            self._id) + specChars.CHR_SEP + str(b64encode(challenge).decode('utf-8')) + specChars.CHR_EOT
+        acmd = ArancinoComamnd(raw_command=command)
+        arsp = self._executor.exec(acmd)
+        if arsp.getId() != ArancinoCommandErrorCodes.ERR:
+            LOG.debug("Challenge insert in redis: " +
+                      str(b64encode(challenge).decode('utf-8')))
+            return str(b64encode(challenge).decode('utf-8'))
         else:
-            LOG.debug("Error inserting challenge to redis!!!")
+            LOG.debug("Error inserting challenge to redis!!! " + arsp.getId() +
+                      "diverso da " + ArancinoCommandResponseCodes.RSP_OK)
 
-    def getChallenge(self):
-        command = cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self._id) + "_CHALLENGE" + specChars.CHR_SEP + str(self._id) + specChars.CHR_EOT
+    def _getChallenge(self):
+        command = cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(
+            self._id) + "_CHALLENGE" + specChars.CHR_SEP + str(self._id) + specChars.CHR_EOT
         acmd = ArancinoComamnd(raw_command=command)
         response = self._executor.exec(acmd)
         challenge = response.retrieveChallenge()
@@ -696,7 +701,7 @@ class ArancinoPort(object):
             LOG.debug("Error retrieving challenge from redis!!!")
         return challenge
 
-    def verifyCert(self, public_key, certificate):
+    def __verifyCert(self, public_key, certificate):
         try:
             public_key.verify(
                 signature=certificate.signature,
@@ -707,8 +712,8 @@ class ArancinoPort(object):
         except:
             return False
         return True
-    
-    def checkPubKey(self, public_key):
+
+    def _checkPubKey(self, public_key):
         datastore = ArancinoDataStore.Instance()
         chiave = public_key.public_bytes(
             format=PublicFormat.SubjectPublicKeyInfo, encoding=Encoding.PEM)
@@ -720,7 +725,8 @@ class ArancinoPort(object):
             if whitelist[i] == chiave:
                 verify = True
         return verify
-    #endregion
+
+    # endregion
 
 
 class PortTypes(Enum):

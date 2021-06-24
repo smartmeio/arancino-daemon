@@ -85,3 +85,12 @@ class NonCompatibilityException(ArancinoException):
 
         # Now for your custom code...
         #self.error_code = error_code
+
+class AuthorizationExcepetion(ArancinoException):
+    def init(self, message, error_code):
+        super(AuthorizationExcepetion, self).init(message, error_code)
+
+
+class AuthenticationException(ArancinoException):
+    def init(self, message, error_code):
+        super(AuthenticationException, self).init(message, error_code)

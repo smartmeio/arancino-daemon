@@ -514,12 +514,9 @@ class ArancinoTestHandler(threading.Thread):
 
         #other command for consume response not defined, so they need to be implement if it's usefull
 
-    # get challenge from response and sign it
 
     def __signChallenge(self, challenge):
         data = b64decode(challenge)
         signature = self.__getPrivateKey().sign(data, ec.ECDSA(hashes.SHA256()))
         return b64encode(signature).decode('utf-8')
 
-    def __addSignToCommand(self, command):
-        pass

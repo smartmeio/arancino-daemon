@@ -115,6 +115,12 @@ class ArancinoCommandErrorCodes:
     ERR_VALUE = '211'
     "Invalid Value"
 
+    ERR_AUTHORIZATION = '212'
+    "Error generate during authentication"
+
+    ERR_AUTENTICATION = '213'
+    "Error validating cetificates"
+    
     ERRORS_CODE_LIST = [
                             ERR,
                             ERR_NULL,

@@ -55,7 +55,7 @@ class ArancinoTestPort(ArancinoPort):
 
         self._log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
 
-        self.challenge = self.setChallenge()
+        self.challenge = self._setChallenge()
 
     # TODO implement the method in the abstract class:
     # NOTA: per farlo astratto, si deve muovere l'handler nella super classe e chiamarlo con un nome generico ed anche il log prefix
@@ -148,22 +148,25 @@ class ArancinoTestPort(ArancinoPort):
                 self._received_command_handler(self._id, acmd)
 
             if acmd.getId() != cmdId.CMD_SYS_START["id"]:
-                challenge=self.getChallenge()
+                challenge=self._getChallenge()
                 # verifica challenge
                 signature = self.getSignature(acmd)
                 
                 # chiedere per la politica
                 if self.verifySign(self.device_cert.public_key(), b64decode(challenge), signature):
-                    # call the Command Executor and get a arancino response
-                    arsp = self._executor.exec(acmd)
-                    self.setChallenge()
-                    self.challenge = self.getChallenge()
-                    # aggiunge alla fine degli argomenti della risposta la challenge
-                    arsp.addChallenge(self.challenge)
+                    if self._checkPubKey(self.device_cert.public_key()):
+                        LOG.debug("Chiave pubblica verificata e presente in whitelist")
+                        # call the Command Executor and get a arancino response
+                        arsp = self._executor.exec(acmd)
+                        self._setChallenge()
+                        self.challenge = self._getChallenge()
+                        # aggiunge alla fine degli argomenti della risposta la challenge
+                        arsp.addChallenge(self.challenge)
+                    else:
+                        LOG.debug("Chiave pubblica verificata, ma non presente in whitelist")
 
                 else:
-                    # gestire caso in cui la firma non è verificata
-                    pass
+                    raise AuthenticationException("ERROR", ArancinoCommandErrorCodes.ERR_AUTENTICATION)
             
             else:
                 arsp = self._executor.exec(acmd)
@@ -291,6 +294,7 @@ class ArancinoTestPort(ArancinoPort):
         # Do nothing
         pass
 
+
     def verifySign(self, public_key, data, signature):
         try:
             public_key.verify(signature, data, ec.ECDSA(hashes.SHA256()))
@@ -323,16 +327,6 @@ class ArancinoTestPort(ArancinoPort):
 
 
 
-    def setChallenge(self):
-        challenge = os.urandom(32)
-        command = cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self._id) + "_CHALLENGE" + specChars.CHR_SEP + str(self._id) + specChars.CHR_SEP + str(b64encode(challenge).decode('utf-8')) + specChars.CHR_EOT
-        acmd = ArancinoComamnd(raw_command=command)
-        arsp = self._executor.exec(acmd)
-        if arsp.getId()!=ArancinoCommandErrorCodes.ERR:
-            return str(b64encode(challenge).decode('utf-8'))
-        else:
-            LOG.debug("Error inserting challenge to redis!!! " + arsp.getId() +
-                      "diverso da " + ArancinoCommandResponseCodes.RSP_OK)
 
 
 

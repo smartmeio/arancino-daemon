@@ -20,6 +20,9 @@ under the License
 """
 
 from abc import ABCMeta, abstractmethod
+
+#from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+#from arancino.ArancinoDataStore import ArancinoDataStore
 from enum import Enum
 
 
@@ -44,9 +47,20 @@ class ArancinoPortFilter():
     @abstractmethod
     def filterExclude(self, ports={},list=[]):
         pass
-
-
-
+    '''
+    @abstractmethod
+    def checkPubKey(self, public_key):
+        __datastore = ArancinoDataStore.Instance()
+        chiave = public_key.public_bytes(
+            format=PublicFormat.SubjectPublicKeyInfo, encoding=Encoding.PEM)
+        chiave = chiave.decode("utf-8")
+        whitelist = __datastore.getDataStoreDev().hgetall("WHITELIST")
+        verify = False
+        for i in whitelist:
+            if whitelist[i] == chiave:
+                verify = True
+        return verify
+    '''
 class FilterTypes(Enum):
     EXCLUDE = 0
     ONLY = 1
