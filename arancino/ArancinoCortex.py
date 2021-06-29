@@ -21,8 +21,15 @@ under the License
 
 from arancino.ArancinoConstants import *
 from arancino.ArancinoExceptions import *
+import os
+from base64 import b64encode
 from arancino import ArancinoDataStore
+from datetime import datetime
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, secondsToHumanString
 
+
+CONF = ArancinoConfig.Instance()
+dts = ArancinoDataStore.ArancinoDataStore.Instance()
 #TODO make a super class ArancinoCortexPacket with abstract method to be implemented:
 # - get id
 # - get arguments
@@ -34,7 +41,7 @@ from arancino import ArancinoDataStore
 class ArancinoComamnd:
 
     def __init__(self, raw_command=None, cmd_id=None, cmd_args=None):
-
+        
         if isinstance(raw_command, str):
             self.__constructorA(raw_command=raw_command)
 
@@ -253,6 +260,82 @@ class ArancinoComamnd:
                 raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: != (Between) " + str(n_args_required) + " and " + str(n_args_required_2) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
 
 
+    def setSignature(self, signature):
+
+        keys = self.__args[0]
+        values = self.__args[1]
+
+        values_keys = keys.split(ArancinoSpecialChars.CHR_ARR_SEP)
+        values_array = values.split(ArancinoSpecialChars.CHR_ARR_SEP)
+
+        values_array.append(signature)
+        values_keys.append("signature")
+
+        start_args_keys = ArancinoSpecialChars.CHR_ARR_SEP.join(values_keys)
+        start_args_vals = ArancinoSpecialChars.CHR_ARR_SEP.join(values_array)
+        self.__raw = self.__id + ArancinoSpecialChars.CHR_SEP + start_args_keys + \
+            ArancinoSpecialChars.CHR_SEP + start_args_vals + ArancinoSpecialChars.CHR_EOT
+        self.__args[0] = start_args_keys
+        self.__args[1] = start_args_vals
+
+
+    def getSignature(self):
+        
+        keys=self.__args[0]
+        values=self.__args[1]
+        count=0
+
+        values_keys = keys.split(ArancinoSpecialChars.CHR_ARR_SEP)
+        values_array = values.split(ArancinoSpecialChars.CHR_ARR_SEP)
+        for i in values_keys:
+            if i=="signature":
+                    break
+            count += 1
+        signature = values_array[count]
+        return signature
+
+    #load the comand executed by port on redis
+    def loadCommand(self,challenge,port_id):
+        #__datastore = ArancinoDataStore.Instance()
+
+        commandId=self.__id
+        res= dts.getDataStoreDev().hget(str(port_id)+"_HISTORY","CURRENT_INDEX")
+        if res is None:
+            index = 0
+        else:
+            index = int(res)+1
+
+        
+        ts = str(int(datetime.now().timestamp() * 1000))
+        
+        
+        if self.__id==ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
+            '''
+            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "COMMAND_"+str(res),commandId)
+            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "TIMESTAMP_"+str(res),ts)
+            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "CURRENT_INDEX",res)
+            '''
+            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY", "COMMAND_"+str(index),commandId)
+            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY", "TIMESTAMP_"+str(index),ts)
+            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY", "CURRENT_INDEX",index)
+
+        
+        elif challenge is not None:
+            signature=self.getSignature()
+            '''
+            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "COMMAND_"+str(res),commandId)
+            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "SIGNATURE_"+str(res),signature)
+            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "CHALLENGE_"+str(res),challenge)
+            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "TIMESTAMP_"+str(res),ts)
+            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "CURRENT_INDEX",res)
+            '''
+            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY", "COMMAND_"+str(index),commandId)
+            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY", "SIGNATURE_"+str(index),signature)
+            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY", "CHALLENGE_"+str(index),challenge)
+            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY", "TIMESTAMP_"+str(index),ts)
+            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY", "CURRENT_INDEX",index)
+
+
 class ArancinoResponse:
 
     def __init__(self, raw_response=None, rsp_id=None, rsp_args=None):
@@ -353,10 +436,18 @@ class ArancinoResponse:
         else:
             return False
     
-    def addChallenge(self, challenge):
-        self.__args.append(challenge)
-
+    def setChallenge(self, port_id):
+        challenge = str(b64encode(os.urandom(32)).decode('utf-8'))
+        #__datastore = ArancinoDataStore.Instance()
+        resp = dts.getDataStoreStd().hset("CHALLENGE", port_id, challenge)
+        if resp is not None:
+            self.__args.append(challenge)
+            self.__raw = self.__id + ArancinoSpecialChars.CHR_SEP + ArancinoSpecialChars.CHR_SEP.join(self.__args) + ArancinoSpecialChars.CHR_EOT
+            return challenge
+        else:
+            # return the error code
+            return ArancinoSpecialChars.ERR_SET
     
-    def retrieveChallenge(self):
+    def getChallenge(self):
         return self.__args[len(self.__args)-1]
     

@@ -44,6 +44,7 @@ from base64 import b64decode, b64encode
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
+TRACE = CONF.get_log_print_stack_trace()
 
 class ArancinoTestHandler(threading.Thread):
 
@@ -87,13 +88,12 @@ class ArancinoTestHandler(threading.Thread):
                     if acmd.getId() != ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
                         #crea e aggiungi firma
                         signature = self.__signChallenge(self.challenge)
-                        acmd = self.addSign(acmd, signature)
-                        LOG.debug("Siamo nel test handler: Signature = {} | Comamnd = {}".format(str(signature), acmd.getRaw()))
+                        acmd.setSignature(signature)
 
                     # send back the raw command
                     if self.__commandReceivedHandler is not None:
                         response = self.__commandReceivedHandler(acmd.getRaw())
-                        self.challenge = response.retrieveChallenge()
+                        self.challenge = response.getChallenge()
                     
 
                     if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:

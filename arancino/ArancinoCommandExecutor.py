@@ -273,7 +273,9 @@ class ArancinoCommandExecutor:
     #region SIGN
     def __OPTS_SIGN(self, args):
         value = args[0]
-        return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + self.__port_id + ArancinoSpecialChars.CHR_SEP + value + ArancinoSpecialChars.CHR_EOT
+        ts = str(int(datetime.now().timestamp() * 1000))
+
+        return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + self.__port_id + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_SEP + value + ArancinoSpecialChars.CHR_EOT
     #endregion
 
     #region SET

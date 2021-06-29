@@ -247,11 +247,11 @@ class ArancinoPort(object):
                 raise  AuthenticationException("ERROR",ArancinoCommandErrorCodes.ERR_AUTENTICATION)
 
             #Verify device public key presence in whitelist   
-            if self.checkPubKey(self.device_cert.public_key()):
+            if self._checkPubKey(self.device_cert.public_key()):
                 LOG.debug("Chiave pubblica in whitelist")
                 pass
             else:
-                raise AuthorizationExcepetion("ERROR",ArancinoCommandErrorCodes.ERR_AUTHORIZATION)
+                raise AuthorizationException("ERROR",ArancinoCommandErrorCodes.ERR_AUTHORIZATION)
             
             #endregion
 
@@ -674,7 +674,7 @@ class ArancinoPort(object):
     def getDeviceCertificate(self):
         return self.device_cert
     '''
-
+    '''
     def _setChallenge(self):
         challenge = os.urandom(32)
         command = cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self._id) + "_CHALLENGE" + specChars.CHR_SEP + str(
@@ -700,7 +700,7 @@ class ArancinoPort(object):
         else:
             LOG.debug("Error retrieving challenge from redis!!!")
         return challenge
-
+    '''
     def __verifyCert(self, public_key, certificate):
         try:
             public_key.verify(
@@ -714,11 +714,10 @@ class ArancinoPort(object):
         return True
 
     def _checkPubKey(self, public_key):
-        datastore = ArancinoDataStore.Instance()
-        chiave = public_key.public_bytes(
-            format=PublicFormat.SubjectPublicKeyInfo, encoding=Encoding.PEM)
+        _datastore = ArancinoDataStore.Instance()
+        chiave = public_key.public_bytes(format=PublicFormat.SubjectPublicKeyInfo, encoding=Encoding.PEM)
         chiave = chiave.decode("utf-8")
-        whitelist = datastore.getDataStorePer().hgetall("WHITELIST")
+        whitelist = _datastore.getDataStorePer().hgetall("WHITELIST")
         verify = False
         LOG.debug("\n\nWhitelist:{}\n\n".format(whitelist))
         for i in whitelist:
