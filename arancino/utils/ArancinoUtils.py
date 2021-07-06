@@ -32,7 +32,7 @@ from logging.handlers import RotatingFileHandler
 import semantic_version
 
 from arancino.ArancinoConstants import RedisInstancesType
-from arancino.filter.ArancinoPortFilter import FilterTypes
+#from arancino.filter.ArancinoPortFilter import FilterTypes
 
 class Singleton:
 
@@ -393,6 +393,8 @@ class ArancinoConfig:
         return self.__port_serial_reset_baudrate
 
     def get_port_serial_filter_type(self):
+        
+        from arancino.filter.ArancinoPortFilter import FilterTypes
         if self.__port_serial_filter_type not in FilterTypes.__members__:
             return FilterTypes.DEFAULT.value
         else:
@@ -418,6 +420,7 @@ class ArancinoConfig:
         return self.__port_test_hide
 
     def get_port_test_filter_type(self):
+        from arancino.filter.ArancinoPortFilter import FilterTypes
         if self.__port_test_filter_type not in FilterTypes.__members__:
             return FilterTypes.DEFAULT.value
         else:

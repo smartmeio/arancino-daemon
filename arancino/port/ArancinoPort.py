@@ -26,7 +26,7 @@ from types import FunctionType, MethodType
 from arancino.ArancinoCortex import *
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 import time
-
+from arancino.filter.ArancinoPortFilter import ArancinoPortFilter, FilterTypes
 import semantic_version
 
 # import for asimmetric authentication
@@ -37,7 +37,7 @@ from redis import RedisError
 from arancino.ArancinoCortex import ArancinoCommandIdentifiers as cmdId
 from arancino.ArancinoConstants import ArancinoSpecialChars as specChars
 from base64 import b64encode, b64decode
-from arancino.ArancinoDataStore import ArancinoDataStore
+#from arancino.ArancinoDataStore import ArancinoDataStore
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 
 
@@ -67,6 +67,7 @@ class ArancinoPort(object):
         self._firmware_core_version = None
         self._microcontroller_family = None
         self._generic_attributes = {}
+
         # endregion
 
         # region BASE STATUS METADATA
@@ -85,6 +86,7 @@ class ArancinoPort(object):
 
         # region OTHER
         self._upload_cmd = upload_cmd
+        self.__portFilter=ArancinoPortFilter()
         # endregion
 
         # Command Executor
@@ -247,7 +249,7 @@ class ArancinoPort(object):
                 raise  AuthenticationException("ERROR",ArancinoCommandErrorCodes.ERR_AUTENTICATION)
 
             #Verify device public key presence in whitelist   
-            if self._checkPubKey(self.device_cert.public_key()):
+            if self.__portFilter.checkPubKey(self.device_cert.public_key()):
                 LOG.debug("Chiave pubblica in whitelist")
                 pass
             else:
@@ -713,17 +715,17 @@ class ArancinoPort(object):
             return False
         return True
 
-    def _checkPubKey(self, public_key):
+    '''def _checkPubKey(self, public_key):
         _datastore = ArancinoDataStore.Instance()
         chiave = public_key.public_bytes(format=PublicFormat.SubjectPublicKeyInfo, encoding=Encoding.PEM)
         chiave = chiave.decode("utf-8")
         whitelist = _datastore.getDataStorePer().hgetall("WHITELIST")
         verify = False
-        LOG.debug("\n\nWhitelist:{}\n\n".format(whitelist))
+        #LOG.debug("\n\nWhitelist:{}\n\n".format(whitelist))
         for i in whitelist:
             if whitelist[i] == chiave:
                 verify = True
-        return verify
+        return verify'''
 
     # endregion
 
