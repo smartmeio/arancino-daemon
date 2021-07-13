@@ -59,6 +59,7 @@ class ArancinoPortFilter():
         for i in whitelist:
             if whitelist[i] == chiave:
                 verify = True
+                break
         return verify
     
 class FilterTypes(Enum):

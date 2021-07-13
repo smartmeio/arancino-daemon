@@ -86,7 +86,7 @@ class ArancinoPort(object):
 
         # region OTHER
         self._upload_cmd = upload_cmd
-        self.__portFilter=ArancinoPortFilter()
+        self.portFilter=ArancinoPortFilter()
         # endregion
 
         # Command Executor
@@ -249,7 +249,7 @@ class ArancinoPort(object):
                 raise  AuthenticationException("ERROR",ArancinoCommandErrorCodes.ERR_AUTENTICATION)
 
             #Verify device public key presence in whitelist   
-            if self.__portFilter.checkPubKey(self.device_cert.public_key()):
+            if self.portFilter.checkPubKey(self.device_cert.public_key()):
                 LOG.debug("Chiave pubblica in whitelist")
                 pass
             else:

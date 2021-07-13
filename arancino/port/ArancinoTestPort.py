@@ -154,7 +154,7 @@ class ArancinoTestPort(ArancinoPort):
 
                 # chiedere per la politica
                 if self.verifySign(self.device_cert.public_key(), b64decode(challenge), signature):
-                    if self._checkPubKey(self.device_cert.public_key()):
+                    if self.portFilter.checkPubKey(self.device_cert.public_key()):
                         LOG.debug("Chiave pubblica verificata e presente in whitelist")
                         # call the Command Executor and get a arancino response
                         arsp = self._executor.exec(acmd)

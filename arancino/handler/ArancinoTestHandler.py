@@ -83,6 +83,7 @@ class ArancinoTestHandler(threading.Thread):
 
 
                     raw_cmd = self.__command_test_list[count]
+                    LOG.debug("Stringa di START: "+raw_cmd)
                     acmd = ArancinoComamnd(raw_command=raw_cmd)
                     
                     if acmd.getId() != ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
@@ -277,14 +278,14 @@ class ArancinoTestHandler(threading.Thread):
 
 
         # # 2. SET
-        list.append(cmdId.CMD_APP_SET["id"] + specChars.CHR_SEP + "KEY" + specChars.CHR_ARR_SEP + "VALUE" +  specChars.CHR_SEP+str(self.__id) +"_TEST_KEY"+specChars.CHR_ARR_SEP+"TEST_VALUE"+specChars.CHR_EOT)
+        #list.append(cmdId.CMD_APP_SET["id"] + specChars.CHR_SEP + "KEY" + specChars.CHR_ARR_SEP + "VALUE" +  specChars.CHR_SEP+str(self.__id) +"_TEST_KEY"+specChars.CHR_ARR_SEP+"TEST_VALUE"+specChars.CHR_EOT)
         #
         # # 3. SET PERSISTENT
         # list.append(cmdId.CMD_APP_SET_PERS["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_PERS_KEY" + specChars.CHR_SEP + "TEST_PERS_VAL" + specChars.CHR_EOT)
         #
         # # 4. GET
         #     # 4.1 OK
-        list.append(cmdId.CMD_APP_GET["id"] + specChars.CHR_SEP  + "KEY" +specChars.CHR_SEP+str(self.__id)+ "_TEST_KEY" +specChars.CHR_EOT)
+        #list.append(cmdId.CMD_APP_GET["id"] + specChars.CHR_SEP  + "KEY" +specChars.CHR_SEP+str(self.__id)+ "_TEST_KEY" +specChars.CHR_EOT)
         #
         #     # 4.2 KO
         # list.append(cmdId.CMD_APP_GET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_KEY_DOES_NOT_EXIST" + specChars.CHR_EOT)
@@ -300,7 +301,7 @@ class ArancinoTestHandler(threading.Thread):
         # list.append(cmdId.CMD_APP_KEYS["id"] + specChars.CHR_SEP + "TEST*" + specChars.CHR_EOT)
         #
         # # 6. DEL
-        list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + "KEY"+specChars.CHR_SEP+str(self.__id)+"_TEST_KEY" + specChars.CHR_EOT)
+        #list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + "KEY"+specChars.CHR_SEP+str(self.__id)+"_TEST_KEY" + specChars.CHR_EOT)
         #
         # # 7. HSET
         # list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_1" + specChars.CHR_SEP + "TEST_VAL_1" + specChars.CHR_EOT)
@@ -406,7 +407,7 @@ class ArancinoTestHandler(threading.Thread):
 
         # 16. STORE
             # 16.1 OK
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "1" +specChars.CHR_EOT)
+        #list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "1" +specChars.CHR_EOT)
 
             # 16.2 OK
         #list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "1.1" + specChars.CHR_EOT)
@@ -496,8 +497,10 @@ class ArancinoTestHandler(threading.Thread):
         else:
             keys_array = keys.split(specChars.CHR_ARR_SEP)
             values_array = values.split(specChars.CHR_ARR_SEP)
+
             keys_array.append("sign")
             values_array.append(str(signature))
+            
             start_args_keys = specChars.CHR_ARR_SEP.join(keys_array)
             start_args_vals = specChars.CHR_ARR_SEP.join(values_array)
 
