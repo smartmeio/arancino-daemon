@@ -57,6 +57,37 @@ start:
   only:
     - tags
 
+######## PUSH
+push:
+  stage: start
+  only: ['tags']
+  except: ['master', 'branches']
+
+  allow_failure: true
+
+  variables:
+    GIT_STRATEGY: clone
+
+  before_script:
+    - eval `python3 check-version.py ${CI_COMMIT_TAG}`
+
+  script:
+    #- apk add git
+    - git remote add github https://$GITHUB_BOT_USERNAME:$GITHUB_ACCESS_TOKEN@github.com/$GITHUB_DEST_REPO
+    #- git remote show github
+    #- git remote show origin
+    #- git branch -a
+    - git checkout $CI_COMMIT_TAG
+    - git fetch github
+    #- git push github $CI_COMMIT_REF_NAME --force
+    - >
+      if [[ ${PRE_RELEASE} == "test"  ]]; then
+        echo "not performing TAG push";
+      else
+        git push github ${CI_COMMIT_TAG}
+      fi
+    - git push --all --force github
+
 #################################
 #######      PACKAGE      #######
 #################################
