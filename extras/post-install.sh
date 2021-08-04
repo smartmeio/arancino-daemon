@@ -22,7 +22,7 @@ echo "Backup previous configurations files...."
 timestamp=$(date +%Y%m%d_%H%M%S)
 [ -f $ARANCINOCONF/arancino.prod.cfg ] && mv $ARANCINOCONF/arancino.prod.cfg $ARANCINOCONF/arancino_$timestamp.cfg
 [ -f $ARANCINOCONF/arancino.dev.cfg ] && mv $ARANCINOCONF/arancino.dev.cfg $ARANCINOCONF/arancino_$timestamp.dev.cfg
-cp config/arancino.prod.cfg $ARANCINOCONF/arancino.prod.cfg
+cp config/arancino.cfg $ARANCINOCONF/arancino.cfg
 cp config/arancino.dev.cfg $ARANCINOCONF/arancino.dev.cfg
 cp config/gunicorn.cfg.py $ARANCINOCONF/gunicorn.cfg.py
 
@@ -37,7 +37,7 @@ echo --------------------------------------
 
 echo --------------------------------------
 echo "Giving grants 644 and copying services file"
-chmod 644 $ARANCINOCONF/arancino.prod.cfg
+chmod 644 $ARANCINOCONF/arancino.cfg
 chmod 644 $ARANCINOCONF/arancino.dev.cfg
 
 #copy arancino service file to /ectc/systemd directory
