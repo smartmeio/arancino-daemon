@@ -2,9 +2,9 @@
 # https://github.com/schuhumi/Termux_CDC_ACM
 
 import usb
+import usb.control
 import usb.core
 import usb.util
-import usb.control
 
 
 def check_is_CDCACM(dev):

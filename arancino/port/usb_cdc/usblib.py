@@ -11,10 +11,8 @@ import usb.backend.libusb1 as libusb1
 import usb.control
 import usb.core
 import usb.util
-
 # from pyftdi.misc import hexdump
 from pyftdi.misc import hexline
-
 
 LOGGER = logging.getLogger(__name__)
 RXTXLOGGER = logging.getLogger("{}.RXTX".format(__name__))

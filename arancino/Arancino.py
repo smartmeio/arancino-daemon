@@ -142,7 +142,7 @@ class Arancino(Thread):
                     usb_cdc_ports = self.__usb_cdc_discovery.getAvailablePorts(usb_cdc_ports)
 
                     # works only in python 3.5 and above
-                    self.__ports_discovered = {**serial_ports, **test_ports}
+                    self.__ports_discovered = {**serial_ports, **test_ports, **usb_cdc_ports}
 
 
                     LOG.debug('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))

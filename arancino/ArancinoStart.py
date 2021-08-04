@@ -26,7 +26,7 @@ from arancino.transmitter.Transmitter import Transmitter
 from arancino.utils.ArancinoUtils import ArancinoLogger
 from arancino.Arancino import Arancino
 from arancino.utils.ArancinoUtils import ArancinoConfig
-from arancino.utils.pam import pamAuthentication
+#from arancino.utils.pam import pamAuthentication
 from threading import Thread
 
 from flask_httpauth import HTTPBasicAuth
@@ -82,6 +82,7 @@ def __get_arancinoapi_app():
 
     @auth.verify_password
     def verify(username, password):
+        return True
         # if not (username and password):
         #     return False
         # return USER_DATA.get(username) == password
@@ -89,10 +90,10 @@ def __get_arancinoapi_app():
         #users_list = c.get_general_users()
         #if username in users_list:
         # return True
-        if pamAuthentication(username, password):
-            return True
-        else:
-            return False
+        # if pamAuthentication(username, password):
+        #     return True
+        # else:
+        #     return False
         #else:
         #    return False
 

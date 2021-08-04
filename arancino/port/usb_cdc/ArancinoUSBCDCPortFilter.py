@@ -21,6 +21,7 @@ under the License
 
 from arancino.port.ArancinoPortFilter import ArancinoPortFilter
 
+
 class ArancinoUSBCDCPortFilter(ArancinoPortFilter):
 
 

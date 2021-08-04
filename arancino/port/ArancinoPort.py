@@ -19,15 +19,15 @@ License for the specific language governing permissions and limitations
 under the License
 """
 
+import time
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from types import FunctionType, MethodType
-#from arancino.port.ArancinoPort import PortTypes
-from arancino.ArancinoCortex import *
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
-import time
 
 import semantic_version
+#from arancino.port.ArancinoPort import PortTypes
+from arancino.ArancinoCortex import *
+from arancino.utils.ArancinoUtils import ArancinoConfig, ArancinoLogger
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()

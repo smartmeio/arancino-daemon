@@ -19,15 +19,15 @@ License for the specific language governing permissions and limitations
 under the License
 """
 import json
+import os
 import subprocess
 
-from arancino.utils.ArancinoUtils import ArancinoConfig, ArancinoLogger
 from arancino.port.ArancinoPortFilter import FilterTypes
-from arancino.port.usb_cdc.ArancinoUSBCDCPortFilter import ArancinoUSBCDCPortFilter
 from arancino.port.usb_cdc.ArancinoUSBCDCPort import ArancinoUSBCDCPort
-from arancino.port.usb_cdc.usblib import device_from_fd
+from arancino.port.usb_cdc.ArancinoUSBCDCPortFilter import ArancinoUSBCDCPortFilter
 from arancino.port.usb_cdc.serialCDCACM import check_is_CDCACM
-
+from arancino.port.usb_cdc.usblib import device_from_fd
+from arancino.utils.ArancinoUtils import ArancinoConfig, ArancinoLogger
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
@@ -61,9 +61,12 @@ class ArancinoUSBCDCDiscovery:
 
             # retrieve port informations by file descriptor
             for dev_path in ports_dev_list:
-                port = device_from_fd(dev_path)
+                port = lambda:None
+                port.__dict__ = json.loads(subprocess.check_output(["termux-usb", "-r", "-e", os.path.join(os.path.dirname(__file__), 'get_port_info.py'), str(dev_path)]).decode("utf-8"))
+                print(port.__dict__)
                 ports.append((dev_path, port))
 
+            
             ports = self.__preFilterPorts(ports)
             ports = self.__transformInArancinoPorts(ports)
             ports = self.__postFilterPorts(ports=ports, filter_type=self.__filter_type, filter_list=self.__filter_list)
@@ -96,8 +99,7 @@ class ArancinoUSBCDCDiscovery:
         ports_filterd = []
 
         for fd, port in ports:
-            if port.iSerialNumber != None and port.iSerialNumber != "FFFFFFFFFFFFFFFFFFFF" and port.idVendor != None and port.idProduct != None and check_is_CDCACM(port):
-
+            if port.iSerialNumber != None and port.iSerialNumber != "FFFFFFFFFFFFFFFFFFFF" and port.idVendor != None and port.idProduct != None:
                 ports_filterd.append( (fd, port) )
 
         return ports_filterd
