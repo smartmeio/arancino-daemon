@@ -1,98 +1,62 @@
 #!/bin/bash
 
-source extras/vars.env
-
-
-echo ---------Making Logs and Conf directories--------
-#read this configuration from the env
-
+echo --------------------------------------
+echo "Making Logs and Conf directories"
 # create logs dir
-#mkdir -p /etc/arancino
-echo creating directory: $ARANCINO
-mkdir -p $ARANCINO
+mkdir -p /data/data/com.termux/files/usr/var/log/arancino
+#mkdir -p "$ARANCINOLOG"
 
 # create arancino dir
-#mkdir -p /etc/arancino/config
-echo creating directory: $ARANCINOCONF
-mkdir -p $ARANCINOCONF
+ARANCINO="/data/data/com.termux/files/usr/etc/arancino"
+ARANCINOCONF="/data/data/com.termux/files/usr/etc/arancino/config"
+mkdir -p "$ARANCINO"
+mkdir -p "$ARANCINOCONF"
 
-#mkdir -p /etc/arancino/templates
-echo creating directory: $ARANCINO/templates
-mkdir -p $ARANCINO/templates
+# mkdir -p /etc/redis/cwd
+# chown -R redis:redis /etc/redis/cwd
 
-# create logs dir
-#mkdir -p /var/log/arancino
-echo creating directory: $ARANCINOLOG
-mkdir -p $ARANCINOLOG
+echo --------------------------------------
 
-echo creating directory: /etc/redis/cwd
-mkdir -p /etc/redis/cwd
-chown -R redis:redis /etc/redis/cwd
-
-echo -------------------------------------------------
-
-echo ---Giving grants 644 and copying services file---
-#change permissions to services files
-chown 644 extras/arancino.service
-#chown 644 extras/redis-persistent.service
-#chown 644 extras/redis-volatile.service
-chown 644 config/arancino.cfg
-#chown 644 config/arancino.dev.cfg
-
-#copy arancino service file to /ectc/systemd directory
-cp extras/arancino.service /etc/systemd/system/
-
-#copy redis services files to /lib/systemd directory
-#cp extras/redis-*.service /lib/systemd/system/
-
-#copy redis conf files
-#cp extras/*.conf /etc/redis/
-echo -------------------------------------------------
-
-#echo --------------------------------------
-#echo Checking diff of configuration file and making a backup
-##copy arancino config file to /etc/arancino/config <== ARANCINOCONF and make a backup of current conf file, if different
-#crc_new=$(md5sum config/arancino.cfg | awk {'print $1'})
-#crc_old=$(md5sum /etc/arancino/config/arancino.cfg | awk {'print $1'})
-#timestamp=$(date +%Y%m%d_%H%M%S)
-#
-#if [ "$crc_new" != "$crc_old" ]
-#then
-#    echo Creating configuration backup file "/etc/arancino/config/arancino_$timestamp.cfg"
-#    mv /etc/arancino/config/arancino.cfg /etc/arancino/config/arancino_$timestamp.cfg
-#    cp config/arancino.cfg /etc/arancino/config/arancino.cfg
-#fi
-
-echo ------Backup previous configurations files-------
-echo Backup previous configurations files
+echo --------------------------------------
+echo "Backup previous configurations files...."
 timestamp=$(date +%Y%m%d_%H%M%S)
-[ -f /etc/arancino/config/arancino.cfg ] && mv $ARANCINOCONF/arancino.cfg $ARANCINOCONF/arancino_$timestamp.cfg
-echo -------------------------------------------------
-echo -------------------Copy files--------------------
-cp config/arancino.cfg /etc/arancino/config/arancino.cfg
+[ -f $ARANCINOCONF/arancino.prod.cfg ] && mv $ARANCINOCONF/arancino.prod.cfg $ARANCINOCONF/arancino_$timestamp.cfg
+[ -f $ARANCINOCONF/arancino.dev.cfg ] && mv $ARANCINOCONF/arancino.dev.cfg $ARANCINOCONF/arancino_$timestamp.dev.cfg
+cp config/arancino.prod.cfg $ARANCINOCONF/arancino.prod.cfg
+cp config/arancino.dev.cfg $ARANCINOCONF/arancino.dev.cfg
 cp config/gunicorn.cfg.py $ARANCINOCONF/gunicorn.cfg.py
 
+cp extras/vars.env $ARANCINO/vars.env
+
+mkdir -p "$ARANCINO"/templates
 cp templates/default.json.tmpl $ARANCINO/templates/default.json.tmpl
 cp templates/default.xml.tmpl $ARANCINO/templates/default.xml.tmpl
 cp templates/default.yaml.tmpl $ARANCINO/templates/default.yaml.tmpl
 cp templates/S4T_default.json.tmpl $ARANCINO/templates/S4T_default.json.tmpl
-echo -------------------------------------------------
+echo --------------------------------------
 
-echo -------------Reloading daemons--------------------
- #daemon reload
-systemctl daemon-reload
+echo --------------------------------------
+echo "Giving grants 644 and copying services file"
+chmod 644 $ARANCINOCONF/arancino.prod.cfg
+chmod 644 $ARANCINOCONF/arancino.dev.cfg
+
+#copy arancino service file to /ectc/systemd directory
+mkdir -p $PREFIX/var/service/arancino/log
+ln -sf $PREFIX/share/termux-services/svlogger $PREFIX/var/service/arancino/log/run
+touch $PREFIX/var/service/arancino/run
+cp extras/arancino.service $PREFIX/var/service/arancino/run
+chmod +x $PREFIX/var/service/arancino/run
+
+echo --------------------------------------
+
+echo --------------------------------------
+echo "Reloading daemons...."
 
 #enable services
-#systemctl enable redis-volatile
-#systemctl enable redis-persistent
-systemctl enable arancino
-systemctl restart arancino
+sv-enable arancino
+sv up arancino
 
-#start services
-#systemctl start redis-volatile
-#systemctl start redis-persistent
-#systemctl start arancino
-echo -------------------------------------------------
+echo --------------------------------------
 
 #echo --------------------------------------
 #echo Resetting main microcontroller

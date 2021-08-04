@@ -1,42 +1,29 @@
-[Unit]
-Description=Arancino
-After=network.target rc.local
-
-[Service]
-Type=simple
-User=root
-Group=root
-
+#!/bin/sh -x
 ### ARANCINO ENV VARS ###
 
 # Environment File
-EnvironmentFile=/etc/arancino/vars.env
-#EnvironmentFile="$ARANCINO/vars.env"
+# PREFIX="/data/data/com.termux/files/usr"
 
 # Arancino Daemon Directory
-######Environment="ARANCINO=/etc/arancino"
+export ARANCINO="/data/data/com.termux/files/usr/etc/arancino"
 
 # Arancino Daemon Configuration Directory
-######Environment="ARANCINOCONF=/etc/arancino/config"
+export ARANCINOCONF="/data/data/com.termux/files/usr/etc/arancino/config"
 
 # Arancino Daemon Logs Directory
-######Environment="ARANCINOLOG=/var/log/arancino"
+mkdir -p /data/data/com.termux/files/usr/var/log/arancino
+export ARANCINOLOG="/data/data/com.termux/files/usr/var/log/arancino"
 
 # Arancino Daemon Runnning Environment:
 #   "production" -> Production Environment
 #   "development" -> Development Environment
-######Environment="ARANCINOENV=production"
+export ARANCINOENV="production"
 
 # Flask Runnning Environment:
 #   "production" -> Production Environment
 #   "development" -> Development Environment
-######Environment="FLASK_ENV=production"
+export FLASK_ENV="production"
 
-ExecStart=/bin/bash -c 'gunicorn -c "$ARANCINOCONF/gunicorn.cfg.py" arancino.ArancinoStart:app'
-Restart=on-failure
-RestartSec=15
-TimeoutStopSec=60
-#on-abort
-
-[Install]
-WantedBy=multi-user.target
+# Actually running Flask server
+exec 2>&1
+exec arancino
