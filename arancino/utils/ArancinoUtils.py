@@ -122,10 +122,13 @@ class ArancinoConfig:
         self.__port_firmware_path = self.Config.get("port", "firmware_path")
         self.__port_firmware_file_types = self.Config.get("port", "firmware_file_types")
         self.__port_reset_on_connect = stringToBool(self.Config.get("port", "reset_on_connect"))
+        self.__port_enabled = stringToBool(self.Config.get("port", "enabled"))
+        self.__port_hide = stringToBool(self.Config.get("port", "hide"))
+
 
         # region CONFIG SERIAL PORT SECTION
-        self.__port_serial_enabled = stringToBool(self.Config.get("port.serial", "enabled"))
-        self.__port_serial_hide = stringToBool(self.Config.get("port.serial", "hide"))
+        self.__port_serial_enabled = self.__get_or_override_bool(self.Config, "port", "enabled", "port.serial", "enabled")
+        self.__port_serial_hide = self.__get_or_override_bool(self.Config.get,"port", "hide", "port.serial", "hide")
         self.__port_serial_comm_baudrate = int(self.Config.get("port.serial", "comm_baudrate"))
         self.__port_serial_reset_baudrate = int(self.Config.get("port.serial", "reset_baudrate"))
         self.__port_serial_filter_type = self.Config.get("port.serial", "filter_type")
@@ -136,8 +139,8 @@ class ArancinoConfig:
         # endregion
 
         # region CONFIG TEST PORT SECTION
-        self.__port_test_enabled = stringToBool(self.Config.get("port.test", "enabled"))
-        self.__port_test_hide = stringToBool(self.Config.get("port.test", "hide"))
+        self.__port_test_enabled = self.__get_or_override_bool(self.Config, "port", "enabled", "port.test", "enabled")
+        self.__port_test_hide = self.__get_or_override_bool(self.Config.get,"port", "hide", "port.test", "hide")
         self.__port_test_filter_type = self.Config.get("port.test", "filter_type")
         self.__port_test_filter_list = self.Config.get("port.test", "filter_list")
         self.__port_test_num = int(self.Config.get("port.test", "num"))
@@ -145,6 +148,16 @@ class ArancinoConfig:
         self.__port_test_id_template = self.Config.get("port.test", "id_template")
         self.__port_test_upload_command = self.Config.get("port.test", "upload_command")
         self.__port_test_reset_on_connect = self.__get_or_override_bool(self.Config, "port.test", "reset_on_connect", "port", "reset_on_connect")
+        # endregion
+
+        # region CONFIG UART BLE PORT SECTION
+        self.__port_uart_ble_enabled = self.__get_or_override_bool(self.Config, "port.uart_ble", "enabled", "port", "enabled")
+        self.__port_uart_ble_hide = self.__get_or_override_bool(self.Config.get,"port.uart_ble", "hide", "port", "hide")
+        self.__port_uart_ble_filter_type = self.Config.get("port.uart_ble", "filter_type")
+        self.__port_uart_ble_filter_list = self.Config.get("port.uart_ble", "filter_list")
+        self.__port_uart_ble_timeout = int(self.Config.get("port.uart_ble", "timeout"))
+        self.__port_uart_ble_upload_command = self.Config.get("port.uart_ble", "upload_command")
+        self.__port_uart_ble_reset_on_connect = self.__get_or_override_bool(self.Config, "port.uart_ble", "reset_on_connect", "port", "reset_on_connect")
         # endregion
         # endregion
 
@@ -441,6 +454,31 @@ class ArancinoConfig:
     def get_port_test_reset_on_connect(self):
         return self.__port_test_reset_on_connect
 
+
+    ######## UART BLE PORT ########
+    def get_port_uart_ble_enabled(self):
+        return self.__port_uart_ble_enabled
+
+    def get_port_uart_ble_hide(self):
+        return self.__port_uart_ble_hide
+
+    def get_port_test_filter_type(self):
+        if self.__port_uart_ble_filter_type not in FilterTypes.__members__:
+            return FilterTypes.DEFAULT.value
+        else:
+            return FilterTypes[self.__port_uart_ble_filter_type]
+
+    def get_port_uart_ble_filter_list(self):
+        return json.loads(self.__port_uart_ble_filter_list.upper())
+
+    def get_port_uart_ble_upload_command(self):
+        return self.__port_uart_ble_upload_command
+
+    def get_port_uart_ble_timeout(self):
+        return self.__port_uart_ble_timeout
+
+    def get_port_uart_ble_reset_on_connect(self):
+        return self.__port_uart_ble_reset_on_connect
 
     ######## LOG ########
     def get_log_level(self):

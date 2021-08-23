@@ -25,6 +25,7 @@ from datetime import datetime
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, secondsToHumanString
 from arancino.port.serial.ArancinoSerialDiscovery import ArancinoSerialDiscovery
 from arancino.port.test.ArancinoTestDiscovery import ArancinoTestDiscovery
+from arancino.port.uart_ble.ArancinoUartBleDiscovery import ArancinoUartBleDiscovery
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
 from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoConstants import ArancinoApiResponseCode
@@ -73,6 +74,7 @@ class Arancino(Thread):
 
             self.__serial_discovery = ArancinoSerialDiscovery()
             self.__test_discovery = ArancinoTestDiscovery()
+            self.__uart_ble_discovery = ArancinoUartBleDiscovery()
 
             self.__synchronizer = ArancinoPortSynch()
             self.__datastore = ArancinoDataStore.Instance()
@@ -98,7 +100,16 @@ class Arancino(Thread):
 
     def __exit(self):
 
+
+
+
         LOG.info("Starting Exit procedure... ")
+
+        LOG.info("Disabling Discovery...")
+        self.__serial_discovery.stop()
+        self.__test_discovery.stop()
+        self.__uart_ble_discovery.stop()
+
         LOG.info("Disconnecting Ports... ")
         for id, port in self.__ports_connected.items():
             port.unplug()
@@ -108,6 +119,8 @@ class Arancino(Thread):
 
         LOG.info("Disconnecting Data Stores... ")
         self.__datastore.closeAll()
+
+
 
         LOG.info("Bye!")
 
@@ -123,6 +136,7 @@ class Arancino(Thread):
 
         serial_ports = {}
         test_ports = {}
+        uart_ble_ports = {}
 
         while not self.__stop:
             if not self.__pause:
@@ -136,9 +150,10 @@ class Arancino(Thread):
 
                     serial_ports = self.__serial_discovery.getAvailablePorts(serial_ports)
                     test_ports = self.__test_discovery.getAvailablePorts(test_ports)
+                    uart_ble_ports = self.__uart_ble_discovery.getAvailablePorts(uart_ble_ports)
 
                     # works only in python 3.5 and above
-                    self.__ports_discovered = {**serial_ports, **test_ports}
+                    self.__ports_discovered = {**serial_ports, **test_ports, **uart_ble_ports}
 
 
                     LOG.debug('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))
@@ -198,7 +213,6 @@ class Arancino(Thread):
                                     port.connect()
                                 except Exception as ex:
                                     pass
-
 
                                 # move Arancino Port to the self.__ports_connected
                                 self.__ports_connected[id] = port

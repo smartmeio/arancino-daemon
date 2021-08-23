@@ -108,3 +108,6 @@ class ArancinoSerialDiscovery:
             new_ports_struct[p.getId()] = p
 
         return new_ports_struct
+
+    def stop(self):
+        pass

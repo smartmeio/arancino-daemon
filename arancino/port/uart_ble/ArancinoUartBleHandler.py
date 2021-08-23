@@ -2,7 +2,7 @@
 """
 SPDX-license-identifier: Apache-2.0
 
-Copyright (c) 2020 SmartMe.IO
+Copyright (c) 2021 SmartMe.IO
 
 Authors:  Sergio Tomasello <sergio@smartme.io>
 
@@ -20,6 +20,9 @@ under the License
 """
 
 import threading
+
+from adafruit_ble.services.nordic import UARTService
+
 from arancino.ArancinoConstants import *
 from arancino.utils.ArancinoUtils import *
 from arancino.port.ArancinoPort import PortTypes
@@ -27,38 +30,44 @@ import time
 
 LOG = ArancinoLogger.Instance().getLogger()
 
-class ArancinoSerialHandler(threading.Thread):
+class ArancinoUartBleHandler(threading.Thread):
 
-    def __init__(self, name, serial, id, device, commandReceivedHandler, connectionLostHandler):
+    def __init__(self, name, conn, id, device, commandReceivedHandler, connectionLostHandler):
+
         threading.Thread.__init__(self, name=name)
-        self.__serial_port = serial      # the serial port
-        self.__name = name          # the name, usually the arancino port id
+        self.__conn = conn  # the uart service of the uart-ble port
+        self.__service = self.__conn[UARTService]
+        self.__name = name  # the name, usually the arancino port id
         self.__id = id
         self.__device = device
-        self.__log_prefix = "[{} - {} at {}]".format(PortTypes(PortTypes.SERIAL).name, self.__id, self.__device)
+        self.__log_prefix = "[{} - {} at {}]".format(PortTypes(PortTypes.UART_BLE).name, self.__id, self.__device)
 
         self.__commandReceivedHandler = commandReceivedHandler  # handler to be called when a raw command is complete and ready to be translated and executed.
-        self.__connectionLostHandler = connectionLostHandler    # handler to be called when a connection is lost or stopped
+        self.__connectionLostHandler = connectionLostHandler  # handler to be called when a connection is lost or stopped
 
         self.__partial_command = ""
         self.__partial_bytes_command = bytearray(b'')
         self.__stop = False
 
+
     def run(self):
         time.sleep(1.5)  # do il tempo ad Arancino di inserire la porta in lista
-        count = 0
-        str_data = ""
+
+        #self.__service.reset_input_buffer()
+        #self.__service.write(b'\n')
         while not self.__stop:
             # Ricezione dati
             try:
 
                 # Read bytes one by one
-                data = self.__serial_port.read(1)
+                data = self.__service.read(1)
+                # if data:
+                #     print(data)
 
-                if len(data) > 0:
+                if data and len(data) > 0:
                     self.__partial_bytes_command.append(data[0])
 
-                    #https://app.clickup.com/t/dk226t
+                    # https://app.clickup.com/t/dk226t
                     if (data == ArancinoSpecialChars.CHR_EOT.encode()) is True:
 
                         # now command is completed and can be used
@@ -79,11 +88,11 @@ class ArancinoSerialHandler(threading.Thread):
 
 
             except Exception as ex:
-                # probably some I/O problem such as disconnected USB serial
-                LOG.error("{}I/O Error while reading data from {} port: {}".format(self.__log_prefix, PortTypes(PortTypes.SERIAL).name, str(ex)))
+                # probably some I/O problem such as disconnected port
+                LOG.error("{}I/O Error while reading data from {} port: {}".format(self.__log_prefix, PortTypes(PortTypes.UART_BLE).name, str(ex)))
 
-                self.__stop = True
-                break
+                # self.__stop = True
+                # break
 
         self.__connection_lost()
 

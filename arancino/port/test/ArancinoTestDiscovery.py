@@ -70,6 +70,7 @@ class ArancinoTestDiscovery:
 
         return collection#ports
 
-
+    def stop(self):
+        pass
 
     #def __discoveryPorts(self):
