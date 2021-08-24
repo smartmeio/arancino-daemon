@@ -40,7 +40,7 @@ class ArancinoUartBlePort(ArancinoPort):
 
     def __init__(self, adv=None, id=None, device=None, m_s_plugged=False, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
 
-        super().__init__(id=id, device=device, port_type=PortTypes.UART_BLE, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=CONF.get_port_serial_upload_command(), receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
+        super().__init__(id=id, device=device, port_type=PortTypes.UART_BLE, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=None, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
         # self._port_type = PortTypes.Serial
 
@@ -186,7 +186,7 @@ class ArancinoUartBlePort(ArancinoPort):
                         self.__ble_connection = BLERadio().connect(self.__adv, timeout=self.__timeout)
                         self.__ble_uart_service = self.__ble_connection[UARTService]
 
-                        self.__uart_ble_handler = ArancinoUartBleHandler("ArancinoSerialHandler-"+self._id, self.__ble_connection, self._id, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
+                        self.__uart_ble_handler = ArancinoUartBleHandler(self.__ble_connection, self._id, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
                         self._m_s_connected = True
                         self.__uart_ble_handler.start()
                         LOG.info("{} Connected".format(self._log_prefix))
@@ -225,100 +225,16 @@ class ArancinoUartBlePort(ArancinoPort):
 
 
     def reset(self):
-        try:
-
-            LOG.info("{} Resetting...".format(self._log_prefix))
-            # TODO implementare il reset:
-            # Il reset va implementato basandoci su core NRF52 che abbiamo
-            # modificato perche all'interno abbbiamo o metteremo un comando speciale
-            # per eseguire il reset.
-
-            LOG.info("{} Reset".format(self._log_prefix))
-            return True
-        except Exception as ex:
-            #LOG.info("{} Connected".format(self.__log_prefix))
-            LOG.exception(self._log_prefix + str(ex))
-
+        # No reset provided method for this Port
+        return False
+        # LOG.info("{} Starting Reset".format(self.__log_prefix))
+        # LOG.info("{} Reset Success!".format(self.__log_prefix))
 
     def upload(self, firmware):
-
-        LOG.info("{} Starting Upload Procedure".format(self._log_prefix))
-        import subprocess
-
-        cmd = self._upload_cmd.format(firmware=firmware, port=self)
-        cmd_arr = cmd.split(" ")
-        LOG.info("{} Ready to run upload command ===> {} <===".format(self._log_prefix, cmd))
-
-        stdout = None
-        stderr = None
-        rtcode = 0
-        try:
-            self.setEnabled(False)
-            self.disconnect()
-            while self.isConnected():
-                pass
+        # No upload provided method for this Port
+        return False
 
 
-            proc = subprocess.Popen(cmd_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = proc.communicate()
-            stdout = stdout.decode("utf-8")
-            stderr = stderr.decode("utf-8")
-            rtcode = proc.returncode
+    # region UART BLE ARANCINO PORT METADATA
 
-            if rtcode != 0:
-                LOG.error("{} Return code: {} - {}".format(self._log_prefix, str(rtcode), stderr))
-            else:
-                LOG.info("{} Upload Success!".format(self._log_prefix))
-                LOG.info("{} {}".format(self._log_prefix, stdout))
-
-
-        except Exception as ex:
-            rtcode = -1
-            stderr = str(ex)
-            LOG.error("{} Something goes wrong while uploadig: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
-
-        finally:
-            self.setEnabled(True)
-            return rtcode, stdout, stderr
-
-
-    # SERIAL ARANCINO PORT METADATA
-
-    def getVID(self):
-        return self.__m_p_vid
-
-
-    def getPID(self):
-        return self.__m_p_pid
-
-
-    def getName(self):
-        return self.__m_p_name
-
-
-    def getDescription(self):
-        return self.__m_p_description
-
-
-    def getHWID(self):
-        return self.__m_p_hwid
-
-
-    def getSerialNumber(self):
-        return self.__m_p_serial_number
-
-
-    def getLocation(self):
-        return self.__m_p_location
-
-
-    def getManufacturer(self):
-        return self.__m_p_manufacturer
-
-
-    def getProduct(self):
-        return self.__m_p_product
-
-
-    def getInterface(self):
-        return self.__m_p_interface
+    # endregion

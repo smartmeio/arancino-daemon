@@ -72,9 +72,9 @@ class Arancino(Thread):
             self.__ports_connected = {}
             self.__ports_discovered = {}
 
-            self.__serial_discovery = ArancinoSerialDiscovery()
-            self.__test_discovery = ArancinoTestDiscovery()
-            self.__uart_ble_discovery = ArancinoUartBleDiscovery()
+            self.__serial_discovery = ArancinoSerialDiscovery() if CONF.get_port_serial_discovery() else None
+            self.__test_discovery = ArancinoTestDiscovery() if CONF.get_port_test_discovery() else None
+            self.__uart_ble_discovery = ArancinoUartBleDiscovery() if CONF.get_port_uart_ble_discovery() else None
 
             self.__synchronizer = ArancinoPortSynch()
             self.__datastore = ArancinoDataStore.Instance()
@@ -106,9 +106,14 @@ class Arancino(Thread):
         LOG.info("Starting Exit procedure... ")
 
         LOG.info("Disabling Discovery...")
-        self.__serial_discovery.stop()
-        self.__test_discovery.stop()
-        self.__uart_ble_discovery.stop()
+        if CONF.get_port_serial_discovery():
+            self.__serial_discovery.stop()
+
+        if CONF.get_port_test_discovery():
+            self.__test_discovery.stop()
+
+        if CONF.get_port_uart_ble_discovery():
+            self.__uart_ble_discovery.stop()
 
         LOG.info("Disconnecting Ports... ")
         for id, port in self.__ports_connected.items():
@@ -138,6 +143,22 @@ class Arancino(Thread):
         test_ports = {}
         uart_ble_ports = {}
 
+        if self.__serial_discovery:
+            LOG.info("Serial Discovery Enabled")
+        else:
+            LOG.warning("Serial Discovery Disabled")
+
+        if self.__test_discovery:
+            LOG.info("Test Discovery Enabled")
+        else:
+            LOG.warning("Test Discovery Disabled")
+
+        if self.__uart_ble_discovery:
+            LOG.info("UART BLE Discovery Enabled")
+        else:
+            LOG.warning("UART BLE Discovery Disabled")
+
+
         while not self.__stop:
             if not self.__pause:
                 try:
@@ -148,16 +169,19 @@ class Arancino(Thread):
                     LOG.debug('Uptime :' + str(self.__uptime_sec))
                     LOG.info('Uptime :' + self.__uptime_str)
 
-                    serial_ports = self.__serial_discovery.getAvailablePorts(serial_ports)
-                    test_ports = self.__test_discovery.getAvailablePorts(test_ports)
-                    uart_ble_ports = self.__uart_ble_discovery.getAvailablePorts(uart_ble_ports)
+                    serial_ports = self.__serial_discovery.getAvailablePorts(serial_ports) if self.__serial_discovery else serial_ports
+                    test_ports = self.__test_discovery.getAvailablePorts(test_ports) if self.__test_discovery else test_ports
+                    uart_ble_ports = self.__uart_ble_discovery.getAvailablePorts(uart_ble_ports) if self.__uart_ble_discovery else uart_ble_ports
 
                     # works only in python 3.5 and above
                     self.__ports_discovered = {**serial_ports, **test_ports, **uart_ble_ports}
 
+                    #__ports_started = dict(filter(lambda elem: elem.isStarted(), self.__ports_connected.items()))
+                    __ports_started = {id:port for (id, port) in self.__ports_connected.items() if port.isStarted()}
 
                     LOG.debug('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))
                     LOG.debug('Connected Ports: ' + str(len(self.__ports_connected)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_connected.items()))
+                    LOG.debug('Started Ports: ' + str(len(__ports_started)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in __ports_started.items()))
 
                     # # log that every hour
                     # if (time.time() - self.__thread_start_reset) >= 3600:

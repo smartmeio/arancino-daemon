@@ -516,7 +516,7 @@ class ArancinoPort(object):
         self._m_s_started = started
 
     def isStarted(self):
-        return self._m_s_started
+        return True#self._m_s_started
 
     #endregion
 

@@ -21,6 +21,7 @@ under the License
 
 from serial.tools import list_ports
 
+from arancino.port.ArancinoPort import PortTypes
 from arancino.utils.ArancinoUtils import ArancinoConfig
 from arancino.port.ArancinoPortFilter import FilterTypes
 from arancino.port.serial.ArancinoSerialPortFilter import ArancinoSerialPortFilter
@@ -34,6 +35,9 @@ class ArancinoSerialDiscovery:
         self.__filter = ArancinoSerialPortFilter()
         self.__filter_type = CONF.get_port_serial_filter_type()
         self.__filter_list = CONF.get_port_serial_filter_list()
+
+        self.__portType = PortTypes.SERIAL
+        self.__log_prefix = "Arancino Discovery {}".format(self.__portType.name)
 
 
     # TODO: this can be an abstract method

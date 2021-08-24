@@ -124,21 +124,38 @@ class ArancinoConfig:
         self.__port_reset_on_connect = stringToBool(self.Config.get("port", "reset_on_connect"))
         self.__port_enabled = stringToBool(self.Config.get("port", "enabled"))
         self.__port_hide = stringToBool(self.Config.get("port", "hide"))
+        self.__port_discovery = stringToBool(self.Config.get("port", "discovery"))
 
 
         # region CONFIG SERIAL PORT SECTION
-        self.__port_serial_enabled = self.__get_or_override_bool(self.Config, "port", "enabled", "port.serial", "enabled")
+        self.__port_serial_discovery = self.__get_or_override_bool(self.Config, "port.serial", "discovery", "port", "discovery")
+        self.__port_serial_enabled = self.__get_or_override_bool(self.Config, "port.serial", "enabled", "port", "enabled")
         self.__port_serial_hide = self.__get_or_override_bool(self.Config.get,"port", "hide", "port.serial", "hide")
         self.__port_serial_comm_baudrate = int(self.Config.get("port.serial", "comm_baudrate"))
         self.__port_serial_reset_baudrate = int(self.Config.get("port.serial", "reset_baudrate"))
         self.__port_serial_filter_type = self.Config.get("port.serial", "filter_type")
         self.__port_serial_filter_list = self.Config.get("port.serial", "filter_list")
-        self.__port_serial_upload_command = self.Config.get("port.serial", "upload_command")
         self.__port_serial_timeout = int(self.Config.get("port.serial", "timeout"))
         self.__port_serial_reset_on_connect = self.__get_or_override_bool(self.Config, "port.serial", "reset_on_connect", "port", "reset_on_connect")
+
+        self.__port_serial_upload_command = self.Config.get("port.serial.samd21", "upload_command")
+
+        # region SAMD21
+        self.__port_serial_samd21_upload_command = self.Config.get("port.serial.samd21", "upload_command")
+        # endregion
+
+        # region NRF52
+        self.__port_serial_nrf52_upload_command = self.Config.get("port.serial.nrf52", "upload_command")
+        # endregion
+
+        # region STM32
+        self.__port_serial_stm32_upload_command = self.Config.get("port.serial.stm32", "upload_command")
+        # endregion
+
         # endregion
 
         # region CONFIG TEST PORT SECTION
+        self.__port_test_discovery = self.__get_or_override_bool(self.Config, "port.test", "discovery", "port", "discovery")
         self.__port_test_enabled = self.__get_or_override_bool(self.Config, "port", "enabled", "port.test", "enabled")
         self.__port_test_hide = self.__get_or_override_bool(self.Config.get,"port", "hide", "port.test", "hide")
         self.__port_test_filter_type = self.Config.get("port.test", "filter_type")
@@ -151,6 +168,7 @@ class ArancinoConfig:
         # endregion
 
         # region CONFIG UART BLE PORT SECTION
+        self.__port_uart_ble_discovery = self.__get_or_override_bool(self.Config, "port.uart_ble", "discovery", "port", "discovery")
         self.__port_uart_ble_enabled = self.__get_or_override_bool(self.Config, "port.uart_ble", "enabled", "port", "enabled")
         self.__port_uart_ble_hide = self.__get_or_override_bool(self.Config.get,"port.uart_ble", "hide", "port", "hide")
         self.__port_uart_ble_filter_type = self.Config.get("port.uart_ble", "filter_type")
@@ -388,8 +406,14 @@ class ArancinoConfig:
     def get_port_reset_on_connect(self):
         return self.__port_reset_on_connect
 
+    def get_port_discovery(self):
+        return self.__port_discovery
+
 
     ######## SERIAL PORT ########
+    def get_port_serial_discovery(self):
+        return self.__port_serial_discovery
+
     def get_port_serial_enabled(self):
         return self.__port_serial_enabled
 
@@ -414,16 +438,28 @@ class ArancinoConfig:
     def get_port_serial_filter_list(self):
         return json.loads(self.__port_serial_filter_list.upper())
 
-    def get_port_serial_upload_command(self):
-        return self.__port_serial_upload_command
-
     def get_port_serial_timeout(self):
         return self.__port_serial_timeout
 
     def get_port_serial_reset_on_connect(self):
         return self.__port_serial_reset_on_connect
 
+    ## STM32
+    def get_port_serial_stm32_upload_command(self):
+        return self.__port_serial_stm32_upload_command
+
+    ## NRF52
+    def get_port_serial_nrf52_upload_command(self):
+        return self.__port_serial_nrf52_upload_command
+
+    ## SAMD21
+    def get_port_serial_samd21_upload_command(self):
+        return self.__port_serial_samd21_upload_command
+
     ######## TEST PORT ########
+    def get_port_test_discovery(self):
+        return self.__port_test_discovery
+
     def get_port_test_enabled(self):
         return self.__port_test_enabled
 
@@ -456,6 +492,9 @@ class ArancinoConfig:
 
 
     ######## UART BLE PORT ########
+    def get_port_uart_ble_discovery(self):
+        return self.__port_uart_ble_discovery
+
     def get_port_uart_ble_enabled(self):
         return self.__port_uart_ble_enabled
 

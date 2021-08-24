@@ -32,12 +32,14 @@ LOG = ArancinoLogger.Instance().getLogger()
 
 class ArancinoUartBleHandler(threading.Thread):
 
-    def __init__(self, name, conn, id, device, commandReceivedHandler, connectionLostHandler):
+    def __init__(self, conn, id, device, commandReceivedHandler, connectionLostHandler):
 
-        threading.Thread.__init__(self, name=name)
+        self.__name = "{}-{}".format(self.__class__.__name__, id)
+
+        threading.Thread.__init__(self, name=self.__name)
+
         self.__conn = conn  # the uart service of the uart-ble port
         self.__service = self.__conn[UARTService]
-        self.__name = name  # the name, usually the arancino port id
         self.__id = id
         self.__device = device
         self.__log_prefix = "[{} - {} at {}]".format(PortTypes(PortTypes.UART_BLE).name, self.__id, self.__device)
@@ -76,7 +78,7 @@ class ArancinoUartBleHandler(threading.Thread):
 
                         except UnicodeDecodeError as ex:
 
-                            LOG.warning("{}Decode Warning while reading data from serial port: {}".format(self.__log_prefix, str(ex)))
+                            LOG.warning("{}Decode Warning while reading data from port: {}".format(self.__log_prefix, str(ex)))
                             self.__partial_command = self.__partial_bytes_command.decode('utf-8', errors='backslashreplace')
 
                         if self.__commandReceivedHandler is not None:

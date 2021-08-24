@@ -36,7 +36,7 @@ class ArancinoSerialPort(ArancinoPort):
 
     def __init__(self, port_info=None, device=None, baudrate_comm=9600, baudrate_reset=300, m_s_plugged=False, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
 
-        super().__init__(device=device, port_type=PortTypes.SERIAL, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=CONF.get_port_serial_upload_command(), receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
+        super().__init__(device=device, port_type=PortTypes.SERIAL, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=None, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
         # self._port_type = PortTypes.Serial
 
@@ -243,7 +243,7 @@ class ArancinoSerialPort(ArancinoPort):
                         self.__serial_port.port = self._device
                         self.__serial_port.open()
 
-                        self.__serial_handler = ArancinoSerialHandler("ArancinoSerialHandler-"+self._id, self.__serial_port, self._id, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
+                        self.__serial_handler = ArancinoSerialHandler(self.__serial_port, self._id, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
                         self._m_s_connected = True
                         self.__serial_handler.start()
                         LOG.info("{} Connected".format(self._log_prefix))
@@ -309,19 +309,35 @@ class ArancinoSerialPort(ArancinoPort):
         LOG.info("{} Starting Upload Procedure".format(self._log_prefix))
         import subprocess
 
-        cmd = self._upload_cmd.format(firmware=firmware, port=self)
-        cmd_arr = cmd.split(" ")
-        LOG.info("{} Ready to run upload command ===> {} <===".format(self._log_prefix, cmd))
+        #command:
+        upload_command = None
+        microfamily = self.getMicrocontrollerFamily().upper()
+        if microfamily == "NRF52":
+            upload_command = CONF.get_port_serial_nrf52_upload_command()
+        elif microfamily == "STM32":
+            upload_command = CONF.get_port_serial_stm32_upload_command()
+        elif microfamily == "SAMD21":
+            upload_command = CONF.get_port_serial_samd21_upload_command()
+        else:
+            upload_command = None
 
         stdout = None
         stderr = None
         rtcode = 0
         try:
+
+            # cmd = self._upload_cmd.format(firmware=firmware, port=self)
+            if not upload_command:
+                raise Exception("No upload command provided for the Family {}.".format(microfamily))
+
+            cmd = upload_command.format(firmware=firmware, port=self)
+            cmd_arr = cmd.split(" ")
+            LOG.info("{} Ready to run upload command ===> {} <===".format(self._log_prefix, cmd))
+
             self.setEnabled(False)
             self.disconnect()
             while self.isConnected():
                 pass
-
 
             proc = subprocess.Popen(cmd_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = proc.communicate()

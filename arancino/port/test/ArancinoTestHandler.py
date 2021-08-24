@@ -34,10 +34,10 @@ CONF = ArancinoConfig.Instance()
 
 class ArancinoTestHandler(threading.Thread):
 
-    def __init__(self, name, id, device, commandReceivedHandler, connectionLostHandler):
-        threading.Thread.__init__(self, name=name)
+    def __init__(self, id, device, commandReceivedHandler, connectionLostHandler):
 
-        self.__name = name          # the name, usually the arancino port id
+        self.__name = "{}-{}".format(self.__class__.__name__, id)
+        threading.Thread.__init__(self, name=self.__name)
         self.__id = id
         self.__device = device
         self.__log_prefix = "[{} - {} at {}]".format(PortTypes(PortTypes.TEST).name, self.__id, self.__device)

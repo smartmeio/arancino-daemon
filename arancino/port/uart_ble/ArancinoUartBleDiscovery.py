@@ -23,15 +23,19 @@ from adafruit_ble import BLERadio
 from adafruit_ble.advertising import Advertisement
 from adafruit_ble.advertising.standard import ProvideServicesAdvertisement
 from adafruit_ble.services.nordic import UARTService
+from bleak import BleakError
 
 from arancino.port.ArancinoPortFilter import FilterTypes
-from arancino.utils.ArancinoUtils import ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoConfig, ArancinoLogger
 from arancino.port.uart_ble.ArancinoUartBlePort import ArancinoUartBlePort
 from arancino.port.uart_ble.ArancinoUartBlePortFilter import ArancinoUartBlePortFilter
 from threading import Thread, Lock
 import time
+from arancino.port.ArancinoPort import PortTypes
 
 CONF = ArancinoConfig.Instance()
+LOG = ArancinoLogger.Instance().getLogger()
+
 
 class ArancinoUartBleDiscovery:
 
@@ -53,29 +57,39 @@ class ArancinoUartBleDiscovery:
         self.__th_discovery.start()
         #self.__th_clean.start()
 
+        self.__portType = PortTypes.UART_BLE
+        self.__log_prefix = "Arancino Discovery {}".format(self.__portType.name)
 
 
     def __discovery(self):
 
         while not self.__stop:
 
-            adv_list = []
-            work_list = {}
-            adv_list = self.__ble.start_scan(ProvideServicesAdvertisement, timeout=20)
+            try:
 
-            # for adv in self.__adv_list:
-            #     if UARTService in adv.services and adv.address.string not in self.__work_list:
-            #         self.__work_list[adv.address.string] = adv
-            for adv in adv_list:
-                if adv.address.string not in work_list:
-                    work_list[adv.address.string] = adv
+                adv_list = []
+                work_list = {}
+                adv_list = self.__ble.start_scan(ProvideServicesAdvertisement, timeout=20)
 
-            self.__mutex.acquire()
-            self.__real_list = work_list
-            self.__mutex.release()
-            print("DISC:")
-            print(self.__real_list)
+                # for adv in self.__adv_list:
+                #     if UARTService in adv.services and adv.address.string not in self.__work_list:
+                #         self.__work_list[adv.address.string] = adv
+                for adv in adv_list:
+                    if adv.address.string not in work_list:
+                        work_list[adv.address.string] = adv
 
+                self.__mutex.acquire()
+                self.__real_list = work_list
+                self.__mutex.release()
+                print("DISC:")
+                print(self.__real_list)
+
+            except BleakError as er:
+                LOG.warning("{}: {}".format(self.__log_prefix, er))
+                time.sleep(5)
+
+            except Exception as ex:
+                LOG.error("{}: {}".format(self.__log_prefix, er))
 
 
 
@@ -175,7 +189,7 @@ class ArancinoUartBleDiscovery:
             name = adv.complete_name
             device = self.__ble.name
             # TODO -> settare il timeout nel e da config
-            p = ArancinoUartBlePort(adv=adv, id=id, device=device, m_c_alias=name, timeout=CONF.get_port_uart_ble_timeout())
+            p = ArancinoUartBlePort(adv=adv, id=id, device=device, m_c_alias=name, m_s_plugged=True, timeout=CONF.get_port_uart_ble_timeout())
             #p = ArancinoSerialPort(timeout=CONF.get_port_serial_timeout(), port_info=port, m_s_plugged=True, m_c_enabled=CONF.get_port_serial_enabled(), m_c_hide=CONF.get_port_serial_hide(), baudrate_comm=CONF.get_port_serial_comm_baudrate(), baudrate_reset=CONF.get_port_serial_reset_baudrate())
             new_ports_struct[p.getId()] = p
 

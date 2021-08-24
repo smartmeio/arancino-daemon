@@ -29,10 +29,11 @@ LOG = ArancinoLogger.Instance().getLogger()
 
 class ArancinoSerialHandler(threading.Thread):
 
-    def __init__(self, name, serial, id, device, commandReceivedHandler, connectionLostHandler):
-        threading.Thread.__init__(self, name=name)
+    def __init__(self, serial, id, device, commandReceivedHandler, connectionLostHandler):
+        self.__name = "{}-{}".format(self.__class__.__name__, id)
+        threading.Thread.__init__(self, name=self.__name)
         self.__serial_port = serial      # the serial port
-        self.__name = name          # the name, usually the arancino port id
+
         self.__id = id
         self.__device = device
         self.__log_prefix = "[{} - {} at {}]".format(PortTypes(PortTypes.SERIAL).name, self.__id, self.__device)
