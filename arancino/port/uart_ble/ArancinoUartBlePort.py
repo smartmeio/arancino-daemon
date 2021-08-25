@@ -134,22 +134,23 @@ class ArancinoUartBlePort(ArancinoPort):
         # # TODO se la disconnessione viene gestita al livello superiore facendo una del
         # #  di questo oggetto non ha senso impostare connected = false e via dicendo
         #
-        # self._m_s_connected = False
-        # # self._m_s_plugged = False
-        #
-        # # free the handler and serial port
-        # self.__serial_port.close()
-        #
-        # del self.__serial_handler
-        # del self.__serial_port
-        #
-        # LOG.warning("{} Serial Port closed.".format(self._log_prefix))
-        #
-        # # check if the disconnection handler callback function is defined
-        # if self._disconnection_handler is not None:
-        #     self._disconnection_handler(self._id)
-        # else:  # do nothing
-        #     pass
+        self._m_s_connected = False
+        # self._m_s_plugged = False
+
+        # free the handler and serial port
+        self.__ble_connection.disconnect()
+
+        del self.__uart_ble_handler
+        del self.__ble_uart_service
+        del self.__adv
+
+        LOG.warning("{} Uart-Ble Port closed.".format(self._log_prefix))
+
+        # check if the disconnection handler callback function is defined
+        if self._disconnection_handler is not None:
+            self._disconnection_handler(self._id)
+        else:  # do nothing
+            pass
 
 
     # PORT APIs IMPLEMENTATION

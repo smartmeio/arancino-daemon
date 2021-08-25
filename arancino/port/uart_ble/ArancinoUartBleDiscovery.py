@@ -81,8 +81,8 @@ class ArancinoUartBleDiscovery:
                 self.__mutex.acquire()
                 self.__real_list = work_list
                 self.__mutex.release()
-                print("DISC:")
-                print(self.__real_list)
+                # print("DISC:")
+                # print(self.__real_list)
 
             except BleakError as er:
                 LOG.warning("{}: {}".format(self.__log_prefix, er))
@@ -166,8 +166,8 @@ class ArancinoUartBleDiscovery:
             if id not in ports:
                 del collection[id]
 
-        print("AVAIL:")
-        print(ports)
+        # print("AVAIL:")
+        # print(ports)
         self.__mutex.release()
         return collection
 
@@ -188,7 +188,6 @@ class ArancinoUartBleDiscovery:
             id = adv.address.string
             name = adv.complete_name
             device = self.__ble.name
-            # TODO -> settare il timeout nel e da config
             p = ArancinoUartBlePort(adv=adv, id=id, device=device, m_c_alias=name, m_s_plugged=True, timeout=CONF.get_port_uart_ble_timeout())
             #p = ArancinoSerialPort(timeout=CONF.get_port_serial_timeout(), port_info=port, m_s_plugged=True, m_c_enabled=CONF.get_port_serial_enabled(), m_c_hide=CONF.get_port_serial_hide(), baudrate_comm=CONF.get_port_serial_comm_baudrate(), baudrate_reset=CONF.get_port_serial_reset_baudrate())
             new_ports_struct[p.getId()] = p

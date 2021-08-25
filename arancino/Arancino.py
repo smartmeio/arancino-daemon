@@ -176,7 +176,7 @@ class Arancino(Thread):
                     # works only in python 3.5 and above
                     self.__ports_discovered = {**serial_ports, **test_ports, **uart_ble_ports}
 
-                    #__ports_started = dict(filter(lambda elem: elem.isStarted(), self.__ports_connected.items()))
+                    # elenco delle porte connesse e "started". solo per debug
                     __ports_started = {id:port for (id, port) in self.__ports_connected.items() if port.isStarted()}
 
                     LOG.debug('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))
@@ -244,6 +244,19 @@ class Arancino(Thread):
                                 LOG.warning("Port is not enabled, can not connect to: {} - {} at {}".format(port.getAlias(), port.getId(), port.getDevice()))
 
                         self.__synchronizer.writePortChanges(port)
+
+                    for id, port in self.__ports_connected.items():
+
+                        p_conn = self.__ports_connected[id]
+
+                        # Nel caso di uart-ble non c'é un handler di disconnessione
+                        # quindi si applica un controllo incrociato tra porte
+                        # connesse e porte discovered. Se la porta é connessa ma
+                        # non é presente tra le discovered, allora si forza la disconnessione
+
+                        if id not in self.__ports_discovered:
+                            p_conn.disconnect()
+                            self.__synchronizer.writePortChanges(port)
 
 
                 except Exception as ex:
