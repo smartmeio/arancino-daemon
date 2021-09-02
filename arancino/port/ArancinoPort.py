@@ -410,7 +410,7 @@ class ArancinoPort(object):
 
             time.sleep(self.__heartbeatRate)
 
-            if self.isConnected(): #and self.isStarted():
+            if self.isConnected() and self.isStarted():
 
                 self.__heartbeatCheck()
 
@@ -418,7 +418,12 @@ class ArancinoPort(object):
                 #1. QUI FACCIO PARTIRE IL TEMPO:
                 self.__heartbeatTime0 = time.time()
                 #2. QUI INVIO IL COMANDO HEARTBEAT.
-                self.sendResponse(ArancinoCortex.HEARTBEAT_RAW)
+
+                try:
+                    self.sendResponse(ArancinoCortex.HEARTBEAT_RAW)
+                except Exception as ex:
+                    self.disconnect()
+
                 #3. ALZO LA VARIABILE
                 self.__heartbeatSent = True
                 self.__heartbeatCount += 1
@@ -466,7 +471,7 @@ class ArancinoPort(object):
 
                 if self.__heartbeatCount-1 >= self.__heartbeatCountMax:
                      LOG.warn("{} No Heartbeat detected for the port.".format(self._log_prefix))
-                     self.stopHeartbeat()
+                     #self.stopHeartbeat()
                      self.disconnect()
 
 
