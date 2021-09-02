@@ -69,7 +69,7 @@ class ArancinoUartBleDiscovery:
 
                 adv_list = []
                 work_list = {}
-                adv_list = self.__ble.start_scan(ProvideServicesAdvertisement, timeout=20)
+                adv_list = self.__ble.start_scan(ProvideServicesAdvertisement, timeout=25)
 
                 # for adv in self.__adv_list:
                 #     if UARTService in adv.services and adv.address.string not in self.__work_list:
@@ -106,14 +106,6 @@ class ArancinoUartBleDiscovery:
         #         self.__real_list = self.__work_list
         #         self.__work_list.clear()
         #         print(self.__real_list)
-
-
-    def __stop(self):
-        #while not self.__stop:
-        while True:
-            self.getAvailablePorts()
-            time.sleep(1)
-            #self.__th_discovery.stop()
 
 
     def __preFilterPorts(self, ports):
@@ -166,9 +158,11 @@ class ArancinoUartBleDiscovery:
             if id not in ports:
                 del collection[id]
 
-        # print("AVAIL:")
-        # print(ports)
+        print("AVAIL:")
+        print(ports)
         self.__mutex.release()
+
+        del ports
         return collection
 
 

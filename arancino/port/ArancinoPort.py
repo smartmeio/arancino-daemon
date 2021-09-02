@@ -18,11 +18,13 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 """
-
+import threading
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
+from threading import Thread
 from types import FunctionType, MethodType
 #from arancino.port.ArancinoPort import PortTypes
+from arancino import ArancinoCortex
 from arancino.ArancinoCortex import *
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 import time
@@ -73,6 +75,8 @@ class ArancinoPort(object):
         self._upload_cmd = upload_cmd
         #endregion
 
+        self._log_prefix = ""
+
         # Command Executor
         # self._executor = ArancinoCommandExecutor(self._id, self._device)
 
@@ -87,6 +91,18 @@ class ArancinoPort(object):
         #endregion
 
         self.__first_time = True
+
+
+        self.__heartbeatSent = False        # é una variabile che mi indica se é stato inviato il ping/hearbeat alla porta e quindi se stare in attesa di risposta.
+        self.__heartbeatRate = 5           #10 secondi é il rate con cui gira l'hearbeat
+        self.__heartbeatTimeRange = 0.005   # 5 millisecondi é il tempo minimo di risposta che ci aspettiamo.
+        self.__heartbeatTime0 = None        # servono per misurare il tempo.
+        self.__heartbeatTime1 = None
+        self.__heartbeatCount = 1           # contantore del numero di heartbeat prima della risposta
+        self.__heartbeatCountMax = 5        # numero massimo di heartbeat a vuoto
+        self.__heartbeatStop = threading.Event()        # per la gestione del Thread
+
+        self.__th_heartbeat = Thread(target=self.__heartbeat)
 
 
 
@@ -274,7 +290,7 @@ class ArancinoPort(object):
 
         :return:
         """
-        pass
+        self.startHeartbeat()
 
 
     @abstractmethod
@@ -283,7 +299,7 @@ class ArancinoPort(object):
 
         :return:
         """
-        pass
+        self.stopHeartbeat()
 
 
     @abstractmethod
@@ -327,22 +343,27 @@ class ArancinoPort(object):
             acmd = ArancinoComamnd(raw_command=raw_command)
             LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.getId(), str(acmd.getArguments())))
 
-            # check if the received command handler callback function is defined
-            if self._received_command_handler is not None:
-                self._received_command_handler(self._id, acmd)
+            if acmd.getId() == ArancinoCommandIdentifiers.RSP_SYS_HEARTBEAT["id"]:
+                self.__heartbeatResponse()
+            else:
 
-            # call the Command Executor and get a arancino response
-            arsp = self._executor.exec(acmd)
+                # check if the received command handler callback function is defined
+                if self._received_command_handler is not None:
+                    self._received_command_handler(self._id, acmd)
 
-            # create the Arancino Response object
-            #arsp = ArancinoResponse(raw_response=raw_response)
 
-            # if the command is START command, the ArancinoResponse is generic and it should
-            # evaluated here and not in the CommandExecutor. CommandExecutor only uses the datastore
-            # and not the port itself. The START command contains information about the connecting port
-            # that the command executor is not able to use.
-            if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
-                self._retrieveStartCmdArgs(acmd.getArguments())
+                # call the Command Executor and get a arancino response
+                arsp = self._executor.exec(acmd)
+
+                # create the Arancino Response object
+                #arsp = ArancinoResponse(raw_response=raw_response)
+
+                # if the command is START command, the ArancinoResponse is generic and it should
+                # evaluated here and not in the CommandExecutor. CommandExecutor only uses the datastore
+                # and not the port itself. The START command contains information about the connecting port
+                # that the command executor is not able to use.
+                if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
+                    self._retrieveStartCmdArgs(acmd.getArguments())
 
         except ArancinoException as ex:
             arsp = ArancinoResponse(rsp_id=ex.error_code, rsp_args=[])
@@ -373,6 +394,88 @@ class ArancinoPort(object):
         :return: void
         """
         pass
+
+
+    def startHeartbeat(self):
+        self.__th_heartbeat.start()
+
+    def stopHeartbeat(self):
+        self.__heartbeatStop.set()
+
+
+    def __heartbeat(self):
+
+        LOG.info("{} Start Heartbeat".format(self._log_prefix))
+        while not self.__heartbeatStop.is_set():
+
+            time.sleep(self.__heartbeatRate)
+
+            if self.isConnected(): #and self.isStarted():
+
+                self.__heartbeatCheck()
+
+                LOG.debug("{} Sending Heartbeat #{} to the port".format(self._log_prefix, str(self.__heartbeatCount)))
+                #1. QUI FACCIO PARTIRE IL TEMPO:
+                self.__heartbeatTime0 = time.time()
+                #2. QUI INVIO IL COMANDO HEARTBEAT.
+                self.sendResponse(ArancinoCortex.HEARTBEAT_RAW)
+                #3. ALZO LA VARIABILE
+                self.__heartbeatSent = True
+                self.__heartbeatCount += 1
+
+            else:
+                LOG.warn("{} Can not verify heartbeat: Port not Connected or not Started".format(self._log_prefix))
+
+        LOG.info("{} End Heartbeat".format(self._log_prefix))
+
+
+    def __heartbeatResponse(self):
+        LOG.debug("{} Received Heartbeat Response from the port".format(self._log_prefix))
+        self.__heartbeatTime1 = time.time()
+
+
+    def __heartbeatCheck(self):
+
+
+        if self.__heartbeatSent: # l'heartbeat é stato inviato almeno una volta.
+
+            if self.__heartbeatTime1:
+
+                t = self.__heartbeatTime1 - self.__heartbeatTime0
+                if t <= self.__heartbeatTimeRange:
+                    LOG.debug("{} Heartbeat detected: {}".format(self._log_prefix, t))
+                else:
+                    LOG.warn("{} Heartbeat detected but over the range: {}".format(self._log_prefix, t))
+
+                    #### TODO TODO TODO
+                    #### TODO send a notification to someone.
+                    #### TODO TODO TODO
+
+                # Resetto i timer
+                self.__heartbeatTime0 = None
+                self.__heartbeatTime1 = None
+
+                # Resetto il counter
+                self.__heartbeatCount = 0
+
+                # Resetto il flag
+                self.__heartbeatSent = False
+
+            else: # se il tempo di risposta non é valorizzato, significa che non é ancora stato tornato indietro la risposta e quindi aumento il counter
+                LOG.debug("{} No Heartbeat: Attempt #{} Failed.".format(self._log_prefix, str(self.__heartbeatCount-1)))
+
+                if self.__heartbeatCount-1 >= self.__heartbeatCountMax:
+                     LOG.warn("{} No Heartbeat detected for the port.".format(self._log_prefix))
+                     self.stopHeartbeat()
+                     self.disconnect()
+
+
+        # else: # é il primo giro, o non é ancora stata effettuato questo check
+        #     # Non fare niente
+        #     pass
+
+
+
 
 
     #region BASE METADATA Encapsulators
@@ -516,7 +619,7 @@ class ArancinoPort(object):
         self._m_s_started = started
 
     def isStarted(self):
-        return True#self._m_s_started
+        return self._m_s_started
 
     #endregion
 

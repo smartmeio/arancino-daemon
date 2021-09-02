@@ -150,6 +150,7 @@ class ArancinoTestPort(ArancinoPort):
                         LOG.info("{} Connected".format(self._log_prefix))
                         self._start_thread_time = time.time()
 
+                        super().connect()
 
                     except Exception as ex:
                         # TODO: lasciare il raise????
@@ -179,6 +180,8 @@ class ArancinoTestPort(ArancinoPort):
                 # self._m_s_connected = False
 
                 self.__test_handler.stop()
+                super().diconnect()
+
 
             else:
                 LOG.debug("{} Already Disconnected".format(self._log_prefix))

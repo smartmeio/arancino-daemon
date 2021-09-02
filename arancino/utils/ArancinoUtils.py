@@ -138,18 +138,22 @@ class ArancinoConfig:
         self.__port_serial_timeout = int(self.Config.get("port.serial", "timeout"))
         self.__port_serial_reset_on_connect = self.__get_or_override_bool(self.Config, "port.serial", "reset_on_connect", "port", "reset_on_connect")
 
-        self.__port_serial_upload_command = self.Config.get("port.serial.samd21", "upload_command")
+            # default upload command for serial port
+        self.__port_serial_upload_command = self.Config.get("port.serial", "upload_command")
 
         # region SAMD21
-        self.__port_serial_samd21_upload_command = self.Config.get("port.serial.samd21", "upload_command")
+        self.__port_serial_samd21_upload_command = self.__get_or_override_bool(self.Config, "port.serial.samd21", "upload_command", "port.serial", "upload_command")
+        #self.__port_serial_samd21_upload_command = self.Config.get("port.serial.samd21", "upload_command")
         # endregion
 
         # region NRF52
-        self.__port_serial_nrf52_upload_command = self.Config.get("port.serial.nrf52", "upload_command")
+        self.__port_serial_nrf52_upload_command = self.__get_or_override_bool(self.Config, "port.serial.nrf52", "upload_command", "port.serial", "upload_command")
+        #self.__port_serial_nrf52_upload_command = self.Config.get("port.serial.nrf52", "upload_command")
         # endregion
 
         # region STM32
-        self.__port_serial_stm32_upload_command = self.Config.get("port.serial.stm32", "upload_command")
+        self.__port_serial_stm32_upload_command = self.__get_or_override_bool(self.Config, "port.serial.stm32", "upload_command", "port.serial", "upload_command")
+        #self.__port_serial_stm32_upload_command = self.Config.get("port.serial.stm32", "upload_command")
         # endregion
 
         # endregion
@@ -443,6 +447,9 @@ class ArancinoConfig:
 
     def get_port_serial_reset_on_connect(self):
         return self.__port_serial_reset_on_connect
+
+    def get_port_serial_upload_command(self):
+        return self.__port_serial_upload_command
 
     ## STM32
     def get_port_serial_stm32_upload_command(self):
@@ -758,7 +765,7 @@ class CustomConsoleFormatter(logging.Formatter):
 
         #format_pre = "%(asctime)s - %(name)s - "
         if self.__level.upper() == 'DEBUG':
-            format_pre = "%(asctime)s - %(name)s : %(threadName)s.%(filename)s.%(funcName)s:%(lineno)d - "
+            format_pre = "%(asctime)s - %(name)s : [%(thread)d]%(threadName)s.%(filename)s.%(funcName)s:%(lineno)d - "
 
 
         self.FORMATS = {

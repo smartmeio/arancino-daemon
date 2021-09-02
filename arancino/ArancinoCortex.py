@@ -30,6 +30,10 @@ from arancino.ArancinoExceptions import *
 # - get raw
 
 
+
+HEARTBEAT_RAW = "HB" + ArancinoSpecialChars.CHR_EOT
+
+
 class ArancinoComamnd:
 
     def __init__(self, raw_command=None, cmd_id=None, cmd_args=None):

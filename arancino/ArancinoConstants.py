@@ -165,13 +165,19 @@ class ArancinoCommandIdentifiers:
     CMD_SYS_START = {"id": __CMD_SYS_START, "args": 2, "op": ArancinoOperators.EQUAL}
     "Start Commmand"
 
+
+    # sys response
+    __RSP_SYS_HEARTBEAT = 'HB'
+    RSP_SYS_HEARTBEAT = {"id": __RSP_SYS_HEARTBEAT, "args": 0, "op": ArancinoOperators.EQUAL}
+    "Haertbeat Response"
+
     # Simple Operation Commands
     __CMD_APP_GET = 'GET'
     CMD_APP_GET = {"id": __CMD_APP_GET, "args": 1, "op": ArancinoOperators.EQUAL}
     "Get value at key"
 
     __CMD_APP_GET_RSVD = 'GETRSVD'
-    CMD_APP_GET_RSVD = {"id": __CMD_APP_GET_RSVD, "args": 1, "op": ArancinoOperators.EQUAL}
+    CMD_APP_GET_RSVD = {"id": __CMD_APP_GET_RSVD, "args": 1, "op": ArancinoOperators}
     "Get value at reserverd key"
 
     __CMD_APP_SET = 'SET'
@@ -292,6 +298,7 @@ class ArancinoCommandIdentifiers:
         __CMD_APP_STORETAGS: CMD_APP_STORETAGS,
         __CMD_APP_MSTORE: CMD_APP_MSTORE,
         __CMD_APP_INTEROCEP: CMD_APP_INTEROCEP,
+        __RSP_SYS_HEARTBEAT: RSP_SYS_HEARTBEAT
     }
     "Complete dictionary of all available commands: " \
     "{ 'SET': {'id': 'SET', 'args': 2} , ... }"
@@ -323,6 +330,7 @@ class ArancinoCommandIdentifiers:
                      __CMD_APP_STORETAGS,
                      __CMD_APP_MSTORE,
                      __CMD_APP_INTEROCEP,
+                     __RSP_SYS_HEARTBEAT
                      ]
     "Complete list of all available commands:" \
     "[ 'SET', 'GET', ... ]"

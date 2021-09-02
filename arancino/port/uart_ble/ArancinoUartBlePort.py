@@ -193,6 +193,8 @@ class ArancinoUartBlePort(ArancinoPort):
                         LOG.info("{} Connected".format(self._log_prefix))
                         self._start_thread_time = time.time()
 
+                        super().connect()
+
                     except Exception as ex:
                         # TODO LOG SOMETHING OR NOT?
                         LOG.error("{} Error while connecting: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
@@ -216,6 +218,7 @@ class ArancinoUartBlePort(ArancinoPort):
             if self._m_s_connected:
 
                 self.__uart_ble_handler.stop()
+                super().disconnect()
 
             else:
                 LOG.debug("{} Already Disconnected".format(self._log_prefix))
