@@ -8,6 +8,8 @@ Transmitter is composed of three main parts: _Reader_, _Parser_, _Sender_, that 
 It's a thread that run periodically (see the specific configuration) and retrieves data from the 
 [_Time Series Store_](CONFIGURATION.md#Redis Configuration) in Redis. This thread provides also the data aggregation based on the tags retrieved from the [_Tag Store_](CONFIGURATION.md#Redis Configuration) in Redis.
 
+If the time range to read is too large, the reader enter in batch mode automatically. The data are read and sent in five minutes batches. This avoid the ram saturation and speed up the process.
+
 ```ini
 [transmitter.reader]
 # Represents the time (in seconds) in which the reader collects data
