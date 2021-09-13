@@ -96,8 +96,8 @@ class SenderMqtt(Sender):
             else:
                 client.username_pw_set(username=self.__username, password=self.__password)
 
-            client.on_connect = self.on_connect
-            client.on_disconnect = self.on_disconnect
+            client.on_connect = self.__on_connect
+            client.on_disconnect = self.__on_disconnect
             client.connect(self.__broker_host, self.__broker_port, 60)
             client.loop_start()
 
@@ -111,7 +111,7 @@ class SenderMqtt(Sender):
             return client
 
     # region Connect Handler
-    def on_connect(self, client, userdata, flags, rc):
+    def __on_connect(self, client, userdata, flags, rc):
         if rc == 0:
             self.__client.connected_flag = True
             LOG.info("{}Connected to {}:{}...".format(self._log_prefix, self.__broker_host, str(self.__broker_port)))
@@ -121,7 +121,7 @@ class SenderMqtt(Sender):
     # endregion
 
     # region Disconnect Handler
-    def on_disconnect(self, client, userdata, rc):
+    def __on_disconnect(self, client, userdata, rc):
         self.__client.connected_flag = False
         LOG.info("{}Disconnected from {}:{}...".format(self._log_prefix, self.__broker_host, str(self.__broker_port)))
         while rc != 0:
