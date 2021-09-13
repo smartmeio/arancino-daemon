@@ -36,6 +36,7 @@ import time
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
 API_CODE = ArancinoApiResponseCode()
+DATASTORE = ArancinoDataStore.Instance()
 
 
 #@Singleton
@@ -80,7 +81,7 @@ class Arancino(Thread):
             self.__uart_ble_ports = {}
 
             self.__synchronizer = ArancinoPortSynch()
-            self.__datastore = ArancinoDataStore.Instance()
+            self.__datastore = DATASTORE
 
             # store in datastore: module version, module environment running mode
             self.__datastore.getDataStoreRsvd().set(ArancinoReservedChars.RSVD_KEY_MODVERSION, str(self.__version))
