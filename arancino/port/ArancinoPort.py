@@ -104,7 +104,8 @@ class ArancinoPort(object):
         self.__heartbeatCountMax = 5        # numero massimo di heartbeat a vuoto
         self.__heartbeatStop = threading.Event()        # per la gestione del Thread
 
-        self.__th_heartbeat = Thread(target=self.__heartbeat)
+        #self.__th_heartbeat = Thread(target=self.__heartbeat)
+        self.__th_heartbeat = Thread(target=self.__hb)
 
 
 
@@ -400,7 +401,7 @@ class ArancinoPort(object):
 
     def startHeartbeat(self):
         self.__th_heartbeat.start()
-        self.subscribe()
+        self.__hb_subscribe()
 
 
     def stopHeartbeat(self):
@@ -411,30 +412,28 @@ class ArancinoPort(object):
 
         LOG.info("{} Start Heartbeat".format(self._log_prefix))
         while not self.__heartbeatStop.is_set():
-            pass
+            time.sleep(self.__heartbeatRate)
 
-            # time.sleep(self.__heartbeatRate)
+            if self.isConnected() and self.isStarted():
 
-            # if self.isConnected() and self.isStarted():
+                self.__heartbeatCheck()
 
-            #     self.__heartbeatCheck()
+                LOG.debug("{} Sending Heartbeat #{} to the port".format(self._log_prefix, str(self.__heartbeatCount)))
+                #1. QUI FACCIO PARTIRE IL TEMPO:
+                self.__heartbeatTime0 = time.time()
+                #2. QUI INVIO IL COMANDO HEARTBEAT.
 
-            #     LOG.debug("{} Sending Heartbeat #{} to the port".format(self._log_prefix, str(self.__heartbeatCount)))
-            #     #1. QUI FACCIO PARTIRE IL TEMPO:
-            #     self.__heartbeatTime0 = time.time()
-            #     #2. QUI INVIO IL COMANDO HEARTBEAT.
+                try:
+                    self.sendResponse(ArancinoCortex.HEARTBEAT_RAW)
+                except Exception as ex:
+                    self.disconnect()
 
-            #     try:
-            #         self.sendResponse(ArancinoCortex.HEARTBEAT_RAW)
-            #     except Exception as ex:
-            #         self.disconnect()
+                #3. ALZO LA VARIABILE
+                self.__heartbeatSent = True
+                self.__heartbeatCount += 1
 
-            #     #3. ALZO LA VARIABILE
-            #     self.__heartbeatSent = True
-            #     self.__heartbeatCount += 1
-
-            # else:
-            #     LOG.warn("{} Can not verify heartbeat: Port not Connected or not Started".format(self._log_prefix))
+            else:
+                LOG.warn("{} Can not verify heartbeat: Port not Connected or not Started".format(self._log_prefix))
 
         LOG.info("{} End Heartbeat".format(self._log_prefix))
 
@@ -445,7 +444,6 @@ class ArancinoPort(object):
 
 
     def __heartbeatCheck(self):
-
 
         if self.__heartbeatSent: # l'heartbeat é stato inviato almeno una volta.
 
@@ -485,7 +483,7 @@ class ArancinoPort(object):
         #     pass
 
 
-    def subscribe(self):
+    def __hb_subscribe(self):
         print("CALL")
         redis = DATASTORE.getDataStoreRsvd()
         redis = redis.pubsub()
@@ -504,16 +502,14 @@ class ArancinoPort(object):
                 continue
 
 
-    def __hb_sub_1(self, data):
-        LOG.debug("RECEIVING HB 1: {}".format(data))
-        ts_str = data['data']
-        ts = self.__convert_timestamp(ts_str)
-        print(ts)
+    def __hb(self):
+        LOG.info("{} Start Heartbeat".format(self._log_prefix))
+        while not self.__heartbeatStop.is_set():
+            pass
+    
+        LOG.info("{} End Heartbeat".format(self._log_prefix))
 
-        
-
-
-    def __convert_timestamp(self, ts_str):
+    def __hb_convert_timestamp(self, ts_str):
 
         ts = None
         try:
@@ -522,12 +518,18 @@ class ArancinoPort(object):
             LOG.error("{} Errore di conversione: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
         finally:
             return ts
-        
+
+
+    def __hb_sub_1(self, data):
+        LOG.debug("RECEIVING HB 1: {}".format(data))
+        ts_str = data['data']
+        ts = self.__hb_convert_timestamp(ts_str)
+        print(ts)
 
     def __hb_sub_2(self, data):
         LOG.debug("RECEIVING HB 2: {}".format(data))
         ts_str = data['data']
-        ts = self.__convert_timestamp(ts_tr)
+        ts = self.__hb_convert_timestamp(ts_str)
         print(ts)
 
 
@@ -647,6 +649,8 @@ class ArancinoPort(object):
 
     def _setMicrocontrollerFamily(self, microcontroller_family):
         self._microcontroller_family = microcontroller_family
+
+    #endregion
 
     #endregion
 
