@@ -180,7 +180,7 @@ class ArancinoTestPort(ArancinoPort):
                 # self._m_s_connected = False
 
                 self.__test_handler.stop()
-                super().diconnect()
+                super().disconnect()
 
 
             else:
