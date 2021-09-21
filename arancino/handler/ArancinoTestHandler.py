@@ -271,8 +271,8 @@ class ArancinoTestHandler(threading.Thread):
         # list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + lib_version + specChars.CHR_EOT)
         # list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + lib_version + specChars.CHR_SEP + fw_name + specChars.CHR_SEP + fw_version + specChars.CHR_SEP + fw_datetime_str + specChars.CHR_SEP + core_version + specChars.CHR_EOT)
         list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + start_args_keys + specChars.CHR_SEP + start_args_vals + specChars.CHR_EOT)
-        
-        #SIGN   
+        list.append(cmdId.CMD_APP_SET["id"] + specChars.CHR_SEP + "KEY" + specChars.CHR_ARR_SEP + "VALUE" +  specChars.CHR_SEP+str(self.__id) +"_TEST_KEY"+specChars.CHR_ARR_SEP+"TEST_VALUE"+specChars.CHR_EOT)
+        #SIGN
        # list.append(cmdId.CMD_SYS_SIGN["id"] + specChars.CHR_SEP + "sign" + specChars.CHR_SEP + str(self.__signChallenge(self.challenge)) + specChars.CHR_EOT)
 
 

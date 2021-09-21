@@ -297,43 +297,45 @@ class ArancinoComamnd:
     #load the comand executed by port on redis
     def loadCommand(self,challenge,port_id):
         #__datastore = ArancinoDataStore.Instance()
-
+        #con il data store sicuro bisogno aggiungere il command ID con challenge e signature
         commandId=self.__id
-        res= dts.getDataStoreDev().hget(str(port_id)+"_HISTORY","CURRENT_INDEX")
-        if res is None:
-            index = 0
-        else:
-            index = int(res)+1
+        aci = ArancinoCommandIdentifiers
 
+        setCommands = [aci.CMD_APP_SET["id"], aci.CMD_APP_SET_PERS["id"], aci.CMD_APP_SET_STD["id"], aci.CMD_APP_SET_RSVD["id"],
+                       aci.CMD_APP_MSET["id"], aci.CMD_APP_MSET_PERS["id"], aci.CMD_APP_MSET_STD["id"], aci.CMD_APP_STORE["id"], 
+                       aci.CMD_APP_MSTORE["id"], aci.CMD_APP_PUB["id"]]
+        msetCommands = [aci.CMD_APP_MSET["id"], aci.CMD_APP_MSET_PERS["id"], aci.CMD_APP_MSET_STD["id"]]
+        hsetCommands = [aci.CMD_APP_HSET["id"], aci.CMD_APP_HSET_PERS["id"], aci.CMD_APP_HSET_STD["id"], aci.CMD_APP_STORETAGS["id"]]
         
-        ts = str(int(datetime.now().timestamp() * 1000))
-        
-        
-        if self.__id==ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
-            '''
-            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "COMMAND_"+str(res),commandId)
-            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "TIMESTAMP_"+str(res),ts)
-            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "CURRENT_INDEX",res)
-            '''
-            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY", "COMMAND_"+str(index),commandId)
-            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY", "TIMESTAMP_"+str(index),ts)
-            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY", "CURRENT_INDEX",index)
+        if commandId in setCommands:
+            signature = self.getSignature()
+            
+            if commandId in msetCommands:
+                keys = self.getArguments[0]
+                keys_array = keys.split(ArancinoSpecialChars.CHR_ARR_SEP)   #funziona così con il cortex protocol semistrutturato
+                for key in keys_array:
+                    dts.getDataStoreScr().set("CHALL_"+key, challenge)
+                    dts.getDataStoreScr().set("SIGN_"+key, signature)
+            else:
+                key=self.__args[0]
+                dts.getDataStoreScr().set("CHALL_"+key, challenge)
+                dts.getDataStoreScr().set("SIGN_"+key, signature)
+            
 
-        
-        elif challenge is not None:
+        elif commandId in hsetCommands:
             signature=self.getSignature()
-            '''
-            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "COMMAND_"+str(res),commandId)
-            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "SIGNATURE_"+str(res),signature)
-            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "CHALLENGE_"+str(res),challenge)
-            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "TIMESTAMP_"+str(res),ts)
-            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "CURRENT_INDEX",res)
-            '''
-            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY", "COMMAND_"+str(index),commandId)
-            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY", "SIGNATURE_"+str(index),signature)
-            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY", "CHALLENGE_"+str(index),challenge)
-            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY", "TIMESTAMP_"+str(index),ts)
-            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY", "CURRENT_INDEX",index)
+            key = self.getArguments[0]
+
+            if commandId == aci.CMD_APP_STORETAGS["id"]:
+                tags = self.getArguments[1]
+                tags_array = tags.split(ArancinoSpecialChars.CHR_ARR_SEP)   #funziona così con il cortex protocol semistrutturato
+                for tag in tags_array:
+                    dts.getDataStoreScr().hset("CHALL_"+commandId, tag, challenge)
+                    dts.getDataStoreScr().hset("SIGN_"+commandId, tag, signature)
+            else:
+                field = self.getArguments[1]
+                dts.getDataStoreScr().hset("CHALL_"+commandId, field, challenge)
+                dts.getDataStoreScr().hset("SIGN_"+commandId, field, signature)
 
 
 class ArancinoResponse:
@@ -439,7 +441,7 @@ class ArancinoResponse:
     def setChallenge(self, port_id):
         challenge = str(b64encode(os.urandom(32)).decode('utf-8'))
         #__datastore = ArancinoDataStore.Instance()
-        resp = dts.getDataStoreStd().hset("CHALLENGE", port_id, challenge)
+        resp = dts.getDataStoreScr().hset("CHALLENGE", port_id, challenge)
         if resp is not None:
             self.__args.append(challenge)
             self.__raw = self.__id + ArancinoSpecialChars.CHR_SEP + ArancinoSpecialChars.CHR_SEP.join(self.__args) + ArancinoSpecialChars.CHR_EOT

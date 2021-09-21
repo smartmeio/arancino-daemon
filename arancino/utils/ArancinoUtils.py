@@ -102,6 +102,7 @@ class ArancinoConfig:
         self.__redis_volatile_datastore_rsvd_db = int(self.Config.get("redis.volatile", "datastore_rsvd_db"))
         self.__redis_volatile_datastore_tse_db = int(self.Config.get("redis.volatile", "datastore_tse_db"))
         self.__redis_volatile_datastore_tag_db = int(self.Config.get("redis.volatile", "datastore_tag_db"))
+        self.__redis_volatile_datastore_scr_db = int(self.Config.get("redis.volatile", "datastore_scr_db"))
 
         self.__redis_persistent_datastore_std_db = int(self.Config.get("redis.persistent", "datastore_std_db"))
         self.__redis_persistent_datastore_dev_db = int(self.Config.get("redis.persistent", "datastore_dev_db"))
@@ -109,6 +110,7 @@ class ArancinoConfig:
         self.__redis_persistent_datastore_rsvd_db = int(self.Config.get("redis.persistent", "datastore_rsvd_db"))
         self.__redis_persistent_datastore_tse_db = int(self.Config.get("redis.persistent", "datastore_tse_db"))
         self.__redis_persistent_datastore_tag_db = int(self.Config.get("redis.volatile", "datastore_tag_db"))
+        self.__redis_persistent_datastore_scr_db = int(self.Config.get("redis.persistent", "datastore_scr_db"))
 
         self.__redis_volatile_persistent_datastore_std_db = int(self.Config.get("redis.volatile_persistent", "datastore_std_db"))
         self.__redis_volatile_persistent_datastore_dev_db = int(self.Config.get("redis.volatile_persistent", "datastore_dev_db"))
@@ -116,6 +118,7 @@ class ArancinoConfig:
         self.__redis_volatile_persistent_datastore_rsvd_db = int(self.Config.get("redis.volatile_persistent", "datastore_rsvd_db"))
         self.__redis_volatile_persistent_datastore_tse_db = int(self.Config.get("redis.volatile_persistent", "datastore_tse_db"))
         self.__redis_volatile_persistent_datastore_tag_db = int(self.Config.get("redis.volatile", "datastore_tag_db"))
+        self.__redis_volatile_persistent_datastore_scr_db = int(self.Config.get("redis.volatile_persistent", "datastore_scr_db"))
         # endregion
 
         # region CONFIG PORT SECTION
@@ -312,6 +315,7 @@ class ArancinoConfig:
             dts_rsvd_db = self.__redis_volatile_datastore_rsvd_db
             dts_tse_db = self.__redis_volatile_datastore_tse_db
             dts_tag_db = self.__redis_volatile_datastore_tag_db
+            dts_scr_db = self.__redis_volatile_datastore_scr_db
 
         elif redis_instance == RedisInstancesType.PERSISTENT:
             host_vol = self.__redis_host_persistent
@@ -324,6 +328,7 @@ class ArancinoConfig:
             dts_rsvd_db = self.__redis_persistent_datastore_rsvd_db
             dts_tse_db = self.__redis_persistent_datastore_tse_db
             dts_tag_db = self.__redis_persistent_datastore_tag_db
+            dts_scr_db = self.__redis_persistent_datastore_scr_db
 
         elif redis_instance == RedisInstancesType.VOLATILE_PERSISTENT:
             host_vol = self.__redis_host_volatile
@@ -336,6 +341,7 @@ class ArancinoConfig:
             dts_rsvd_db = self.__redis_volatile_persistent_datastore_rsvd_db
             dts_tse_db = self.__redis_volatile_persistent_datastore_tse_db
             dts_tag_db = self.__redis_volatile_persistent_datastore_tag_db
+            dts_scr_db = self.__redis_volatile_persistent_datastore_scr_db
 
         else:  # DEFAULT is VOLATILE_PERSISTENT
             host_vol = self.__redis_host_volatile
@@ -348,6 +354,8 @@ class ArancinoConfig:
             dts_rsvd_db = self.__redis_volatile_persistent_datastore_rsvd_db
             dts_tse_db = self.__redis_volatile_persistent_datastore_tse_db
             dts_tag_db = self.__redis_volatile_persistent_datastore_tag_db
+            dts_scr_db = self.__redis_volatile_persistent_datastore_scr_db
+
 
         redis_dts_std = {'host': host_vol, 'port': port_vol, 'dcd_resp': dec_rsp, 'db': dts_std_db}
         redis_dts_dev = {'host': host_per, 'port': port_per, 'dcd_resp': dec_rsp, 'db': dts_dev_db}
@@ -355,8 +363,9 @@ class ArancinoConfig:
         redis_dts_rsvd = {'host': host_vol, 'port': port_vol, 'dcd_resp': dec_rsp, 'db': dts_rsvd_db}
         redis_dts_tse = {'host': host_vol, 'port': port_vol, 'dcd_resp': dec_rsp, 'db': dts_tse_db}
         redis_dts_tag = {'host': host_per, 'port': port_per, 'dcd_resp': dec_rsp, 'db': dts_tag_db}
+        redis_dts_scr = {'host': host_per, 'port': port_per, 'dcd_resp': dec_rsp, 'db': dts_scr_db}
 
-        return redis_dts_std, redis_dts_dev, redis_dts_per, redis_dts_rsvd, redis_dts_tse, redis_dts_tag
+        return redis_dts_std, redis_dts_dev, redis_dts_per, redis_dts_rsvd, redis_dts_tse, redis_dts_tag, redis_dts_scr
 
 
     def get_redis_connection_attempts(self):
