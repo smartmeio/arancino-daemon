@@ -259,7 +259,7 @@ class ArancinoComamnd:
             else:
                 raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: != (Between) " + str(n_args_required) + " and " + str(n_args_required_2) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
 
-
+    
     def setSignature(self, signature):
 
         keys = self.__args[0]
@@ -278,7 +278,6 @@ class ArancinoComamnd:
         self.__args[0] = start_args_keys
         self.__args[1] = start_args_vals
 
-
     def getSignature(self):
         
         keys=self.__args[0]
@@ -294,6 +293,7 @@ class ArancinoComamnd:
         signature = values_array[count]
         return signature
 
+    '''
     #load the comand executed by port on redis
     def loadCommand(self,challenge,port_id):
         #__datastore = ArancinoDataStore.Instance()
@@ -336,6 +336,67 @@ class ArancinoComamnd:
                 field = self.getArguments[1]
                 dts.getDataStoreScr().hset("CHALL_"+commandId, field, challenge)
                 dts.getDataStoreScr().hset("SIGN_"+commandId, field, signature)
+
+    '''
+
+
+    '''
+    def getSignature(self):
+
+        last_index_args = len(self.__args)-1
+        signature = self.__args[last_index_args]
+        return signature
+    '''
+    def getCurrentChallenge(self, port_id):
+        challenge = dts.getDataStoreScr().hget("CHALLENGE", port_id)
+        if challenge is not None:
+            return challenge
+        else:
+            # return the error code
+            return ArancinoCommandErrorCodes.ERR_REDIS
+
+    #load the comand executed by port on redis
+    def loadCommand(self,challenge,port_id):
+        #__datastore = ArancinoDataStore.Instance()
+        #con il data store sicuro bisogno aggiungere il command ID con challenge e signature
+        commandId=self.__id
+        aci = ArancinoCommandIdentifiers
+
+        setCommands = [aci.CMD_APP_SET["id"], aci.CMD_APP_SET_PERS["id"], aci.CMD_APP_SET_STD["id"], aci.CMD_APP_SET_RSVD["id"],
+                       aci.CMD_APP_MSET["id"], aci.CMD_APP_MSET_PERS["id"], aci.CMD_APP_MSET_STD["id"], aci.CMD_APP_STORE["id"], 
+                       aci.CMD_APP_MSTORE["id"], aci.CMD_APP_PUB["id"]]
+        msetCommands = [aci.CMD_APP_MSET["id"], aci.CMD_APP_MSET_PERS["id"], aci.CMD_APP_MSET_STD["id"]]
+        hsetCommands = [aci.CMD_APP_HSET["id"], aci.CMD_APP_HSET_PERS["id"], aci.CMD_APP_HSET_STD["id"], aci.CMD_APP_STORETAGS["id"]]
+        
+        if commandId in setCommands:
+            signature = self.getSignature()
+            
+            if commandId in msetCommands:
+                keys = self.getArguments[0]
+                keys_array = keys.split(ArancinoSpecialChars.CHR_ARR_SEP)   #funziona così con il cortex protocol semistrutturato
+                for key in keys_array:
+                    dts.getDataStoreScr().set("CHALL_"+key, challenge)
+                    dts.getDataStoreScr().set("SIGN_"+key, signature)
+            else:
+                key=self.__args[0]
+                dts.getDataStoreScr().set("CHALL_"+key, challenge)
+                dts.getDataStoreScr().set("SIGN_"+key, signature)
+            
+
+        elif commandId in hsetCommands:
+            signature=self.getSignature()
+            key = self.getArguments[0]
+
+            if commandId == aci.CMD_APP_STORETAGS["id"]:
+                tags = self.getArguments[1]
+                tags_array = tags.split(ArancinoSpecialChars.CHR_ARR_SEP)   #funziona così con il cortex protocol semistrutturato
+                for tag in tags_array:
+                    dts.getDataStoreScr().hset("CHALL_"+key, tag, challenge)
+                    dts.getDataStoreScr().hset("SIGN_"+key, tag, signature)
+            else:
+                field = self.getArguments[1]
+                dts.getDataStoreScr().hset("CHALL_"+key, field, challenge)
+                dts.getDataStoreScr().hset("SIGN_"+key, field, signature)
 
 
 class ArancinoResponse:
@@ -448,7 +509,7 @@ class ArancinoResponse:
             return challenge
         else:
             # return the error code
-            return ArancinoSpecialChars.ERR_SET
+            return ArancinoCommandErrorCodes.ERR_SET
     
     def getChallenge(self):
         return self.__args[len(self.__args)-1]

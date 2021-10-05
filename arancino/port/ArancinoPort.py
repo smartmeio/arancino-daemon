@@ -22,6 +22,8 @@ under the License
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from types import FunctionType, MethodType
+
+from cryptography.hazmat.primitives import hashes
 #from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoCortex import *
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
@@ -236,7 +238,7 @@ class ArancinoPort(object):
             # retrieve root certificate from file
             root_cert = self.__retrieveRootCertificate()
 
-            # Verify Certificates    (forse bisogna prendere il certificato del device da file)
+            # Verify Certificates
             if self.__verifyCert(root_cert.public_key(), self.signer_cert):
                 LOG.debug("Certificato del signer verificato!")
                 if self.__verifyCert(self.signer_cert.public_key(), self.device_cert):
@@ -427,6 +429,82 @@ class ArancinoPort(object):
                 self.sendResponse(arsp.getRaw())
                 LOG.debug("{} Sending: {}: {}".format(
                     self._log_prefix, arsp.getId(), str(arsp.getArguments())))
+
+            except Exception as ex:
+                LOG.error("{} Error while transmitting a Response: {}".format(
+                    self._log_prefix), str(ex), exc_info=TRACE)
+
+    # commandReceivedHandler to use in secure configuration
+    def _commandReceivedHandlerScr(self, raw_command, executor):
+        """
+        This is an Asynchronous function, and represent the "handler" to be used by an ArancinoHandler implementation to receive data.
+            It first receives a Raw Command from the a "Port" (eg. a Serial Port, a Network Port, etc...) , then translate
+            it to an ArancinoCommand object and send it back to another callback function
+
+        :param raw_command: the Raw Command received from a "Port"
+        :return: void.
+        """
+        try:
+
+            # create an Arancino Comamnd from the raw command
+            acmd = ArancinoComamnd(raw_command=raw_command)
+            LOG.debug("{} Received: {}: {}".format(
+                self._log_prefix, acmd.getId(), str(acmd.getArguments())))
+
+            # check if the received command handler callback function is defined
+            if self._received_command_handler is not None:
+                self._received_command_handler(self._id, acmd)
+
+            if acmd.getId() != cmdId.CMD_SYS_START["id"]:
+                challenge = acmd.getCurrentChallenge(self._id)
+
+                signature = acmd.getSignature()
+
+                if self.verifySign(self.device_cert.public_key(), b64decode(challenge), signature):
+                    LOG.debug("Chiave pubblica verificata e presente in whitelist")
+                    # call the Command Executor and get a arancino response
+                    arsp = executor.exec(acmd)
+                    if int(arsp.getId()) < 200:
+                        acmd.loadCommand(self.challenge, self._id)
+                    self.challenge = arsp.setChallenge(self._id)
+                else:
+                    raise AuthenticationException(
+                        "ERROR", ArancinoCommandErrorCodes.ERR_AUTENTICATION)
+
+            else:
+                arsp = executor.exec(acmd)
+                acmd.loadCommand(None, self._id)
+                self.challenge = arsp.setChallenge(self._id)
+
+            # create the Arancino Response object
+            #arsp = ArancinoResponse(raw_response=raw_response)
+
+            # if the command is START command, the ArancinoResponse is generic and it should
+            # evaluated here and not in the CommandExecutor. CommandExecutor only uses the datastore
+            # and not the port itself. The START command contains information about the connecting port
+            # that the command executor is not able to use.
+            if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
+                self._retrieveStartCmdArgs(acmd.getArguments())
+
+        except ArancinoException as ex:
+            arsp = ArancinoResponse(rsp_id=ex.error_code, rsp_args=[])
+            LOG.error("{} {}".format(
+                self._log_prefix, str(ex)), exc_info=TRACE)
+
+        # Generic Exception uses a generic Error Code
+        except Exception as ex:
+            arsp = ArancinoResponse(
+                rsp_id=ArancinoCommandErrorCodes.ERR, rsp_args=[])
+            LOG.error("{} {}".format(
+                self._log_prefix, str(ex)), exc_info=TRACE)
+
+        finally:
+
+            try:
+                # send the response back.
+                LOG.debug("{} Sending: {}: {}".format(
+                    self._log_prefix, arsp.getId(), str(arsp.getArguments())))
+                return arsp
 
             except Exception as ex:
                 LOG.error("{} Error while transmitting a Response: {}".format(
@@ -669,40 +747,6 @@ class ArancinoPort(object):
         root_data_cert = file_root_cert.read()
         return x509.load_pem_x509_certificate(root_data_cert)
 
-    '''
-    def getSignerCertificate(self):
-        return self.signer_cert
-
-    def getDeviceCertificate(self):
-        return self.device_cert
-    '''
-    '''
-    def _setChallenge(self):
-        challenge = os.urandom(32)
-        command = cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self._id) + "_CHALLENGE" + specChars.CHR_SEP + str(
-            self._id) + specChars.CHR_SEP + str(b64encode(challenge).decode('utf-8')) + specChars.CHR_EOT
-        acmd = ArancinoComamnd(raw_command=command)
-        arsp = self._executor.exec(acmd)
-        if arsp.getId() != ArancinoCommandErrorCodes.ERR:
-            LOG.debug("Challenge insert in redis: " +
-                      str(b64encode(challenge).decode('utf-8')))
-            return str(b64encode(challenge).decode('utf-8'))
-        else:
-            LOG.debug("Error inserting challenge to redis!!! " + arsp.getId() +
-                      "diverso da " + ArancinoCommandResponseCodes.RSP_OK)
-
-    def _getChallenge(self):
-        command = cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(
-            self._id) + "_CHALLENGE" + specChars.CHR_SEP + str(self._id) + specChars.CHR_EOT
-        acmd = ArancinoComamnd(raw_command=command)
-        response = self._executor.exec(acmd)
-        challenge = response.retrieveChallenge()
-        if response.getId() == ArancinoCommandResponseCodes.RSP_OK:
-            LOG.debug("Challenge from redis: " + str(challenge))
-        else:
-            LOG.debug("Error retrieving challenge from redis!!!")
-        return challenge
-    '''
     def __verifyCert(self, public_key, certificate):
         try:
             public_key.verify(
@@ -715,17 +759,15 @@ class ArancinoPort(object):
             return False
         return True
 
-    '''def _checkPubKey(self, public_key):
-        _datastore = ArancinoDataStore.Instance()
-        chiave = public_key.public_bytes(format=PublicFormat.SubjectPublicKeyInfo, encoding=Encoding.PEM)
-        chiave = chiave.decode("utf-8")
-        whitelist = _datastore.getDataStorePer().hgetall("WHITELIST")
-        verify = False
-        #LOG.debug("\n\nWhitelist:{}\n\n".format(whitelist))
-        for i in whitelist:
-            if whitelist[i] == chiave:
-                verify = True
-        return verify'''
+    def verifySign(self, public_key, data, signature):
+        try:
+            public_key.verify(b64decode(signature), data,
+                              ec.ECDSA(hashes.SHA256()))
+        except:
+            LOG.debug("Dispositivo " + self._id + " non riconosciuto")
+            return False
+        LOG.debug("Dispositivo " + self._id + " riconosciuto")
+        return True
 
     # endregion
 

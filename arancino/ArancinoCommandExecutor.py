@@ -237,29 +237,6 @@ class ArancinoCommandExecutor:
         #         #ts = datetime.timestamp(now)
         #         ts = datetime.now().timestamp()
 
-        #consume certificates in argumets if present (policy??)
-        #recostruction if possible (not here, but in Arancino Port in retrieve sart command args)
-
-        #verify cetrificates (CAMBIARE NUMERO, ATTUALMENTE CASUALE)
-        '''
-        signer_cert=args[5]
-        device_cert=args[6]
-        if not verifyCert(signer_cert):
-            pass
-        if not verifyCert(device_cert):
-            pass
-
-            #extract device public key
-        device_public_key = device_cert.public_key()
-
-            #first check in whitelist (Aggiungere la whitelist)
-        if checkPubKey(device_public_key):
-            pass
-        else:
-            pass
-        '''
-        #create and send challlenge if all is ok else policy for connection refused (aggiungere la challenge alla risposta)
-
         ts = str(int(datetime.now().timestamp() * 1000))
         return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + self.__port_id + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
         
