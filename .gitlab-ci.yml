@@ -69,6 +69,7 @@ push:
     GIT_STRATEGY: clone
 
   before_script:
+    - pip3 -v install semantic-version wheel    # Installo le dipendenze semantic-version e wheel
     - eval `python3 check-version.py ${CI_COMMIT_TAG}`
 
   script:
