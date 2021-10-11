@@ -1,6 +1,5 @@
-
 ### Arancino Rest API v1.0
-Arancino API runs at HTTP port 1745. The base URL is: `http://{{host}}:1475/api/v1.0` where `{{host}}` is a placeholder
+Arancino API runs at HTTP port 1745. The base URL is: `http://{{host}}:1475/api/v1` where `{{host}}` is a placeholder
 for the ip address or hostname of your Arancino device. They were introduced in version `2.0.0` and are organized in two main categories:
 
 - Queries

@@ -77,14 +77,29 @@ class Reader(Thread):
                     segments = self.find_segments(tags, starting_tms_ts)
 
                     for segment in segments:
-                        values = self.__retrieve_ts_values_by_key(key, *segment)
-                        if values:
-                            self.__handy_series.append(values)
+                        batch_mode = False
+                        t_start = segment[0] if segment[0] != 0 else int(self.__datastore_tser.info(key).first_time_stamp)
+                        t_end = segment[1] if segment[1] != '+' else int(self.__datastore_tser.info(key).lastTimeStamp)
 
-                LOG.debug("Time Series Data: " + str(self.__handy_series))
-                self.__transmitter_handler(self.__handy_series)
-                # clear the handy variables
-                self.__handy_series = []
+                        if t_end - t_start > 300000:
+                            LOG.info('BATCH MODE START')
+                            segment = list(segment)
+                            segment[0] = t_start
+                            batch_mode = True
+                        
+                        if not batch_mode:
+                            self.__read(key, segment)
+                            continue
+
+                        while batch_mode:
+                            segment[1] = segment[0] + 300000
+                            LOG.info(segment)
+                            self.__read(key, segment)
+                            if segment[1] < t_end:
+                                segment[0] = segment[1] + 1
+                            else:
+                                batch_mode = False
+                                LOG.info('BATCH MODE END')
 
             except Exception as ex:
                 LOG.exception("{}Error in the main loop: {}".format(self.__log_prefix, str(ex)), exc_info=TRACE)
@@ -92,6 +107,17 @@ class Reader(Thread):
             time.sleep(self.__cycle_time)
 
         LOG.info("{}Stopped.".format(self.__log_prefix))
+
+    def __read(self, key, segment):
+        values = self.__retrieve_ts_values_by_key(key, *segment)
+        if values:
+            self.__handy_series.append(values)
+            
+        LOG.debug("Time Series Data: " + str(self.__handy_series))
+        self.__transmitter_handler(self.__handy_series)
+        # clear the handy variables
+        self.__handy_series = []
+
 
     
     def find_segments(self, tags, ts):
@@ -115,7 +141,7 @@ class Reader(Thread):
             if len(min_tags):
                     min_tags.sort(key = lambda t: t[0][0])
                     sup_ts = min_tags[0][0][0] - 1 
-
+                
             if inf_ts == sup_ts or len(min_tags) == 0:
                 sup_ts = '+'
 

@@ -22,6 +22,7 @@ under the License
 from arancino.transmitter.sender.Sender import Sender
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 import paho.mqtt.client as mqtt
+import time
 
 
 LOG = ArancinoLogger.Instance().getLogger()
@@ -87,23 +88,6 @@ class SenderMqtt(Sender):
         LOG.debug("{}Connecting to {}:{}...".format(self._log_prefix, self.__broker_host, str(self.__broker_port)))
         client = None
 
-        # region Connect Handler
-        def on_connect(client, userdata, flags, rc):
-            if rc == 0:
-                LOG.debug("{}Connected to {}:{}...".format(self._log_prefix, self.__broker_host, str(self.__broker_port)))
-                client.connected_flag = True
-            else:
-                LOG.warning("{}Failed to connect to {}:{} - {}".format(self._log_prefix, self.__broker_host,str(self.__broker_port), mqtt.connack_string(rc)))
-                client.connected_flag = False
-
-        # endregion
-
-        # region Disconnect Handler
-        def on_disconnect(client, userdata, rc):
-            client.connected_flag = False
-            LOG.debug("{}Disconnected from {}:{}...".format(self._log_prefix, self.__broker_host, str(self.__broker_port)))
-        # endregion
-
         try:
             client = mqtt.Client()
             client.connected_flag = False
@@ -112,14 +96,10 @@ class SenderMqtt(Sender):
             else:
                 client.username_pw_set(username=self.__username, password=self.__password)
 
-            client.on_connect = on_connect
-            client.on_disconnect = on_disconnect
+            client.on_connect = self.__on_connect
+            client.on_disconnect = self.__on_disconnect
             client.connect(self.__broker_host, self.__broker_port, 60)
             client.loop_start()
-            # while not client.connected_flag:  # wait in loop
-            #     print("In wait loop")
-            #     time.sleep(1)
-
 
         except Exception as ex:
 
@@ -129,3 +109,26 @@ class SenderMqtt(Sender):
 
         finally:
             return client
+
+    # region Connect Handler
+    def __on_connect(self, client, userdata, flags, rc):
+        if rc == 0:
+            self.__client.connected_flag = True
+            LOG.info("{}Connected to {}:{}...".format(self._log_prefix, self.__broker_host, str(self.__broker_port)))
+        else:
+            self.__client.connected_flag = False
+            LOG.warning("{}Failed to connect to {}:{} - {}".format(self._log_prefix, self.__broker_host,str(self.__broker_port), mqtt.connack_string(rc)))
+    # endregion
+
+    # region Disconnect Handler
+    def __on_disconnect(self, client, userdata, rc):
+        self.__client.connected_flag = False
+        LOG.info("{}Disconnected from {}:{}...".format(self._log_prefix, self.__broker_host, str(self.__broker_port)))
+        while rc != 0:
+            time.sleep(5)
+            LOG.info("Reconnecting to mqtt broker...")
+            try:
+                rc=self.__client.connect(self.__broker_host, self.__broker_port, 60)
+            except Exception as e:
+                LOG.error(e)
+    # endregion
