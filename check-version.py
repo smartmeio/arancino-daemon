@@ -46,6 +46,11 @@ if __name__ == '__main__':
         print(tag + " is not a manged prelease type -> " + str(pre_release_snapshot_list) + " or " + str(pre_release_release_list))
         exit(1)
 
+    try:
+        print("export PRE_RELEASE='{}'".format(v.prerelease[0]))
+    except IndexError:
+        print("export PRE_RELEASE='{}'".format(""))
+
     exit(0)
 
 
