@@ -97,11 +97,11 @@ def __get_arancinoapi_app():
         #else:
         #    return False
 
-    if os.getenv('ARANCINOENV', 'DEV') == 'DEV':
-        @app.route('/api/v1/shutdown-not-easy-to-find-api', methods=['POST'])
-        def shutdown():
-            shutdown_server()
-            return 'Server shutting down...'
+    #if os.getenv('ARANCINOENV', 'DEV') == 'DEV':
+    @app.route('/api/v1/shutdown-not-easy-to-find-api', methods=['POST'])
+    def shutdown():
+        shutdown_server()
+        return 'Server shutting down...'
 
     # region HTTP Endpoints
     # region Queries
