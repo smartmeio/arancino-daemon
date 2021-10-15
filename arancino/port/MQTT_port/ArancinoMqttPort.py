@@ -4,12 +4,13 @@ import time,sys,datetime
 
 username="arancino-daemon"
 password="d43mon"
+port=1883
 
 '''def on_log(client, userdata, level, buf):
     print("log:", str(buf))
 
-def on_disconnect(client,userdata,flags,rc=0):
-    print("Disconnected flags" + " result code " + str(rc))'''
+def on_disconnect(client,userdata, rc):
+    print("Client disconnect")'''
 
 def on_connect(client, userdata, flags, rc):
     if rc==0:
@@ -30,7 +31,7 @@ client.on_connect=on_connect  #bind call back function
 #client.on_log=on_log
 client.loop_start()
 print("Connecting to broker ",broker)
-client.connect(broker)      #connect to broker
+client.connect(broker,port)      #connect to broker
 
 mqtt.Client.bad_connection_flag=False
 
