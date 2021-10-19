@@ -27,7 +27,8 @@ from arancino.port.mqtt.ArancinoMqttHandler import ArancinoMqttHandler
 from arancino.ArancinoCortex import *
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
-import time
+import time, datetime
+import paho.mqtt.client as mqtt 
 
 
 LOG = ArancinoLogger.Instance().getLogger()
@@ -99,8 +100,12 @@ class ArancinoMqttPort(ArancinoPort):
 
         if self._m_s_connected:
             ##### TODO QUI FARE LA PUBBLISH
+            LOG.info("Publishing")
+            ret=self.publish("mqtt/python", "test message 0", 0)
+            LOG.info("Published return=" + str(ret))
+            
             ########self.__serial_port.write(raw_response.encode())
-            pass
+        
         else:  # not connected
             LOG.warning("{} Cannot Sent a Response: Port is not connected.".format(self._log_prefix))
 
@@ -121,7 +126,18 @@ class ArancinoMqttPort(ArancinoPort):
 
 
                         ##### TODO QUI FARE LA CONNESSIONE MQTT
+                        #mqtt.Client.connected_flag=False
+                        username= "arancino-daemon"
+                        password="d43mon"
+                        broker= "server.smartme.io"
+                        port=1883
 
+                        client = mqtt.Client()         #create a new istance
+                        client.username_pw_set(username, password)  #Set a username and optionally a password for broker authentication.
+
+                        client.connect(broker,port)
+                        
+                        
                         #######
 
                         #self.__serial_handler = ArancinoSerialHandler("ArancinoSerialHandler-"+self._id, self.__serial_port, self._id, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
@@ -146,3 +162,23 @@ class ArancinoMqttPort(ArancinoPort):
 
         except Exception as ex:
             raise ex
+
+def disconnect(self):
+        """
+
+        :return:
+        """
+        pass
+def reset(self):
+        """
+
+        :return:
+        """
+        pass
+
+def upload(self):
+        """
+
+        :return:
+        """
+        pass

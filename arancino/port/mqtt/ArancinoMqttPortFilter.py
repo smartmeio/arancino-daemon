@@ -1,4 +1,3 @@
-
 from arancino.port.ArancinoPortFilter import ArancinoPortFilter
 
 class ArancinoMqttPortFilter(ArancinoPortFilter):
