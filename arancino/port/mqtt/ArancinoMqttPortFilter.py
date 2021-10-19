@@ -1,7 +1,7 @@
 
 from arancino.port.ArancinoPortFilter import ArancinoPortFilter
 
-class ArancinoMQTTPortFilter(ArancinoPortFilter):
+class ArancinoMqttPortFilter(ArancinoPortFilter):
 
 
     def __init__(self):
