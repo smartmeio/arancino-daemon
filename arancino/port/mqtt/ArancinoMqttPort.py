@@ -1,86 +1,148 @@
-import paho.mqtt.client as mqtt  #import the client1
-import time,sys,datetime
-import logging
+# coding=utf-8
+"""
+SPDX-license-identifier: Apache-2.0
 
-logging.basicConfig(level=logging.INFO)
+Copyright (c) 2021 smartme.IO
 
-broker="server.smartme.io"
-username="arancino-daemon"
-password="d43mon"
-port=1883
-topic="python/mqtt"
+Authors:  Sergio Tomasello <sergio@smartme.io>
+Contributors: Andrea Centorrino <andrea.centorrino@smartme.io>
 
-def on_log(client, userdata, level, buf):
-    logging.info(buf)
+Licensed under the Apache License, Version 2.0 (the "License"); you may
+not use this file except in compliance with the License. You may obtain
+a copy of the License at
 
-def on_disconnect(client,userdata, rc):
-    logging.info("Client disconnect")
+http://www.apache.org/licenses/LICENSE-2.0
 
-def on_connect(client, userdata, flags, rc):
-    if rc==0:
-        client.connected_flag=True      #set flag
-        print("Connected OK")
-        print("cliente connesso " + str(datetime.datetime.now()))
-    else:
-        print("Bad connection Returned code=",rc) 
-        client.bad_connection_flag=True
-           
-def on_publish(client, userdata, mid):
-    logging.info("In on_pub callback mid: " + str(mid))
-
-def on_subscribe(client, userdata, mid, granted_qos):
-    logging.info("Subscribed")
-def on_message(client, userdata, message):
-    print("message received  ",str(message.payload.decode("utf-8")), "topic",message.topic," retained ",message.retain)
-    if message.retain==1:
-        print("This is a retained message")
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+License for the specific language governing permissions and limitations
+under the License
+"""
 
 
-mqtt.Client.connected_flag=False
-client = mqtt.Client()         #create a new istance
-client.username_pw_set(username, password)  #Set a username and optionally a password for broker authentication.
-client.on_log=on_log        #Called when the client has log information
-client.on_connect=on_connect
-client.on_disconnect=on_disconnect
-client.on_publish=on_publish    #Called when a message that was to be sent using the publish() call has completed transmission to the broker.
-client.on_subscribe= on_subscribe   #Called when the broker responds to a subscribe request. 
-client.on_message=on_message
 
-print("Connecting to broker ",broker)
-client.connect(broker,port)
-
-client.loop_start()
-
-mqtt.Client.bad_connection_flag=False
-
-while not client.connected_flag and not client.bad_connection_flag: #wait in loop
-    print("In wait loop")
-    time.sleep(1)
-if client.bad_connection_flag:
-    client.loop_stop()   #Stop loop
-    sys.exit() 
+from arancino.port.ArancinoPort import ArancinoPort, PortTypes
+from arancino.port.mqtt.ArancinoMqttHandler import ArancinoMqttHandler
+from arancino.ArancinoCortex import *
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
+import time
 
 
-logging.info("Publishing")
-ret=client.publish("mqtt/python", "test message 0", 0)
-logging.info("Published return=" + str(ret))
-time.sleep(3)
+LOG = ArancinoLogger.Instance().getLogger()
+CONF = ArancinoConfig.Instance()
+TRACE = CONF.get_log_print_stack_trace()
 
-ret=client.publish("mqtt/python", "test message 1", 1)
-logging.info("Published return=" + str(ret))
-time.sleep(3)
 
-ret=client.publish("mqtt/python", "test message 2", 2)
-logging.info("Published return=" + str(ret))
-time.sleep(3)
+class ArancinoMqttPort(ArancinoPort):
 
-logging.info("Subscribing: ")
-time.sleep(3)
-ret= client.subscribe(("mqtt/python", 2))
-ret1=client.subscribe(("mqtt/python", 1))
-logging.info("Subscribed return=" + str(ret) + str(ret1))
+    def __init__(self, port_info=None, device=None, mqtt_client_name="arancino-daemon", mqtt_client_password="d43mon", mqtt_broker_host="server.smartme.io", mqtt_broker_port=1883, m_s_plugged=False, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
 
-time.sleep(5)
+        super().__init__(device=device, port_type=PortTypes.MQTT, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=CONF.get_port_serial_upload_command(), receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
-client.loop_stop()
-client.disconnect()
+        # SERIAL PORT PARAMETER
+        self.__mqtt_topic_cmd = "arancino_mqtt_port_id_1_cmd"
+        self.__mqtt_topic_rsp = "rsp_port_id_1"
+        self.__mqtt_client_name = mqtt_client_name
+        self.__mqtt_client_password = mqtt_client_password
+        self.__mqtt_broker_host = mqtt_broker_host
+        self.__mqtt_broker_port = mqtt_broker_port
+
+        # Command Executor
+        self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
+
+        # Misc
+        self._compatibility_array = COMPATIBILITY_MATRIX_MOD_MQTT[str(CONF.get_metadata_version().truncate())]
+        self._log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
+
+        
+    def __connectionLostHandler(self):
+        """
+        This is an Asynchronous function, and represent "handler" to be used by ArancinoSerialHandeler.
+            It is triggered when the connection is closed then calls another callback function.
+
+        :return: void
+        """
+
+        """
+        # TODO se la disconnessione viene gestita al livello superiore facendo una del
+        #  di questo oggetto non ha senso impostare connected = false e via dicendo
+
+        self._m_s_connected = False
+        # self._m_s_plugged = False
+
+        # free the handler and serial port
+        self.__serial_port.close()
+
+        del self.__serial_handler
+        del self.__serial_port
+
+        LOG.warning("{} Serial Port closed.".format(self._log_prefix))
+
+        """
+        # check if the disconnection handler callback function is defined
+        if self._disconnection_handler is not None:
+            self._disconnection_handler(self._id)
+        else:  # do nothing
+            pass
+
+
+
+    def sendResponse(self, raw_response):
+        """
+        Send a Response to the mcu. A Response is bind to a Command. The Response is sent only if the Port is Connected.
+
+        :param raw_response: {String} The Response to send back to the MCU.
+        :return: void
+        """
+
+        if self._m_s_connected:
+            ##### TODO QUI FARE LA PUBBLISH
+            ########self.__serial_port.write(raw_response.encode())
+            pass
+        else:  # not connected
+            LOG.warning("{} Cannot Sent a Response: Port is not connected.".format(self._log_prefix))
+
+
+    def connect(self):
+        try:
+            # check if the device is enabled and not already connected
+            if self._m_c_enabled:
+                if not self._m_s_connected:
+                    try:
+                        LOG.info("{} Connecting...".format(self._log_prefix))
+
+                        """
+                        if CONF.get_port_serial_reset_on_connect():
+                            # first resetting
+                            self.reset()
+                        """
+
+
+                        ##### TODO QUI FARE LA CONNESSIONE MQTT
+
+                        #######
+
+                        #self.__serial_handler = ArancinoSerialHandler("ArancinoSerialHandler-"+self._id, self.__serial_port, self._id, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
+                        self._m_s_connected = True
+                        #self.__serial_handler.start()
+                        
+                        LOG.info("{} Connected".format(self._log_prefix))
+                        self._start_thread_time = time.time()
+
+                    except Exception as ex:
+                        # TODO LOG SOMETHING OR NOT?
+                        LOG.error("{} Error while connecting: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
+                        raise ex
+
+                else:
+                    # TODO LOG or EXCPETION
+                    LOG.warning("{} Port already connected".format(self._log_prefix))
+
+            else: # not enabled
+                #TODO LOG or EXCEPTION
+                LOG.warning("{} Port not enabled".format(self._log_prefix))
+
+        except Exception as ex:
+            raise ex
