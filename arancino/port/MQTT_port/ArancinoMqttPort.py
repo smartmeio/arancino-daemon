@@ -37,7 +37,7 @@ def on_message(client, userdata, message):
 
 
 mqtt.Client.connected_flag=False
-client = mqtt.Client("Python1")         #create a new istance
+client = mqtt.Client()         #create a new istance
 client.username_pw_set(username, password)  #Set a username and optionally a password for broker authentication.
 client.on_log=on_log        #Called when the client has log information
 client.on_connect=on_connect
@@ -60,6 +60,7 @@ if client.bad_connection_flag:
     client.loop_stop()   #Stop loop
     sys.exit() 
 
+
 logging.info("Publishing")
 ret=client.publish("mqtt/python", "test message 0", 0)
 logging.info("Published return=" + str(ret))
@@ -73,7 +74,12 @@ ret=client.publish("mqtt/python", "test message 2", 2)
 logging.info("Published return=" + str(ret))
 time.sleep(3)
 
-client.subscribe("mqtt/python", 0)
+logging.info("Subscribing: ")
+time.sleep(3)
+ret= client.subscribe(("mqtt/python", 2))
+ret1=client.subscribe(("mqtt/python", 1))
+logging.info("Subscribed return=" + str(ret) + str(ret1))
+
 time.sleep(5)
 
 client.loop_stop()
