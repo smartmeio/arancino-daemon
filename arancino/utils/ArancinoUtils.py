@@ -122,17 +122,50 @@ class ArancinoConfig:
         self.__port_firmware_path = self.Config.get("port", "firmware_path")
         self.__port_firmware_file_types = self.Config.get("port", "firmware_file_types")
         self.__port_reset_on_connect = stringToBool(self.Config.get("port", "reset_on_connect"))
+        self.__port_reset_reconnection_delay = int(self.Config.get("port", "reset_reconnection_delay"))
 
         # region CONFIG SERIAL PORT SECTION
         self.__port_serial_enabled = stringToBool(self.Config.get("port.serial", "enabled"))
         self.__port_serial_hide = stringToBool(self.Config.get("port.serial", "hide"))
-        self.__port_serial_comm_baudrate = int(self.Config.get("port.serial", "comm_baudrate"))
         self.__port_serial_reset_baudrate = int(self.Config.get("port.serial", "reset_baudrate"))
         self.__port_serial_filter_type = self.Config.get("port.serial", "filter_type")
         self.__port_serial_filter_list = self.Config.get("port.serial", "filter_list")
         self.__port_serial_upload_command = self.Config.get("port.serial", "upload_command")
         self.__port_serial_timeout = int(self.Config.get("port.serial", "timeout"))
+        
+        
+        # DEFAULT 
+        # reset on connect
         self.__port_serial_reset_on_connect = self.__get_or_override_bool(self.Config, "port.serial", "reset_on_connect", "port", "reset_on_connect")
+        # upload command for serial port
+        self.__port_serial_upload_command = self.Config.get("port.serial", "upload_command")
+        # delay of reconnection after a reset 
+        self.__port_serial_reset_reconnection_delay = int(self.__get_or_override_str(self.Config, "port.serial", "reset_reconnection_delay", "port", "reset_reconnection_delay" ))
+        # communication baudrate
+        self.__port_serial_comm_baudrate = int(self.Config.get("port.serial", "comm_baudrate"))
+
+        # region SAMD21
+        self.__port_serial_samd21_upload_command = self.__get_or_override_str(self.Config, "port.serial.samd21", "upload_command", "port.serial", "upload_command")
+        self.__port_serial_samd21_reset_reconnection_delay = int(self.__get_or_override_str(self.Config, "port.serial.samd21", "reset_reconnection_delay", "port.serial", "reset_reconnection_delay" ))
+        self.__port_serial_samd21_comm_baudrate = int(self.__get_or_override_str(self.Config, "port.serial.samd21", "comm_baudrate", "port.serial", "comm_baudrate" ))
+        # endregion
+
+        # region NRF52
+        self.__port_serial_nrf52_upload_command = self.__get_or_override_str(self.Config, "port.serial.nrf52", "upload_command", "port.serial", "upload_command")
+        self.__port_serial_nrf52_reset_reconnection_delay = int(self.__get_or_override_str(self.Config, "port.serial.nrf52", "reset_reconnection_delay", "port.serial", "reset_reconnection_delay" ))
+        self.__port_serial_nrf52_comm_baudrate = int(self.__get_or_override_str(self.Config, "port.serial.nrf52", "comm_baudrate", "port.serial", "comm_baudrate" ))
+
+        # endregion
+
+        # region STM32
+        self.__port_serial_stm32_upload_command = self.__get_or_override_str(self.Config, "port.serial.stm32", "upload_command", "port.serial", "upload_command")
+        self.__port_serial_stm32_reset_reconnection_delay = int(self.__get_or_override_str(self.Config, "port.serial.stm32", "reset_reconnection_delay", "port.serial", "reset_reconnection_delay" ))
+        self.__port_serial_stm32_comm_baudrate = int(self.__get_or_override_str(self.Config, "port.serial.stm32", "comm_baudrate", "port.serial", "comm_baudrate" ))
+        # endregion
+
+        # endregion
+
+        
         # endregion
 
         # region CONFIG TEST PORT SECTION
@@ -220,9 +253,6 @@ class ArancinoConfig:
         self.__dirlog = os.environ.get('ARANCINOLOG')
 
 
-
-
-
     def __get_or_override_bool(self, cfg, mine_sect, mine_opt, main_sec, main_opt):
         val = ""
         try:
@@ -231,6 +261,15 @@ class ArancinoConfig:
             val = cfg.get(main_sec, main_opt)
         finally:
             return stringToBool(val)
+
+    def __get_or_override_str(self, cfg, mine_sect, mine_opt, main_sec, main_opt):
+        val = ""
+        try:
+            val = cfg.get(mine_sect, mine_opt)
+        except configparser.NoOptionError:
+            val = cfg.get(main_sec, main_opt)
+        finally:
+            return str(val)
 
 
     def get_arancino_home_path(self):
@@ -375,6 +414,8 @@ class ArancinoConfig:
     def get_port_reset_on_connect(self):
         return self.__port_reset_on_connect
 
+    def get_port_reset_reconnection_delay(self):
+        return self.__port_reset_reconnection_delay
 
     ######## SERIAL PORT ########
     def get_port_serial_enabled(self):
@@ -392,6 +433,9 @@ class ArancinoConfig:
     def get_port_serial_reset_baudrate(self):
         return self.__port_serial_reset_baudrate
 
+    def get_port_serial_reset_reconnection_delay(self):
+        return self.__port_serial_reset_reconnection_delay
+
     def get_port_serial_filter_type(self):
         if self.__port_serial_filter_type not in FilterTypes.__members__:
             return FilterTypes.DEFAULT.value
@@ -401,14 +445,44 @@ class ArancinoConfig:
     def get_port_serial_filter_list(self):
         return json.loads(self.__port_serial_filter_list.upper())
 
-    def get_port_serial_upload_command(self):
-        return self.__port_serial_upload_command
-
     def get_port_serial_timeout(self):
         return self.__port_serial_timeout
 
     def get_port_serial_reset_on_connect(self):
         return self.__port_serial_reset_on_connect
+
+    def get_port_serial_upload_command(self):
+        return self.__port_serial_upload_command
+
+    ## STM32
+    def get_port_serial_stm32_upload_command(self):
+        return self.__port_serial_stm32_upload_command
+
+    def get_port_serial_stm32_reset_reconnection_delay(self):
+        return self.__port_serial_stm32_reset_reconnection_delay
+
+    def get_port_serial_stm32_comm_baudrate(self):
+        return self.__port_serial_stm32_comm_baudrate
+
+    ## NRF52
+    def get_port_serial_nrf52_upload_command(self):
+        return self.__port_serial_nrf52_upload_command
+
+    def get_port_serial_nrf52_reset_reconnection_delay(self):
+        return self.__port_serial_nrf52_reset_reconnection_delay
+
+    def get_port_serial_nrf52_comm_baudrate(self):
+        return self.__port_serial_nrf52_comm_baudrate
+
+    ## SAMD21
+    def get_port_serial_nrf52_upload_command(self):
+        return self.__port_serial_nrf52_upload_command
+
+    def get_port_serial_samd21_reset_reconnection_delay(self):
+        return self.__port_serial_samd21_reset_reconnection_delay
+    
+    def get_port_serial_samd21_comm_baudrate(self):
+        return self.__port_serial_samd21_comm_baudrate
 
     ######## TEST PORT ########
     def get_port_test_enabled(self):

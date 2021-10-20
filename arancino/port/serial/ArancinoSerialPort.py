@@ -47,6 +47,7 @@ class ArancinoSerialPort(ArancinoPort):
         self.__comm_baudrate = baudrate_comm
         self.__reset_baudrate = baudrate_reset
         self.__timeout = timeout
+        self.__reset_delay = CONF.get_port_reset_reconnection_delay() ## TODO DOPO CHE VERRA INTRODOTTO IL CONCETTO DI MCU FAMILY, QUESTA SI POTRA PRENDERE DINAMICAMENTE
 
         # SERIAL PORT METADATA
         self.__m_p_vid = None
@@ -295,7 +296,7 @@ class ArancinoSerialPort(ArancinoPort):
             ser.open()
             ser.close()
             del ser
-            time.sleep(3)
+            time.sleep( CONF.__reset_delay )
             self.setEnabled(True)
             LOG.info("{} Reset".format(self._log_prefix))
             return True
