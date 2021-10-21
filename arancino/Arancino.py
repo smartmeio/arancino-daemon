@@ -25,6 +25,7 @@ from datetime import datetime
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, secondsToHumanString
 from arancino.port.serial.ArancinoSerialDiscovery import ArancinoSerialDiscovery
 from arancino.port.test.ArancinoTestDiscovery import ArancinoTestDiscovery
+from arancino.port.mqtt.ArancinoMqttDiscovery import ArancinoMqttDiscovery
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
 from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoConstants import ArancinoApiResponseCode
@@ -73,11 +74,12 @@ class Arancino(Thread):
 
             self.__serial_discovery = ArancinoSerialDiscovery()
             self.__test_discovery = ArancinoTestDiscovery()
+            self.__mqtt_discovery = ArancinoMqttDiscovery()
 
             self.__synchronizer = ArancinoPortSynch()
             self.__datastore = ArancinoDataStore.Instance()
 
-            # store in datastore: module version, module environment running mode
+            # store in datastore: daemon version, daemon environment running mode
             self.__datastore.getDataStoreRsvd().set(ArancinoReservedChars.RSVD_KEY_MODVERSION, str(self.__version))
             self.__datastore.getDataStoreRsvd().set(ArancinoReservedChars.RSVD_KEY_MODENVIRONMENT, CONF.get_general_env())
             self.__datastore.getDataStoreRsvd().set(ArancinoReservedChars.RSVD_KEY_MODLOGLEVEL, CONF.get_log_level())
@@ -123,6 +125,7 @@ class Arancino(Thread):
 
         serial_ports = {}
         test_ports = {}
+        mqtt_ports = {}
 
         while not self.__stop:
             if not self.__pause:
@@ -134,11 +137,12 @@ class Arancino(Thread):
                     LOG.debug('Uptime :' + str(self.__uptime_sec))
                     LOG.info('Uptime :' + self.__uptime_str)
 
-                    serial_ports = self.__serial_discovery.getAvailablePorts(serial_ports)
-                    test_ports = self.__test_discovery.getAvailablePorts(test_ports)
+                    #serial_ports = self.__serial_discovery.getAvailablePorts(serial_ports)
+                    #test_ports = self.__test_discovery.getAvailablePorts(test_ports)
+                    mqtt_ports = self.__mqtt_discovery.getAvailablePorts(mqtt_ports)
 
                     # works only in python 3.5 and above
-                    self.__ports_discovered = {**serial_ports, **test_ports}
+                    self.__ports_discovered = {**serial_ports, **test_ports, **mqtt_ports}
 
 
                     LOG.debug('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))

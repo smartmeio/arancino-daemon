@@ -67,7 +67,7 @@ class ArancinoSerialHandler(threading.Thread):
 
                         except UnicodeDecodeError as ex:
 
-                            LOG.warning("{}Decode Warning while reading data from serial port: {}".format(self.__log_prefix, str(ex)))
+                            LOG.warning("{} Decode Warning while reading data from serial port: {}".format(self.__log_prefix, str(ex)))
                             self.__partial_command = self.__partial_bytes_command.decode('utf-8', errors='backslashreplace')
 
                         if self.__commandReceivedHandler is not None:

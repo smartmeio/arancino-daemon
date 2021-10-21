@@ -38,17 +38,14 @@ TRACE = CONF.get_log_print_stack_trace()
 
 class ArancinoMqttPort(ArancinoPort):
 
-    def __init__(self, port_info=None, device=None, mqtt_client_name="arancino-daemon", mqtt_client_password="d43mon", mqtt_broker_host="server.smartme.io", mqtt_broker_port=1883, m_s_plugged=False, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
+    def __init__(self, port_id=None, device=None, mqtt_client=None, m_s_plugged=False, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
 
-        super().__init__(device=device, port_type=PortTypes.MQTT, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=CONF.get_port_serial_upload_command(), receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
+        super().__init__(device=device, port_type=PortTypes.MQTT, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=None, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
         # SERIAL PORT PARAMETER
-        self.__mqtt_topic_cmd = "arancino_mqtt_port_id_1_cmd"
-        self.__mqtt_topic_rsp = "rsp_port_id_1"
-        self.__mqtt_client_name = mqtt_client_name
-        self.__mqtt_client_password = mqtt_client_password
-        self.__mqtt_broker_host = mqtt_broker_host
-        self.__mqtt_broker_port = mqtt_broker_port
+        self.__mqtt_client = mqtt_client
+        self.__mqtt_topic_cmd_from_mcu = "arancino/cortex/{}/cmd_from_mcu".format(port_id)
+        self.__mqtt_topic_rsp_to_mcu = "arancino/cortex/{}/cmd_to_mcu".format(port_id)
 
         # Command Executor
         self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
@@ -66,7 +63,7 @@ class ArancinoMqttPort(ArancinoPort):
         :return: void
         """
 
-        """
+        
         # TODO se la disconnessione viene gestita al livello superiore facendo una del
         #  di questo oggetto non ha senso impostare connected = false e via dicendo
 
@@ -74,14 +71,14 @@ class ArancinoMqttPort(ArancinoPort):
         # self._m_s_plugged = False
 
         # free the handler and serial port
-        self.__serial_port.close()
+        #self.__serial_port.close()
 
-        del self.__serial_handler
-        del self.__serial_port
+        del self.__mqtt_handler
+        #del self.__serial_port
 
-        LOG.warning("{} Serial Port closed.".format(self._log_prefix))
+        LOG.warning("{} Mqtt Port closed.".format(self._log_prefix))
 
-        """
+        
         # check if the disconnection handler callback function is defined
         if self._disconnection_handler is not None:
             self._disconnection_handler(self._id)
@@ -99,13 +96,9 @@ class ArancinoMqttPort(ArancinoPort):
         """
 
         if self._m_s_connected:
-            ##### TODO QUI FARE LA PUBBLISH
-            LOG.info("Publishing")
-            ret=self.publish("mqtt/python", "test message 0", 0)
-            LOG.info("Published return=" + str(ret))
-            
-            ########self.__serial_port.write(raw_response.encode())
-        
+
+            ret = self.publish(self.__mqtt_topic_rsp_to_mcu, raw_response, 0)
+
         else:  # not connected
             LOG.warning("{} Cannot Sent a Response: Port is not connected.".format(self._log_prefix))
 
@@ -117,32 +110,13 @@ class ArancinoMqttPort(ArancinoPort):
                 if not self._m_s_connected:
                     try:
                         LOG.info("{} Connecting...".format(self._log_prefix))
-
-                        """
-                        if CONF.get_port_serial_reset_on_connect():
+    
+                        if CONF.get_port_mqtt_reset_on_connect():
                             # first resetting
                             self.reset()
-                        """
-
-
-                        ##### TODO QUI FARE LA CONNESSIONE MQTT
-                        #mqtt.Client.connected_flag=False
-                        username= "arancino-daemon"
-                        password="d43mon"
-                        broker= "server.smartme.io"
-                        port=1883
-
-                        client = mqtt.Client()         #create a new istance
-                        client.username_pw_set(username, password)  #Set a username and optionally a password for broker authentication.
-
-                        client.connect(broker,port)
                         
-                        
-                        #######
-
-                        #self.__serial_handler = ArancinoSerialHandler("ArancinoSerialHandler-"+self._id, self.__serial_port, self._id, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
+                        self.__mqtt_handler = ArancinoMqttHandler("ArancinoMqttHandler-"+self._id, self.__mqtt_client, self._id, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
                         self._m_s_connected = True
-                        #self.__serial_handler.start()
                         
                         LOG.info("{} Connected".format(self._log_prefix))
                         self._start_thread_time = time.time()
@@ -164,21 +138,29 @@ class ArancinoMqttPort(ArancinoPort):
             raise ex
 
 def disconnect(self):
-        """
+        try:
+            # check if the device is already
+            if self._m_s_connected:
+                
+                self.__mqtt_handler.stop()
 
-        :return:
-        """
-        pass
+            else:
+                LOG.debug("{} Already Disconnected".format(self._log_prefix))
+
+
+        except Exception as ex:
+            raise ex
+
 def reset(self):
         """
 
         :return:
         """
-        pass
+        LOG.warning("{} Cannot Reset".format(self._log_prefix))
 
 def upload(self):
         """
 
         :return:
         """
-        pass
+        LOG.warning("{} Cannot Upload".format(self._log_prefix))

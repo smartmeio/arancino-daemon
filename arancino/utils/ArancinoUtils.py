@@ -149,11 +149,14 @@ class ArancinoConfig:
         # endregion
 
         # region CONFIG PORT MQTT SECTION
-        self.__port_mqtt_host=self.Config.set("port.mqtt", "host")
-        self.__port_mqtt_username=self.Config.get("port.mqtt", "username")
-        self.__port_mqtt_password=self.Config.get("port.mqtt", "password")
-        self.__port_mqtt_port=int(self.Config.get("port.mqtt", "port"))
-        self.__port_mqtt_topic=self.Config.get("port.mqtt", "topic")
+        self.__port_mqtt_reset_on_connect = self.__get_or_override_bool(self.Config, "port.mqtt", "reset_on_connect", "port", "reset_on_connect")
+        self.__port_mqtt_enabled = stringToBool(self.Config.get("port.mqtt", "enabled"))
+        self.__port_mqtt_hide = stringToBool(self.Config.get("port.mqtt", "hide"))
+        self.__port_mqtt_host = self.Config.set("port.mqtt", "host")
+        self.__port_mqtt_username = self.Config.get("port.mqtt", "username")
+        self.__port_mqtt_password = self.Config.get("port.mqtt", "password")
+        self.__port_mqtt_port = int(self.Config.get("port.mqtt", "port"))
+        self.__port_mqtt_topic = self.Config.get("port.mqtt", "topic")
         # endregion
 
         # region CONFIG LOG SECTION
@@ -382,7 +385,7 @@ class ArancinoConfig:
         return self.__port_reset_on_connect
 
 
-    ######## SERIAL PORT ########
+    #region SERIAL PORT
     def get_port_serial_enabled(self):
         return self.__port_serial_enabled
 
@@ -415,8 +418,10 @@ class ArancinoConfig:
 
     def get_port_serial_reset_on_connect(self):
         return self.__port_serial_reset_on_connect
+    
+    #endregion
 
-    ######## TEST PORT ########
+    #region TEST PORT 
     def get_port_test_enabled(self):
         return self.__port_test_enabled
 
@@ -447,18 +452,33 @@ class ArancinoConfig:
     def get_port_test_reset_on_connect(self):
         return self.__port_test_reset_on_connect
     
-    ######PORT MQTT #######
+    #endregion
+    
+    #region PORT MQTT
     def get_port_mqtt_host(self):
-            return self.__port_mqtt_host
-    def get_port_mqtt_username(self):
-            return self.__port_mqtt_username
-    def get_port_mqtt_password(self):
-            return self.__port_mqtt_password
-    def get_port_mqtt_port(self):
-            return self.__port_mqtt_port
-    def get_port_mqtt_topic(self):
-            return self.__port_mqtt_topic
+        return self.__port_mqtt_host
 
+    def get_port_mqtt_username(self):
+        return self.__port_mqtt_username
+
+    def get_port_mqtt_password(self):
+        return self.__port_mqtt_password
+
+    def get_port_mqtt_port(self):
+        return self.__port_mqtt_port
+
+    def get_port_mqtt_topic(self):
+        return self.__port_mqtt_topic
+    
+    def get_port_mqtt_enabled(self):
+        return self.__port_mqtt_enabled
+
+    def get_port_mqtt_hide(self):
+        return self.__port_mqtt_hide
+
+    def get_port_mqtt_reset_on_connect(self):
+        return self.__port_mqtt_reset_on_connect
+    #endregion
 
     ######## LOG ########
     def get_log_level(self):
