@@ -46,6 +46,7 @@ client.on_publish=on_publish    #Called when a message that was to be sent using
 client.on_subscribe= on_subscribe   #Called when the broker responds to a subscribe request. 
 client.on_message=on_message
 
+
 print("Connecting to broker ",broker)
 client.connect(broker,port)
 

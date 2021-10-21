@@ -148,6 +148,14 @@ class ArancinoConfig:
         # endregion
         # endregion
 
+        # region CONFIG PORT MQTT SECTION
+        self.__port_mqtt_host=self.Config.set("port.mqtt", "host")
+        self.__port_mqtt_username=self.Config.get("port.mqtt", "username")
+        self.__port_mqtt_password=self.Config.get("port.mqtt", "password")
+        self.__port_mqtt_port=int(self.Config.get("port.mqtt", "port"))
+        self.__port_mqtt_topic=self.Config.get("port.mqtt", "topic")
+        # endregion
+
         # region CONFIG LOG SECTION
         self.__log_level = self.Config.get("log", "level")
         self.__log_name = self.Config.get("log", "name")
@@ -209,8 +217,6 @@ class ArancinoConfig:
         self.__transmitter_sender_mqtt_ca_path = self.Config.get("transmitter.sender.mqtt", "ca_path")
         self.__transmitter_sender_mqtt_cert_path = self.Config.get("transmitter.sender.mqtt", "cert_path")
         self.__transmitter_sender_mqtt_key_path = self.Config.get("transmitter.sender.mqtt", "key_path")
-
-
 
         # endregion
 
@@ -440,6 +446,18 @@ class ArancinoConfig:
 
     def get_port_test_reset_on_connect(self):
         return self.__port_test_reset_on_connect
+    
+    ######PORT MQTT #######
+    def get_port_mqtt_host(self):
+            return self.__port_mqtt_host
+    def get_port_mqtt_username(self):
+            return self.__port_mqtt_username
+    def get_port_mqtt_password(self):
+            return self.__port_mqtt_password
+    def get_port_mqtt_port(self):
+            return self.__port_mqtt_port
+    def get_port_mqtt_topic(self):
+            return self.__port_mqtt_topic
 
 
     ######## LOG ########
