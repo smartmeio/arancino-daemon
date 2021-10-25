@@ -47,7 +47,8 @@ class ArancinoSerialPort(ArancinoPort):
         self.__comm_baudrate = baudrate_comm
         self.__reset_baudrate = baudrate_reset
         self.__timeout = timeout
-        self.__reset_delay = CONF.get_port_reset_reconnection_delay() ## TODO DOPO CHE VERRA INTRODOTTO IL CONCETTO DI MCU FAMILY, QUESTA SI POTRA PRENDERE DINAMICAMENTE
+        self.__reset_delay = getattr(CONF, "get_port_serial_{}_reset_reconnection_delay()".format(self.getMicrocontrollerFamily().lower()))
+            #CONF.get_port_reset_reconnection_delay() ## TODO DOPO CHE VERRA INTRODOTTO IL CONCETTO DI MCU FAMILY, QUESTA SI POTRA PRENDERE DINAMICAMENTE
 
         # SERIAL PORT METADATA
         self.__m_p_vid = None
@@ -137,6 +138,10 @@ class ArancinoSerialPort(ArancinoPort):
     #         except SerialException as ex:
     #             LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex))
     #
+
+    def __selectResetReconnectionDelay():
+
+
 
     def __connectionLostHandler(self):
         """
