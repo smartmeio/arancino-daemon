@@ -32,10 +32,10 @@ LOG = ArancinoLogger.Instance().getLogger()
 
 class ArancinoMqttHandler():
 
-    def __init__(self, name, mqtt_client, id, device, commandReceivedHandler, connectionLostHandler):
+    def __init__(self, id, mqtt_client, mqtt_topic_cmd_from_mcu, device, commandReceivedHandler, connectionLostHandler):
         
         self.__mqtt_client = mqtt_client      # the mqtt client port
-        self.__name = name          # the name, usually the arancino port id
+        self.__name = id          # the name, usually the arancino port id
         self.__id = id
         self.__device = device
         self.__log_prefix = "[{} - {} at {}]".format(PortTypes(PortTypes.MQTT).name, self.__id, self.__device)
@@ -46,9 +46,8 @@ class ArancinoMqttHandler():
         #self.__partial_command = ""
         #self.__partial_bytes_command = bytearray(b'')
         #self.__stop = False
-
-        self.__topic_cmd_from_mcu = "arancino/cortex/{}/cmd_from_mcu".format(self.__id)
-        self.__mqtt_client.message_callback_add(self.__topic_cmd_from_mcu, self.__on_cmd_received)
+        
+        self.__mqtt_client.message_callback_add(mqtt_topic_cmd_from_mcu, self.__on_cmd_received)
 
 
     def __on_cmd_received(self, client, userdata, msg):
@@ -65,4 +64,4 @@ class ArancinoMqttHandler():
 
     def stop(self):
         #self.__stop = True
-        self.__mqtt_client.message_callback_remove(self.__topic_cmd_from_mcu)
+        pass

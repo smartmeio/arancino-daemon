@@ -34,17 +34,18 @@ class ArancinoMqttDiscovery(object):
 
     def __init__(self):
         self.__filter = ArancinoMqttPortFilter()
-        self.__filter_type = "ALL"#CONF.get_port_serial_filter_type()
-        self.__filter_list = []#CONF.get_port_serial_filter_list()
+        self.__filter_type = CONF.get_port_mqtt_filter_type()
+        self.__filter_list = CONF.get_port_mqtt_filter_list()
 
         self.__list_discovered = []
 
-        # TODO prendere da configurazione
-        self.__mqtt_discovery_topic = "arancino/discovery"
-        self.__mqtt_arancino_daemon_discovery_user = "arancino-daemon"
-        self.__mqtt_arancino_daemon_discovery_pass = "d43mon"
-        self.__mqtt_arancino_daemon_broker_host = "server.smartme.io"
-        self.__mqtt_arancino_daemon_broker_port = 1883
+        self.__mqtt_discovery_topic = CONF.get_port_mqtt_topic_discovery()
+        self.__mqtt_cortex_topic = CONF.get_port_mqtt_topic_cortex()
+        self.__mqtt_service_topic = CONF.get_port_mqtt_topic_service()
+        self.__mqtt_arancino_daemon_discovery_user = CONF.get_port_mqtt_username()
+        self.__mqtt_arancino_daemon_discovery_pass = CONF.get_port_mqtt_password()
+        self.__mqtt_arancino_daemon_broker_host = CONF.get_port_mqtt_host()
+        self.__mqtt_arancino_daemon_broker_port = CONF.get_port_mqtt_port()
         
         # TODO gestire eccezioni
         self.__mqtt_client = mqtt.Client()
@@ -58,23 +59,18 @@ class ArancinoMqttDiscovery(object):
 
         # TODO LOGga qualcosa
 
-        # client.message_callback_add("arancino_mqtt_port_id_1_cmd/1", self.on_discovery)
-        # client.message_callback_add("arancino_mqtt_port_id_1_cmd/2", self.on_message_2)
-        client.subscribe("arancino/discovery")
-        client.subscribe("arancino/cortex/+/cmd_from_mcu") #
-        client.subscribe("arancino/cortex/+/rsp_to_mcu") #
+        client.subscribe(self.__mqtt_discovery_topic)
+        client.subscribe("{}/+/cmd_from_mcu".format(self.__mqtt_cortex_topic))   # used to send response to the mqtt port
+        #client.subscribe(self.__mqtt_discovery_topic + "/+/rsp_from_mcu")   # for future use: when the daemon will send cmd to the port, it will response in this topic
 
+        #reset all mcu connected at the broker by sending a special cmd
+        client.publish("{}".format(self.__mqtt_service_topic), "reset", 0)
 
     def __on_discovery(self, client, userdata, msg):
         
         pid = str(msg.payload.decode('utf-8', errors='strict'))
         if pid not in self.__list_discovered:
             self.__list_discovered.append(pid)
-
-        #print("Device Discovered -> " + msg.topic + " " + str(msg.payload))
-
-    # def on_message_2(self, client, userdata, msg):
-    #     print("Message 2 received -> " + msg.topic + " " + str(msg.payload))
 
     def getAvailablePorts(self, collection):
         ports = self.__list_discovered
@@ -128,11 +124,11 @@ class ArancinoMqttDiscovery(object):
         for port in ports:
 
             p = ArancinoMqttPort(   port_id = port, #port is the id of the port sent via MQTT into discovery topic
-                                    device = None,
+                                    device = CONF.get_port_mqtt_host(),
                                     mqtt_client = self.__mqtt_client,
                                     m_s_plugged=True, 
-                                    m_c_enabled=CONF.get_port_serial_enabled(), 
-                                    m_c_hide=CONF.get_port_serial_hide() )
+                                    m_c_enabled=CONF.get_port_mqtt_enabled(), 
+                                    m_c_hide=CONF.get_port_mqtt_hide() )
             
             new_ports_struct[p.getId()] = p
 

@@ -152,11 +152,15 @@ class ArancinoConfig:
         self.__port_mqtt_reset_on_connect = self.__get_or_override_bool(self.Config, "port.mqtt", "reset_on_connect", "port", "reset_on_connect")
         self.__port_mqtt_enabled = stringToBool(self.Config.get("port.mqtt", "enabled"))
         self.__port_mqtt_hide = stringToBool(self.Config.get("port.mqtt", "hide"))
-        self.__port_mqtt_host = self.Config.set("port.mqtt", "host")
+        self.__port_mqtt_host = self.Config.get("port.mqtt", "host")
         self.__port_mqtt_username = self.Config.get("port.mqtt", "username")
         self.__port_mqtt_password = self.Config.get("port.mqtt", "password")
         self.__port_mqtt_port = int(self.Config.get("port.mqtt", "port"))
-        self.__port_mqtt_topic = self.Config.get("port.mqtt", "topic")
+        self.__port_mqtt_topic_discovery = self.Config.get("port.mqtt", "discovery_topic")
+        self.__port_mqtt_topic_cortex = self.Config.get("port.mqtt", "cortex_topic")
+        self.__port_mqtt_topic_service = self.Config.get("port.mqtt", "service_topic")
+        self.__port_mqtt_filter_type = self.Config.get("port.mqtt", "filter_type")
+        self.__port_mqtt_filter_list = self.Config.get("port.mqtt", "filter_list")
         # endregion
 
         # region CONFIG LOG SECTION
@@ -455,6 +459,16 @@ class ArancinoConfig:
     #endregion
     
     #region PORT MQTT
+
+    def get_port_mqtt_filter_type(self):
+        if self.__port_mqtt_filter_type not in FilterTypes.__members__:
+            return FilterTypes.DEFAULT.value
+        else:
+            return FilterTypes[self.__port_serial_filter_type]
+
+    def get_port_mqtt_filter_list(self):
+        return json.loads(self.__port_mqtt_filter_list.upper())
+
     def get_port_mqtt_host(self):
         return self.__port_mqtt_host
 
@@ -467,8 +481,14 @@ class ArancinoConfig:
     def get_port_mqtt_port(self):
         return self.__port_mqtt_port
 
-    def get_port_mqtt_topic(self):
-        return self.__port_mqtt_topic
+    def get_port_mqtt_topic_discovery(self):
+        return self.__port_mqtt_topic_discovery
+
+    def get_port_mqtt_topic_cortex(self):
+        return self.__port_mqtt_topic_cortex
+
+    def get_port_mqtt_topic_service(self):
+        return self.__port_mqtt_topic_service
     
     def get_port_mqtt_enabled(self):
         return self.__port_mqtt_enabled

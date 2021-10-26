@@ -5,7 +5,6 @@ SPDX-license-identifier: Apache-2.0
 Copyright (c) 2021 smartme.IO
 
 Authors:  Sergio Tomasello <sergio@smartme.io>
-Contributors: Andrea Centorrino <andrea.centorrino@smartme.io>
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may
 not use this file except in compliance with the License. You may obtain
@@ -40,13 +39,17 @@ class ArancinoMqttPort(ArancinoPort):
 
     def __init__(self, port_id=None, device=None, mqtt_client=None, m_s_plugged=False, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
 
-        super().__init__(device=device, port_type=PortTypes.MQTT, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=None, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
+        super().__init__(id=port_id, device=device, port_type=PortTypes.MQTT, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=None, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
-        # SERIAL PORT PARAMETER
+        # MQTT PORT PARAMETER
         self.__mqtt_client = mqtt_client
-        self.__mqtt_topic_cmd_from_mcu = "arancino/cortex/{}/cmd_from_mcu".format(port_id)
-        self.__mqtt_topic_rsp_to_mcu = "arancino/cortex/{}/cmd_to_mcu".format(port_id)
+        
+        self.__mqtt_topic_cmd_from_mcu = "{}/{}/cmd_from_mcu".format(CONF.get_port_mqtt_topic_cortex(), port_id)
+        self.__mqtt_topic_rsp_to_mcu = "{}/{}/rsp_to_mcu".format(CONF.get_port_mqtt_topic_cortex(), port_id)
 
+        self.__mqtt_topic_cmd_to_mcu = "{}/{}/cmd_from_mcu".format(CONF.get_port_mqtt_topic_cortex(), port_id)
+        self.__mqtt_topic_rsp_from_mcu = "{}/{}/rsp_from_mcu".format(CONF.get_port_mqtt_topic_cortex(), port_id)
+        
         # Command Executor
         self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
 
@@ -97,7 +100,7 @@ class ArancinoMqttPort(ArancinoPort):
 
         if self._m_s_connected:
 
-            ret = self.publish(self.__mqtt_topic_rsp_to_mcu, raw_response, 0)
+            ret = self.__mqtt_client.publish(self.__mqtt_topic_rsp_to_mcu, raw_response, 0)
 
         else:  # not connected
             LOG.warning("{} Cannot Sent a Response: Port is not connected.".format(self._log_prefix))
@@ -112,10 +115,10 @@ class ArancinoMqttPort(ArancinoPort):
                         LOG.info("{} Connecting...".format(self._log_prefix))
     
                         if CONF.get_port_mqtt_reset_on_connect():
-                            # first resetting
+                            # this must be setted to False. If True can be caused an infinite loop of connection and disconnection
                             self.reset()
                         
-                        self.__mqtt_handler = ArancinoMqttHandler("ArancinoMqttHandler-"+self._id, self.__mqtt_client, self._id, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
+                        self.__mqtt_handler = ArancinoMqttHandler("ArancinoMqttHandler-"+self._id, self.__mqtt_client, self.__mqtt_topic_cmd_from_mcu, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
                         self._m_s_connected = True
                         
                         LOG.info("{} Connected".format(self._log_prefix))
@@ -143,6 +146,10 @@ def disconnect(self):
             if self._m_s_connected:
                 
                 self.__mqtt_handler.stop()
+                self.__mqtt_client.message_callback_remove(self.__topic_cmd_from_mcu)
+                self.__mqtt_client.message_callback_remove(self.__topic_rsp_to_mcu)
+                self.__mqtt_client.message_callback_remove(self.__topic_cmd_to_mcu)
+                self.__mqtt_client.message_callback_remove(self.__topic_rsp_from_mcu)
 
             else:
                 LOG.debug("{} Already Disconnected".format(self._log_prefix))
@@ -156,6 +163,10 @@ def reset(self):
 
         :return:
         """
+
+        # TODO when cortex protcol will supports command to port/mcu 'reset' command 
+        # will be sent via mqtt to the 'cmd_to_mcu' topic.
+
         LOG.warning("{} Cannot Reset".format(self._log_prefix))
 
 def upload(self):
