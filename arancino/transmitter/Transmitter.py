@@ -30,7 +30,7 @@ class Transmitter():
 
     def __init__(self):
 
-        self.__log_prefix = "Arancino Transmitter - "
+        self.__log_prefix = "Arancino Transmitter"
 
         try:
             if CONF.is_transmitter_enabled():
@@ -52,10 +52,10 @@ class Transmitter():
                 self.__sender = class_sender()
                 # endregion
             else:
-                LOG.warning("{} Can Not Start: Disabled".format(self.__log_prefix))
+                LOG.warning("{} Disabled".format(self.__log_prefix))
 
         except Exception as ex:
-            LOG.error("{}Error while starting Transmitter's components : {}".format(self.__log_prefix, str(ex)), exc_info=TRACE)
+            LOG.error("{} - Error while starting Transmitter's components : {}".format(self.__log_prefix, str(ex)), exc_info=TRACE)
 
     def start(self):
         if CONF.is_transmitter_enabled():

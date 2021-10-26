@@ -18,7 +18,7 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 """
-
+from arancino.port.ArancinoPort import PortTypes
 from arancino.utils.ArancinoUtils import ArancinoConfig
 # from arancino.filter import FilterTypes
 
@@ -32,7 +32,9 @@ class ArancinoTestDiscovery:
         # self.__filter = ArancinoSerialPortFilter()
         # self.__filter_type = CONF.get_port_serial_filter_type()
         # self.__filter_list = CONF.get_port_serial_filter_list()
-        pass
+        self.__portType = PortTypes.TEST
+
+        self.__log_prefix = "Arancino Discovery {}".format(self.__portType.name)
 
 
     # TODO: this can be an abstract method
@@ -70,6 +72,7 @@ class ArancinoTestDiscovery:
 
         return collection#ports
 
-
+    def stop(self):
+        pass
 
     #def __discoveryPorts(self):

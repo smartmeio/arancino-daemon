@@ -21,6 +21,7 @@ under the License
 
 from serial.tools import list_ports
 
+from arancino.port.ArancinoPort import PortTypes
 from arancino.utils.ArancinoUtils import ArancinoConfig
 from arancino.port.ArancinoPortFilter import FilterTypes
 from arancino.port.serial.ArancinoSerialPortFilter import ArancinoSerialPortFilter
@@ -34,6 +35,9 @@ class ArancinoSerialDiscovery:
         self.__filter = ArancinoSerialPortFilter()
         self.__filter_type = CONF.get_port_serial_filter_type()
         self.__filter_list = CONF.get_port_serial_filter_list()
+
+        self.__portType = PortTypes.SERIAL
+        self.__log_prefix = "Arancino Discovery {}".format(self.__portType.name)
 
 
     # TODO: this can be an abstract method
@@ -59,6 +63,7 @@ class ArancinoSerialDiscovery:
             if id not in ports:
                     del collection[id]
 
+        del ports
 
         return collection
 
@@ -103,8 +108,10 @@ class ArancinoSerialDiscovery:
         new_ports_struct = {}
 
         for port in ports:
-
             p = ArancinoSerialPort(timeout=CONF.get_port_serial_timeout(), port_info=port, m_s_plugged=True, m_c_enabled=CONF.get_port_serial_enabled(), m_c_hide=CONF.get_port_serial_hide(), baudrate_comm=CONF.get_port_serial_comm_baudrate(), baudrate_reset=CONF.get_port_serial_reset_baudrate())
             new_ports_struct[p.getId()] = p
 
         return new_ports_struct
+
+    def stop(self):
+        pass

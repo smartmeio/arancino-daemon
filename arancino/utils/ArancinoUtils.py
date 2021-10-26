@@ -122,22 +122,46 @@ class ArancinoConfig:
         self.__port_firmware_path = self.Config.get("port", "firmware_path")
         self.__port_firmware_file_types = self.Config.get("port", "firmware_file_types")
         self.__port_reset_on_connect = stringToBool(self.Config.get("port", "reset_on_connect"))
+        self.__port_enabled = stringToBool(self.Config.get("port", "enabled"))
+        self.__port_hide = stringToBool(self.Config.get("port", "hide"))
+        self.__port_discovery = stringToBool(self.Config.get("port", "discovery"))
+
 
         # region CONFIG SERIAL PORT SECTION
-        self.__port_serial_enabled = stringToBool(self.Config.get("port.serial", "enabled"))
-        self.__port_serial_hide = stringToBool(self.Config.get("port.serial", "hide"))
+        self.__port_serial_discovery = self.__get_or_override_bool(self.Config, "port.serial", "discovery", "port", "discovery")
+        self.__port_serial_enabled = self.__get_or_override_bool(self.Config, "port.serial", "enabled", "port", "enabled")
+        self.__port_serial_hide = self.__get_or_override_bool(self.Config.get,"port", "hide", "port.serial", "hide")
         self.__port_serial_comm_baudrate = int(self.Config.get("port.serial", "comm_baudrate"))
         self.__port_serial_reset_baudrate = int(self.Config.get("port.serial", "reset_baudrate"))
         self.__port_serial_filter_type = self.Config.get("port.serial", "filter_type")
         self.__port_serial_filter_list = self.Config.get("port.serial", "filter_list")
-        self.__port_serial_upload_command = self.Config.get("port.serial", "upload_command")
         self.__port_serial_timeout = int(self.Config.get("port.serial", "timeout"))
         self.__port_serial_reset_on_connect = self.__get_or_override_bool(self.Config, "port.serial", "reset_on_connect", "port", "reset_on_connect")
+
+            # default upload command for serial port
+        self.__port_serial_upload_command = self.Config.get("port.serial", "upload_command")
+
+        # region SAMD21
+        self.__port_serial_samd21_upload_command = self.__get_or_override_bool(self.Config, "port.serial.samd21", "upload_command", "port.serial", "upload_command")
+        #self.__port_serial_samd21_upload_command = self.Config.get("port.serial.samd21", "upload_command")
+        # endregion
+
+        # region NRF52
+        self.__port_serial_nrf52_upload_command = self.__get_or_override_bool(self.Config, "port.serial.nrf52", "upload_command", "port.serial", "upload_command")
+        #self.__port_serial_nrf52_upload_command = self.Config.get("port.serial.nrf52", "upload_command")
+        # endregion
+
+        # region STM32
+        self.__port_serial_stm32_upload_command = self.__get_or_override_bool(self.Config, "port.serial.stm32", "upload_command", "port.serial", "upload_command")
+        #self.__port_serial_stm32_upload_command = self.Config.get("port.serial.stm32", "upload_command")
+        # endregion
+
         # endregion
 
         # region CONFIG TEST PORT SECTION
-        self.__port_test_enabled = stringToBool(self.Config.get("port.test", "enabled"))
-        self.__port_test_hide = stringToBool(self.Config.get("port.test", "hide"))
+        self.__port_test_discovery = self.__get_or_override_bool(self.Config, "port.test", "discovery", "port", "discovery")
+        self.__port_test_enabled = self.__get_or_override_bool(self.Config, "port", "enabled", "port.test", "enabled")
+        self.__port_test_hide = self.__get_or_override_bool(self.Config.get,"port", "hide", "port.test", "hide")
         self.__port_test_filter_type = self.Config.get("port.test", "filter_type")
         self.__port_test_filter_list = self.Config.get("port.test", "filter_list")
         self.__port_test_num = int(self.Config.get("port.test", "num"))
@@ -146,9 +170,20 @@ class ArancinoConfig:
         self.__port_test_upload_command = self.Config.get("port.test", "upload_command")
         self.__port_test_reset_on_connect = self.__get_or_override_bool(self.Config, "port.test", "reset_on_connect", "port", "reset_on_connect")
         # endregion
-        # endregion
 
+        # region CONFIG UART BLE PORT SECTION
+        self.__port_uart_ble_discovery = self.__get_or_override_bool(self.Config, "port.uart_ble", "discovery", "port", "discovery")
+        self.__port_uart_ble_enabled = self.__get_or_override_bool(self.Config, "port.uart_ble", "enabled", "port", "enabled")
+        self.__port_uart_ble_hide = self.__get_or_override_bool(self.Config.get,"port.uart_ble", "hide", "port", "hide")
+        self.__port_uart_ble_filter_type = self.Config.get("port.uart_ble", "filter_type")
+        self.__port_uart_ble_filter_list = self.Config.get("port.uart_ble", "filter_list")
+        self.__port_uart_ble_timeout = int(self.Config.get("port.uart_ble", "timeout"))
+        self.__port_uart_ble_upload_command = self.Config.get("port.uart_ble", "upload_command")
+        self.__port_uart_ble_reset_on_connect = self.__get_or_override_bool(self.Config, "port.uart_ble", "reset_on_connect", "port", "reset_on_connect")
+        # endregion
+        
         # region CONFIG PORT MQTT SECTION
+        self.__port_mqtt_discovery = self.__get_or_override_bool(self.Config, "port.mqtt", "discovery", "port", "discovery")
         self.__port_mqtt_reset_on_connect = self.__get_or_override_bool(self.Config, "port.mqtt", "reset_on_connect", "port", "reset_on_connect")
         self.__port_mqtt_enabled = stringToBool(self.Config.get("port.mqtt", "enabled"))
         self.__port_mqtt_hide = stringToBool(self.Config.get("port.mqtt", "hide"))
@@ -161,6 +196,7 @@ class ArancinoConfig:
         self.__port_mqtt_topic_service = self.Config.get("port.mqtt", "service_topic")
         self.__port_mqtt_filter_type = self.Config.get("port.mqtt", "filter_type")
         self.__port_mqtt_filter_list = self.Config.get("port.mqtt", "filter_list")
+        # endregion
         # endregion
 
         # region CONFIG LOG SECTION
@@ -179,7 +215,7 @@ class ArancinoConfig:
         self.__log_print_stack_trace = stringToBool(self.Config.get("log", "print_stack_trace"))
         # endregion
 
-        # region TRANSMITTER SECTION
+        # region CONFIG TRANSMITTER SECTION
         self.__transmitter_reader_cycle_time = int(self.Config.get("transmitter.reader", "cycle_time"))
         self.__is_transmitter_enabled = stringToBool(self.Config.get("transmitter", "enabled"))
 
@@ -232,10 +268,6 @@ class ArancinoConfig:
 
         self.__dirlog = os.environ.get('ARANCINOLOG')
 
-
-
-
-
     def __get_or_override_bool(self, cfg, mine_sect, mine_opt, main_sec, main_opt):
         val = ""
         try:
@@ -244,7 +276,6 @@ class ArancinoConfig:
             val = cfg.get(main_sec, main_opt)
         finally:
             return stringToBool(val)
-
 
     def get_arancino_home_path(self):
         return self.__arancino_home_path
@@ -293,7 +324,7 @@ class ArancinoConfig:
     def get_serial_number(self):
         return self.__serial_number
 
-    ######## REDIS ########
+    #region REDIS
     def get_redis_instances_conf(self):
 
         # redis instance type
@@ -378,7 +409,9 @@ class ArancinoConfig:
     def get_redis_timeseries_retation(self):
         return self.__redis_timeseris_retention
 
-    ####### PORT #######
+    #endregion
+
+    #region PORTS
     def get_port_firmware_path(self):
         return self.__port_firmware_path
 
@@ -388,8 +421,14 @@ class ArancinoConfig:
     def get_port_reset_on_connect(self):
         return self.__port_reset_on_connect
 
+    def get_port_discovery(self):
+        return self.__port_discovery
+
 
     #region SERIAL PORT
+    def get_port_serial_discovery(self):
+        return self.__port_serial_discovery
+
     def get_port_serial_enabled(self):
         return self.__port_serial_enabled
 
@@ -414,18 +453,32 @@ class ArancinoConfig:
     def get_port_serial_filter_list(self):
         return json.loads(self.__port_serial_filter_list.upper())
 
-    def get_port_serial_upload_command(self):
-        return self.__port_serial_upload_command
-
     def get_port_serial_timeout(self):
         return self.__port_serial_timeout
 
     def get_port_serial_reset_on_connect(self):
         return self.__port_serial_reset_on_connect
     
+    def get_port_serial_upload_command(self):
+        return self.__port_serial_upload_command
+
+    ## STM32
+    def get_port_serial_stm32_upload_command(self):
+        return self.__port_serial_stm32_upload_command
+
+    ## NRF52
+    def get_port_serial_nrf52_upload_command(self):
+        return self.__port_serial_nrf52_upload_command
+
+    ## SAMD21
+    def get_port_serial_samd21_upload_command(self):
+        return self.__port_serial_samd21_upload_command
     #endregion
 
-    #region TEST PORT 
+    #region TEST PORT
+    def get_port_test_discovery(self):
+        return self.__port_test_discovery
+
     def get_port_test_enabled(self):
         return self.__port_test_enabled
 
@@ -459,6 +512,8 @@ class ArancinoConfig:
     #endregion
     
     #region PORT MQTT
+    def get_port_mqtt_discovery(self):
+        return self.__port_mqtt_discovery
 
     def get_port_mqtt_filter_type(self):
         if self.__port_mqtt_filter_type not in FilterTypes.__members__:
@@ -500,7 +555,38 @@ class ArancinoConfig:
         return self.__port_mqtt_reset_on_connect
     #endregion
 
-    ######## LOG ########
+    #region UART BLE PORT
+    def get_port_uart_ble_discovery(self):
+        return self.__port_uart_ble_discovery
+
+    def get_port_uart_ble_enabled(self):
+        return self.__port_uart_ble_enabled
+
+    def get_port_uart_ble_hide(self):
+        return self.__port_uart_ble_hide
+
+    def get_port_test_filter_type(self):
+        if self.__port_uart_ble_filter_type not in FilterTypes.__members__:
+            return FilterTypes.DEFAULT.value
+        else:
+            return FilterTypes[self.__port_uart_ble_filter_type]
+
+    def get_port_uart_ble_filter_list(self):
+        return json.loads(self.__port_uart_ble_filter_list.upper())
+
+    def get_port_uart_ble_upload_command(self):
+        return self.__port_uart_ble_upload_command
+
+    def get_port_uart_ble_timeout(self):
+        return self.__port_uart_ble_timeout
+
+    def get_port_uart_ble_reset_on_connect(self):
+        return self.__port_uart_ble_reset_on_connect
+
+    #endregion
+    #endregion
+
+    #region LOG
     def get_log_level(self):
         return self.__log_level
 
@@ -534,26 +620,8 @@ class ArancinoConfig:
     def get_log_print_stack_trace(self):
         return self.__log_print_stack_trace
 
+    #endregion
 
-    def get_config_by_name(self, section, option):
-        try:
-            section = section.replace('-', '.')
-            val = self.Config.get(section, option)
-            return val
-        except configparser.NoOptionError as ex:
-            return None
-        except configparser.NoSectionError as ex:
-            return None
-
-
-    def get_config_all(self):
-        result = {}
-        for sec in self.Config.sections():
-            result[sec] = {}
-            for it in self.Config.items(sec):
-                result[sec][it[0]] = it[1]
-
-        return result
 
     # def test(self):
     #
@@ -570,25 +638,7 @@ class ArancinoConfig:
     #     print(ob)
 
 
-
-    def set_config_by_name(self, section, option, value):
-        try:
-            #section = section.replace('-', '.')
-            self.Config.set(section, option, value)
-            self.__write_config()
-            return self.Config.get(section, option)
-        except configparser.NoOptionError as ex:
-            return None
-        except configparser.NoSectionError as ex:
-            return None
-
-    def __write_config(self):
-        filename = os.path.join(os.environ.get('ARANCINOCONF'), self.__cfg_file)
-        with open(filename, 'w') as configfile:
-            self.Config.write(configfile)
-
-
-    ######## TRANSMITTER ########
+    #region TRANSMITTER
     def is_transmitter_enabled(self):
         return self.__is_transmitter_enabled
 
@@ -645,6 +695,46 @@ class ArancinoConfig:
 
     def get_transmitter_sender_mqtt_key_path(self):
         return self.__transmitter_sender_mqtt_key_path
+
+    #endregion
+
+    def get_config_by_name(self, section, option):
+        try:
+            section = section.replace('-', '.')
+            val = self.Config.get(section, option)
+            return val
+        except configparser.NoOptionError as ex:
+            return None
+        except configparser.NoSectionError as ex:
+            return None
+
+
+    def get_config_all(self):
+        result = {}
+        for sec in self.Config.sections():
+            result[sec] = {}
+            for it in self.Config.items(sec):
+                result[sec][it[0]] = it[1]
+
+        return result
+
+
+    def set_config_by_name(self, section, option, value):
+        try:
+            #section = section.replace('-', '.')
+            self.Config.set(section, option, value)
+            self.__write_config()
+            return self.Config.get(section, option)
+        except configparser.NoOptionError as ex:
+            return None
+        except configparser.NoSectionError as ex:
+            return None
+
+    def __write_config(self):
+        filename = os.path.join(os.environ.get('ARANCINOCONF'), self.__cfg_file)
+        with open(filename, 'w') as configfile:
+            self.Config.write(configfile)
+
 
 
 @Singleton
@@ -739,7 +829,7 @@ class CustomConsoleFormatter(logging.Formatter):
 
         #format_pre = "%(asctime)s - %(name)s - "
         if self.__level.upper() == 'DEBUG':
-            format_pre = "%(asctime)s - %(name)s : %(threadName)s.%(filename)s.%(funcName)s:%(lineno)d - "
+            format_pre = "%(asctime)s - %(name)s : [%(thread)d]%(threadName)s.%(filename)s.%(funcName)s:%(lineno)d - "
 
 
         self.FORMATS = {

@@ -18,12 +18,15 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 """
-
+import threading
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
+from threading import Thread
 from types import FunctionType, MethodType
 #from arancino.port.ArancinoPort import PortTypes
+from arancino import ArancinoCortex
 from arancino.ArancinoCortex import *
+from arancino.ArancinoDataStore import ArancinoDataStore
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 import time
 
@@ -32,6 +35,7 @@ import semantic_version
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
 TRACE = CONF.get_log_print_stack_trace()
+DATASTORE = ArancinoDataStore.Instance()
 
 class ArancinoPort(object):
 
@@ -73,6 +77,8 @@ class ArancinoPort(object):
         self._upload_cmd = upload_cmd
         #endregion
 
+        self._log_prefix = ""
+
         # Command Executor
         # self._executor = ArancinoCommandExecutor(self._id, self._device)
 
@@ -87,6 +93,21 @@ class ArancinoPort(object):
         #endregion
 
         self.__first_time = True
+
+
+        self.__heartbeatSent = False        # é una variabile che mi indica se é stato inviato il ping/hearbeat alla porta e quindi se stare in attesa di risposta.
+        self.__heartbeatRate = 5           #10 secondi é il rate con cui gira l'hearbeat
+        self.__heartbeatTimeRange = 0.005   # 5 millisecondi é il tempo minimo di risposta che ci aspettiamo.
+        #self.__heartbeatTime0 = None        # servono per misurare il tempo.
+        #self.__heartbeatTime1 = None
+        self.__heartbeatCount = 1           # contantore del numero di heartbeat prima della risposta
+        self.__heartbeatCountMax = 5        # numero massimo di heartbeat a vuoto
+        self.__heartbeatStop = threading.Event()        # per la gestione del Thread
+
+        #self.__th_heartbeat = Thread(target=self.__heartbeat)
+        self.__th_heartbeat = Thread(target=self.__heartbeat)
+        self.__heartbeatTime0 = None
+        self.__heartbeatTime1 = None
 
 
 
@@ -274,7 +295,7 @@ class ArancinoPort(object):
 
         :return:
         """
-        pass
+        self.startHeartbeat()
 
 
     @abstractmethod
@@ -283,7 +304,7 @@ class ArancinoPort(object):
 
         :return:
         """
-        pass
+        self.stopHeartbeat()
 
 
     @abstractmethod
@@ -327,22 +348,27 @@ class ArancinoPort(object):
             acmd = ArancinoComamnd(raw_command=raw_command)
             LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.getId(), str(acmd.getArguments())))
 
-            # check if the received command handler callback function is defined
-            if self._received_command_handler is not None:
-                self._received_command_handler(self._id, acmd)
+            if acmd.getId() == ArancinoCommandIdentifiers.RSP_SYS_HEARTBEAT["id"]:
+                self.__heartbeatResponse()
+            else:
 
-            # call the Command Executor and get a arancino response
-            arsp = self._executor.exec(acmd)
+                # check if the received command handler callback function is defined
+                if self._received_command_handler is not None:
+                    self._received_command_handler(self._id, acmd)
 
-            # create the Arancino Response object
-            #arsp = ArancinoResponse(raw_response=raw_response)
 
-            # if the command is START command, the ArancinoResponse is generic and it should
-            # evaluated here and not in the CommandExecutor. CommandExecutor only uses the datastore
-            # and not the port itself. The START command contains information about the connecting port
-            # that the command executor is not able to use.
-            if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
-                self._retrieveStartCmdArgs(acmd.getArguments())
+                # call the Command Executor and get a arancino response
+                arsp = self._executor.exec(acmd)
+
+                # create the Arancino Response object
+                #arsp = ArancinoResponse(raw_response=raw_response)
+
+                # if the command is START command, the ArancinoResponse is generic and it should
+                # evaluated here and not in the CommandExecutor. CommandExecutor only uses the datastore
+                # and not the port itself. The START command contains information about the connecting port
+                # that the command executor is not able to use.
+                if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
+                    self._retrieveStartCmdArgs(acmd.getArguments())
 
         except ArancinoException as ex:
             arsp = ArancinoResponse(rsp_id=ex.error_code, rsp_args=[])
@@ -374,6 +400,184 @@ class ArancinoPort(object):
         """
         pass
 
+
+    def startHeartbeat(self):
+        self.__th_heartbeat.start()
+        self.__heartbeat_subscribe()
+
+
+    def stopHeartbeat(self):
+        self.__heartbeatStop.set()
+
+
+    # def __heartbeat(self):
+
+    #     LOG.info("{} Start Heartbeat".format(self._log_prefix))
+    #     while not self.__heartbeatStop.is_set():
+    #         time.sleep(self.__heartbeatRate)
+
+    #         if self.isConnected() and self.isStarted():
+
+    #             self.__heartbeatCheck()
+
+    #             LOG.debug("{} Sending Heartbeat #{} to the port".format(self._log_prefix, str(self.__heartbeatCount)))
+    #             #1. QUI FACCIO PARTIRE IL TEMPO:
+    #             self.__heartbeatTime0 = time.time()
+    #             #2. QUI INVIO IL COMANDO HEARTBEAT.
+
+    #             try:
+    #                 self.sendResponse(ArancinoCortex.HEARTBEAT_RAW)
+    #             except Exception as ex:
+    #                 self.disconnect()
+
+    #             #3. ALZO LA VARIABILE
+    #             self.__heartbeatSent = True
+    #             self.__heartbeatCount += 1
+
+    #         else:
+    #             LOG.warn("{} Can not verify heartbeat: Port not Connected or not Started".format(self._log_prefix))
+
+    #     LOG.info("{} End Heartbeat".format(self._log_prefix))
+
+
+    # def __heartbeatResponse(self):
+    #     LOG.debug("{} Received Heartbeat Response from the port".format(self._log_prefix))
+    #     self.__heartbeatTime1 = time.time()
+
+
+    # def __heartbeatCheck(self):
+
+    #     if self.__heartbeatSent: # l'heartbeat é stato inviato almeno una volta.
+
+    #         if self.__heartbeatTime1:
+
+    #             t = self.__heartbeatTime1 - self.__heartbeatTime0
+    #             if t <= self.__heartbeatTimeRange:
+    #                 LOG.debug("{} Heartbeat detected: {}".format(self._log_prefix, t))
+    #             else:
+    #                 LOG.warn("{} Heartbeat detected but over the range: {}".format(self._log_prefix, t))
+
+    #                 #### TODO TODO TODO
+    #                 #### TODO send a notification to someone.
+    #                 #### TODO TODO TODO
+
+    #             # Resetto i timer
+    #             self.__heartbeatTime0 = None
+    #             self.__heartbeatTime1 = None
+
+    #             # Resetto il counter
+    #             self.__heartbeatCount = 0
+
+    #             # Resetto il flag
+    #             self.__heartbeatSent = False
+
+    #         else: # se il tempo di risposta non é valorizzato, significa che non é ancora stato tornato indietro la risposta e quindi aumento il counter
+    #             LOG.debug("{} No Heartbeat: Attempt #{} Failed.".format(self._log_prefix, str(self.__heartbeatCount-1)))
+
+    #             if self.__heartbeatCount-1 >= self.__heartbeatCountMax:
+    #                  LOG.warn("{} No Heartbeat detected for the port.".format(self._log_prefix))
+    #                  #self.stopHeartbeat()
+    #                  self.disconnect()
+
+
+    #     # else: # é il primo giro, o non é ancora stata effettuato questo check
+    #     #     # Non fare niente
+    #     #     pass
+
+
+    def __heartbeat(self):
+        LOG.info("{} Start Heartbeat".format(self._log_prefix))
+        while not self.__heartbeatStop.is_set():
+
+            time.sleep(self.__heartbeatRate)
+
+            if self.isConnected() and self.isStarted():
+
+                # check sul numero di tentativi
+                if self.__heartbeatCount <= self.__heartbeatCountMax:
+                    
+                    LOG.debug("{} Heartbeat Attempt #{} for the port".format(self._log_prefix, str(self.__heartbeatCount)))
+
+                    # verifico se il primo hb é arrivato
+                    if self.__heartbeatTime0:
+                        
+                        # verifico se il secondo hb é arrivato 
+                        if self.__heartbeatTime1:
+                            
+                            ts = self.__heartbeatTime1 - self.__heartbeatTime0
+
+                            if ts <= self.__heartbeatTimeRange:
+                                LOG.debug("{} Heartbeat detected: {}".format(self._log_prefix, ts))
+                            else:
+                                LOG.warn("{} Heartbeat detected but over the range: {}".format(self._log_prefix, ts))
+
+                                #### TODO TODO TODO
+                                #### TODO send a notification to someone.
+                                #### TODO TODO TODO
+                                
+                                # reset delle variabili
+
+                                self.__heartbeatTime0 = None
+                                self.__heartbeatTime1 = None
+                                self.__heartbeatCount = 0
+
+                        # se non é arrivato il secondo hb incremento il contatore
+                        else:
+                            self.__heartbeatCount += 1
+                            
+                    
+                    # se non é arrivato il primohb incremento il contatore
+                    else:
+                        self.__heartbeatCount += 1
+                    
+                else:
+                    LOG.warn("{} No Heartbeat detected for the port.".format(self._log_prefix))
+                     #self.stopHeartbeat()
+                    self.disconnect()
+
+        LOG.info("{} End Heartbeat".format(self._log_prefix))
+
+
+    #region heartbeat subscriotion redis
+    def __heartbeat_subscribe(self):
+        redis = DATASTORE.getDataStoreRsvd()
+        redis = redis.pubsub()
+        redis.subscribe(str(self.getId() + "_HB0"))
+        redis.subscribe(str(self.getId() + "_HB1"))
+
+        for data_raw in redis.listen():
+            if data_raw['type'] != "message":
+                continue
+            
+            if data_raw['channel'] == str(self.getId() + "_HB0"):
+                self.__heartbeat_sub_0(data_raw)
+            elif data_raw['channel'] == str(self.getId() + "_HB1"):
+                self.__heartbeat_sub_1(data_raw)
+            else:
+                continue
+
+    def __heartbeat_sub_0(self, data):
+        LOG.debug("RECEIVING HB 0: {}".format(data))
+        ts_str = data['data']
+        self.__heartbeatTime0 = self.__heartbeat_convert_timestamp(ts_str)
+
+    def __heartbeat_sub_1(self, data):
+        LOG.debug("RECEIVING HB 1: {}".format(data))
+        ts_str = data['data']
+        self.__heartbeatTime1 = self.__heartbeat_convert_timestamp(ts_str)
+        
+
+    def __heartbeat_convert_timestamp(self, ts_str):
+
+        ts = None
+        try:
+            ts = float(ts_str)
+        except ValueError as ex:
+            LOG.error("{} Errore di conversione: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
+        finally:
+            return ts
+
+    #endregion
 
     #region BASE METADATA Encapsulators
 
@@ -491,6 +695,8 @@ class ArancinoPort(object):
 
     def _setMicrocontrollerFamily(self, microcontroller_family):
         self._microcontroller_family = microcontroller_family
+
+    #endregion
 
     #endregion
 
@@ -613,3 +819,4 @@ class PortTypes(Enum):
     MQTT = 4          # Network MQTT
     BLUETOOTH = 5     # Bluetooth
     TEST = 6          # Fake Port for Test purpose
+    UART_BLE = 7      # UART simulated port over BLE
