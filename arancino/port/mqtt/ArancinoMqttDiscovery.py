@@ -21,14 +21,18 @@ under the License
 
 
 
-from arancino.utils.ArancinoUtils import ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 from arancino.port.ArancinoPortFilter import FilterTypes
 from arancino.port.mqtt.ArancinoMqttPortFilter import ArancinoMqttPortFilter
 from arancino.port.mqtt.ArancinoMqttPort import ArancinoMqttPort
+from arancino.port.ArancinoPort import PortTypes
 import paho.mqtt.client as mqtt
 import paho.mqtt.subscribe as subscribe
+import time
 
+LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
+TRACE = CONF.get_log_print_stack_trace()
 
 class ArancinoMqttDiscovery(object):
 
@@ -38,6 +42,7 @@ class ArancinoMqttDiscovery(object):
         self.__filter_list = CONF.get_port_mqtt_filter_list()
 
         self.__list_discovered = []
+        self._log_prefix = "[{} Discovery]".format(PortTypes.MQTT.name)
 
         self.__mqtt_discovery_topic = CONF.get_port_mqtt_topic_discovery()
         self.__mqtt_cortex_topic = CONF.get_port_mqtt_topic_cortex()
@@ -47,32 +52,67 @@ class ArancinoMqttDiscovery(object):
         self.__mqtt_arancino_daemon_broker_host = CONF.get_port_mqtt_host()
         self.__mqtt_arancino_daemon_broker_port = CONF.get_port_mqtt_port()
         
-        # TODO gestire eccezioni
-        self.__mqtt_client = mqtt.Client()
-        self.__mqtt_client.on_connect = self.__on_connect
-        self.__mqtt_client.on_message = self.__on_discovery
-        self.__mqtt_client.username_pw_set(self.__mqtt_arancino_daemon_discovery_user, self.__mqtt_arancino_daemon_discovery_pass)
-        self.__mqtt_client.connect(self.__mqtt_arancino_daemon_broker_host, self.__mqtt_arancino_daemon_broker_port)
-        self.__mqtt_client.loop_start()
+        try:
+            self.__mqtt_client = mqtt.Client()
+            self.__mqtt_client.on_connect = self.__on_connect
+            self.__mqtt_client.on_disconnect = self.__on_disconnect
+            self.__mqtt_client.on_message = self.__on_discovery
+            self.__mqtt_client.username_pw_set(self.__mqtt_arancino_daemon_discovery_user, self.__mqtt_arancino_daemon_discovery_pass)
+            self.__mqtt_client.connect(self.__mqtt_arancino_daemon_broker_host, self.__mqtt_arancino_daemon_broker_port)
+            self.__mqtt_client.loop_start()
+        
+        except Exception as ex:
+            LOG.error("{}Error during connecting to {}:{}: {}".format(self._log_prefix, str(ex), self.__mqtt_arancino_daemon_broker_host, str(self.__mqtt_arancino_daemon_broker_port)), exc_info=TRACE)
     
+    # region MQTT Client Handler
+    # region ON CONNECT
     def __on_connect(self, client, userdata, flags, rc):  # The callback for when the client connects to the broker
 
-        # TODO LOGga qualcosa
+        if rc == 0:
+            #self.__client.connected_flag = True
+            LOG.debug("{} Connected to {}:{}...".format(self._log_prefix, self.__mqtt_arancino_daemon_broker_host, str(self.__mqtt_arancino_daemon_broker_port)))
 
-        client.subscribe(self.__mqtt_discovery_topic)
-        client.subscribe("{}/+/cmd_from_mcu".format(self.__mqtt_cortex_topic))   # used to send response to the mqtt port
-        #client.subscribe(self.__mqtt_discovery_topic + "/+/rsp_from_mcu")   # for future use: when the daemon will send cmd to the port, it will response in this topic
+            client.subscribe(self.__mqtt_discovery_topic)
+            client.subscribe("{}/+/cmd_from_mcu".format(self.__mqtt_cortex_topic))   # used to send response to the mqtt port
+            #client.subscribe(self.__mqtt_discovery_topic + "/+/rsp_from_mcu")   # for future use: when the daemon will send cmd to the port, it will response in this topic
 
-        #reset all mcu connected at the broker by sending a special cmd
-        client.publish("{}".format(self.__mqtt_service_topic), "reset", 0)
+            #reset all mcu connected at the broker by sending a special cmd
+            client.publish("{}".format(self.__mqtt_service_topic), "reset", 0)
+        else:
+            #self.__client.connected_flag = False
+            LOG.warning("{}Failed to connect to {}:{} - {}".format(self._log_prefix, self.__mqtt_arancino_daemon_broker_host,str(self.__mqtt_arancino_daemon_broker_port), mqtt.connack_string(rc)))
+    # endregion
 
+    # region ON DISCOVERY
     def __on_discovery(self, client, userdata, msg):
         
         pid = str(msg.payload.decode('utf-8', errors='strict'))
         if pid not in self.__list_discovered:
             self.__list_discovered.append(pid)
+    # endregion
+
+    # region ON DICONNECT
+    def __on_disconnect(self, client, userdata, rc):
+        #self.__client.connected_flag = False
+        
+        LOG.info("{} Disconnected from {}:{}...".format(self._log_prefix, self.__mqtt_arancino_daemon_broker_host, str(self.__mqtt_arancino_daemon_broker_port)))
+        
+        while rc != 0:
+            
+            time.sleep(5)
+            LOG.debug("Reconnecting to mqtt broker...")
+            
+            try:    
+                rc = self.__client.connect(self.__mqtt_arancino_daemon_broker_host, self.__mqtt_arancino_daemon_broker_port, 60)
+            
+            except Exception as ex:
+                LOG.error("{}Error during re-connecting to {}:{}: {}".format(self._log_prefix, str(ex), self.__mqtt_arancino_daemon_broker_host, str(self.__mqtt_arancino_daemon_broker_port)), exc_info=TRACE)
+    # endregion
+    # endregion
+
 
     def getAvailablePorts(self, collection):
+        #if self.__mqtt_client.is_connected:
         ports = self.__list_discovered
         ports = self.__preFilterPorts(ports)
         ports = self.__transformInArancinoPorts(ports)

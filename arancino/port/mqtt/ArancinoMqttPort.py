@@ -44,10 +44,13 @@ class ArancinoMqttPort(ArancinoPort):
         # MQTT PORT PARAMETER
         self.__mqtt_client = mqtt_client
         
+        # Topic used by Arancino Daemon (Left Hemisphere) to receive Cortex Commands from Arancino MQTT Ports (Right Hemisphere)
         self.__mqtt_topic_cmd_from_mcu = "{}/{}/cmd_from_mcu".format(CONF.get_port_mqtt_topic_cortex(), port_id)
+        # Topic used by Arancino Daemon (Left Hemisphere) to send back Cortex Responses to Arancino MQTT Ports (Right Hemisphere)
         self.__mqtt_topic_rsp_to_mcu = "{}/{}/rsp_to_mcu".format(CONF.get_port_mqtt_topic_cortex(), port_id)
-
-        self.__mqtt_topic_cmd_to_mcu = "{}/{}/cmd_from_mcu".format(CONF.get_port_mqtt_topic_cortex(), port_id)
+        # Topic used by Arancino Daemon (Left Hemisphere) to send Cortex Commands to Arancino MQTT Ports (Right Hemisphere)
+        self.__mqtt_topic_cmd_to_mcu = "{}/{}/cmd_to_mcu".format(CONF.get_port_mqtt_topic_cortex(), port_id)
+        # Topic used by Arancino Daemon (Left Hemisphere) to receive back Cortex Responses from Arancino MQTT Ports (Right Hemisphere)
         self.__mqtt_topic_rsp_from_mcu = "{}/{}/rsp_from_mcu".format(CONF.get_port_mqtt_topic_cortex(), port_id)
         
         # Command Executor
@@ -114,15 +117,18 @@ class ArancinoMqttPort(ArancinoPort):
                     try:
                         LOG.info("{} Connecting...".format(self._log_prefix))
     
-                        if CONF.get_port_mqtt_reset_on_connect():
+                        #if CONF.get_port_mqtt_reset_on_connect():
                             # this must be setted to False. If True can be caused an infinite loop of connection and disconnection
-                            self.reset()
+                        #    self.reset()
                         
                         self.__mqtt_handler = ArancinoMqttHandler("ArancinoMqttHandler-"+self._id, self.__mqtt_client, self.__mqtt_topic_cmd_from_mcu, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
                         self._m_s_connected = True
+                        self._m_s_started = True
                         
                         LOG.info("{} Connected".format(self._log_prefix))
                         self._start_thread_time = time.time()
+
+                        super().connect()
 
                     except Exception as ex:
                         # TODO LOG SOMETHING OR NOT?

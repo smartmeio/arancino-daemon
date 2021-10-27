@@ -55,7 +55,7 @@ class ArancinoUartBlePort(ArancinoPort):
 
         self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
 
-        self._compatibility_array = COMPATIBILITY_MATRIX_MOD_SERIAL[str(CONF.get_metadata_version().truncate())]
+        self._compatibility_array = COMPATIBILITY_MATRIX_MOD_UART_BLE[str(CONF.get_metadata_version().truncate())]
 
         # # CALLBACK FUNCTIONS
         #self.setReceivedCommandHandler(receivedCommandHandler)  # this is the handler to be used to receive an ArancinoCommand and exec that command.

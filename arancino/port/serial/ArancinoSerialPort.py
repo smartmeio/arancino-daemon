@@ -249,6 +249,8 @@ class ArancinoSerialPort(ArancinoPort):
                         LOG.info("{} Connected".format(self._log_prefix))
                         self._start_thread_time = time.time()
 
+                        super().connect()
+
                     except Exception as ex:
                         # TODO LOG SOMETHING OR NOT?
                         LOG.error("{} Error while connecting: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)

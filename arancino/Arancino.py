@@ -189,7 +189,7 @@ class Arancino(Thread):
                     self.__serial_ports = self.__serial_discovery.getAvailablePorts(self.__serial_ports) if self.__serial_discovery else {}
                     self.__test_ports = self.__test_discovery.getAvailablePorts(self.__test_ports) if self.__test_discovery else {}
                     self.__uart_ble_ports = self.__uart_ble_discovery.getAvailablePorts(self.__uart_ble_ports) if self.__uart_ble_discovery else {}
-                    self.__mqtt_ports = self.__mqtt_discovery.getAvailablePorts(self.__mqttports) if self.__mqtt_discovery else {}
+                    self.__mqtt_ports = self.__mqtt_discovery.getAvailablePorts(self.__mqtt_ports) if self.__mqtt_discovery else {}
 
                     # works only in python 3.5 and above
                     self.__ports_discovered = {**self.__serial_ports, **self.__test_ports, **self.__uart_ble_ports, **self.__mqtt_ports}
