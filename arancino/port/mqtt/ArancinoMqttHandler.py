@@ -63,5 +63,6 @@ class ArancinoMqttHandler():
         #TODO GESTIRE ECCEZIONI
 
     def stop(self):
-        #self.__stop = True
-        pass
+        LOG.warning("{}Connection lost".format(self.__log_prefix))
+        if self.__connectionLostHandler is not None:
+            self.__connectionLostHandler()

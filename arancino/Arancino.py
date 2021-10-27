@@ -179,11 +179,7 @@ class Arancino(Thread):
                     LOG.debug('Uptime :' + str(self.__uptime_sec))
                     LOG.info('Uptime :' + self.__uptime_str)
 
-                    self.__mutex.acquire()
-                    # for p in self.__ports_discovered.items():
-                    #     #p.heartbeatStop = True
-                    #     del p
-
+                    #####################self.__mutex.acquire()
 
                     # chiama getAvailablePorts solo se il discovery é istanziato (da configurazione)
                     self.__serial_ports = self.__serial_discovery.getAvailablePorts(self.__serial_ports) if self.__serial_discovery else {}
@@ -256,7 +252,7 @@ class Arancino(Thread):
 
                         self.__synchronizer.writePortChanges(port)
 
-                    self.__mutex.release()
+                    #####################self.__mutex.release()
 
                     # for id, port in self.__ports_connected.items():
                     #
@@ -299,6 +295,10 @@ class Arancino(Thread):
 
     def __disconnectedPortHandler(self, port_id):
         self.__mutex.acquire()
+
+        # with self.acquire_timeout(self.__mutex, 12) as acquired:
+        #     if acquired:
+        #         LOG.debug("Lock Acquired")
         if port_id in self.__ports_connected:
             port = self.__ports_connected.pop(port_id, None)
             LOG.warning("[{} - {} at {}] Destroying Arancino Port".format(port.getPortType(), port.getId(), port.getDevice()))
@@ -325,7 +325,22 @@ class Arancino(Thread):
             port = self.__uart_ble_ports.pop(port_id, None)
             del port
 
+        if port_id in self.__mqtt_ports:
+                    port = self.__mqtt_ports.pop(port_id, None)
+                    del port
+            # else:
+            #     LOG.debug("Can't Lock")
+            #     self.__mutex.release()
+
         self.__mutex.release()
+
+    from contextlib import contextmanager
+    @contextmanager
+    def acquire_timeout(self, lock, timeout):
+        result = lock.acquire(timeout=timeout)
+        yield result
+        if result:
+            lock.release()
 
 
     ##### API UTILS ######

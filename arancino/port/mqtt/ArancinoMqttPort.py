@@ -60,7 +60,6 @@ class ArancinoMqttPort(ArancinoPort):
         self._compatibility_array = COMPATIBILITY_MATRIX_MOD_MQTT[str(CONF.get_metadata_version().truncate())]
         self._log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
 
-        
     def __connectionLostHandler(self):
         """
         This is an Asynchronous function, and represent "handler" to be used by ArancinoSerialHandeler.
@@ -91,8 +90,6 @@ class ArancinoMqttPort(ArancinoPort):
         else:  # do nothing
             pass
 
-
-
     def sendResponse(self, raw_response):
         """
         Send a Response to the mcu. A Response is bind to a Command. The Response is sent only if the Port is Connected.
@@ -107,7 +104,6 @@ class ArancinoMqttPort(ArancinoPort):
 
         else:  # not connected
             LOG.warning("{} Cannot Sent a Response: Port is not connected.".format(self._log_prefix))
-
 
     def connect(self):
         try:
@@ -146,16 +142,17 @@ class ArancinoMqttPort(ArancinoPort):
         except Exception as ex:
             raise ex
 
-def disconnect(self):
+    def disconnect(self):
         try:
             # check if the device is already
             if self._m_s_connected:
                 
                 self.__mqtt_handler.stop()
-                self.__mqtt_client.message_callback_remove(self.__topic_cmd_from_mcu)
-                self.__mqtt_client.message_callback_remove(self.__topic_rsp_to_mcu)
-                self.__mqtt_client.message_callback_remove(self.__topic_cmd_to_mcu)
-                self.__mqtt_client.message_callback_remove(self.__topic_rsp_from_mcu)
+                self.__mqtt_client.message_callback_remove(self.__mqtt_topic_cmd_from_mcu)
+                self.__mqtt_client.message_callback_remove(self.__mqtt_topic_rsp_to_mcu)
+                self.__mqtt_client.message_callback_remove(self.__mqtt_topic_cmd_to_mcu)
+                self.__mqtt_client.message_callback_remove(self.__mqtt_topic_rsp_from_mcu)
+                super().disconnect()
 
             else:
                 LOG.debug("{} Already Disconnected".format(self._log_prefix))
@@ -164,7 +161,7 @@ def disconnect(self):
         except Exception as ex:
             raise ex
 
-def reset(self):
+    def reset(self):
         """
 
         :return:
@@ -175,7 +172,7 @@ def reset(self):
 
         LOG.warning("{} Cannot Reset".format(self._log_prefix))
 
-def upload(self):
+    def upload(self):
         """
 
         :return:

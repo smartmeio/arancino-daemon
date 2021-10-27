@@ -42,16 +42,12 @@ class ArancinoUartBlePort(ArancinoPort):
 
         super().__init__(id=id, device=device, port_type=PortTypes.UART_BLE, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=None, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
-        # self._port_type = PortTypes.Serial
-
         self.__ble_connection = None    # type: BLEConnection
         self.__ble_uart_service = None
         self.__adv = adv                # type: adafruit_ble.advertising.Advertisement
 
         # UART BLE PORT
         self.__timeout = timeout
-
-
 
         self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
 
@@ -62,67 +58,6 @@ class ArancinoUartBlePort(ArancinoPort):
         #self.setDisconnectionHandler(disconnectionHandler)  # this is the handler to be used whene a disconnection event is triggered
 
         self._log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
-
-    # def __commandReceivedHandler(self, raw_command):
-    #     """
-    #     This is an Asynchronous function, and represent "handler" to be used by ArancinoSerialHandeler.
-    #         It first receives a Raw Command from the Serial Port, then translate it to an ArancinoCommand object
-    #         and send it back to another callback function
-    #
-    #     :param raw_command: the Raw Command received from the Serial port
-    #     :return: void.
-    #     """
-    #     try:
-    #         # create an Arancino Comamnd from the raw command
-    #         acmd = ArancinoComamnd(raw_command=raw_command)
-    #         LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.getId(), str(acmd.getArguments())))
-    #
-    #         # check if the received command handler callback function is defined
-    #         if self._received_command_handler is not None:
-    #             self._received_command_handler(self._id, acmd)
-    #
-    #         # call the Command Executor and get a raw response
-    #         raw_response = self._executor.exec(acmd)
-    #
-    #         # create the Arancino Response object
-    #         arsp = ArancinoResponse(raw_response=raw_response)
-    #
-    #
-    #     # All Arancino Application Exceptions contains an Error Code
-    #     except ArancinoException as ex:
-    #
-    #         if ex.error_code == ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY:
-    #             self._setComapitibility(False)
-    #
-    #         arsp = ArancinoResponse(rsp_id=ex.error_code, rsp_args=[])
-    #         LOG.error("{} {}".format(self._log_prefix, str(ex)))
-    #
-    #     # Generic Exception uses a generic Error Code
-    #     except Exception as ex:
-    #         arsp = ArancinoResponse(rsp_id=ArancinoCommandErrorCodes.ERR, rsp_args=[])
-    #         LOG.error("{} {}".format(self._log_prefix, str(ex)))
-    #
-    #     finally:
-    #
-    #         try:
-    #             # move there that, becouse if there's an non compatibility error, lib version will not setted
-    #             #  moving that in the finally, it will be setted
-    #             if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
-    #
-    #                 self._retrieveStartCmdArgs(acmd.getArguments())
-    #
-    #                 # if it is not compatible an error was send back to the mcu and the communnication is not started (the mcu receive an errore and try to connect again)
-    #                 # if it is compatible the communication starts and it ready to receive new commands.
-    #                 started = True if self.isCompatible() else False
-    #                 self._setStarted(started)
-    #
-    #             # send the response back.
-    #             self.sendResponse(arsp.getRaw())
-    #             LOG.debug("{} Sending: {}: {}".format(self._log_prefix, arsp.getId(), str(arsp.getArguments())))
-    #
-    #         except SerialException as ex:
-    #             LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex))
-    #
 
     def __connectionLostHandler(self):
         """
@@ -152,8 +87,7 @@ class ArancinoUartBlePort(ArancinoPort):
         else:  # do nothing
             pass
 
-
-    # PORT APIs IMPLEMENTATION
+    # region PORT APIs IMPLEMENTATION
 
     def sendResponse(self, raw_response):
         """
@@ -168,7 +102,6 @@ class ArancinoUartBlePort(ArancinoPort):
             self.__ble_uart_service.write(raw_response.encode())
         else:  # not connected
             LOG.warning("{} Cannot Sent a Response: Port is not connected.".format(self._log_prefix))
-
 
     def connect(self):
         try:
@@ -211,14 +144,13 @@ class ArancinoUartBlePort(ArancinoPort):
         except Exception as ex:
             raise ex
 
-
     def disconnect(self):
         try:
             # check if the device is already
             if self._m_s_connected:
 
                 self.__uart_ble_handler.stop()
-                super().disconnect()
+                super.disconnect()
 
             else:
                 LOG.debug("{} Already Disconnected".format(self._log_prefix))
@@ -226,7 +158,6 @@ class ArancinoUartBlePort(ArancinoPort):
 
         except Exception as ex:
             raise ex
-
 
     def reset(self):
         # No reset provided method for this Port
@@ -238,6 +169,7 @@ class ArancinoUartBlePort(ArancinoPort):
         # No upload provided method for this Port
         return False
 
+    #endregion
 
     # region UART BLE ARANCINO PORT METADATA
 
