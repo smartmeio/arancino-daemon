@@ -39,8 +39,11 @@ chown 644 extras/arancino.service
 chown 644 config/arancino.cfg
 #chown 644 config/arancino.dev.cfg
 
-#copy arancino service file to /ectc/systemd directory
+#copy arancino service file to /etc/systemd directory
 cp extras/arancino.service /etc/systemd/system/
+
+# copy vars.env file to /etc/arancino directory
+cp extras/vars.env /etc/arancino/
 
 #copy redis services files to /lib/systemd directory
 #cp extras/redis-*.service /lib/systemd/system/
