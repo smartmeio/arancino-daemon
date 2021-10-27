@@ -140,7 +140,7 @@ class ArancinoSerialPort(ArancinoPort):
     #
 
     def __selectResetReconnectionDelay():
-
+        pass
 
 
     def __connectionLostHandler(self):
