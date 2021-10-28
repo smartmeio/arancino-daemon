@@ -111,8 +111,25 @@ class ArancinoMqttDiscovery(object):
     # endregion
 
 
+    # def __intersezione(self, arancino_discovered):
+        
+    #     #  
+    #     new_list_discovered = self.__list_discovered.inteserction(arancino_discovered)
+    #     return new_list_discovered
+        
+
+    def remove_port(self, port):
+        self.__list_discovered.remove(port.getId())
+        
+
+
     def getAvailablePorts(self, collection):
         #if self.__mqtt_client.is_connected:
+
+        #self.__list_discovered =  self.__list_discovered.inteserction(collection)
+        #self.__list_discovered = list(set(self.__list_discovered) & set(collection))
+
+
         ports = self.__list_discovered
         ports = self.__preFilterPorts(ports)
         ports = self.__transformInArancinoPorts(ports)
@@ -127,12 +144,6 @@ class ArancinoMqttDiscovery(object):
         :param ports: List of ID
         :return ports_filterd: List
         """
-        #ports_filterd = []
-
-        # for port in ports:
-        #     if port.serial_number != None and port.serial_number != "FFFFFFFFFFFFFFFFFFFF" and port.vid != None and port.pid != None:
-        #         ports_filterd.append(port)
-
         return ports
 
 
@@ -146,8 +157,6 @@ class ArancinoMqttDiscovery(object):
 
         elif filter_type == FilterTypes.ALL:
             return self.__filter.filterAll(ports, filter_list)
-
-
 
 
     def __transformInArancinoPorts(self, ports):

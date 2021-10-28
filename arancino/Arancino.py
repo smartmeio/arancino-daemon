@@ -327,6 +327,7 @@ class Arancino(Thread):
 
         if port_id in self.__mqtt_ports:
                     port = self.__mqtt_ports.pop(port_id, None)
+                    self.__mqtt_discovery.remove_port(port)
                     del port
             # else:
             #     LOG.debug("Can't Lock")
