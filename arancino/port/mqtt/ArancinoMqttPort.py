@@ -119,7 +119,6 @@ class ArancinoMqttPort(ArancinoPort):
                         
                         self.__mqtt_handler = ArancinoMqttHandler("ArancinoMqttHandler-"+self._id, self.__mqtt_client, self.__mqtt_topic_cmd_from_mcu, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
                         self._m_s_connected = True
-                        self._m_s_started = True
                         
                         LOG.info("{} Connected".format(self._log_prefix))
                         self._start_thread_time = time.time()

@@ -125,8 +125,7 @@ class ArancinoConfig:
         self.__port_enabled = stringToBool(self.Config.get("port", "enabled"))
         self.__port_hide = stringToBool(self.Config.get("port", "hide"))
         self.__port_discovery = stringToBool(self.Config.get("port", "discovery"))
-
-
+        
         # region CONFIG SERIAL PORT SECTION
         self.__port_serial_discovery = self.__get_or_override_bool(self.Config, "port.serial", "discovery", "port", "discovery")
         self.__port_serial_enabled = self.__get_or_override_bool(self.Config, "port.serial", "enabled", "port", "enabled")
@@ -137,6 +136,10 @@ class ArancinoConfig:
         self.__port_serial_filter_list = self.Config.get("port.serial", "filter_list")
         self.__port_serial_timeout = int(self.Config.get("port.serial", "timeout"))
         self.__port_serial_reset_on_connect = self.__get_or_override_bool(self.Config, "port.serial", "reset_on_connect", "port", "reset_on_connect")
+
+        self.__port_serial_hb_time = float(self.Config.get("port.serial", "heartbeat_time"))
+        self.__port_serial_hb_rate = float(self.Config.get("port.serial", "heartbeat_rate"))
+        self.__port_serial_hb_attempts = float(self.Config.get("port.serial", "heartbeat_attempts"))
 
             # default upload command for serial port
         self.__port_serial_upload_command = self.Config.get("port.serial", "upload_command")
@@ -169,6 +172,10 @@ class ArancinoConfig:
         self.__port_test_id_template = self.Config.get("port.test", "id_template")
         self.__port_test_upload_command = self.Config.get("port.test", "upload_command")
         self.__port_test_reset_on_connect = self.__get_or_override_bool(self.Config, "port.test", "reset_on_connect", "port", "reset_on_connect")
+        self.__port_test_hb_time = float(self.Config.get("port.test", "heartbeat_time"))
+        self.__port_test_hb_rate = float(self.Config.get("port.test", "heartbeat_rate"))
+        self.__port_test_hb_attempts = float(self.Config.get("port.test", "heartbeat_attempts"))
+
         # endregion
 
         # region CONFIG UART BLE PORT SECTION
@@ -180,6 +187,10 @@ class ArancinoConfig:
         self.__port_uart_ble_timeout = int(self.Config.get("port.uart_ble", "timeout"))
         self.__port_uart_ble_upload_command = self.Config.get("port.uart_ble", "upload_command")
         self.__port_uart_ble_reset_on_connect = self.__get_or_override_bool(self.Config, "port.uart_ble", "reset_on_connect", "port", "reset_on_connect")
+        self.__port_uart_ble_hb_time = float(self.Config.get("port.uart_ble", "heartbeat_time"))
+        self.__port_uart_ble_hb_rate = float(self.Config.get("port.uart_ble", "heartbeat_rate"))
+        self.__port_uart_ble_hb_attempts = float(self.Config.get("port.uart_ble", "heartbeat_attempts"))
+
         # endregion
         
         # region CONFIG PORT MQTT SECTION
@@ -196,6 +207,10 @@ class ArancinoConfig:
         self.__port_mqtt_topic_service = self.Config.get("port.mqtt", "service_topic")
         self.__port_mqtt_filter_type = self.Config.get("port.mqtt", "filter_type")
         self.__port_mqtt_filter_list = self.Config.get("port.mqtt", "filter_list")
+        self.__port_mqtt_hb_time = float(self.Config.get("port.mqtt", "heartbeat_time"))
+        self.__port_mqtt_hb_rate = float(self.Config.get("port.mqtt", "heartbeat_rate"))
+        self.__port_mqtt_hb_attempts = float(self.Config.get("port.mqtt", "heartbeat_attempts"))
+
         # endregion
         # endregion
 
@@ -462,6 +477,15 @@ class ArancinoConfig:
     def get_port_serial_upload_command(self):
         return self.__port_serial_upload_command
 
+    def get_port_serial_heartbeat_time(self):
+        return self.__port_serial_hb_time
+
+    def get_port_serial_heartbeat_rate(self):
+        return self.__port_serial_hb_rate
+
+    def get_port_serial_heartbeat_attempts(self):
+        return self.__port_serial_hb_attempts
+
     ## STM32
     def get_port_serial_stm32_upload_command(self):
         return self.__port_serial_stm32_upload_command
@@ -509,6 +533,14 @@ class ArancinoConfig:
     def get_port_test_reset_on_connect(self):
         return self.__port_test_reset_on_connect
     
+    def get_port_test_heartbeat_time(self):
+        return self.__port_test_hb_time
+
+    def get_port_test_heartbeat_rate(self):
+        return self.__port_test_hb_rate
+
+    def get_port_test_heartbeat_attempts(self):
+        return self.__port_test_hb_attempts    
     #endregion
     
     #region PORT MQTT
@@ -553,6 +585,15 @@ class ArancinoConfig:
 
     def get_port_mqtt_reset_on_connect(self):
         return self.__port_mqtt_reset_on_connect
+
+    def get_port_mqtt_heartbeat_time(self):
+        return self.__port_mqtt_hb_time
+
+    def get_port_mqtt_heartbeat_rate(self):
+        return self.__port_mqtt_hb_rate
+
+    def get_port_mqtt_heartbeat_attempts(self):
+        return self.__port_mqtt_hb_attempts
     #endregion
 
     #region UART BLE PORT
@@ -583,6 +624,14 @@ class ArancinoConfig:
     def get_port_uart_ble_reset_on_connect(self):
         return self.__port_uart_ble_reset_on_connect
 
+    def get_port_uart_ble_heartbeat_time(self):
+        return self.__port_uart_ble_hb_time
+
+    def get_port_uart_ble_heartbeat_rate(self):
+        return self.__port_uart_ble_hb_rate
+
+    def get_port_uart_ble_heartbeat_attempts(self):
+        return self.__port_uart_ble_hb_attempts
     #endregion
     #endregion
 
