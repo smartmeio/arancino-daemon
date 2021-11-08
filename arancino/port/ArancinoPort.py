@@ -195,6 +195,24 @@ class ArancinoPort(object):
 
             #endregion
 
+
+            # region CHECK COMPATIBILITY
+
+            for compatible_ver in self._compatibility_array:
+                semver_compatible_ver = semantic_version.SimpleSpec(compatible_ver)
+                if arancino_lib_version in semver_compatible_ver:
+                    self._setComapitibility(True)
+                    break
+
+            started = True if self.isCompatible() else False
+            
+            self._setStarted(started)
+
+            if not self.isCompatible():
+                raise NonCompatibilityException("Module version " + str(CONF.get_metadata_version()) + " can not work with Library version " + str(self.getLibVersion()), ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
+            # endregion
+            
+
         else:
             raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
 
