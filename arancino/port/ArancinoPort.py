@@ -210,8 +210,8 @@ class ArancinoPort(object):
             # paramentri non sufficienti
 
 
-
-    def __retrieveStartCmdArgs(self, args):
+    """
+    def _retrieveStartCmdArgs(self, args):
         arg_num = len(args)
 
         ### Retrieving some info and metadata: ###
@@ -269,7 +269,147 @@ class ArancinoPort(object):
         if not self.isCompatible():
             self._setComapitibility(False)
             raise NonCompatibilityException("Module version " + str(CONF.get_metadata_version()) + " can not work with Library version " + str(self.getLibVersion()), ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
+
+    """
+
+    def _retrieveStartCmdArgs(self, args):
+        """
+            https://app.clickup.com/t/jz9rjq
+            https://app.clickup.com/t/k1518r
+        """
+        """
+            HP2
+        """
+        arg_num = len(args)
+
+        # if arg_num > 0: #forse questo non é necessario (il numero di argomenti passati viene controllato prima da verificare)
+
+        keys = args[0]
+        values = args[1]
+
+        keys_array = keys.split(ArancinoSpecialChars.CHR_ARR_SEP)
+        values_array = values.split(ArancinoSpecialChars.CHR_ARR_SEP)
+
+        if keys_array and values_array and len(keys_array) > 0 and len(values_array) and len(keys_array) == len(values_array):
+            attributes = {}
+            for idx, key in enumerate(keys_array):
+                attributes[key] = values_array[idx]
+
+            # region LIBRARY VERSION
+
+            arancino_lib_version = None
+
+            if ArancinoPortAttributes.FIRMWARE_LIBRARY_VERSION in attributes:
+                arancino_lib_version = attributes[ArancinoPortAttributes.FIRMWARE_LIBRARY_VERSION]
+                arancino_lib_version = semantic_version.Version(
+                    arancino_lib_version)
+                del attributes[ArancinoPortAttributes.FIRMWARE_LIBRARY_VERSION]
+
+            self._setLibVersion(arancino_lib_version)
+            # endregion
+
+            # region MICRO FAMILY
+
+            arancino_micro_family = None
+
+            if ArancinoPortAttributes.MCU_FAMILY in attributes:
+                arancino_micro_family = attributes[ArancinoPortAttributes.MCU_FAMILY]
+                del attributes[ArancinoPortAttributes.MCU_FAMILY]
+
+            self._setMicrocontrollerFamily(arancino_micro_family)
+
+            # endregion
+
+            # region FIRMWARE NAME
+
+            arancino_fw_name = None
+            if ArancinoPortAttributes.FIRMWARE_NAME in attributes:
+                arancino_fw_name = attributes[ArancinoPortAttributes.FIRMWARE_NAME]
+                del attributes[ArancinoPortAttributes.FIRMWARE_NAME]
+
+            self._setFirmwareName(arancino_fw_name)
+
+            # endregion
+
+            # region FIRMWARE VERSION
+
+            arancino_fw_version = None
+
+            if ArancinoPortAttributes.FIRMWARE_VERSION in attributes:
+                arancino_fw_version = attributes[ArancinoPortAttributes.FIRMWARE_VERSION]
+                arancino_fw_version = semantic_version.Version(
+                    arancino_fw_version)
+                del attributes[ArancinoPortAttributes.FIRMWARE_VERSION]
+
+            self._setFirmwareVersion(arancino_fw_version)
+
+            # endregion
+
+            # region FIRMWARE CORE VERSION
+
+            arancino_fw_core_version = None
+
+            if ArancinoPortAttributes.FIRMWARE_CORE_VERSION in attributes:
+                arancino_fw_core_version = attributes[ArancinoPortAttributes.FIRMWARE_CORE_VERSION]
+                arancino_fw_core_version = semantic_version.Version(
+                    arancino_fw_core_version)
+                del attributes[ArancinoPortAttributes.FIRMWARE_CORE_VERSION]
+
+            self._setFirmwareCoreVersion(arancino_fw_core_version)
+
+            # endregion
+
+            # region FIRMWARE BUILD DATE TIME
+
+            arancino_firmware_upload_datetime = None
+
+            if ArancinoPortAttributes.FIRMWARE_BUILD_TIME in attributes:
+                arancino_firmware_upload_datetime = attributes[ArancinoPortAttributes.FIRMWARE_BUILD_TIME]
+                arancino_firmware_upload_datetime = datetime.strptime(
+                    arancino_firmware_upload_datetime, '%b %d %Y %H:%M:%S %z')
+                arancino_firmware_upload_datetime = datetime.timestamp(
+                    arancino_firmware_upload_datetime)
+                arancino_firmware_upload_datetime = datetime.fromtimestamp(
+                    arancino_firmware_upload_datetime)
+                del attributes[ArancinoPortAttributes.FIRMWARE_BUILD_TIME]
+
+            self._setFirmwareBuildDate(arancino_firmware_upload_datetime)
+
+            # endregion
+
+            # region GENERIC ATTRIBUTES
+
+            self._setGenericAttributes(attributes)
+
+            # endregion
+
+            # region CHECK COMPATIBILITY
+
+            for compatible_ver in self._compatibility_array:
+                semver_compatible_ver = semantic_version.SimpleSpec(compatible_ver)
+                if arancino_lib_version in semver_compatible_ver:
+                    self._setComapitibility(True)
+                    break
+
+            started = True if self.isCompatible() else False
             
+            self._setStarted(started)
+
+            if not self.isCompatible():
+                raise NonCompatibilityException("Module version " + str(CONF.get_metadata_version()) + " can not work with Library version " + str(self.getLibVersion()), ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
+            # endregion
+
+
+        else:
+            raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty",
+                                    ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
+
+        # else:
+        #     pass
+            # paramentri non sufficienti
+
+
+
     def unplug(self):
         self.disconnect()
         self._m_s_plugged = False
