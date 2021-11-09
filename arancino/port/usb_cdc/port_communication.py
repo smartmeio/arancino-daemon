@@ -52,13 +52,15 @@ def main(fd):
         if serial:
             serial.purge() # clear whatever the printer has sent while octoprint wasn't connected
 
-            databuf = b'' # Buffer to split received bytes into lines for octoprint's readline()     
+            databuf = b'' # Buffer to split received bytes into lines for octoprint's readline()
             while True:
 
-                databuf += serial.read()
-
+                databuf += serial.read(1024,1000)
                 if chr(4).encode() in databuf:
                     command, databuf = databuf.split(chr(4).encode(), 1)
+                    serial.purge()
+                    databuf = b''
+                    print(command)
                     redisClient.publish(pub_topic, command)
                     del(command)
     except Exception as e:
