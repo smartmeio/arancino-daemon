@@ -52,6 +52,8 @@ class ArancinoMqttPort(ArancinoPort):
         self.__mqtt_topic_cmd_to_mcu = "{}/{}/cmd_to_mcu".format(CONF.get_port_mqtt_topic_cortex(), port_id)
         # Topic used by Arancino Daemon (Left Hemisphere) to receive back Cortex Responses from Arancino MQTT Ports (Right Hemisphere)
         self.__mqtt_topic_rsp_from_mcu = "{}/{}/rsp_from_mcu".format(CONF.get_port_mqtt_topic_cortex(), port_id)
+        # Topic used by
+        self.__mqtt_topic_service = CONF.get_port_mqtt_topic_service()
         
         # Command Executor
         self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
@@ -166,10 +168,9 @@ class ArancinoMqttPort(ArancinoPort):
         :return:
         """
 
-        # TODO when cortex protcol will supports command to port/mcu 'reset' command 
-        # will be sent via mqtt to the 'cmd_to_mcu' topic.
+        self.__mqtt_client.publish("{}".format(self.__mqtt_service_topic), "reset", 0)
 
-        LOG.warning("{} Cannot Reset".format(self._log_prefix))
+        #LOG.warning("{} Cannot Reset".format(self._log_prefix))
 
     def upload(self):
         """

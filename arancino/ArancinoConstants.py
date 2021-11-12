@@ -177,7 +177,7 @@ class ArancinoCommandIdentifiers:
     "Get value at key"
 
     __CMD_APP_GET_RSVD = 'GETRSVD'
-    CMD_APP_GET_RSVD = {"id": __CMD_APP_GET_RSVD, "args": 1, "op": ArancinoOperators}
+    CMD_APP_GET_RSVD = {"id": __CMD_APP_GET_RSVD, "args": 1, "op": ArancinoOperators.EQUAL}
     "Get value at reserverd key"
 
     __CMD_APP_SET = 'SET'
