@@ -18,12 +18,34 @@ def reset(fd):
         baudrate = 300
 
         serial = None
+        if dev.is_kernel_driver_active(1):
+            try:
+                dev.detach_kernel_driver(1)
+                print("kernel driver detached")
+            except usb.core.USBError as e:
+                sys.exit("Could not detach kernel driver: %s" % str(e))
+        else:
+            print("no kernel driver attached")
+
+        if dev.is_kernel_driver_active(0):
+            try:
+                dev.detach_kernel_driver(0)
+                print("kernel driver detached")
+            except usb.core.USBError as e:
+                sys.exit("Could not detach kernel driver: %s" % str(e))
+        else:
+            print("no kernel driver attached")
+
+
         if check_is_CDCACM(dev):
             serial = serial_CDCACM(dev=dev, baudrate=baudrate)
+            print("depo init")
             serial.close()
+            print("serial closed")
 
     except Exception as e:
         pass
+
         
     
 

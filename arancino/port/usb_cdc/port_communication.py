@@ -41,6 +41,24 @@ def main(fd):
         baudrate = 4000000 # From environment variable
 
         serial = None
+        if dev.is_kernel_driver_active(0):
+            try:
+                dev.detach_kernel_driver(0)
+                print("kernel driver detached")
+            except usb.core.USBError as e:
+                sys.exit("Could not detach kernel driver: %s" % str(e))
+        else:
+            print("no kernel driver attached")
+            
+        if dev.is_kernel_driver_active(1):
+            try:
+                dev.detach_kernel_driver(1)
+                print("kernel driver detached")
+            except usb.core.USBError as e:
+                sys.exit("Could not detach kernel driver: %s" % str(e))
+        else:
+            print("no kernel driver attached")
+
         if check_is_CDCACM(dev):
             print("serialDaemon:: Connected device is DCDACM")
             serial = serial_CDCACM(dev=dev, baudrate=baudrate)
@@ -48,6 +66,7 @@ def main(fd):
         p = redisClient.pubsub()
         p.subscribe(**{sub_topic: sendResponse})
         p.run_in_thread(sleep_time=0.001)
+
 
         if serial:
             serial.purge() # clear whatever the printer has sent while octoprint wasn't connected
@@ -64,7 +83,7 @@ def main(fd):
                     redisClient.publish(pub_topic, command)
                     del(command)
     except Exception as e:
-        print(e)
+        print(e.with_traceback(tb))
         redisClient.publish(pub_topic, 'disconnected')
         
     

@@ -30,8 +30,21 @@ class serial_CDCACM():
         print(f"{self.interface_CDC_Data=}")
 
         # Lock usb device
-        usb.util.claim_interface(self.dev, self.interface_CDC_Data)
-        usb.util.claim_interface(self.dev, self.interface_CDC_Comm)
+        try:
+            usb.util.claim_interface(self.dev, self.interface_CDC_Data)
+        except:
+            print("unable to claim cdc data")
+            dev.reset()
+            time.sleep(2)
+
+        try:
+            usb.util.claim_interface(self.dev, self.interface_CDC_Comm)
+        except:
+            print("unable to claim cdc comm")
+            dev.reset()
+            time.sleep(2)
+
+
 
         # Now we need to find the endpoints where we can transmit and receive serial data
         # Helpful: https://www.keil.com/pack/doc/mw/USB/html/_u_s_b__endpoint__descriptor.html
