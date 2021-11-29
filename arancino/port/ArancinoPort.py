@@ -51,6 +51,7 @@ class ArancinoPort(object):
         self._firmware_name = None
         self._firmware_build_datetime = None
         self._firmware_core_version = None
+        self._firmware_use_freertos = None
         self._microcontroller_family = None
         self._generic_attributes = {}
         #endregion
@@ -188,6 +189,20 @@ class ArancinoPort(object):
             self._setFirmwareBuildDate(arancino_firmware_upload_datetime)
 
             # endregion
+
+            # region FIRMWARE USE FREETOS
+
+            arancino_firmware_use_freertos = None
+
+            if ArancinoPortAttributes.FIRMWARE_USE_FREERTOS in attributes:
+                arancino_firmware_use_freertos = attributes[ArancinoPortAttributes.FIRMWARE_USE_FREERTOS]
+                del attributes[ArancinoPortAttributes.FIRMWARE_USE_FREERTOS]
+
+            self._setFirmwareUseFreeRTOS(arancino_firmware_use_freertos)
+
+            # endregion
+
+
 
             #region GENERIC ATTRIBUTES
 
@@ -511,6 +526,16 @@ class ArancinoPort(object):
         self._microcontroller_family = microcontroller_family
 
     #endregion
+
+    # region FIRMWARE USE FREE RTOS
+    def getFirmwareUseFreeRTOS(self):
+        return self._firmware_use_freertos
+
+    def _setFirmwareUseFreeRTOS(self, firmware_use_freertos):
+        self._firmware_use_freertos = firmware_use_freertos
+
+    # endregion
+
 
     #region BASE STATUS METADATA Encapsulators
 
