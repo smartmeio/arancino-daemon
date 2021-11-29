@@ -47,18 +47,22 @@ class ArancinoMqttHandler():
         #self.__partial_bytes_command = bytearray(b'')
         #self.__stop = False
         
-        self.__mqtt_client.message_callback_add(mqtt_topic_cmd_from_mcu, self.__on_cmd_received)
+        #self.__mqtt_client.message_callback_add(mqtt_topic_cmd_from_mcu, self.__on_cmd_received)
 
 
     def __on_cmd_received(self, client, userdata, msg):
         # LOG.info("message received  ",str(message.payload.decode("utf-8")), "topic",message.topic," retained ",message.retain)
         # if message.retain==1:
         #     print("This is a retained message")
+        try:
+            cmd = str(msg.payload.decode('utf-8', errors='strict'))
+        
+            if self.__commandReceivedHandler is not None:
+                self.__commandReceivedHandler(cmd)
+                
+        except UnicodeDecodeError as ex:
 
-        cmd = str(msg.payload.decode('utf-8', errors='strict'))
-
-        if self.__commandReceivedHandler is not None:
-            self.__commandReceivedHandler(cmd)
+            LOG.warning("{} Decode Warning while reading data: {}".format(self.__log_prefix, str(ex)))
 
         #TODO GESTIRE ECCEZIONI
 
