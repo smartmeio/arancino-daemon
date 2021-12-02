@@ -174,10 +174,13 @@ class ArancinoTestHandler(threading.Thread):
         fw_version = "0.0.1"
         #fw_version = ""
 
-            # fimware name
+            # firmware name
         fw_name = "Arancino Test Port Firmware"
         #fw_name = ""
             # arancino library version
+
+            # firmware that use free rtos (0: No, False; 1: Yes, True)
+        fw_use_freertos = "True"
 
         lib_version = "1.2.0"
         core_version = "1.0.0"
@@ -198,6 +201,7 @@ class ArancinoTestHandler(threading.Thread):
                                  ArancinoPortAttributes.FIRMWARE_NAME,
                                  ArancinoPortAttributes.MCU_FAMILY,
                                  ArancinoPortAttributes.FIRMWARE_VERSION,
+                                 ArancinoPortAttributes.FIRMWARE_USE_FREERTOS,
                                  custom_attrib_key_1,
                                  custom_attrib_key_2
                                  ]
@@ -208,6 +212,7 @@ class ArancinoTestHandler(threading.Thread):
                                  fw_name,
                                  micro_family,
                                  fw_version,
+                                 fw_use_freertos,
                                  custom_attrib_val_1,
                                  custom_attrib_val_2]
 

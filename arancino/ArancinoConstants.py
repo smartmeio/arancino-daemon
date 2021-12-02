@@ -340,7 +340,7 @@ class ArancinoDBKeys:
     B_FW_NAME = "B_FW_NAME"                 # String
     B_FW_COMPILE_DATE = "B_FW_COMPILE_DATE" # Datetime
     B_FW_CORE_VER = "B_FW_CORE_VER"         # String
-    B_FW_USE_FREETOS = "B_FW_USE_FREETOS"   # String
+    B_FW_USE_FREERTOS = "B_FW_USE_FREERTOS" # String
     B_MCU_FAMILY = "B_MCU_FAMILY"           # String
     B_ATTRIBUTES = "B_ATTRIBUTES"           # Dict
     
@@ -427,7 +427,7 @@ class ArancinoDBKeys:
         B_FW_NAME: "Firmware Name",                 # String
         B_FW_COMPILE_DATE: "Firmware Compile Date", # Datetime
         B_FW_CORE_VER: "Firmware Core Version",     # String
-        B_FW_USE_FREETOS: "Firmware Uses FreeRTOS", # String
+        B_FW_USE_FREERTOS: "Firmware Uses FreeRTOS",# String
         B_MCU_FAMILY: "Microcontroller Family",     # String
         B_ATTRIBUTES: "Generic Port Attributes",    # Dict
 

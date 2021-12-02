@@ -24,7 +24,7 @@ from datetime import datetime
 from types import FunctionType, MethodType
 #from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoCortex import *
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, stringToBool2
 import time
 
 import semantic_version
@@ -532,7 +532,8 @@ class ArancinoPort(object):
         return self._firmware_use_freertos
 
     def _setFirmwareUseFreeRTOS(self, firmware_use_freertos):
-        self._firmware_use_freertos = firmware_use_freertos
+
+        self._firmware_use_freertos = stringToBool2(firmware_use_freertos)
 
     # endregion
 

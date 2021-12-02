@@ -631,6 +631,7 @@ class ArancinoApi():
             response[DB_KEYS.B_FW_CORE_VER] = None if port.getFirmwareCoreVersion() is None else str(port.getFirmwareCoreVersion())
             response[DB_KEYS.B_MCU_FAMILY] = None if port.getMicrocontrollerFamily() is None else str(port.getMicrocontrollerFamily())
             response[DB_KEYS.B_ATTRIBUTES] = None if port.getGenericAttributes() is None else port.getGenericAttributes()
+            response[DB_KEYS.B_FW_USE_FREERTOS] = None if port.getFirmwareUseFreeRTOS() is None else port.getFirmwareUseFreeRTOS()
             
             # BASE ARANCINO STATUS METADATA (S)Status
             response[DB_KEYS.S_CONNECTED] = port.isConnected()
