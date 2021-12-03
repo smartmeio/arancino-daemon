@@ -115,6 +115,9 @@ class ArancinoCommandErrorCodes:
     ERR_VALUE = '211'
     "Invalid Value"
 
+    ERR_NOT_IMPLEMENTED = '212'
+    "Not yet impletemented functionality"
+
     ERRORS_CODE_LIST = [
                             ERR,
                             ERR_NULL,
@@ -128,6 +131,7 @@ class ArancinoCommandErrorCodes:
                             ERR_NON_COMPATIBILITY,
                             ERR_INVALID_ARGUMENTS,
                             ERR_VALUE,
+                            ERR_NOT_IMPLEMENTED
                         ]
 
 
@@ -335,7 +339,7 @@ class ArancinoDBKeys:
     B_ID = "B_ID"                           # String
     B_PORT_TYPE = "B_PORT_TYPE"             # Num
     B_CREATION_DATE = "S_CREATION_DATE"     # Datetime
-    B_LIB_VER = "B_LIB_VER"                 # String
+    B_FW_LIB_VER = "B_FW_LIB_VER"           # String
     B_FW_VER = "B_FW_VER"                   # String
     B_FW_NAME = "B_FW_NAME"                 # String
     B_FW_COMPILE_DATE = "B_FW_COMPILE_DATE" # Datetime
@@ -379,7 +383,7 @@ class ArancinoDBKeys:
         B_ID: "B_ID",                           # String
         B_PORT_TYPE: "B_PORT_TYPE",             # Num
         B_CREATION_DATE: "S_CREATION_DATE",     # Datetime
-        B_LIB_VER: "B_LIB_VER",                 # String
+        B_FW_LIB_VER: "B_FW_LIB_VER",           # String
         B_FW_VER: "B_FW_VER",                   # String
         B_FW_NAME: "B_FW_NAME",                 # String
         B_FW_COMPILE_DATE: "B_FW_COMPILE_DATE", # Datetime
@@ -422,7 +426,7 @@ class ArancinoDBKeys:
         B_ID: "Id",                                 # String
         B_PORT_TYPE: "Type",                        # Num
         B_CREATION_DATE: "Creation Date",           # Datetime
-        B_LIB_VER: "Library Version",               # String
+        B_FW_LIB_VER: "Library Version",               # String
         B_FW_VER: "Fimrware Version",               # String
         B_FW_NAME: "Firmware Name",                 # String
         B_FW_COMPILE_DATE: "Firmware Compile Date", # Datetime

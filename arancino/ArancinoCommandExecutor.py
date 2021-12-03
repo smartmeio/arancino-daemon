@@ -331,7 +331,11 @@ class ArancinoCommandExecutor:
 
         try:
 
-            if key in ArancinoReservedChars.RESERVEDKEYSLIST:
+            # TODO: per il momento disabilito il controllo in quanto nel caso della chiave ___BLINK_ID___ viene agganciato
+            # l'ID del micro come prefisso della chiave => ABCDEF____BLINK_ID___ che non viene trovata nella lista delle chiavi 
+            # e genera eccezione.... si deve trovare un metodo migliore per gestire questa cosa, al momento resta cosi
+
+            #if key in ArancinoReservedChars.RESERVEDKEYSLIST:
 
                 rsp = self.__datastore_rsvd.set(key, value)
 
@@ -341,8 +345,8 @@ class ArancinoCommandExecutor:
                 else:
                     # return the error code
                     return ArancinoSpecialChars.ERR_SET + ArancinoSpecialChars.CHR_EOT
-            else:
-                raise ArancinoException("Generic Error: Reserved Keys Not Exists", ArancinoCommandErrorCodes.ERR)
+            #else:
+            #    raise ArancinoException("Generic Error: Reserved Keys Not Exists", ArancinoCommandErrorCodes.ERR)
 
 
         except RedisError as ex:

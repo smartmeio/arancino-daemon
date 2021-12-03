@@ -21,10 +21,13 @@ under the License
 
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
+from logging import ERROR
 from types import FunctionType, MethodType
 #from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoCortex import *
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, stringToBool2
+from arancino.ArancinoConstants import ArancinoCommandErrorCodes
+from arancino.ArancinoDataStore import ArancinoDataStore
 import time
 
 import semantic_version
@@ -32,6 +35,8 @@ import semantic_version
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
 TRACE = CONF.get_log_print_stack_trace()
+ERR_CODES = ArancinoCommandErrorCodes
+DATASTORE = ArancinoDataStore.Instance()
 
 class ArancinoPort(object):
 
@@ -408,6 +413,13 @@ class ArancinoPort(object):
         pass
 
 
+    def identify(self):
+        if self.getFirmwareUseFreeRTOS():
+            key_identify = "{}_{}".format(self.getId(), ArancinoReservedChars.RSVD_KEY_BLINK_ID)
+            DATASTORE.getDataStoreRsvd().set(key_identify, "1")
+        else:
+            raise NotImplemented("Identify Function is not available for port {}[{}] because firmware is running without FreeRTOS".format(self.getId(), self.getPortType()), ERR_CODES.ERR_NOT_IMPLEMENTED)
+        
     #region BASE METADATA Encapsulators
 
     # region ID
