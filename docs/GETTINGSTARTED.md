@@ -1,10 +1,11 @@
 ## Prerequisites
-* Redis: During development you could have only one instance, in Production it's recommended have two instance; 
+* Redis: During development you could have only one instance, in Production it's mandatory to have two instance; 
 the second one in peristent mode. From version 2.4.0 you must install the 
-[Redis TimeSeries Plugin](https://oss.redislabs.com/redistimeseries/) in the first instance. 
+[Redis TimeSeries Plugin](https://oss.redislabs.com/redistimeseries/) in the first instance.
 
 * Python 3
 
+> In Arancino OS and Arancino Stack (containered version) this prerequisites are already satisfied/ 
 
 ## Setup
 

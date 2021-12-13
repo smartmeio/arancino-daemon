@@ -11,7 +11,7 @@ implement the Arancino Cortex Protocol. It can manage multiple connection at tim
 
 ## Compatibility Matrix
 
-### Compatibility with Arancino Library (for Arancino Serial Port on samd21 microcontrollers)
+### Compatibility with Arancino Library (for Arancino Serial Port on SAMD21, RP2040, NRF52, STM32 microcontrollers)
 
 |Module Version 	|		|Library Version	|
 |---				|---	  |---				|
