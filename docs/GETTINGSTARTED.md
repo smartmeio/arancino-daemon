@@ -11,7 +11,7 @@ the second one in peristent mode. From version 2.4.0 you must install the [Redis
 ### Python 3
 Is the runtime environment on which Arancino Daemon runs.
 
-### Arancino Upload Tools
+### Arancino Toolscripts and Upload Tools
 Arancino Toolscripts and Upload Tools are a set of scripts and thirdy part software used to upload firmware binaries into the connected microcontrollers. All of these are already installed in Arancino OS, but if you are running an old version you probably miss stm32, nrf52 and rp2040 and only have samd21. Following the instruction to manually install the Toolscripts:
 
 
