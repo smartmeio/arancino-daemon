@@ -550,11 +550,11 @@ class ArancinoApi():
 
         except ArancinoException as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
-            return self.__apiCreateErrorMessage(error_code=ex.error_code, internal_message=[None, str(ex)]), 500
+            return self.__apiCreateErrorMessage(error_code=ex.error_code, internal_message=[None, str(ex)]), 200
 
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
-            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 200
 
     #### UTILS ####
     def __getOsInfo(self):

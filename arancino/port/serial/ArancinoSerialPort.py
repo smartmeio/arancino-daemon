@@ -36,7 +36,7 @@ class ArancinoSerialPort(ArancinoPort):
 
     def __init__(self, port_info=None, device=None, baudrate_comm=9600, baudrate_reset=300, m_s_plugged=False, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
 
-        super().__init__(device=device, port_type=PortTypes.SERIAL, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=CONF.get_port_serial_upload_command(), receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
+        super().__init__(device=device, port_type=PortTypes.SERIAL, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=CONF.get_port_serial_upload_command(), reset_delay=CONF.get_port_serial_reset_reconnection_delay(), receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
         # self._port_type = PortTypes.Serial
 
@@ -47,8 +47,8 @@ class ArancinoSerialPort(ArancinoPort):
         self.__comm_baudrate = baudrate_comm
         self.__reset_baudrate = baudrate_reset
         self.__timeout = timeout
-        self.__reset_delay = getattr(CONF, "get_port_serial_{}_reset_reconnection_delay()".format(self.getMicrocontrollerFamily().lower()))
-            #CONF.get_port_reset_reconnection_delay() ## TODO DOPO CHE VERRA INTRODOTTO IL CONCETTO DI MCU FAMILY, QUESTA SI POTRA PRENDERE DINAMICAMENTE
+        #self.__reset_delay = getattr(CONF, "get_port_serial_{}_reset_reconnection_delay()".format(self.getMicrocontrollerFamily().lower()))
+        #CONF.get_port_reset_reconnection_delay() ## TODO DOPO CHE VERRA INTRODOTTO IL CONCETTO DI MCU FAMILY, QUESTA SI POTRA PRENDERE DINAMICAMENTE
 
         # SERIAL PORT METADATA
         self.__m_p_vid = None
@@ -291,10 +291,10 @@ class ArancinoSerialPort(ArancinoPort):
     def reset(self):
         try:
 
-            if self.getMicrocontrollerFamily():
-                self.__reset_delay = getattr(CONF, "get_port_serial_{}_reset_reconnection_delay()".format(self.getMicrocontrollerFamily().lower()))
-            else:
-                self.__reset_delay = CONF.get_port_serial_reset_reconnection_delay()
+            # if self.getMicrocontrollerFamily():
+            #     self._reset_delay = getattr(CONF, "get_port_serial_{}_reset_reconnection_delay()".format(self.getMicrocontrollerFamily().lower()))
+            # else:
+            #     self._reset_delay = CONF.get_port_serial_reset_reconnection_delay()
 
             LOG.info("{} Resetting...".format(self._log_prefix))
             self.disconnect()
@@ -306,7 +306,8 @@ class ArancinoSerialPort(ArancinoPort):
             ser.open()
             ser.close()
             del ser
-            time.sleep( CONF.get_port_serial_reset_reconnection_delay() )
+            #time.sleep( CONF.get_port_serial_reset_reconnection_delay() )
+            time.sleep( self._reset_delay )
             self.setEnabled(True)
             LOG.info("{} Reset".format(self._log_prefix))
             return True
