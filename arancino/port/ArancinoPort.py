@@ -21,10 +21,13 @@ under the License
 
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
+from logging import ERROR
 from types import FunctionType, MethodType
 #from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoCortex import *
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, stringToBool2
+from arancino.ArancinoConstants import ArancinoCommandErrorCodes
+from arancino.ArancinoDataStore import ArancinoDataStore
 import time
 
 import semantic_version
@@ -32,6 +35,8 @@ import semantic_version
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
 TRACE = CONF.get_log_print_stack_trace()
+ERR_CODES = ArancinoCommandErrorCodes
+DATASTORE = ArancinoDataStore.Instance()
 
 class ArancinoPort(object):
 
@@ -51,6 +56,7 @@ class ArancinoPort(object):
         self._firmware_name = None
         self._firmware_build_datetime = None
         self._firmware_core_version = None
+        self._firmware_use_freertos = None
         self._microcontroller_family = None
         self._generic_attributes = {}
         #endregion
@@ -189,11 +195,43 @@ class ArancinoPort(object):
 
             # endregion
 
+            # region FIRMWARE USE FREETOS
+
+            arancino_firmware_use_freertos = None
+
+            if ArancinoPortAttributes.FIRMWARE_USE_FREERTOS in attributes:
+                arancino_firmware_use_freertos = attributes[ArancinoPortAttributes.FIRMWARE_USE_FREERTOS]
+                del attributes[ArancinoPortAttributes.FIRMWARE_USE_FREERTOS]
+
+            self._setFirmwareUseFreeRTOS(arancino_firmware_use_freertos)
+
+            # endregion
+
+
+
             #region GENERIC ATTRIBUTES
 
             self._setGenericAttributes(attributes)
 
             #endregion
+
+
+            # region CHECK COMPATIBILITY
+
+            for compatible_ver in self._compatibility_array:
+                semver_compatible_ver = semantic_version.SimpleSpec(compatible_ver)
+                if arancino_lib_version in semver_compatible_ver:
+                    self._setComapitibility(True)
+                    break
+
+            started = True if self.isCompatible() else False
+            
+            self._setStarted(started)
+
+            if not self.isCompatible():
+                raise NonCompatibilityException("Module version " + str(CONF.get_metadata_version()) + " can not work with Library version " + str(self.getLibVersion()), ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
+            # endregion
+            
 
         else:
             raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
@@ -375,6 +413,13 @@ class ArancinoPort(object):
         pass
 
 
+    def identify(self):
+        if self.getFirmwareUseFreeRTOS():
+            key_identify = "{}_{}".format(self.getId(), ArancinoReservedChars.RSVD_KEY_BLINK_ID)
+            DATASTORE.getDataStoreRsvd().set(key_identify, "1")
+        else:
+            raise NotImplemented("Identify Function is not available for port {}[{}] because firmware is running without FreeRTOS".format(self.getId(), self.getPortType()), ERR_CODES.ERR_NOT_IMPLEMENTED)
+        
     #region BASE METADATA Encapsulators
 
     # region ID
@@ -493,6 +538,17 @@ class ArancinoPort(object):
         self._microcontroller_family = microcontroller_family
 
     #endregion
+
+    # region FIRMWARE USE FREE RTOS
+    def getFirmwareUseFreeRTOS(self):
+        return self._firmware_use_freertos
+
+    def _setFirmwareUseFreeRTOS(self, firmware_use_freertos):
+
+        self._firmware_use_freertos = stringToBool2(firmware_use_freertos)
+
+    # endregion
+
 
     #region BASE STATUS METADATA Encapsulators
 

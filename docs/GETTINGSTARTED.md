@@ -1,10 +1,79 @@
 ## Prerequisites
-* Redis: During development you could have only one instance, in Production it's recommended have two instance; 
-the second one in peristent mode. From version 2.4.0 you must install the 
-[Redis TimeSeries Plugin](https://oss.redislabs.com/redistimeseries/) in the first instance. 
 
+* Redis
 * Python 3
+* Arancino Toolscripts and Upload Tools.
 
+
+> In Arancino OS and Arancino Stack (containered version) this prerequisites are already satisfied, but if you are running an old version you probably miss stm32, nrf52 and rp2040 and only have samd21.  Tools.
+
+### Redis
+During development you could have only one instance, in Production it's mandatory to have two instances; 
+the second one in peristent mode. From version 2.4.0 you must install the [Redis TimeSeries Plugin](https://oss.redislabs.com/redistimeseries/) in the first instance.
+
+### Python 3
+Is the runtime environment on which Arancino Daemon runs.
+
+### Arancino Toolscripts and Upload Tools
+Arancino Toolscripts and Upload Tools are a set of scripts and thirdy part softwares used to upload firmware binaries into the connected microcontrollers. 
+
+Following the instruction to manually install Toolscripts and Upload:
+
+```shell
+> sudo apt update
+> sudo apt install hex2bin-cli
+```
+
+#### samd21
+- bossac-cli
+- hex2bin
+- run-arancino-bossac
+
+
+```shell
+> sudo apt install bossa-cli
+...
+> sudo wget https://raw.githubusercontent.com/smartmeio/arancino-daemon-toolscripts/main/run-arancino-bossac -P /usr/bin/
+> sudo chmod +x /usr/bin/run-arancino-bossac
+
+```
+
+#### stm32
+- arduinoSTM32load
+- dfu-util
+- run-arancino-arduinoSTM32load
+
+```shell
+> sudo apt install arduinostm32load dfu-util-stm32
+...
+> sudo wget https://raw.githubusercontent.com/smartmeio/arancino-daemon-toolscripts/main/run-arancino-arduinoSTM32load -P /usr/bin/
+> sudo chmod +x /usr/bin/run-arduinoSTM32load
+
+```
+
+#### nrf52
+- adafruit-nrfutil
+- run-arancino-adafruit
+
+```shell
+> sudo apt install python3-adafruit-nrfutil
+...
+> sudo wget https://raw.githubusercontent.com/smartmeio/arancino-daemon-toolscripts/main/run-arancino-adafruit -P /usr/bin/
+> sudo chmod +x /usr/bin/run-arancino-adafruit
+
+```
+
+#### rp2040
+- python3-uf2conv.py
+- run-arancino-uf2conf
+
+```shell
+> sudo apt install python3-uf2conv
+...
+> sudo wget https://raw.githubusercontent.com/smartmeio/arancino-daemon-toolscripts/main/run-arancino-uf2conf -P /usr/bin/
+> sudo chmod +x /usr/bin/run-arancino-uf2conf
+
+```
 
 ## Setup
 

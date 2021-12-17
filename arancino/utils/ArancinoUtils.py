@@ -772,8 +772,6 @@ class CustomConsoleFormatter(logging.Formatter):
         return formatter.format(record)
 
 
-
-
 def stringToBool(value):
     '''
     Convert a string representation of boolean value to an object of type Bool.
@@ -785,6 +783,22 @@ def stringToBool(value):
     else:
         __val = False
 
+    return __val
+
+
+def stringToBool2(value):
+    list_true = ["true", "1", "yes", "y", "t"]
+    list_false = ["false", "0", "no", "n", "f"]
+
+    __val = False
+    if value is not None:
+        v = str(value).lower()
+
+        if v in list_true:
+            __val = True
+        elif v in list_false:
+            __val = False
+        
     return __val
 
 

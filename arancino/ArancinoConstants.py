@@ -61,7 +61,7 @@ class ArancinoReservedChars:
 
     # Reserved keys
     RSVD_KEY_MONITOR    = RSVD_CHARS + "MONITOR" + RSVD_CHARS
-    RSVD_KEY_LIBVERSION = RSVD_CHARS + "LIBVERS" + RSVD_CHARS
+    #RSVD_KEY_LIBVERSION = RSVD_CHARS + "LIBVERS" + RSVD_CHARS
     RSVD_KEY_MODVERSION = RSVD_CHARS + "MODVERS" + RSVD_CHARS
     RSVD_KEY_MODENVIRONMENT = RSVD_CHARS + "MODENV" + RSVD_CHARS
     RSVD_KEY_MODLOGLEVEL = RSVD_CHARS + "MODLOGLVL" + RSVD_CHARS
@@ -69,7 +69,7 @@ class ArancinoReservedChars:
 
     # Reseverd keys list
     RESERVEDKEYSLIST = [RSVD_KEY_MONITOR,
-                        RSVD_KEY_LIBVERSION,
+                        #RSVD_KEY_LIBVERSION,
                         RSVD_KEY_MODVERSION,
                         RSVD_KEY_MODENVIRONMENT,
                         RSVD_KEY_MODLOGLEVEL,
@@ -115,6 +115,9 @@ class ArancinoCommandErrorCodes:
     ERR_VALUE = '211'
     "Invalid Value"
 
+    ERR_NOT_IMPLEMENTED = '212'
+    "Not yet impletemented functionality"
+
     ERRORS_CODE_LIST = [
                             ERR,
                             ERR_NULL,
@@ -128,6 +131,7 @@ class ArancinoCommandErrorCodes:
                             ERR_NON_COMPATIBILITY,
                             ERR_INVALID_ARGUMENTS,
                             ERR_VALUE,
+                            ERR_NOT_IMPLEMENTED
                         ]
 
 
@@ -335,11 +339,12 @@ class ArancinoDBKeys:
     B_ID = "B_ID"                           # String
     B_PORT_TYPE = "B_PORT_TYPE"             # Num
     B_CREATION_DATE = "S_CREATION_DATE"     # Datetime
-    B_LIB_VER = "B_LIB_VER"                 # String
+    B_FW_LIB_VER = "B_FW_LIB_VER"           # String
     B_FW_VER = "B_FW_VER"                   # String
     B_FW_NAME = "B_FW_NAME"                 # String
     B_FW_COMPILE_DATE = "B_FW_COMPILE_DATE" # Datetime
     B_FW_CORE_VER = "B_FW_CORE_VER"         # String
+    B_FW_USE_FREERTOS = "B_FW_USE_FREERTOS" # String
     B_MCU_FAMILY = "B_MCU_FAMILY"           # String
     B_ATTRIBUTES = "B_ATTRIBUTES"           # Dict
     
@@ -378,7 +383,7 @@ class ArancinoDBKeys:
         B_ID: "B_ID",                           # String
         B_PORT_TYPE: "B_PORT_TYPE",             # Num
         B_CREATION_DATE: "S_CREATION_DATE",     # Datetime
-        B_LIB_VER: "B_LIB_VER",                 # String
+        B_FW_LIB_VER: "B_FW_LIB_VER",           # String
         B_FW_VER: "B_FW_VER",                   # String
         B_FW_NAME: "B_FW_NAME",                 # String
         B_FW_COMPILE_DATE: "B_FW_COMPILE_DATE", # Datetime
@@ -421,11 +426,12 @@ class ArancinoDBKeys:
         B_ID: "Id",                                 # String
         B_PORT_TYPE: "Type",                        # Num
         B_CREATION_DATE: "Creation Date",           # Datetime
-        B_LIB_VER: "Library Version",               # String
+        B_FW_LIB_VER: "Library Version",               # String
         B_FW_VER: "Fimrware Version",               # String
         B_FW_NAME: "Firmware Name",                 # String
         B_FW_COMPILE_DATE: "Firmware Compile Date", # Datetime
         B_FW_CORE_VER: "Firmware Core Version",     # String
+        B_FW_USE_FREERTOS: "Firmware Uses FreeRTOS",# String
         B_MCU_FAMILY: "Microcontroller Family",     # String
         B_ATTRIBUTES: "Generic Port Attributes",    # Dict
 
@@ -609,13 +615,15 @@ class ArancinoPortAttributes:
     FIRMWARE_VERSION = "FW_VER"
     FIRMWARE_BUILD_TIME = "FW_BUILD_TIME"
     FIRMWARE_CORE_VERSION = "FW_CORE_VER"
+    FIRMWARE_USE_FREERTOS = "FW_USE_FREERTOS"
 
     AttributesKeysList = [MCU_FAMILY,
                           FIRMWARE_LIBRARY_VERSION,
                           FIRMWARE_NAME,
                           FIRMWARE_VERSION,
                           FIRMWARE_BUILD_TIME,
-                          FIRMWARE_CORE_VERSION]
+                          FIRMWARE_CORE_VERSION,
+                          FIRMWARE_USE_FREERTOS]
 
 
 class ArancinoPortInteroceptionAttributes:
