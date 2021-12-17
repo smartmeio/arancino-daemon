@@ -4,24 +4,25 @@
 * Python 3
 * Arancino Toolscripts and Upload Tools.
 
+
+> In Arancino OS and Arancino Stack (containered version) this prerequisites are already satisfied, but if you are running an old version you probably miss stm32, nrf52 and rp2040 and only have samd21.  Tools.
+
 ### Redis
-During development you could have only one instance, in Production it's mandatory to have two instance; 
+During development you could have only one instance, in Production it's mandatory to have two instances; 
 the second one in peristent mode. From version 2.4.0 you must install the [Redis TimeSeries Plugin](https://oss.redislabs.com/redistimeseries/) in the first instance.
 
 ### Python 3
 Is the runtime environment on which Arancino Daemon runs.
 
 ### Arancino Toolscripts and Upload Tools
-Arancino Toolscripts and Upload Tools are a set of scripts and thirdy part software used to upload firmware binaries into the connected microcontrollers. All of these are already installed in Arancino OS, but if you are running an old version you probably miss stm32, nrf52 and rp2040 and only have samd21. Following the instruction to manually install the Toolscripts:
+Arancino Toolscripts and Upload Tools are a set of scripts and thirdy part softwares used to upload firmware binaries into the connected microcontrollers. 
 
-
-> Note:
-> pay attention to have source list configured correctly: TODO
+Following the instruction to manually install Toolscripts and Upload:
 
 ```shell
+> sudo apt update
 > sudo apt install hex2bin-cli
 ```
-
 
 #### samd21
 - bossac-cli
@@ -73,9 +74,6 @@ Arancino Toolscripts and Upload Tools are a set of scripts and thirdy part softw
 > sudo chmod +x /usr/bin/run-arancino-uf2conf
 
 ```
-
-
-> In Arancino OS and Arancino Stack (containered version) this prerequisites are already satisfied.
 
 ## Setup
 
