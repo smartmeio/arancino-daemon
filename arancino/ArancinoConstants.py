@@ -115,9 +115,6 @@ class ArancinoCommandErrorCodes:
     ERR_VALUE = '211'
     "Invalid Value"
 
-    ERR_NOT_IMPLEMENTED = '212'
-    "Not yet impletemented functionality"
-
     ERRORS_CODE_LIST = [
                             ERR,
                             ERR_NULL,
@@ -130,8 +127,7 @@ class ArancinoCommandErrorCodes:
                             ERR_REDIS_KEY_EXISTS_IN_PERS,
                             ERR_NON_COMPATIBILITY,
                             ERR_INVALID_ARGUMENTS,
-                            ERR_VALUE,
-                            ERR_NOT_IMPLEMENTED
+                            ERR_VALUE
                         ]
 
 
@@ -510,6 +506,7 @@ class ArancinoApiResponseCode:
     ERR_NO_ARANCINO_CONFIG_SECTION_PROVIDED = 26
     ERR_NO_ARANCINO_CONFIG_OPTION_PROVIDED = 27
     ERR_NO_ARANCINO_CONFIG_VALUE_PROVIDED = 28
+    ERR_NOT_IMPLEMENTED = 29
 
     __USER_MESSAGES = {
         OK_ALREADY_ENABLED: "Selected port is already enabled.",
@@ -541,6 +538,7 @@ class ArancinoApiResponseCode:
         ERR_NO_ARANCINO_CONFIG_OPTION_PROVIDED: "Sorry, no option configuration found during this operation",
         ERR_NO_ARANCINO_CONFIG_VALUE_PROVIDED: "Sorry, no value configuration found during this operation",
 
+        ERR_NOT_IMPLEMENTED: "Sorry, function not implemented",
 
         OK_ALREADY_HIDDEN: "Selected port is already hidden",
         OK_HIDDEN: "Port hidden successfully",
@@ -585,6 +583,8 @@ class ArancinoApiResponseCode:
         ERR_NO_ARANCINO_CONFIG_SECTION_PROVIDED: "Sorry, no section configuration found during this operation",
         ERR_NO_ARANCINO_CONFIG_OPTION_PROVIDED: "Sorry, no option configuration found during this operation",
         ERR_NO_ARANCINO_CONFIG_VALUE_PROVIDED: "Sorry, no value configuration found during this operation",
+
+        ERR_NOT_IMPLEMENTED: "Sorry, function not implemented",
 
         OK_ALREADY_HIDDEN: "Selected port is already hidden",
         OK_HIDDEN: "Port hidden successfully",

@@ -33,6 +33,10 @@ class InvalidArgumentsNumberException(ArancinoException):
         # Call the base class constructor with the parameters it needs
         super(InvalidArgumentsNumberException, self).__init__(message, error_code)
 
+        self.title = "The number of arguments sent with the command is" \
+                     " not correct"
+        self.message = message
+
         # Now for your custom code...
         #self.error_code = error_code
 
@@ -42,6 +46,9 @@ class InvalidCommandException(ArancinoException):
 
         # Call the base class constructor with the parameters it needs
         super(InvalidCommandException, self).__init__(message, error_code)
+
+        self.title = "The command sent is not a valid command."
+        self.message = message
 
         # Now for your custom code...
         #self.error_code = error_code
@@ -53,6 +60,9 @@ class RedisGenericException(ArancinoException):
         # Call the base class constructor with the parameters it needs
         super(RedisGenericException, self).__init__(message, error_code)
 
+        self.title = "Redis error."
+        self.message = message
+
         # Now for your custom code...
         #self.error_code = error_code
 
@@ -62,6 +72,9 @@ class RedisPersistentKeyExistsInStadardDatastoreException(ArancinoException):
 
         # Call the base class constructor with the parameters it needs
         super(RedisPersistentKeyExistsInStadardDatastoreException, self).__init__(message, error_code)
+
+        self.title = "Desired key already exists in the standard data store."
+        self.message = message
 
         # Now for your custom code...
         #self.error_code = error_code
@@ -73,6 +86,8 @@ class RedisStandardKeyExistsInPersistentDatastoreException(ArancinoException):
         # Call the base class constructor with the parameters it needs
         super(RedisStandardKeyExistsInPersistentDatastoreException, self).__init__(message, error_code)
 
+        self.title = "Desired key already exists in the persistent data store."
+        self.message = message
         # Now for your custom code...
         #self.error_code = error_code
 
@@ -83,6 +98,8 @@ class NonCompatibilityException(ArancinoException):
         # Call the base class constructor with the parameters it needs
         super(NonCompatibilityException, self).__init__(message, error_code)
 
+        self.title = "Daemon and Library are not compatible, please check compatibility matrix."
+        self.message = message
         # Now for your custom code...
         #self.error_code = error_code
 
@@ -91,6 +108,8 @@ class NotImplemented(ArancinoException):
 
         # Call the base class constructor with the parameters it needs
         super(NotImplemented, self).__init__(message, error_code)
+        self.title = "Function not implemented."
+        self.message = message
 
         # Now for your custom code...
         #self.error_code = error_code

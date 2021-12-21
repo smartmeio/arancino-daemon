@@ -163,6 +163,12 @@ class ArancinoConfig:
         self.__port_serial_stm32_comm_baudrate = int(self.__get_or_override_str(self.Config, "port.serial.stm32", "comm_baudrate", "port.serial", "comm_baudrate" ))
         # endregion
 
+        # region RP20
+        self.__port_serial_rp20_upload_command = self.__get_or_override_str(self.Config, "port.serial.rp20", "upload_command", "port.serial", "upload_command")
+        self.__port_serial_rp20_reset_reconnection_delay = int(self.__get_or_override_str(self.Config, "port.serial.rp20", "reset_reconnection_delay", "port.serial", "reset_reconnection_delay" ))
+        self.__port_serial_rp20_comm_baudrate = int(self.__get_or_override_str(self.Config, "port.serial.rp20", "comm_baudrate", "port.serial", "comm_baudrate" ))
+        # endregion
+
         # endregion
 
         
@@ -453,6 +459,16 @@ class ArancinoConfig:
 
     def get_port_serial_upload_command(self):
         return self.__port_serial_upload_command
+
+    ## RP20
+    def get_port_serial_rp20_upload_command(self):
+        return self.__port_serial_rp20_upload_command
+
+    def get_port_serial_rp20_reset_reconnection_delay(self):
+        return self.__port_serial_rp20_reset_reconnection_delay
+
+    def get_port_serial_rp20_comm_baudrate(self):
+        return self.__port_serial_rp20_comm_baudrate
 
     ## STM32
     def get_port_serial_stm32_upload_command(self):

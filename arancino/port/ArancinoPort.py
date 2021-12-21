@@ -419,7 +419,7 @@ class ArancinoPort(object):
             key_identify = "{}_{}".format(self.getId(), ArancinoReservedChars.RSVD_KEY_BLINK_ID)
             DATASTORE.getDataStoreRsvd().set(key_identify, "1")
         else:
-            raise NotImplemented("Identify Function is not available for port {}[{}] because firmware is running without FreeRTOS".format(self.getId(), self.getPortType()), ERR_CODES.ERR_NOT_IMPLEMENTED)
+            raise NotImplemented("Identify Function is not available for port {}[{}] because firmware is running without FreeRTOS".format(self.getId(), self.getPortType().name), ArancinoApiResponseCode.ERR_NOT_IMPLEMENTED)
         
     #region BASE METADATA Encapsulators
 
@@ -545,8 +545,8 @@ class ArancinoPort(object):
             self._reset_delay = CONF.get_port_serial_samd21_reset_reconnection_delay()
         elif self._microcontroller_family.lower() == "nrf52":
             self._reset_delay = CONF.get_port_serial_nrf52_reset_reconnection_delay()
-        elif self._microcontroller_family.lower() == "rp2040":
-            self._reset_delay = CONF.get_port_serial_rp2040_reset_reconnection_delay()
+        elif self._microcontroller_family.lower() == "rp20":
+            self._reset_delay = CONF.get_port_serial_rp20_reset_reconnection_delay()
         elif self._microcontroller_family.lower() == "stm32":
             self._reset_delay = CONF.get_port_serial_stm32_reset_reconnection_delay()
         else:
