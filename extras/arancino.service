@@ -10,27 +10,27 @@ Group=root
 ### ARANCINO ENV VARS ###
 
 # Environment File
-EnvironmentFile=/etc/arancino/vars.env
+######EnvironmentFile=/etc/arancino/vars.env
 #EnvironmentFile="$ARANCINO/vars.env"
 
 # Arancino Daemon Directory
-######Environment="ARANCINO=/etc/arancino"
+Environment="ARANCINO=/etc/arancino"
 
 # Arancino Daemon Configuration Directory
-######Environment="ARANCINOCONF=/etc/arancino/config"
+Environment="ARANCINOCONF=/etc/arancino/config"
 
 # Arancino Daemon Logs Directory
-######Environment="ARANCINOLOG=/var/log/arancino"
+Environment="ARANCINOLOG=/var/log/arancino"
 
 # Arancino Daemon Runnning Environment:
 #   "production" -> Production Environment
 #   "development" -> Development Environment
-######Environment="ARANCINOENV=production"
+Environment="ARANCINOENV=production"
 
 # Flask Runnning Environment:
 #   "production" -> Production Environment
 #   "development" -> Development Environment
-######Environment="FLASK_ENV=production"
+Environment="FLASK_ENV=production"
 
 ExecStart=/bin/bash -c 'gunicorn -c "$ARANCINOCONF/gunicorn.cfg.py" arancino.ArancinoStart:app'
 Restart=on-failure
