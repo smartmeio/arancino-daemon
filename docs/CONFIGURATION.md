@@ -183,13 +183,14 @@ multiple port types, and configurations are now specific for each type in a dedi
 > | Id          | `port._id`  |
 > | Device      | `port._device`|
 > | Port Type   | `port._port_type`|
-> | Port Type   | `port._port_type`|
 > | Library Version | `port._library_version` |
 > | Creation Date | `port._m_b_creation_date` |
 > | Last Usage Date | `port._m_b_last_usage_date` |
-> | Is Plugged ? | `port._m_s_plugged` |
+> | Is Plugged | `port._m_s_plugged` |
 > | Is Connected | `port._m_s_connected` |
 > | is Enabled | `port._m_c_enabled` |
+> | is Started | `port._m_s_started` |
+> | is Compatible | `port._m_s_compatible` |
 > | Alias| `port._m_c_alias` |
 > | Is Hidden | `port._m_c_hide` |
 > |-------------|-------------|
@@ -220,7 +221,6 @@ multiple port types, and configurations are now specific for each type in a dedi
 > | Value       | Placeholder |
 > |------------|-------------|
 > | Firmware | `firmware` |
-
 
 
 #### Arancino Serial Ports

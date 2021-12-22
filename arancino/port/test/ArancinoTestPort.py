@@ -183,19 +183,18 @@ class ArancinoTestPort(ArancinoPort):
             else:
                 LOG.debug("{} Already Disconnected".format(self._log_prefix))
 
-
         except Exception as ex:
             raise ex
 
+
+    def identify(self):
+        raise NotImplemented("Identify Function is not available for port {}[{}]".format(self.getId(), self.getPortType().name), ArancinoApiResponseCode.ERR_NOT_IMPLEMENTED)
+
     def reset(self):
-        # No reset provided method for this Port
-        return False
-        # LOG.info("{} Starting Reset".format(self.__log_prefix))
-        # LOG.info("{} Reset Success!".format(self.__log_prefix))
+        raise NotImplemented("Reset Function is not available for port {}[{}]".format(self.getId(), self.getPortType().name), ArancinoApiResponseCode.ERR_NOT_IMPLEMENTED)
 
     def upload(self, firmware):
-        # No upload provided method for this Port
-        return False
+        raise NotImplemented("Upload Function is not available for port {}[{}]".format(self.getId(), self.getPortType().name), ArancinoApiResponseCode.ERR_NOT_IMPLEMENTED)
 
     def sendResponse(self, raw_response):
         # Do nothing

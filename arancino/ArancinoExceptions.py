@@ -33,8 +33,7 @@ class InvalidArgumentsNumberException(ArancinoException):
         # Call the base class constructor with the parameters it needs
         super(InvalidArgumentsNumberException, self).__init__(message, error_code)
 
-        self.title = "The number of arguments sent with the command is" \
-                     " not correct"
+        self.title = "The number of arguments sent with the command is not correct"
         self.message = message
 
         # Now for your custom code...
