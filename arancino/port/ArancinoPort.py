@@ -43,7 +43,7 @@ class ArancinoPort(object):
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, id=None, device=None, m_s_plugged=False, m_c_enabled=True, m_c_alias="", m_c_hide=False, port_type=None, upload_cmd=None, reset_delay=5, receivedCommandHandler=None, disconnectionHandler=None):
+    def __init__(self, id=None, device=None, m_s_plugged=False, m_c_enabled=True, m_c_alias="", m_c_hide=False, port_type=None, upload_cmd=None, m_c_reset_delay=5, receivedCommandHandler=None, disconnectionHandler=None):
 
         #region BASE METADATA
         self._id = id                 # Id is the Serial Number. It will have a value when the Serial Port is connected
@@ -73,11 +73,11 @@ class ArancinoPort(object):
         self._m_c_enabled = m_c_enabled
         self._m_c_alias = m_c_alias
         self._m_c_hide = m_c_hide
+        self._m_c_reset_delay = m_c_reset_delay
         #endregion
 
         #region OTHER
         self._upload_cmd = upload_cmd
-        self._reset_delay = reset_delay
         #endregion
 
         # Command Executor
@@ -542,15 +542,15 @@ class ArancinoPort(object):
         #self._reset_delay = getattr(CONF, "get_port_serial_{}_reset_reconnection_delay()".format(microcontroller_family.lower()))
 
         if self._microcontroller_family.lower() == "samd21":
-            self._reset_delay = CONF.get_port_serial_samd21_reset_reconnection_delay()
+            self.setResetReconnectionDelay(CONF.get_port_serial_samd21_reset_reconnection_delay())
         elif self._microcontroller_family.lower() == "nrf52":
-            self._reset_delay = CONF.get_port_serial_nrf52_reset_reconnection_delay()
+            self.setResetReconnectionDelay(CONF.get_port_serial_nrf52_reset_reconnection_delay())
         elif self._microcontroller_family.lower() == "rp20":
-            self._reset_delay = CONF.get_port_serial_rp20_reset_reconnection_delay()
+            self.setResetReconnectionDelay(CONF.get_port_serial_rp20_reset_reconnection_delay())
         elif self._microcontroller_family.lower() == "stm32":
-            self._reset_delay = CONF.get_port_serial_stm32_reset_reconnection_delay()
+            self.setResetReconnectionDelay(CONF.get_port_serial_stm32_reset_reconnection_delay())
         else:
-            self._reset_delay = CONF.get_port_serial_reset_reconnection_delay()
+            self.setResetReconnectionDelay(CONF.get_port_serial_reset_reconnection_delay())
 
 
 
