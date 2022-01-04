@@ -491,8 +491,8 @@ class ArancinoConfig:
         return self.__port_serial_nrf52_comm_baudrate
 
     ## SAMD21
-    def get_port_serial_nrf52_upload_command(self):
-        return self.__port_serial_nrf52_upload_command
+    def get_port_serial_samd21_upload_command(self):
+        return self.__port_serial_samd21_upload_command
 
     def get_port_serial_samd21_reset_reconnection_delay(self):
         return self.__port_serial_samd21_reset_reconnection_delay
