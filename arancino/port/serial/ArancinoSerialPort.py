@@ -34,9 +34,9 @@ TRACE = CONF.get_log_print_stack_trace()
 
 class ArancinoSerialPort(ArancinoPort):
 
-    def __init__(self, port_info=None, device=None, baudrate_comm=9600, baudrate_reset=300, m_s_plugged=False, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, reset_delay=CONF.get_port_serial_reset_reconnection_delay(), receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
+    def __init__(self, port_info=None, device=None, baudrate_comm=9600, baudrate_reset=300, m_s_plugged=False, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, reset_delay=CONF.get_port_serial_reset_reconnection_delay(), upload_cmd=CONF.get_port_serial_upload_command(), receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
 
-        super().__init__(device=device, port_type=PortTypes.SERIAL, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=CONF.get_port_serial_upload_command(), receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
+        super().__init__(device=device, port_type=PortTypes.SERIAL, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=upload_cmd, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
         # self._port_type = PortTypes.Serial
 
@@ -47,7 +47,10 @@ class ArancinoSerialPort(ArancinoPort):
         self.__comm_baudrate = baudrate_comm
         self.__reset_baudrate = baudrate_reset
         self.__timeout = timeout
+
+        # FAMILY PORT PARAMETER
         self.__reset_delay = reset_delay
+        #self.__upload_command = upload_cmd
 
 
         # SERIAL PORT METADATA
