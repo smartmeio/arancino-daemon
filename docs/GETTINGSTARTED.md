@@ -65,13 +65,13 @@ Following the instruction to manually install Toolscripts and Upload:
 
 #### rp2040
 - python3-uf2conv.py
-- run-arancino-uf2conf
+- run-arancino-uf2conv
 
 ```shell
 > sudo apt install python3-uf2conv
 ...
-> sudo wget https://raw.githubusercontent.com/smartmeio/arancino-daemon-toolscripts/main/run-arancino-uf2conf -P /usr/bin/
-> sudo chmod +x /usr/bin/run-arancino-uf2conf
+> sudo wget https://raw.githubusercontent.com/smartmeio/arancino-daemon-toolscripts/main/run-arancino-uf2conv -P /usr/bin/
+> sudo chmod +x /usr/bin/run-arancino-uf2conv
 
 ```
 

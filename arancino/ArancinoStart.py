@@ -228,7 +228,9 @@ def __get_arancinoapi_app():
                 os.makedirs(path)
 
             file_fw = os.path.join(path, file.filename)
+            LOG.debug("Saving Firmware File {}".format(file_fw))
             file.save(file_fw)
+            LOG.debug("Firmware File {} Saved".format(file_fw))
 
             result = api.uploadPortFirmware(port_id, file_fw)
 

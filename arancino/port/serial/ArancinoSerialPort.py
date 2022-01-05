@@ -258,45 +258,45 @@ class ArancinoSerialPort(ArancinoPort):
 
     def upload(self, firmware):
 
-        LOG.info("{} Starting Upload Procedure".format(self._log_prefix))
-        import subprocess
+        if self.getMicrocontrollerFamily() == MicrocontrollerFamily.SAMD21:
+            LOG.info("{} Starting Upload Procedure".format(self._log_prefix))
+            import subprocess
 
-        cmd = self._upload_cmd.format(firmware=firmware, port=self)
-        cmd_arr = cmd.split(" ")
-        LOG.info("{} Ready to run upload command ===> {} <===".format(self._log_prefix, cmd))
+            cmd = self._upload_cmd.format(firmware=firmware, port=self)
+            cmd_arr = cmd.split(" ")
+            LOG.info("{} Ready to run upload command ===> {} <===".format(self._log_prefix, cmd))
 
-        stdout = None
-        stderr = None
-        rtcode = 0
-        try:
-            self.setEnabled(False)
-            self.disconnect()
-            while self.isConnected():
-                pass
+            stdout = None
+            stderr = None
+            rtcode = 0
+            try:
+                self.setEnabled(False)
+                self.disconnect()
+                while self.isConnected():
+                    pass
+
+                proc = subprocess.Popen(cmd_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                stdout, stderr = proc.communicate()
+                stdout = stdout.decode("utf-8")
+                stderr = stderr.decode("utf-8")
+                rtcode = proc.returncode
+
+                if rtcode != 0:
+                    LOG.error("{} Return code: {} - {}".format(self._log_prefix, str(rtcode), stderr))
+                else:
+                    LOG.info("{} Upload Success!".format(self._log_prefix))
+                    LOG.info("{} {}".format(self._log_prefix, stdout))
 
 
-            proc = subprocess.Popen(cmd_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = proc.communicate()
-            stdout = stdout.decode("utf-8")
-            stderr = stderr.decode("utf-8")
-            rtcode = proc.returncode
+            except Exception as ex:
+                rtcode = -1
+                stderr = str(ex)
+                LOG.error("{} Something goes wrong while uploadig: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
 
-            if rtcode != 0:
-                LOG.error("{} Return code: {} - {}".format(self._log_prefix, str(rtcode), stderr))
-            else:
-                LOG.info("{} Upload Success!".format(self._log_prefix))
-                LOG.info("{} {}".format(self._log_prefix, stdout))
-
-
-        except Exception as ex:
-            rtcode = -1
-            stderr = str(ex)
-            LOG.error("{} Something goes wrong while uploadig: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
-
-        finally:
-            self.setEnabled(True)
-            return rtcode, stdout, stderr
-
+            finally:
+                self.setEnabled(True)
+                return rtcode, stdout, stderr
+        raise NotImplemented("Upload Function is not available for port {}[{}]".format(self.getId(), self.getPortType().name), ArancinoApiResponseCode.ERR_NOT_IMPLEMENTED)
 
     # SERIAL ARANCINO PORT METADATA
 

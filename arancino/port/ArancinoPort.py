@@ -364,6 +364,7 @@ class ArancinoPort(object):
         try:
 
             # create an Arancino Comamnd from the raw command
+            LOG.debug("{} Received: {}".format(self._log_prefix, raw_command))
             acmd = ArancinoComamnd(raw_command=raw_command)
             LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.getId(), str(acmd.getArguments())))
 
@@ -542,23 +543,21 @@ class ArancinoPort(object):
         #  for the specific mcu family
         #self._reset_delay = getattr(CONF, "get_port_serial_{}_reset_reconnection_delay()".format(microcontroller_family.lower()))
 
-        if self._microcontroller_family.lower() == "samd21":
+        if self._microcontroller_family == MicrocontrollerFamily.SAMD21:
             self.setResetReconnectionDelay(CONF.get_port_serial_samd21_reset_reconnection_delay())
             self._setUploadCommand(CONF.get_port_serial_samd21_upload_command())
-        elif self._microcontroller_family.lower() == "nrf52":
+        elif self._microcontroller_family == MicrocontrollerFamily.NRF52:
             self.setResetReconnectionDelay(CONF.get_port_serial_nrf52_reset_reconnection_delay())
             self._setUploadCommand(CONF.get_port_serial_nrf52_upload_command())
-        elif self._microcontroller_family.lower() == "rp20":
+        elif self._microcontroller_family == MicrocontrollerFamily.RP20:
             self.setResetReconnectionDelay(CONF.get_port_serial_rp20_reset_reconnection_delay())
             self._setUploadCommand(CONF.get_port_serial_rp20_upload_command())
-        elif self._microcontroller_family.lower() == "stm32":
+        elif self._microcontroller_family == MicrocontrollerFamily.STM32:
             self.setResetReconnectionDelay(CONF.get_port_serial_stm32_reset_reconnection_delay())
             self._setUploadCommand(CONF.get_port_serial_stm32_upload_command())
         else:
             self.setResetReconnectionDelay(CONF.get_port_serial_reset_reconnection_delay())
             self._setUploadCommand(CONF.get_port_serial_upload_command())
-
-
 
     #endregion
 
