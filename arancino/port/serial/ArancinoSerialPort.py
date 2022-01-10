@@ -296,7 +296,8 @@ class ArancinoSerialPort(ArancinoPort):
             finally:
                 self.setEnabled(True)
                 return rtcode, stdout, stderr
-        raise NotImplemented("Upload Function is not available for port {}[{}]".format(self.getId(), self.getPortType().name), ArancinoApiResponseCode.ERR_NOT_IMPLEMENTED)
+        else:
+            raise NotImplemented("Upload Function is not available for port {}[{}] of {} Family".format(self.getId(), self.getPortType().name, self.getMicrocontrollerFamily()), ArancinoApiResponseCode.ERR_NOT_IMPLEMENTED)
 
     # SERIAL ARANCINO PORT METADATA
 
