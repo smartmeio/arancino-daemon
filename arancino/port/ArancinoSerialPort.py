@@ -244,7 +244,7 @@ class ArancinoSerialPort(ArancinoPort):
                         self.__serial_port.port = self._device
                         self.__serial_port.open()
 
-                        self.__serial_handler = ArancinoSerialHandler("ArancinoSerialHandler-"+self._id, self.__serial_port, self._id, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
+                        self.__serial_handler = ArancinoSerialHandler("ArancinoSerialHandler-"+self._id, self.__serial_port, self._id, self._device, self._commandReceivedHandlerScr, self.__connectionLostHandler)
                         self._m_s_connected = True
                         self.__serial_handler.start()
                         LOG.info("{} Connected".format(self._log_prefix))

@@ -23,6 +23,8 @@ from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from types import FunctionType, MethodType
 
+from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
+
 from cryptography.hazmat.primitives import hashes
 #from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoCortex import *
@@ -34,7 +36,7 @@ import semantic_version
 # import for asimmetric authentication
 import os
 from cryptography import x509
-from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives.asymmetric import ec, utils
 from redis import RedisError
 from arancino.ArancinoCortex import ArancinoCommandIdentifiers as cmdId
 from arancino.ArancinoConstants import ArancinoSpecialChars as specChars
@@ -93,6 +95,7 @@ class ArancinoPort(object):
 
         # Command Executor
         # self._executor = ArancinoCommandExecutor(self._id, self._device)
+        self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
 
         # Log Prefix to be print in each log
         #self._log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
@@ -114,7 +117,7 @@ class ArancinoPort(object):
 
         self.__first_time = True
 
-    def _retrieveStartCmdArgs(self, args):
+    def __retrieveStartCmdArgs(self, args):
         """
             https://app.clickup.com/t/jz9rjq
             https://app.clickup.com/t/k1518r
@@ -267,7 +270,7 @@ class ArancinoPort(object):
         #     pass
             # paramentri non sufficienti
 
-    def __retrieveStartCmdArgs(self, args):
+    def _retrieveStartCmdArgs(self, args):
         arg_num = len(args)
 
         ### Retrieving some info and metadata: ###
@@ -328,10 +331,51 @@ class ArancinoPort(object):
             ) == "" else semantic_version.Version(args[4])
             self._setFirmwareCoreVersion(arancino_core_version)
 
+        # region Asimmetric Authentication
+        # Retrieve Arancino Certificates for Asimmetric Authentication
+        if arg_num > 6:
+            if args[5].strip() == "":
+                self.device_cert = None
+            else:
+                self.__setDeviceCertificate(args[5])
+
+            if args[6].strip() == "":
+                self.signer_cert = None 
+            else:
+                self.__setSignerCertificate(args[6])
+
+            # retrieve root certificate from file
+            root_cert = self.__retrieveRootCertificate()
+
+            # Verify Certificates
+            if self.__verifyCert(root_cert.public_key(), self.signer_cert):
+                LOG.debug("Certificato del signer verificato!")
+                if self.__verifyCert(self.signer_cert.public_key(), self.device_cert):
+                    LOG.debug("Certificato del device verificato!")
+                else:
+                    LOG.debug("Certificato del device non verificato")
+                    raise AuthenticationException(
+                        "ERROR", ArancinoCommandErrorCodes.ERR_AUTENTICATION)
+            else:
+                LOG.debug("Certificato del signer non verificato!")
+                raise AuthenticationException(
+                    "ERROR", ArancinoCommandErrorCodes.ERR_AUTENTICATION)
+
+            #Verify device public key presence in whitelist
+            if self.portFilter.checkPubKey(self.device_cert.public_key()):
+                LOG.debug("Chiave pubblica in whitelist")
+                pass
+            else:
+                raise AuthorizationException("ERROR", ArancinoCommandErrorCodes.ERR_AUTHORIZATION)
+
+        #endregion
+
+        """
         if not self.isCompatible():
             self._setComapitibility(False)
             raise NonCompatibilityException("Module version " + str(CONF.get_metadata_version(
             )) + " can not work with Library version " + str(self.getLibVersion()), ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
+        """
 
     def unplug(self):
         self.disconnect()
@@ -435,7 +479,7 @@ class ArancinoPort(object):
                     self._log_prefix), str(ex), exc_info=TRACE)
 
     # commandReceivedHandler to use in secure configuration
-    def _commandReceivedHandlerScr(self, raw_command, executor):
+    def _commandReceivedHandlerScr(self, raw_command):
         """
         This is an Asynchronous function, and represent the "handler" to be used by an ArancinoHandler implementation to receive data.
             It first receives a Raw Command from the a "Port" (eg. a Serial Port, a Network Port, etc...) , then translate
@@ -463,17 +507,17 @@ class ArancinoPort(object):
                 if self.verifySign(self.device_cert.public_key(), b64decode(challenge), signature):
                     LOG.debug("Chiave pubblica verificata e presente in whitelist")
                     # call the Command Executor and get a arancino response
-                    arsp = executor.exec(acmd)
-                    if int(arsp.getId()) < 200:
-                        acmd.loadCommand(self.challenge, self._id)
+                    arsp = self._executor.exec(acmd)
+                    #if int(arsp.getId()) < 200:
+                        #acmd.loadCommand(self.challenge, self._id)
                     self.challenge = arsp.setChallenge(self._id)
                 else:
                     raise AuthenticationException(
                         "ERROR", ArancinoCommandErrorCodes.ERR_AUTENTICATION)
 
             else:
-                arsp = executor.exec(acmd)
-                acmd.loadCommand(None, self._id)
+                arsp = self._executor.exec(acmd)
+                #acmd.loadCommand(None, self._id)
                 self.challenge = arsp.setChallenge(self._id)
 
             # create the Arancino Response object
@@ -502,10 +546,10 @@ class ArancinoPort(object):
 
             try:
                 # send the response back.
+                self.sendResponse(arsp.getRaw())
                 LOG.debug("{} Sending: {}: {}".format(
                     self._log_prefix, arsp.getId(), str(arsp.getArguments())))
-                return arsp
-
+            
             except Exception as ex:
                 LOG.error("{} Error while transmitting a Response: {}".format(
                     self._log_prefix), str(ex), exc_info=TRACE)
@@ -725,17 +769,19 @@ class ArancinoPort(object):
     # region Asimmetric Authentication
 
     def __setSignerCertificate(self, received_signer_certificate):
-        truncated = received_signer_certificate[2:-1]
-        truncatedBytes = bytes(
-            truncated, encoding='ascii').decode("unicode-escape")
-        data = bytes(truncatedBytes, encoding='ascii')
+        #truncated = received_signer_certificate[2:-1]
+        #truncatedBytes = bytes(
+        #    truncated, encoding='ascii').decode("unicode-escape")
+        #data = bytes(truncatedBytes, encoding='ascii')
+        data = bytes(received_signer_certificate, encoding='ascii')
         self.signer_cert = x509.load_pem_x509_certificate(data)
 
     def __setDeviceCertificate(self, received_device_certificate):
-        truncated = received_device_certificate[2:-1]
-        truncatedBytes = bytes(
-            truncated, encoding='ascii').decode("unicode-escape")
-        data = bytes(truncatedBytes, encoding='ascii')
+        #truncated = received_device_certificate[2:-1]
+        #truncatedBytes = bytes(
+        #   truncated, encoding='ascii').decode("unicode-escape")
+        #data = bytes(truncatedBytes, encoding='ascii')
+        data = bytes(received_device_certificate, encoding='ascii')
         self.device_cert = x509.load_pem_x509_certificate(data)
 
     def __retrieveRootCertificate(self):
@@ -761,8 +807,7 @@ class ArancinoPort(object):
 
     def verifySign(self, public_key, data, signature):
         try:
-            public_key.verify(b64decode(signature), data,
-                              ec.ECDSA(hashes.SHA256()))
+            public_key.verify(utils.encode_dss_signature(int.from_bytes(b64decode(signature)[0:32], "big"), int.from_bytes(b64decode(signature)[32:64], "big")), data, ec.ECDSA(hashes.SHA256()))
         except:
             LOG.debug("Dispositivo " + self._id + " non riconosciuto")
             return False

@@ -34,7 +34,7 @@ from arancino.ArancinoDataStore import ArancinoDataStore
 from arancino.ArancinoConstants import ArancinoReservedChars
 
 #temp import to create the whitelist
-from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat, load_pem_public_key
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.backends import default_backend
 from base64 import b64encode
@@ -282,6 +282,7 @@ class Arancino(Thread):
 
     # Insert whitelist to redis, only in test phase
     def setWhitelist(self):
+        """
         privateKey = []
         privateKey.append(ec.generate_private_key(ec.SECP384R1, default_backend()))
         privateKey.append(ec.generate_private_key(ec.SECP384R1, default_backend()))
@@ -289,9 +290,11 @@ class Arancino(Thread):
         privateKey.append(ec.derive_private_key(2, ec.SECP384R1(), default_backend()))
         privateKey.append(ec.generate_private_key(ec.SECP384R1, default_backend()))
         privateKey.append(ec.generate_private_key(ec.SECP384R1, default_backend()))
+        """
         publicKey = []
-        for i in privateKey:
-            publicKey.append(i.public_key().public_bytes(format=PublicFormat.SubjectPublicKeyInfo,encoding=Encoding.PEM))
+        pubKey1_string = '-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7Q1i5A1i3vqlfcI3tMp+jAnjp8Ia\nCS10er5S4So/IbBcDMCvqQpXnhw9atQYINjpzGbEr7IUMply4uA3GygglA==\n-----END PUBLIC KEY-----\n'
+        pubKey1 = load_pem_public_key(pubKey1_string.encode('utf-8'))
+        publicKey.append(pubKey1.public_bytes(format=PublicFormat.SubjectPublicKeyInfo,encoding=Encoding.PEM))
         count = 0
         for i in publicKey:
             self.__datastore.getDataStoreDev().hset("WHITELIST", str(count), i)

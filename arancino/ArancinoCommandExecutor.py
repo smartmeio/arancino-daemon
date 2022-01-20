@@ -29,7 +29,7 @@ from arancino.ArancinoCortex import ArancinoResponse
 from arancino.ArancinoExceptions import *
 from arancino.ArancinoDataStore import ArancinoDataStore
 from arancino.utils.ArancinoUtils import ArancinoConfig
-from arancino.port.ArancinoPort import PortTypes
+#from arancino.port.ArancinoPort import PortTypes
 from datetime import datetime
 
 class ArancinoCommandExecutor:
@@ -252,7 +252,8 @@ class ArancinoCommandExecutor:
         value = args[0]
         ts = str(int(datetime.now().timestamp() * 1000))
 
-        return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + self.__port_id + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_SEP + value + ArancinoSpecialChars.CHR_EOT
+        #return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + self.__port_id + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_SEP + value + ArancinoSpecialChars.CHR_EOT
+        return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_EOT
     #endregion
 
     #region SET

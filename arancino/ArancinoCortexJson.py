@@ -26,7 +26,7 @@ from base64 import b64encode
 from arancino import ArancinoDataStore
 from datetime import datetime
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, secondsToHumanString
-
+import json
 
 CONF = ArancinoConfig.Instance()
 dts = ArancinoDataStore.ArancinoDataStore.Instance()
@@ -40,14 +40,16 @@ dts = ArancinoDataStore.ArancinoDataStore.Instance()
 
 class ArancinoComamnd:
 
-    def __init__(self, raw_command=None, cmd_id=None, cmd_args=None):
-        
+    def __init__(self, raw_command=None, cmd_id=None, cmd_args=None, jsonData=None):
+
         if isinstance(raw_command, str):
             self.__constructorA(raw_command=raw_command)
 
         elif isinstance(cmd_id, str) and isinstance(cmd_args, list):
             self.__constructorB(cmd_id=cmd_id, cmd_args=cmd_args)
-
+        
+        elif isinstance(jsonData, str):
+            self.__constructorC(jsonData=jsonData)
 
     def __constructorA(self, raw_command=None):
         """
@@ -58,20 +60,20 @@ class ArancinoComamnd:
 
         cmd_parsed = self.__parseCommand(raw_command)
 
-        self.__id = cmd_parsed[0]       # first element is the Command Identifier
-        self.__args = cmd_parsed[1]     # second element is the array of Command Arguments
+        #self.__id = cmd_parsed[0]       # first element is the Command Identifier
+        #self.__args = cmd_parsed[1]     # second element is the array of Command Arguments
 
-        """
         if self.__isCmdIdAvailable(cmd_parsed[0]):
             self.__id = cmd_parsed[0]
         else:
-            raise InvalidCommandException("Command does not exist: " + cmd_parsed[0] + " - Skipped", ArancinoCommandErrorCodes.ERR_CMD_NOT_FND)
+            raise InvalidCommandException(
+                "Command does not exist: " + cmd_parsed[0] + " - Skipped", ArancinoCommandErrorCodes.ERR_CMD_NOT_FND)
 
         try:
-            self.__args = self.__checkAndGetArgsByCmdId(cmd_parsed[0], cmd_parsed[1])
+            self.__args = self.__checkAndGetArgsByCmdId(
+                cmd_parsed[0], cmd_parsed[1])
         except InvalidArgumentsNumberException as ex:
             raise ex
-        """
 
     def __constructorB(self, cmd_id=None, cmd_args=None):
         """
@@ -82,39 +84,52 @@ class ArancinoComamnd:
         if self.__isCmdIdAvailable(cmd_id):
             self.__id = cmd_id
         else:
-            raise InvalidCommandException("Command does not exist: " + cmd_id + " - Skipped", ArancinoCommandErrorCodes.ERR_CMD_NOT_FND)
+            raise InvalidCommandException(
+                "Command does not exist: " + cmd_id + " - Skipped", ArancinoCommandErrorCodes.ERR_CMD_NOT_FND)
 
-        """
         try:
             self.__args = self.__checkAndGetArgsByCmdId(cmd_id, cmd_args)
         except InvalidArgumentsNumberException as ex:
             raise ex
+
+        # if n_args_required == n_args:
+        #     self.__args = cmd_args
+        # else:
+        #     raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + n_args + "; Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+
+        self.__raw = self.__id + ArancinoSpecialChars.CHR_SEP + \
+            ArancinoSpecialChars.CHR_SEP.join(
+                self.__args) + ArancinoSpecialChars.CHR_EOT
+
+    def __constructorC(self, jsonData):
         """
+        Create an Arancino Comamnd from a json
+        """
+        
+        dictData = json.loads(jsonData)
 
-        # retrieve the number of arguments required for the command
-        n_args_required = self.__getArgsNumberByCmdId(cmd_id)
-        n_args = len(cmd_args)
-
-        if n_args_required == n_args:
-             self.__args = cmd_args
+        if self.__isCmdIdAvailable(dictData["CMD_ID"]):
+            self.__id = dictData["CMD_ID"]
         else:
-             raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + n_args + "; Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+            raise InvalidCommandException(
+                "Command does not exist: " + dictData["CMD_ID"] + " - Skipped", ArancinoCommandErrorCodes.ERR_CMD_NOT_FND)
 
-
-        self.__raw = self.__id + ArancinoSpecialChars.CHR_SEP + ArancinoSpecialChars.CHR_SEP.join(self.__args) + ArancinoSpecialChars.CHR_EOT
+        #add exceptions
+        self.__args = dictData["ARGS"]
+        self.__conf = dictData["CFG"]
 
 
     def getId(self):
         return self.__id
 
-
     def getArguments(self):
         return self.__args
 
+    def getConfiguration(self):
+        return self.__conf
 
     def getRaw(self):
         return self.__raw
-
 
     def __parseCommand(self, raw_command):
         '''
@@ -129,7 +144,8 @@ class ArancinoComamnd:
         raw_command = raw_command.strip()
 
         # splits command by separator char
-        cmd = raw_command.strip(ArancinoSpecialChars.CHR_EOT).split(ArancinoSpecialChars.CHR_SEP)
+        cmd = raw_command.strip(ArancinoSpecialChars.CHR_EOT).split(
+            ArancinoSpecialChars.CHR_SEP)
 
         if len(cmd) > 0:
             cmd_id = cmd[0]
@@ -139,7 +155,6 @@ class ArancinoComamnd:
             return cmd_id, cmd_args
         else:
             return None
-
 
         # if len(cmd) > 0:
         #
@@ -168,7 +183,6 @@ class ArancinoComamnd:
         # else:
         #     raise InvalidCommandException("No command received", ArancinoCommandErrorCodes.ERR_CMD_NOT_RCV)
 
-
     def __isCmdIdAvailable(self, cmd_id):
         '''
         Check if the Command Identifier is in the list of the defined comamnds.
@@ -181,7 +195,6 @@ class ArancinoComamnd:
             return True
         else:
             return False
-
 
     def __getArgsNumberByCmdId(self, cmd_id):
         '''
@@ -197,15 +210,12 @@ class ArancinoComamnd:
 
         command = ArancinoCommandIdentifiers.COMMANDS_DICT[cmd_id]
         num = command["args"]
-        #num2 = command["args2"] if "args2" in command else None
-        #op = command["op"]
-
+        num2 = command["args2"] if "args2" in command else None
+        op = command["op"]
 
         #return num, op
 
-        #return num, num2, op
-
-        return num
+        return num, num2, op
 
     def __checkAndGetArgsByCmdId(self, cmd_id, cmd_args):
         # retrieve the number of arguments required for the command
@@ -226,56 +236,54 @@ class ArancinoComamnd:
             if n_args == n_args_required:
                return cmd_args
             else:
-                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: == (Equal) " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(
+                    n_args) + "; Required: == (Equal) " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
 
         elif n_args_operator == ArancinoOperators.GREATER_THAN:
             if n_args > n_args_required:
                 return cmd_args
             else:
-                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: > (Greater Than) " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(
+                    n_args) + "; Required: > (Greater Than) " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
 
         elif n_args_operator == ArancinoOperators.GREATER_THAN_OR_EQUAL:
             if n_args >= n_args_required:
                 return cmd_args
             else:
-                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: >= (Greater Than or Equal) " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(
+                    n_args) + "; Required: >= (Greater Than or Equal) " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
 
         elif n_args_operator == ArancinoOperators.LESS_THAN:
             if n_args < n_args_required:
                 return cmd_args
             else:
-                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: < (Less Than) " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(
+                    n_args) + "; Required: < (Less Than) " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
 
         elif n_args_operator == ArancinoOperators.LESS_THAN_OR_EQUAL:
             if n_args <= n_args_required:
                 return cmd_args
             else:
-                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: <= (Less Than or Equal) " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(
+                    n_args) + "; Required: <= (Less Than or Equal) " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
 
         elif n_args_operator == ArancinoOperators.NOT_EQUAL:
             if n_args != n_args_required:
                 return cmd_args
             else:
-                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: != (Not Equal) " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(
+                    n_args) + "; Required: != (Not Equal) " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
 
         elif n_args_operator == ArancinoOperators.BETWEEN:
             if n_args >= n_args_required and n_args <= n_args_required_2:
                 return cmd_args
             else:
-                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(n_args) + "; Required: != (Between) " + str(n_args_required) + " and " + str(n_args_required_2) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
+                raise InvalidArgumentsNumberException("Invalid arguments number for command " + cmd_id + ". Received: " + str(
+                    n_args) + "; Required: != (Between) " + str(n_args_required) + " and " + str(n_args_required_2) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
 
-    def getSignature(self):
-        last_index_args = len(self.__args)-1
-        signature = self.__args[last_index_args]
-        return signature
+    def setSignatureJson(self, signature):
+        self.__conf["SGNTR"] = signature
 
-    def setSignature(self, signature):
-        self.__args.append(signature)
-        self.__raw = self.__id + ArancinoSpecialChars.CHR_SEP + ArancinoSpecialChars.CHR_SEP.join(self.__args) + ArancinoSpecialChars.CHR_EOT
-
-
-
-    """
     def setSignature(self, signature):
 
         keys = self.__args[0]
@@ -294,79 +302,87 @@ class ArancinoComamnd:
         self.__args[0] = start_args_keys
         self.__args[1] = start_args_vals
 
+    def getSignatureJson(self):
+        return self.__conf["SGNTR"]
+
     def getSignature(self):
-        
-        keys=self.__args[0]
-        values=self.__args[1]
-        count=0
+
+        keys = self.__args[0]
+        values = self.__args[1]
+        count = 0
 
         values_keys = keys.split(ArancinoSpecialChars.CHR_ARR_SEP)
         values_array = values.split(ArancinoSpecialChars.CHR_ARR_SEP)
         for i in values_keys:
-            if i=="signature":
-                    break
+            if i == "signature":
+                break
             count += 1
         signature = values_array[count]
-        return signature    
-    """
-
-    '''
-    def getSignature(self):
-
-        last_index_args = len(self.__args)-1
-        signature = self.__args[last_index_args]
         return signature
-    '''
-    def getCurrentChallenge(self, port_id):
-        challenge = dts.getDataStoreScr().hget("CHALLENGE", port_id)
-        if challenge is not None:
-            return challenge
-        else:
-            # return the error code
-            return ArancinoCommandErrorCodes.ERR_REDIS
 
-    #load the comand executed by port on redis
-    def loadCommand(self,challenge,port_id):
+    #load the command executed by port on redis
+    def loadCommand(self, challenge, port_id):
         #__datastore = ArancinoDataStore.Instance()
-        #con il data store sicuro bisogno aggiungere il command ID con challenge e signature
-        commandId=self.__id
-        aci = ArancinoCommandIdentifiers
 
-        setCommands = [aci.CMD_APP_SET["id"], aci.CMD_APP_SET_PERS["id"], aci.CMD_APP_SET_STD["id"], aci.CMD_APP_SET_RSVD["id"],
-                       aci.CMD_APP_MSET["id"], aci.CMD_APP_MSET_PERS["id"], aci.CMD_APP_MSET_STD["id"], aci.CMD_APP_STORE["id"], 
-                       aci.CMD_APP_MSTORE["id"], aci.CMD_APP_PUB["id"]]
-        msetCommands = [aci.CMD_APP_MSET["id"], aci.CMD_APP_MSET_PERS["id"], aci.CMD_APP_MSET_STD["id"]]
-        hsetCommands = [aci.CMD_APP_HSET["id"], aci.CMD_APP_HSET_PERS["id"], aci.CMD_APP_HSET_STD["id"], aci.CMD_APP_STORETAGS["id"]]
-        
-        if commandId in setCommands:
+        commandId = self.__id
+        res = dts.getDataStoreDev().hget(str(port_id)+"_HISTORY", "CURRENT_INDEX")
+        if res is None:
+            index = 0
+        else:
+            index = int(res)+1
+
+        ts = str(int(datetime.now().timestamp() * 1000))
+
+        if self.__id == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
+            '''
+            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "COMMAND_"+str(res),commandId)
+            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "TIMESTAMP_"+str(res),ts)
+            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "CURRENT_INDEX",res)
+            '''
+            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY",
+                                       "COMMAND_"+str(index), commandId)
+            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY", "TIMESTAMP_"+str(index), ts)
+            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY", "CURRENT_INDEX", index)
+
+        elif challenge is not None:
             signature = self.getSignature()
-            
-            if commandId in msetCommands:
-                keys = self.getArguments[0]
-                keys_array = keys.split(ArancinoSpecialChars.CHR_ARR_SEP)   #funziona così con il cortex protocol semistrutturato
-                for key in keys_array:
-                    dts.getDataStoreScr().set("CHALL_"+key, challenge)
-                    dts.getDataStoreScr().set("SIGN_"+key, signature)
-            else:
-                key=self.__args[0]
-                dts.getDataStoreScr().set("CHALL_"+key, challenge)
-                dts.getDataStoreScr().set("SIGN_"+key, signature)
-            
+            '''
+            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "COMMAND_"+str(res),commandId)
+            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "SIGNATURE_"+str(res),signature)
+            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "CHALLENGE_"+str(res),challenge)
+            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "TIMESTAMP_"+str(res),ts)
+            self.__datastore.getDataStoreDev().hset(str(port_id)+"_HISTORY", "CURRENT_INDEX",res)
+            '''
+            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY",
+                                       "COMMAND_"+str(index), commandId)
+            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY",
+                                       "SIGNATURE_"+str(index), signature)
+            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY",
+                                       "CHALLENGE_"+str(index), challenge)
+            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY", "TIMESTAMP_"+str(index), ts)
+            dts.getDataStoreDev().hset(str(port_id)+"_HISTORY", "CURRENT_INDEX", index)
 
-        elif commandId in hsetCommands:
-            signature=self.getSignature()
-            key = self.getArguments[0]
+    #load the crypto info of command executed by port on redis
+    def loadCommandJson(self, challenge, port_id):
 
-            if commandId == aci.CMD_APP_STORETAGS["id"]:
-                tags = self.getArguments[1]
-                tags_array = tags.split(ArancinoSpecialChars.CHR_ARR_SEP)   #funziona così con il cortex protocol semistrutturato
-                for tag in tags_array:
-                    dts.getDataStoreScr().hset("CHALL_"+key, tag, challenge)
-                    dts.getDataStoreScr().hset("SIGN_"+key, tag, signature)
-            else:
-                field = self.getArguments[1]
-                dts.getDataStoreScr().hset("CHALL_"+key, field, challenge)
-                dts.getDataStoreScr().hset("SIGN_"+key, field, signature)
+        res = dts.getDataStoreDev().hget(str(port_id)+"_HISTORY", "CURRENT_INDEX")
+
+
+        ts = str(int(datetime.now().timestamp() * 1000))
+
+        if challenge is not None:
+            signature = self.getSignatureJson()
+        else:
+            #Errore
+            pass
+
+        if self.__id == ArancinoCommandIdentifiers.CMD_APP_SET["id"]:
+            dts.getDatastoreCrypt().set("chall_"+str(self.__id, challenge))
+            dts.getDatastoreCrypt().set("sign_"+str(self.__id, signature))
+        
+        elif self.__id == ArancinoCommandIdentifiers.CMD_APP_HSET["id"]:
+            dts.getDatastoreCrypt().hset("chall_"+str(self.__id), self.__args["field"], challenge)
+            dts.getDatastoreCrypt().hset("sign_"+str(self.__id), self.__args["field"], signature)
 
 
 class ArancinoResponse:
@@ -379,38 +395,36 @@ class ArancinoResponse:
         elif isinstance(rsp_id, str) and isinstance(rsp_args, list):
             self.__constructorB(rsp_id=rsp_id, rsp_args=rsp_args)
 
-
     def __constructorA(self, raw_response=None):
         self.__raw = raw_response
 
         rsp_parsed = self.__parseResponse(raw_response)
 
         self.__id = rsp_parsed[0]  # first element is the Response Code
-        self.__args = rsp_parsed[1]  # second element is the array of Response Arguments
-
+        # second element is the array of Response Arguments
+        self.__args = rsp_parsed[1]
 
     def __constructorB(self, rsp_id=None, rsp_args=None):
         if self.__isRspIdAvailable(rsp_id):
             self.__id = rsp_id
         else:
-            raise InvalidCommandException("Response does not exist: " + rsp_id + " - Skipped", ArancinoCommandErrorCodes.ERR_CMD_NOT_FND)
+            raise InvalidCommandException(
+                "Response does not exist: " + rsp_id + " - Skipped", ArancinoCommandErrorCodes.ERR_CMD_NOT_FND)
 
         self.__args = rsp_args if len(rsp_args) > 0 else []
 
-        self.__raw = self.__id + ArancinoSpecialChars.CHR_SEP + ArancinoSpecialChars.CHR_SEP.join(self.__args) + ArancinoSpecialChars.CHR_EOT
-
+        self.__raw = self.__id + ArancinoSpecialChars.CHR_SEP + \
+            ArancinoSpecialChars.CHR_SEP.join(
+                self.__args) + ArancinoSpecialChars.CHR_EOT
 
     def getId(self):
         return self.__id
 
-
     def getArguments(self):
         return self.__args
 
-
     def getRaw(self):
         return self.__raw
-
 
     def __parseResponse(self, raw_response):
         '''
@@ -425,7 +439,8 @@ class ArancinoResponse:
         raw_response = raw_response.strip()
 
         # splits command by separator char
-        rsp = raw_response.strip(ArancinoSpecialChars.CHR_EOT).split(ArancinoSpecialChars.CHR_SEP)
+        rsp = raw_response.strip(ArancinoSpecialChars.CHR_EOT).split(
+            ArancinoSpecialChars.CHR_SEP)
 
         if len(rsp) > 0:
 
@@ -450,11 +465,12 @@ class ArancinoResponse:
             #         raise InvalidArgumentsNumberException("Invalid arguments number for command " + rsp_id + ". Received: " + n_args + "; Required: " + str(n_args_required) + ".", ArancinoCommandErrorCodes.ERR_CMD_PRM_NUM)
             #
             else:
-                raise InvalidCommandException("Response does not exist: " + rsp_id + " - Skipped", ArancinoCommandErrorCodes.ERR_CMD_NOT_FND)
+                raise InvalidCommandException(
+                    "Response does not exist: " + rsp_id + " - Skipped", ArancinoCommandErrorCodes.ERR_CMD_NOT_FND)
 
         else:
-            raise InvalidCommandException("No command received", ArancinoCommandErrorCodes.ERR_CMD_NOT_RCV)
-
+            raise InvalidCommandException(
+                "No command received", ArancinoCommandErrorCodes.ERR_CMD_NOT_RCV)
 
     def __isRspIdAvailable(self, rsp_id):
         '''
@@ -468,19 +484,20 @@ class ArancinoResponse:
             return True
         else:
             return False
-    
+
     def setChallenge(self, port_id):
         challenge = str(b64encode(os.urandom(32)).decode('utf-8'))
         #__datastore = ArancinoDataStore.Instance()
-        resp = dts.getDataStoreScr().hset("CHALLENGE", port_id, challenge)
+        resp = dts.getDataStoreStd().hset("CHALLENGE", port_id, challenge)
         if resp is not None:
             self.__args.append(challenge)
-            self.__raw = self.__id + ArancinoSpecialChars.CHR_SEP + ArancinoSpecialChars.CHR_SEP.join(self.__args) + ArancinoSpecialChars.CHR_EOT
+            self.__raw = self.__id + ArancinoSpecialChars.CHR_SEP + \
+                ArancinoSpecialChars.CHR_SEP.join(
+                    self.__args) + ArancinoSpecialChars.CHR_EOT
             return challenge
         else:
             # return the error code
-            return ArancinoCommandErrorCodes.ERR_SET
-    
+            return ArancinoSpecialChars.ERR_SET
+
     def getChallenge(self):
         return self.__args[len(self.__args)-1]
-    
