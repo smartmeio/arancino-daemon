@@ -28,7 +28,7 @@ from configparser import ConfigParser
 
 class ArancinoPostInstallCommand(install):
     """
-    Customized setuptools install command used as 
+    Customized setuptools install command used as
     post-install script to install Arancino services
     """
 
@@ -39,17 +39,17 @@ class ArancinoPostInstallCommand(install):
         #### ARANCINO PRE INSTALL
         print("--------------------------------------")
         print("START ARANCINO PRE INSTALL")
-        call(["extras/pre-install.sh"])       
+        call(["extras/pre-install.sh"])
         print("END ARANCINO PRE INSTALL")
         print("--------------------------------------")
-        
+
         #### ARANCINO INSTALL
         print("--------------------------------------")
         print("START ARANCINO INSTALL")
         install.run(self)
         print("END ARANCINO INSTALL")
         print("--------------------------------------")
-        
+
         #### ARANCINO POST INSTALL
         print("--------------------------------------")
         print("START ARANCINO POST INSTALL")

@@ -59,7 +59,7 @@
 * `START` Commands now can receive Fw Timestamp, Fw version, Fw Name and Arancino Core Version as arguments.
 * Minor bug fixes and improvements. #105, #014, #102
 
-#### v 2.0.0 2020.07.24
+#### v 2.0.0 - 2020.07.24
 * Now Resets each microcontroller before connecting (requires `v1.1.0` Arancino Platform)
 * Changed project structure to a more modular architecture. Arancino Port Type can now be easily extended.
 * Improved logger formatter.
@@ -69,17 +69,37 @@
 * Metadata are now different for each Port Type, but they have a common set of metadata. Even the Device Store changed.
 * Introduces new metadatas: _creation date_, _last usage date_, _port type_, _library version_, _compatibility_
 * The key `___LIBVERS_<PORT_ID>___` stored in the Data Store are now part of common set of port metadata.
-* Use Redis `MULTI` and `EXEC` trough `pipeline` in *Synch* process to reduce the back-and-forth overhead between the client and server. 
+* Use Redis `MULTI` and `EXEC` trough `pipeline` in *Synch* process to reduce the back-and-forth overhead between the client and server.
 * Log Console Handler and Log File Handler can be enabled directly from `arancino.cfg`
 * Improved Redis Connection: now Arancino continues running even Redis has been stoppped, and reconnect when connection is restored.
 * Improved Redis Connection: Arancino by default makes 5 connection attemps (each one every 3 seconds) and then exit if Redis is unreachable.
 * Introduced a rest server with some API like _Enable/Disable_, _Reset_, _Upload Firmware_ etc...
-* Redis configuration and systemd services are now exclueded from Arancino package. They are pre-installed in Arancino OS. 
+* Redis configuration and systemd services are now exclueded from Arancino package. They are pre-installed in Arancino OS.
 * Introduced different configuration file based on `ARANCINOENV` environment variables (`PROD`, `DEV` or `TEST`)
 * Introduced `S_UPTIME` status metadata to store uptime port #78.
 * Introduced a more flexible way to check command (cortex) arguments number (lass than, equal, etc...).
 * Fixed Flush command. Disabled by error.
 * Update protocol: `START` command now send back `port id` and `timestamp`
+
+#### v 1.2.1 - 2020.05.25
+* Fix: Missing Arancino Mignon in allowed vid-pid.
+
+#### v 1.2.0 - 2020.04.14
+* Lib version stored in device stored (compatibility with `.2.0.0`).
+
+#### v 1.1.1 - 2020.04.09
+* Fix a typo in redis services which cause and error at boot on systemd file #77.
+
+#### v 1.1.0 - 2020.04.08
+* Introduced a simple VID:PID filter for Serial Port #76
+* Fix missing fix-aof.sh script file #74
+* Fix arancino doesn't start at reboot beacause redis is not ready #75
+
+#### v 1.0.4 - 2020.03.19
+* Fixed a bug which doesn't disable console handler. This writes to `/var/log/syslog` and `/var/log/daemon.log` and fill up the storage. #63
+
+#### v 1.0.3 - 2020.03.16
+* Fixed a bug which prevented redis-persistent to start after an uncontrolled shutdown of the board. #53
 
 #### v 1.0.2 - 2020.03.11
 * Fixed a critical bug that prevented redis-persistent to work properly. #53
