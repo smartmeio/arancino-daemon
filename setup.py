@@ -23,7 +23,7 @@ from setuptools.command.install import install
 from subprocess import call
 from distutils.command.sdist import sdist
 import os
-import re
+import redis
 from configparser import ConfigParser
 
 class ArancinoPostInstallCommand(install):

@@ -1,6 +1,7 @@
-import os
 from arancino.utils.ArancinoUtils import ArancinoLogger
 from gunicorn.glogging import Logger
+
+
 
 class GunicornLogger(Logger):
     def setup(self, cfg):
@@ -10,9 +11,17 @@ class GunicornLogger(Logger):
 
 bind = '0.0.0.0:1475'
 workers = 1
-worker_class = 'sync'
+worker_class = 'arancino.SecWorker.CustomWorker'
 timeout = 30
 keepalive = 2
+##keyfile = 
+##certfile = 
+##ca_certs = 
+cert_reqs = True
+do_handshake_on_connect = True
+
+
+
 
 logger_class = GunicornLogger
 # errorlog = os.path.join(os.getenv('ARANCINOLOG'), 'arancino.error.log')
