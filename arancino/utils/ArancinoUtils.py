@@ -32,7 +32,7 @@ from logging.handlers import RotatingFileHandler
 import semantic_version
 
 from arancino.ArancinoConstants import RedisInstancesType
-from arancino.filter.ArancinoPortFilter import FilterTypes
+from arancino.port.ArancinoPortFilter import FilterTypes
 
 class Singleton:
 
@@ -62,22 +62,32 @@ class ArancinoConfig:
         if env.upper() == "DEV" or env.upper() == "TEST" or env.upper() == "DEVELOPMENT":
             self.__cfg_file = "arancino.dev.cfg"
         elif env.upper() == "PROD" or env.upper() == "PRODUCTION":
-            self.__cfg_file = "arancino.prod.cfg"
+            self.__cfg_file = "arancino.cfg"
+
+
+        self.__arancino_config_path = os.environ.get('ARANCINOCONF')
+        self.__arancino_home_path =  os.environ.get('ARANCINO')
+        self.__arancino_template_path = os.path.join(self.__arancino_home_path, "templates")
 
         self.Config = configparser.ConfigParser()
-        self.Config.read(os.path.join(os.environ.get('ARANCINOCONF'), self.__cfg_file))
+        self.Config.read(os.path.join(self.__arancino_config_path, self.__cfg_file))
 
-        # CONFIG METADATA SECTION
+        self.__serial_number = self.__retrieve_serial_number()
+
+        # region CONFIG METADATA SECTION
         self.__metadata_version = semantic_version.Version(arancino.__version__)
+        # endregion
 
-        # CONFIG GENERAL SECTION
+        # region CONFIG GENERAL SECTION
         self.__general_env = env
         self.__general_cycle_time = int(self.Config.get("general", "cycle_time"))
         #self.__general_users = Config.get("general", "users")
+        # endregion
 
-        # CONFIG REDIS SECTION
+        # region CONFIG REDIS SECTION
         self.__redis_instance_type = self.Config.get("redis", "instance_type")
         self.__redis_connection_attempts = int(self.Config.get("redis", "connection_attempts"))
+        self.__redis_timeseris_retention = int(self.Config.get("redis", "retetion"))
 
         self.__redis_host_volatile = self.Config.get("redis", "host_volatile")
         self.__redis_host_persistent = self.Config.get("redis", "host_persistent")
@@ -90,36 +100,81 @@ class ArancinoConfig:
         self.__redis_volatile_datastore_dev_db = int(self.Config.get("redis.volatile", "datastore_dev_db"))
         self.__redis_volatile_datastore_per_db = int(self.Config.get("redis.volatile", "datastore_per_db"))
         self.__redis_volatile_datastore_rsvd_db = int(self.Config.get("redis.volatile", "datastore_rsvd_db"))
+        self.__redis_volatile_datastore_tse_db = int(self.Config.get("redis.volatile", "datastore_tse_db"))
+        self.__redis_volatile_datastore_tag_db = int(self.Config.get("redis.volatile", "datastore_tag_db"))
 
         self.__redis_persistent_datastore_std_db = int(self.Config.get("redis.persistent", "datastore_std_db"))
         self.__redis_persistent_datastore_dev_db = int(self.Config.get("redis.persistent", "datastore_dev_db"))
         self.__redis_persistent_datastore_per_db = int(self.Config.get("redis.persistent", "datastore_per_db"))
         self.__redis_persistent_datastore_rsvd_db = int(self.Config.get("redis.persistent", "datastore_rsvd_db"))
+        self.__redis_persistent_datastore_tse_db = int(self.Config.get("redis.persistent", "datastore_tse_db"))
+        self.__redis_persistent_datastore_tag_db = int(self.Config.get("redis.volatile", "datastore_tag_db"))
 
         self.__redis_volatile_persistent_datastore_std_db = int(self.Config.get("redis.volatile_persistent", "datastore_std_db"))
         self.__redis_volatile_persistent_datastore_dev_db = int(self.Config.get("redis.volatile_persistent", "datastore_dev_db"))
         self.__redis_volatile_persistent_datastore_per_db = int(self.Config.get("redis.volatile_persistent", "datastore_per_db"))
         self.__redis_volatile_persistent_datastore_rsvd_db = int(self.Config.get("redis.volatile_persistent", "datastore_rsvd_db"))
+        self.__redis_volatile_persistent_datastore_tse_db = int(self.Config.get("redis.volatile_persistent", "datastore_tse_db"))
+        self.__redis_volatile_persistent_datastore_tag_db = int(self.Config.get("redis.volatile", "datastore_tag_db"))
+        # endregion
 
-
-
-        # CONFIG PORT SECTION
+        # region CONFIG PORT SECTION
         self.__port_firmware_path = self.Config.get("port", "firmware_path")
         self.__port_firmware_file_types = self.Config.get("port", "firmware_file_types")
         self.__port_reset_on_connect = stringToBool(self.Config.get("port", "reset_on_connect"))
+        self.__port_reset_reconnection_delay = int(self.Config.get("port", "reset_reconnection_delay"))
 
-        # CONFIG SERIAL PORT SECTION
+        # region CONFIG SERIAL PORT SECTION
         self.__port_serial_enabled = stringToBool(self.Config.get("port.serial", "enabled"))
         self.__port_serial_hide = stringToBool(self.Config.get("port.serial", "hide"))
-        self.__port_serial_comm_baudrate = int(self.Config.get("port.serial", "comm_baudrate"))
         self.__port_serial_reset_baudrate = int(self.Config.get("port.serial", "reset_baudrate"))
         self.__port_serial_filter_type = self.Config.get("port.serial", "filter_type")
         self.__port_serial_filter_list = self.Config.get("port.serial", "filter_list")
         self.__port_serial_upload_command = self.Config.get("port.serial", "upload_command")
         self.__port_serial_timeout = int(self.Config.get("port.serial", "timeout"))
+        
+        
+        # DEFAULT 
+        # reset on connect
         self.__port_serial_reset_on_connect = self.__get_or_override_bool(self.Config, "port.serial", "reset_on_connect", "port", "reset_on_connect")
+        # upload command for serial port
+        self.__port_serial_upload_command = self.Config.get("port.serial", "upload_command")
+        # delay of reconnection after a reset 
+        self.__port_serial_reset_reconnection_delay = int(self.__get_or_override_str(self.Config, "port.serial", "reset_reconnection_delay", "port", "reset_reconnection_delay" ))
+        # communication baudrate
+        self.__port_serial_comm_baudrate = int(self.Config.get("port.serial", "comm_baudrate"))
 
-        # CONFIG TEST PORT SECTION
+        # region SAMD21
+        self.__port_serial_samd21_upload_command = self.__get_or_override_str(self.Config, "port.serial.samd21", "upload_command", "port.serial", "upload_command")
+        self.__port_serial_samd21_reset_reconnection_delay = int(self.__get_or_override_str(self.Config, "port.serial.samd21", "reset_reconnection_delay", "port.serial", "reset_reconnection_delay" ))
+        self.__port_serial_samd21_comm_baudrate = int(self.__get_or_override_str(self.Config, "port.serial.samd21", "comm_baudrate", "port.serial", "comm_baudrate" ))
+        # endregion
+
+        # region NRF52
+        self.__port_serial_nrf52_upload_command = self.__get_or_override_str(self.Config, "port.serial.nrf52", "upload_command", "port.serial", "upload_command")
+        self.__port_serial_nrf52_reset_reconnection_delay = int(self.__get_or_override_str(self.Config, "port.serial.nrf52", "reset_reconnection_delay", "port.serial", "reset_reconnection_delay" ))
+        self.__port_serial_nrf52_comm_baudrate = int(self.__get_or_override_str(self.Config, "port.serial.nrf52", "comm_baudrate", "port.serial", "comm_baudrate" ))
+
+        # endregion
+
+        # region STM32
+        self.__port_serial_stm32_upload_command = self.__get_or_override_str(self.Config, "port.serial.stm32", "upload_command", "port.serial", "upload_command")
+        self.__port_serial_stm32_reset_reconnection_delay = int(self.__get_or_override_str(self.Config, "port.serial.stm32", "reset_reconnection_delay", "port.serial", "reset_reconnection_delay" ))
+        self.__port_serial_stm32_comm_baudrate = int(self.__get_or_override_str(self.Config, "port.serial.stm32", "comm_baudrate", "port.serial", "comm_baudrate" ))
+        # endregion
+
+        # region RP20
+        self.__port_serial_rp20_upload_command = self.__get_or_override_str(self.Config, "port.serial.rp20", "upload_command", "port.serial", "upload_command")
+        self.__port_serial_rp20_reset_reconnection_delay = int(self.__get_or_override_str(self.Config, "port.serial.rp20", "reset_reconnection_delay", "port.serial", "reset_reconnection_delay" ))
+        self.__port_serial_rp20_comm_baudrate = int(self.__get_or_override_str(self.Config, "port.serial.rp20", "comm_baudrate", "port.serial", "comm_baudrate" ))
+        # endregion
+
+        # endregion
+
+        
+        # endregion
+
+        # region CONFIG TEST PORT SECTION
         self.__port_test_enabled = stringToBool(self.Config.get("port.test", "enabled"))
         self.__port_test_hide = stringToBool(self.Config.get("port.test", "hide"))
         self.__port_test_filter_type = self.Config.get("port.test", "filter_type")
@@ -129,8 +184,10 @@ class ArancinoConfig:
         self.__port_test_id_template = self.Config.get("port.test", "id_template")
         self.__port_test_upload_command = self.Config.get("port.test", "upload_command")
         self.__port_test_reset_on_connect = self.__get_or_override_bool(self.Config, "port.test", "reset_on_connect", "port", "reset_on_connect")
+        # endregion
+        # endregion
 
-        # CONFIG LOG SECTION
+        # region CONFIG LOG SECTION
         self.__log_level = self.Config.get("log", "level")
         self.__log_name = self.Config.get("log", "name")
         self.__log_size = int(self.Config.get("log", "size")) if 0 < int(self.Config.get("log", "size")) <= 5 else 1
@@ -144,8 +201,60 @@ class ArancinoConfig:
         self.__log_file_error = self.Config.get("log", "file_error")
         #self.__log_file_stats = Config.get("log", "file_stats")
         self.__log_print_stack_trace = stringToBool(self.Config.get("log", "print_stack_trace"))
+        # endregion
+
+        # region TRANSMITTER SECTION
+        self.__transmitter_reader_cycle_time = int(self.Config.get("transmitter.reader", "cycle_time"))
+        self.__is_transmitter_enabled = stringToBool(self.Config.get("transmitter", "enabled"))
+
+        # region TRANSMITTER PARSER
+        self.__transmitter_parser_class = self.Config.get("transmitter.parser", "class")
+
+        # region TRANSMITTER PARSER SIMPLE
+        self.__transmitter_parser_template_file = self.Config.get("transmitter.parser", "file")
+        # endregion
+
+        # region TRANSMITTER PARSER S4T
+        self.__transmitter_parser_s4t_db_name = self.Config.get("transmitter.parser.s4t", "db_name")
+        # endregion
+
+        # endregion
+
+        # region TRANSMITTER SENDER
+        self.__transmitter_sender_class = self.Config.get("transmitter.sender", "class")
+
+        # region TRANSMITTER SENDER DO NOTHING
+        # #####
+        # endregion
+
+        # region TRANSMITTER SENDER TCP SOCKET
+        self.__transmitter_sender_tcp_socket_host = self.Config.get("transmitter.sender.tcpsocket", "host")
+        self.__transmitter_sender_tcp_socket_port = int(self.Config.get("transmitter.sender.tcpsocket", "port"))
+        # endregion
+
+        # region TRANSMITTER SENDER MQTT
+        self.__transmitter_sender_mqtt_use_tls = stringToBool(self.Config.get("transmitter.sender.mqtt", "use_tls"))
+        self.__transmitter_sender_mqtt_qos = int(self.Config.get("transmitter.sender.mqtt", "qos"))
+        self.__transmitter_sender_mqtt_retain = stringToBool(self.Config.get("transmitter.sender.mqtt", "retain"))
+        self.__transmitter_sender_mqtt_topic = self.Config.get("transmitter.sender.mqtt", "topic")
+
+            # plain
+        self.__transmitter_sender_mqtt_host = self.Config.get("transmitter.sender.mqtt", "host")
+        self.__transmitter_sender_mqtt_port = int(self.Config.get("transmitter.sender.mqtt", "port"))
+        self.__transmitter_sender_mqtt_username = self.Config.get("transmitter.sender.mqtt", "username")
+        self.__transmitter_sender_mqtt_password = self.Config.get("transmitter.sender.mqtt", "password")
+
+            # secure
+        self.__transmitter_sender_mqtt_ca_path = self.Config.get("transmitter.sender.mqtt", "ca_path")
+        self.__transmitter_sender_mqtt_cert_path = self.Config.get("transmitter.sender.mqtt", "cert_path")
+        self.__transmitter_sender_mqtt_key_path = self.Config.get("transmitter.sender.mqtt", "key_path")
 
 
+
+        # endregion
+
+        # endregion
+        # endregion
 
         self.__dirlog = os.environ.get('ARANCINOLOG')
 
@@ -158,6 +267,25 @@ class ArancinoConfig:
             val = cfg.get(main_sec, main_opt)
         finally:
             return stringToBool(val)
+
+    def __get_or_override_str(self, cfg, mine_sect, mine_opt, main_sec, main_opt):
+        val = ""
+        try:
+            val = cfg.get(mine_sect, mine_opt)
+        except configparser.NoOptionError:
+            val = cfg.get(main_sec, main_opt)
+        finally:
+            return str(val)
+
+
+    def get_arancino_home_path(self):
+        return self.__arancino_home_path
+
+    def get_arancino_config_path(self):
+        return self.__arancino_config_path
+
+    def get_arancino_template_path(self):
+        return self.__arancino_template_path
 
     ######## METADATA ########
     def get_metadata_version(self):
@@ -173,6 +301,29 @@ class ArancinoConfig:
     # def get_general_users(self):
     #     return json.loads(self.__general_users)
 
+    # TODO: rivedere questo metodo.
+    def __retrieve_serial_number(self):
+        # Extract serial from cpuinfo file
+        serial = "0000000000000000"
+        try:
+            f = open('/proc/cpuinfo', 'r')
+            for line in f:
+                if line[0:6] == 'Serial':
+                    serial = line[10:26]
+            f.close()
+        except Exception as ex:
+            try:
+                f = open('cat /sys/class/dmi/id/product_uuid')
+                serial = f.readline().strip()
+                f.close()
+            except Exception as ex:
+                serial = "ERROR000000000"
+
+        return serial
+
+
+    def get_serial_number(self):
+        return self.__serial_number
 
     ######## REDIS ########
     def get_redis_instances_conf(self):
@@ -204,6 +355,8 @@ class ArancinoConfig:
             dts_per_db = self.__redis_volatile_datastore_per_db
             dts_dev_db = self.__redis_volatile_datastore_dev_db
             dts_rsvd_db = self.__redis_volatile_datastore_rsvd_db
+            dts_tse_db = self.__redis_volatile_datastore_tse_db
+            dts_tag_db = self.__redis_volatile_datastore_tag_db
 
         elif redis_instance == RedisInstancesType.PERSISTENT:
             host_vol = self.__redis_host_persistent
@@ -214,6 +367,8 @@ class ArancinoConfig:
             dts_per_db = self.__redis_persistent_datastore_per_db
             dts_dev_db = self.__redis_persistent_datastore_dev_db
             dts_rsvd_db = self.__redis_persistent_datastore_rsvd_db
+            dts_tse_db = self.__redis_persistent_datastore_tse_db
+            dts_tag_db = self.__redis_persistent_datastore_tag_db
 
         elif redis_instance == RedisInstancesType.VOLATILE_PERSISTENT:
             host_vol = self.__redis_host_volatile
@@ -224,6 +379,8 @@ class ArancinoConfig:
             dts_per_db = self.__redis_volatile_persistent_datastore_per_db
             dts_dev_db = self.__redis_volatile_persistent_datastore_dev_db
             dts_rsvd_db = self.__redis_volatile_persistent_datastore_rsvd_db
+            dts_tse_db = self.__redis_volatile_persistent_datastore_tse_db
+            dts_tag_db = self.__redis_volatile_persistent_datastore_tag_db
 
         else:  # DEFAULT is VOLATILE_PERSISTENT
             host_vol = self.__redis_host_volatile
@@ -234,18 +391,24 @@ class ArancinoConfig:
             dts_per_db = self.__redis_volatile_persistent_datastore_per_db
             dts_dev_db = self.__redis_volatile_persistent_datastore_dev_db
             dts_rsvd_db = self.__redis_volatile_persistent_datastore_rsvd_db
+            dts_tse_db = self.__redis_volatile_persistent_datastore_tse_db
+            dts_tag_db = self.__redis_volatile_persistent_datastore_tag_db
 
         redis_dts_std = {'host': host_vol, 'port': port_vol, 'dcd_resp': dec_rsp, 'db': dts_std_db}
         redis_dts_dev = {'host': host_per, 'port': port_per, 'dcd_resp': dec_rsp, 'db': dts_dev_db}
         redis_dts_per = {'host': host_per, 'port': port_per, 'dcd_resp': dec_rsp, 'db': dts_per_db}
         redis_dts_rsvd = {'host': host_vol, 'port': port_vol, 'dcd_resp': dec_rsp, 'db': dts_rsvd_db}
+        redis_dts_tse = {'host': host_vol, 'port': port_vol, 'dcd_resp': dec_rsp, 'db': dts_tse_db}
+        redis_dts_tag = {'host': host_per, 'port': port_per, 'dcd_resp': dec_rsp, 'db': dts_tag_db}
 
-        return redis_dts_std, redis_dts_dev, redis_dts_per, redis_dts_rsvd
+        return redis_dts_std, redis_dts_dev, redis_dts_per, redis_dts_rsvd, redis_dts_tse, redis_dts_tag
 
 
     def get_redis_connection_attempts(self):
         return self.__redis_connection_attempts
 
+    def get_redis_timeseries_retation(self):
+        return self.__redis_timeseris_retention
 
     ####### PORT #######
     def get_port_firmware_path(self):
@@ -257,6 +420,8 @@ class ArancinoConfig:
     def get_port_reset_on_connect(self):
         return self.__port_reset_on_connect
 
+    def get_port_reset_reconnection_delay(self):
+        return self.__port_reset_reconnection_delay
 
     ######## SERIAL PORT ########
     def get_port_serial_enabled(self):
@@ -274,6 +439,9 @@ class ArancinoConfig:
     def get_port_serial_reset_baudrate(self):
         return self.__port_serial_reset_baudrate
 
+    def get_port_serial_reset_reconnection_delay(self):
+        return self.__port_serial_reset_reconnection_delay
+
     def get_port_serial_filter_type(self):
         if self.__port_serial_filter_type not in FilterTypes.__members__:
             return FilterTypes.DEFAULT.value
@@ -283,14 +451,54 @@ class ArancinoConfig:
     def get_port_serial_filter_list(self):
         return json.loads(self.__port_serial_filter_list.upper())
 
-    def get_port_serial_upload_command(self):
-        return self.__port_serial_upload_command
-
     def get_port_serial_timeout(self):
         return self.__port_serial_timeout
 
     def get_port_serial_reset_on_connect(self):
         return self.__port_serial_reset_on_connect
+
+    def get_port_serial_upload_command(self):
+        return self.__port_serial_upload_command
+
+    ## RP20
+    def get_port_serial_rp20_upload_command(self):
+        return self.__port_serial_rp20_upload_command
+
+    def get_port_serial_rp20_reset_reconnection_delay(self):
+        return self.__port_serial_rp20_reset_reconnection_delay
+
+    def get_port_serial_rp20_comm_baudrate(self):
+        return self.__port_serial_rp20_comm_baudrate
+
+    ## STM32
+    def get_port_serial_stm32_upload_command(self):
+        return self.__port_serial_stm32_upload_command
+
+    def get_port_serial_stm32_reset_reconnection_delay(self):
+        return self.__port_serial_stm32_reset_reconnection_delay
+
+    def get_port_serial_stm32_comm_baudrate(self):
+        return self.__port_serial_stm32_comm_baudrate
+
+    ## NRF52
+    def get_port_serial_nrf52_upload_command(self):
+        return self.__port_serial_nrf52_upload_command
+
+    def get_port_serial_nrf52_reset_reconnection_delay(self):
+        return self.__port_serial_nrf52_reset_reconnection_delay
+
+    def get_port_serial_nrf52_comm_baudrate(self):
+        return self.__port_serial_nrf52_comm_baudrate
+
+    ## SAMD21
+    def get_port_serial_samd21_upload_command(self):
+        return self.__port_serial_samd21_upload_command
+
+    def get_port_serial_samd21_reset_reconnection_delay(self):
+        return self.__port_serial_samd21_reset_reconnection_delay
+    
+    def get_port_serial_samd21_comm_baudrate(self):
+        return self.__port_serial_samd21_comm_baudrate
 
     ######## TEST PORT ########
     def get_port_test_enabled(self):
@@ -412,6 +620,65 @@ class ArancinoConfig:
             self.Config.write(configfile)
 
 
+    ######## TRANSMITTER ########
+    def is_transmitter_enabled(self):
+        return self.__is_transmitter_enabled
+
+    def get_transmitter_reader_cycle_time(self):
+        return self.__transmitter_reader_cycle_time
+
+    def get_transmitter_parser_class(self):
+        return self.__transmitter_parser_class
+
+    def get_transmitter_parser_template_file(self):
+        return self.__transmitter_parser_template_file
+
+    def get_transmitter_parser_s4t_db_name(self):
+        return self.__transmitter_parser_s4t_db_name
+
+    def get_transmitter_sender_class(self):
+        return self.__transmitter_sender_class
+
+    def get_transmitter_sender_tcp_socket_host(self):
+        return self.__transmitter_sender_tcp_socket_host
+
+    def get_transmitter_sender_tcp_socket_port(self):
+        return self.__transmitter_sender_tcp_socket_port
+
+    def get_transmitter_sender_mqtt_use_tls(self):
+        return self.__transmitter_sender_mqtt_use_tls
+
+    def get_transmitter_sender_mqtt_qos(self):
+        return self.__transmitter_sender_mqtt_qos
+
+    def get_transmitter_sender_mqtt_retain(self):
+        return self.__transmitter_sender_mqtt_retain
+
+    def get_transmitter_sender_mqtt_topic(self):
+        return self.__transmitter_sender_mqtt_topic
+
+    def get_transmitter_sender_mqtt_host(self):
+        return self.__transmitter_sender_mqtt_host
+
+    def get_transmitter_sender_mqtt_port(self):
+        return self.__transmitter_sender_mqtt_port
+
+    def get_transmitter_sender_mqtt_username(self):
+        return self.__transmitter_sender_mqtt_username
+
+    def get_transmitter_sender_mqtt_password(self):
+        return self.__transmitter_sender_mqtt_password
+
+    def get_transmitter_sender_mqtt_ca_path(self):
+        return self.__transmitter_sender_mqtt_ca_path
+
+    def get_transmitter_sender_mqtt_cert_path(self):
+        return self.__transmitter_sender_mqtt_cert_path
+
+    def get_transmitter_sender_mqtt_key_path(self):
+        return self.__transmitter_sender_mqtt_key_path
+
+
 @Singleton
 class ArancinoLogger:
 
@@ -521,8 +788,6 @@ class CustomConsoleFormatter(logging.Formatter):
         return formatter.format(record)
 
 
-
-
 def stringToBool(value):
     '''
     Convert a string representation of boolean value to an object of type Bool.
@@ -534,6 +799,22 @@ def stringToBool(value):
     else:
         __val = False
 
+    return __val
+
+
+def stringToBool2(value):
+    list_true = ["true", "1", "yes", "y", "t"]
+    list_false = ["false", "0", "no", "n", "f"]
+
+    __val = False
+    if value is not None:
+        v = str(value).lower()
+
+        if v in list_true:
+            __val = True
+        elif v in list_false:
+            __val = False
+        
     return __val
 
 

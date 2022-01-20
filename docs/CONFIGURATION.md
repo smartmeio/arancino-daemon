@@ -5,7 +5,7 @@ All available configurations can be setted up in the configuration file: `/etc/a
 
 
 ### Log Configuration
-Arancino Module uses python logging system and writes logs to three files in `/var/log/arancino/`. To manage logs go to `[log]` section of the configuration file.
+Arancino Daemon uses python logging system and writes logs to three files in `/var/log/arancino/`. To manage logs go to `[log]` section of the configuration file.
 
 #### Log Files
 You can change the logs file name changing the following properties
@@ -64,29 +64,35 @@ file_error = arancino.error.log
 
 >In __Arancino OS__ by default there are two running instances of Redis with six databases each one.
 >The first instance is volatile and the second one is persistent.
->The volatile one is used to store application data of the Arancino firmware (e.g date read by a sensor like Temperature, Humidity etc...) (first instance first database)
->it is called _datastore_, The Persistent one is used to store devices informations (second instance first database) and configuration data for Arancino Firmware (second instance second database) they are called _devicestore_ and _datastore_persistant_.
+>The volatile one is used to store application data of the Arancino firmware (e.g date read by a sensor like Temperature, Humidity etc...)
+>it is called _Datastore_, The Persistent one is used to store devices informations and configuration 
+>data for the Arancino Firmwares, they are called _Devicestore_ and _Persistent Datastore_. 
+>From version `2.4.0` were introduced two new databases in the volatile instances: _Reserved Datastore_ used to manage working data and configurations,
+>and _Time Series Store_ that introduced a new data type used to store Time Series data in Redis. 
+>From version `2.4.0` was also introduced a new database in the persistent instance: _Tag Store_ used to manage the tags of timeseries data.
 
 Usually you don't need to change Redis configuration in Production environment, but it's useful to change this if you are
 in Development or Test environment and you don't have a second Redis instance. The default (Production) configuration
 in Arancino OS are the following:
 
 
-|Parameters         |Data Store         |Device Store       |Persistent Device Store        |
-|-------------------|-------------------|-------------------|-------------------------------|
-|Host               |localhost          |localhost          |localhost                      |
-|Port               |6379               |6380               |6380                           |
-|Decode Response    |True               |True               |True                           |
-|Database Number    |0                  |0                  |1                              |
+|Parameters         |Data Store         |Device Store       |Persistent Data Store  |Reserved Data Store   |Time Series Store   |Tag Store           |
+|-------------------|-------------------|-------------------|-----------------------|----------------------|--------------------|--------------------|
+|Host               |localhost          |localhost          |localhost              |localhost             |localhost           |localhost           |
+|Port               |6379               |6380               |6380                   |6379                  |6379                |6380                |
+|Decode Response    |True               |True               |True                   |True                  |True                |True                |
+|Database Number    |0                  |0                  |1                      |1                     |2                   |2                   |
+
 
 During development we assume that is only one Redis instance running in volatile mode, and the configuration is:
 
-|Parameters         |Data Store         |Device Store       |Persistent Device Store        |
-|-------------------|-------------------|-------------------|-------------------------------|
-|Host               |localhost          |localhost          |localhost                      |
-|Port               |6379               |6379               |6379                           |
-|Decode Response    |True               |True               |True                           |
-|Database Number    |0                  |1                  |2                              |
+|Parameters         |Data Store         |Device Store       |Persistent Device Store  |Reserved Data Store   |Time Series Store   |Tag Store          |
+|-------------------|-------------------|-------------------|-------------------------|----------------------|--------------------|-------------------|
+|Host               |localhost          |localhost          |localhost                |localhost             |localhost           |localhost          |
+|Port               |6379               |6379               |6379                     |6379                  |6379                |6379               |
+|Decode Response    |True               |True               |True                     |True                  |True                |True               |
+|Database Number    |0                  |1                  |2                        |3                     |4                   |5                  |
+
 
 Port, host and others are configured inside the `/etc/arancino/config/arancino.cfg`, in the Redis section
 
@@ -120,6 +126,8 @@ datastore_std_db = 0
 datastore_dev_db = 1
 datastore_per_db = 2
 datastore_rsvd_db = 3
+datastore_tse_db = 4
+datastore_tag_db = 5
 
 [redis.persistent]
 
@@ -127,24 +135,19 @@ datastore_std_db = 0
 datastore_dev_db = 1
 datastore_per_db = 2
 datastore_rsvd_db = 3
+datastore_tse_db = 4
+datastore_tag_db = 5
+
 
 [redis.volatile_persistent]
 
 datastore_std_db = 0
 datastore_rsvd_db = 1
+datastore_tse_db = 2
+
 datastore_dev_db = 0
 datastore_per_db = 1
-```
-
-[//]: # (### Environment)
-
-[//]: # (If you want to switch from `prod` to `dev` configuration, and viceversa open _arancino.cfg_ and change `env` property in `[general]` section:)
-
-[//]: # (```ini)
-[//]: # (# Environment type: DEV, PROD. DEV automatically sets: redis.instance_type = VOLATILE, )
-[//]: # (# log.level = DEBUG, general.cycle_time = 5 and enables the console handlers)
-[//]: # (env = PROD)
-[//]: # (```)
+datastore_tag_db = 2
 
 ### Polling Cycle
 The polling cycle time determines the interval between one scan and another of new devices. If a new device is plugged
@@ -157,8 +160,8 @@ cycle_time = 10
 ```
 
 ### Arancino Ports
-Arancino Module scans serial ports for new devices to connect to. If a new device is plugged Arancino Module applies
-the configuration of the `[port]` section of the configuration file. From version `2.0.0` Arancino module supports
+Arancino Daemon scans serial ports for new devices to connect to. If a new device is plugged Arancino Daemon applies
+the configuration of the `[port]` section of the configuration file. From version `2.0.0` Arancino Daemon supports
 multiple port types, and configurations are now specific for each type in a dedicated section of configuration file.
 
 
@@ -168,7 +171,7 @@ multiple port types, and configurations are now specific for each type in a dedi
 > the filter is based on VID and PID of serial devices. In general, there are three kind of filters: ALL (filter is disabled),
 > EXCLUDE (excludes every _port_ specified in the list) and ONLY (accepts only the _port_ specified_ in the list ).
 >
-> Upload: With the introduction of Rest API in arancino module, it's possible to upload a firmware to a specified Port.
+> Upload: With the introduction of Rest API in Arancino Daemon, it's possible to upload a firmware to a specified Port.
 > The Upload command is defined in the section of the port kind. The `upload_command` can accepts placeholder in order to compose
 > a real command to be spawn as sub process. Placeholder are the attributes of the class `Port` and its subclasses
 > (every subclass represent a kind of port ) and must be passed between `{{` and `}}`
@@ -180,13 +183,14 @@ multiple port types, and configurations are now specific for each type in a dedi
 > | Id          | `port._id`  |
 > | Device      | `port._device`|
 > | Port Type   | `port._port_type`|
-> | Port Type   | `port._port_type`|
 > | Library Version | `port._library_version` |
 > | Creation Date | `port._m_b_creation_date` |
 > | Last Usage Date | `port._m_b_last_usage_date` |
-> | Is Plugged ? | `port._m_s_plugged` |
+> | Is Plugged | `port._m_s_plugged` |
 > | Is Connected | `port._m_s_connected` |
 > | is Enabled | `port._m_c_enabled` |
+> | is Started | `port._m_s_started` |
+> | is Compatible | `port._m_s_compatible` |
 > | Alias| `port._m_c_alias` |
 > | Is Hidden | `port._m_c_hide` |
 > |-------------|-------------|
@@ -217,7 +221,6 @@ multiple port types, and configurations are now specific for each type in a dedi
 > | Value       | Placeholder |
 > |------------|-------------|
 > | Firmware | `firmware` |
-
 
 
 #### Arancino Serial Ports

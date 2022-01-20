@@ -6,12 +6,12 @@ implement the Arancino Cortex Protocol. It can manage multiple connection at tim
 - [Getting Started](docs/GETTINGSTARTED.md)
 - [Configuration](docs:/CONFIGURATION.md)
 - [Rest API v1.0](docs/APIv1.0.md)
-
+- [Transmitter Module](docs/TRANSMITTER.md)
 
 
 ## Compatibility Matrix
 
-### Compatibility with Arancino Library (for Arancino Serial Port on samd21 microcontrollers)
+### Compatibility with Arancino Library (for Arancino Serial Port on SAMD21, RP2040, NRF52, STM32 microcontrollers)
 
 |Module Version 	|		|Library Version	|
 |---				|---	  |---				|
@@ -46,3 +46,4 @@ implement the Arancino Cortex Protocol. It can manage multiple connection at tim
 | `2.1.5`			| 		| 					|
 | `2.2.0`			| 		| 					|
 | `2.3.0`			| 		| 					|
+| `2.4.0`			| 		| `2.0.0`			|

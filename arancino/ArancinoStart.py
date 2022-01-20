@@ -22,6 +22,7 @@ import os
 import signal
 import requests
 
+from arancino.transmitter.Transmitter import Transmitter
 from arancino.utils.ArancinoUtils import ArancinoLogger
 from arancino.Arancino import Arancino
 from arancino.utils.ArancinoUtils import ArancinoConfig
@@ -40,6 +41,7 @@ auth = HTTPBasicAuth()
 
 c = ArancinoConfig.Instance()
 m = Arancino()
+t = Transmitter()
 
 LOG = ArancinoLogger.Instance().getLogger()
 ENV = os.environ.get('ARANCINOENV')
@@ -53,11 +55,12 @@ def shutdown_server():
         func()
 
 def __kill():
+    t.stop()
     m.stop()
-    #m.join()
 
 def __runArancino():
     m.start()
+    t.start()
 
 def __get_arancinoapi_app():
     api = ArancinoApi()
@@ -100,7 +103,8 @@ def __get_arancinoapi_app():
             shutdown_server()
             return 'Server shutting down...'
 
-    #### QUERIES ####
+    # region HTTP Endpoints
+    # region Queries
     @app.route('/api/v1/', methods=['GET'])
     def api_hello():
 
@@ -173,9 +177,9 @@ def __get_arancinoapi_app():
         response = jsonify(result[0])
         response.status_code = result[1]
         return response
+    # endregion
 
-
-    #### OPERATIONS ####
+    # region Operarations ####
     @app.route('/api/v1/ports/<port_id>/reset', methods=['POST'])
     @auth.login_required
     def api_port_reset(port_id=None):
@@ -224,7 +228,9 @@ def __get_arancinoapi_app():
                 os.makedirs(path)
 
             file_fw = os.path.join(path, file.filename)
+            LOG.debug("Saving Firmware File {}".format(file_fw))
             file.save(file_fw)
+            LOG.debug("Firmware File {} Saved".format(file_fw))
 
             result = api.uploadPortFirmware(port_id, file_fw)
 
@@ -264,6 +270,7 @@ def __get_arancinoapi_app():
         return response
 
     @app.route('/api/v1/arancino/config', methods=['POST'])
+    @auth.login_required
     def api_arancino_conf_set():
 
         """
@@ -277,9 +284,19 @@ def __get_arancinoapi_app():
         response.status_code = result[1]
         return response
 
-        
+    @app.route('/api/v1/ports/<port_id>/identify', methods=['POST'])
+    @auth.login_required
+    def api_port_identify(port_id=None):
+        result = api.identifyPort(port_id)
+        response = jsonify(result[0])
+        response.status_code = result[1]
+        return response
+
     def allowed_file(filename):
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+    # endregion
+    # endregion
 
     return app
 

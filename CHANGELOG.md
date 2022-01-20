@@ -1,5 +1,19 @@
 # Changelog
 
+#### v 2.4.0 2022.01.20
+* Introduced Arancino Transmitter [#gn8b8f](https://app.clickup.com/t/gn8b8f)
+* Changed timestamp format sent in response of `START` command. [#j1b6yc](https://app.clickup.com/t/j1b6yc)
+* Introduced Redis Time Series with the `STORE`, `MSTORE` and `STORETAGS` commands. [#acuhwp](https://app.clickup.com/t/k16ge0), [#acuhwp](https://app.clickup.com/t/k16ge0)
+* Introduced `SETRSVD` command used to change the status of a Reserved Key value [#jtb0ya](https://app.clickup.com/t/jtb0ya)
+* Introduced the Reserved Key `___BLNK_ID___` used to start the identification process on the microcontroller: blink for 5 seconds. [#jtaq9w](https://app.clickup.com/t/jtaq9w)
+* Introduced a new API endpoint to indentify a Port (if the port implements the identify process) [#jtaq9w](https://app.clickup.com/t/jtaq9w)
+* Fixed a double execution of _Arancino Commands_ [#jtb6gm](https://app.clickup.com/t/jtb6gm)
+* Updated `FLUSH` command; persistent datastore will no longer be flushed, only the volatile one: [kd64rw](https://app.clickup.com/t/kd64rw)
+* Change the Args of the `START` command: [k1518r](https://app.clickup.com/t/k1518r)
+* Introduced a new data structure used for generic attributes and a new metadata for the MCU Family: [k1518r](https://app.clickup.com/t/k1518r)
+* Fix: API Set Config misses authentication. [jz5mef](https://app.clickup.com/t/jz5mef)
+* Minor bug fixes and improvments.
+
 #### v 2.3.0 2021.04.06
 * Fixed arancino config files name, now binded to ARANCINOENV var. [#g97519](https://app.clickup.com/t/g97519)
 * Introduced new reserved key `___MODLOGLVL___`. [#g9786m](https://app.clickup.com/t/g9786m)
@@ -8,9 +22,9 @@
 #### v 2.2.0 2021.03.22
 * Changed server, now use GUnicorn in production. [#crw02w](https://app.clickup.com/t/crw02w)
 * Removed stack trace in case of Redis connection error at start. [#f53nzb](https://app.clickup.com/t/f53nzb)
-* Introduced new Reserverd Key `___MODENV___` to store the environment of the running Arancino Module. [#fz4f66](https://app.clickup.com/t/fz4f66)
-* Now use the Reserverd Key `___MODVERS___` to store the version of the running Arancino Module. [#fz4baj](https://app.clickup.com/t/fz4baj)
-* Introduced new Cortex Command  `GETRSVD` to retrieve values from Reserved Datastore. [#acujnq](https://app.clickup.com/t/acujnq)
+* Introduced new Reserverd Key `___MODENV___` to store the environment of the running Arancino Daemon. [#fz4f66](https://app.clickup.com/t/fz4f66)
+* Now use the Reserverd Key `___MODVERS___` to store the version of the running Arancino Daemon. [#fz4baj](https://app.clickup.com/t/fz4baj)
+* Introduced new Cortex Command `GETRSVD` to retrieve values from Reserved Datastore. [#acujnq](https://app.clickup.com/t/acujnq)
 
 #### v 2.1.5 2021.03.11
 * Fixed: arancino.service should start just after network.target and rc.local. Mandatory for buster based systems. [#fh5fv7](https://app.clickup.com/t/fh5fv7)

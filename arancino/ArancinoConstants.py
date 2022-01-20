@@ -2,7 +2,7 @@
 """
 SPDX-license-identifier: Apache-2.0
 
-Copyright (c) 2019 SmartMe.IO
+Copyright (c) 2019 smartme.IO
 
 Authors:  Sergio Tomasello <sergio@smartme.io>
 
@@ -61,17 +61,20 @@ class ArancinoReservedChars:
 
     # Reserved keys
     RSVD_KEY_MONITOR    = RSVD_CHARS + "MONITOR" + RSVD_CHARS
-    RSVD_KEY_LIBVERSION = RSVD_CHARS + "LIBVERS" + RSVD_CHARS
+    #RSVD_KEY_LIBVERSION = RSVD_CHARS + "LIBVERS" + RSVD_CHARS
     RSVD_KEY_MODVERSION = RSVD_CHARS + "MODVERS" + RSVD_CHARS
     RSVD_KEY_MODENVIRONMENT = RSVD_CHARS + "MODENV" + RSVD_CHARS
     RSVD_KEY_MODLOGLEVEL = RSVD_CHARS + "MODLOGLVL" + RSVD_CHARS
+    RSVD_KEY_BLINK_ID = RSVD_CHARS + "BLINK_ID" + RSVD_CHARS
 
     # Reseverd keys list
     RESERVEDKEYSLIST = [RSVD_KEY_MONITOR,
-                        RSVD_KEY_LIBVERSION,
+                        #RSVD_KEY_LIBVERSION,
                         RSVD_KEY_MODVERSION,
                         RSVD_KEY_MODENVIRONMENT,
-                        RSVD_KEY_MODLOGLEVEL]
+                        RSVD_KEY_MODLOGLEVEL,
+                        RSVD_KEY_BLINK_ID
+                        ]
 
 
 class ArancinoCommandErrorCodes:
@@ -104,10 +107,13 @@ class ArancinoCommandErrorCodes:
     "Key exists in the Persistent Data Store"
 
     ERR_NON_COMPATIBILITY = '209'
-    "Non compatibility between Arancino Module and Library"
+    "Non compatibility between Arancino Daemon and Library"
 
     ERR_INVALID_ARGUMENTS = '210'
     "Generic Invalid Arguments"
+
+    ERR_VALUE = '211'
+    "Invalid Value"
 
     ERRORS_CODE_LIST = [
                             ERR,
@@ -121,6 +127,7 @@ class ArancinoCommandErrorCodes:
                             ERR_REDIS_KEY_EXISTS_IN_PERS,
                             ERR_NON_COMPATIBILITY,
                             ERR_INVALID_ARGUMENTS,
+                            ERR_VALUE
                         ]
 
 
@@ -147,13 +154,15 @@ class ArancinoOperators:
     GREATER_THAN = "GT"
     GREATER_THAN_OR_EQUAL = "GTE"
     NOT_EQUAL = "NEQ"
+    BETWEEN = "BET"
+
 
 class ArancinoCommandIdentifiers:
     # Commands sent by the Port w/ Cortex Protocol
 
     # Init commands
     __CMD_SYS_START = 'START'
-    CMD_SYS_START = {"id": __CMD_SYS_START, "args": 1, "op": ArancinoOperators.GREATER_THAN_OR_EQUAL}
+    CMD_SYS_START = {"id": __CMD_SYS_START, "args": 2, "op": ArancinoOperators.EQUAL}
     "Start Commmand"
 
     # Simple Operation Commands
@@ -176,6 +185,10 @@ class ArancinoCommandIdentifiers:
     __CMD_APP_SET_PERS = 'SETPERS'
     CMD_APP_SET_PERS = {"id": __CMD_APP_SET_PERS, "args": 2, "op": ArancinoOperators.EQUAL}
     "Set value at key (Persistent for User)"
+
+    __CMD_APP_SET_RSVD = 'SETRSVD'
+    CMD_APP_SET_RSVD = {"id": __CMD_APP_SET_RSVD, "args": 2, "op": ArancinoOperators.EQUAL}
+    "Set value at key (Reserved keys)"
 
     __CMD_APP_DEL = 'DEL'
     CMD_APP_DEL = {"id": __CMD_APP_DEL, "args": 1, "op": ArancinoOperators.EQUAL}
@@ -231,10 +244,25 @@ class ArancinoCommandIdentifiers:
     CMD_APP_MSET_PERS = {"id": __CMD_APP_MSET_PERS, "args": 2, "op": ArancinoOperators.EQUAL}
     "Sets more than one value at the specified keys, at the same time (Persistent for User)"
 
-
     __CMD_APP_MGET = 'MGET'
     CMD_APP_MGET = {"id": __CMD_APP_MGET, "args": 1, "op": ArancinoOperators.EQUAL}
     "Sets more than one key value at the same time"
+
+    __CMD_APP_STORETAGS = 'STORETAGS'
+    CMD_APP_STORETAGS = {"id": __CMD_APP_STORETAGS, "args": 3, "args2": 4, "op": ArancinoOperators.BETWEEN}
+    "Store tags for a Time Series at key"
+
+    __CMD_APP_STORE = 'STORE'
+    CMD_APP_STORE = {"id": __CMD_APP_STORE, "args": 2, "args2": 3, "op": ArancinoOperators.BETWEEN}
+    "Store the current value in TimeSeries data structure at the key"
+
+    __CMD_APP_MSTORE = 'MSTORE'
+    CMD_APP_MSTORE = {"id": __CMD_APP_MSTORE, "args": 2, "args2": 3, "op": ArancinoOperators.BETWEEN}
+    "Store more than one value in TimeSeries data structure at the key"
+
+    __CMD_APP_INTEROCEP = 'INTEROCEP'
+    CMD_APP_INTEROCEP = {"id": __CMD_APP_INTEROCEP, "args": 2, "args2": 3, "op": ArancinoOperators.BETWEEN}
+    "Store `interoception` datain TimeSeries data structure, like temperature, memory etc.."
 
     COMMANDS_DICT = {
         __CMD_SYS_START: CMD_SYS_START,
@@ -243,6 +271,7 @@ class ArancinoCommandIdentifiers:
         __CMD_APP_SET: CMD_APP_SET,
         __CMD_APP_SET_STD: CMD_APP_SET_STD,
         __CMD_APP_SET_PERS: CMD_APP_SET_PERS,
+        __CMD_APP_SET_RSVD: CMD_APP_SET_RSVD,
         __CMD_APP_DEL: CMD_APP_DEL,
         __CMD_APP_KEYS: CMD_APP_KEYS,
         __CMD_APP_HGET: CMD_APP_HGET,
@@ -259,6 +288,10 @@ class ArancinoCommandIdentifiers:
         __CMD_APP_MSET_STD: CMD_APP_MSET_STD,
         __CMD_APP_MSET_PERS: CMD_APP_MSET_PERS,
         __CMD_APP_MGET: CMD_APP_MGET,
+        __CMD_APP_STORE: CMD_APP_STORE,
+        __CMD_APP_STORETAGS: CMD_APP_STORETAGS,
+        __CMD_APP_MSTORE: CMD_APP_MSTORE,
+        __CMD_APP_INTEROCEP: CMD_APP_INTEROCEP,
     }
     "Complete dictionary of all available commands: " \
     "{ 'SET': {'id': 'SET', 'args': 2} , ... }"
@@ -269,6 +302,7 @@ class ArancinoCommandIdentifiers:
                      __CMD_APP_SET,
                      __CMD_APP_SET_STD,
                      __CMD_APP_SET_PERS,
+                     __CMD_APP_SET_RSVD,
                      __CMD_APP_DEL,
                      __CMD_APP_KEYS,
                      __CMD_APP_HGET,
@@ -285,6 +319,10 @@ class ArancinoCommandIdentifiers:
                      __CMD_APP_MSET_STD,
                      __CMD_APP_MSET_PERS,
                      __CMD_APP_MGET,
+                     __CMD_APP_STORE,
+                     __CMD_APP_STORETAGS,
+                     __CMD_APP_MSTORE,
+                     __CMD_APP_INTEROCEP,
                      ]
     "Complete list of all available commands:" \
     "[ 'SET', 'GET', ... ]"
@@ -297,11 +335,14 @@ class ArancinoDBKeys:
     B_ID = "B_ID"                           # String
     B_PORT_TYPE = "B_PORT_TYPE"             # Num
     B_CREATION_DATE = "S_CREATION_DATE"     # Datetime
-    B_LIB_VER = "B_LIB_VER"                 # String
+    B_FW_LIB_VER = "B_FW_LIB_VER"           # String
     B_FW_VER = "B_FW_VER"                   # String
     B_FW_NAME = "B_FW_NAME"                 # String
     B_FW_COMPILE_DATE = "B_FW_COMPILE_DATE" # Datetime
     B_FW_CORE_VER = "B_FW_CORE_VER"         # String
+    B_FW_USE_FREERTOS = "B_FW_USE_FREERTOS" # String
+    B_MCU_FAMILY = "B_MCU_FAMILY"           # String
+    B_ATTRIBUTES = "B_ATTRIBUTES"           # Dict
     
     # LINK ARANCINO METADATA (L)ink
     L_DEVICE = "L_DEVICE"                   # String
@@ -338,11 +379,13 @@ class ArancinoDBKeys:
         B_ID: "B_ID",                           # String
         B_PORT_TYPE: "B_PORT_TYPE",             # Num
         B_CREATION_DATE: "S_CREATION_DATE",     # Datetime
-        B_LIB_VER: "B_LIB_VER",                 # String
+        B_FW_LIB_VER: "B_FW_LIB_VER",           # String
         B_FW_VER: "B_FW_VER",                   # String
         B_FW_NAME: "B_FW_NAME",                 # String
         B_FW_COMPILE_DATE: "B_FW_COMPILE_DATE", # Datetime
         B_FW_CORE_VER: "B_FW_CORE_VER",         # String
+        B_MCU_FAMILY: "B_MCU_FAMILY",           # String
+        B_ATTRIBUTES: "B_ATTRIBUTES",           # Dict
         
         # LINK ARANCINO METADATA (L)ink
         L_DEVICE: "L_DEVICE",                   # String
@@ -379,11 +422,15 @@ class ArancinoDBKeys:
         B_ID: "Id",                                 # String
         B_PORT_TYPE: "Type",                        # Num
         B_CREATION_DATE: "Creation Date",           # Datetime
-        B_LIB_VER: "Library Version",               # String
+        B_FW_LIB_VER: "Library Version",               # String
         B_FW_VER: "Fimrware Version",               # String
         B_FW_NAME: "Firmware Name",                 # String
         B_FW_COMPILE_DATE: "Firmware Compile Date", # Datetime
         B_FW_CORE_VER: "Firmware Core Version",     # String
+        B_FW_USE_FREERTOS: "Firmware Uses FreeRTOS",# String
+        B_MCU_FAMILY: "Microcontroller Family",     # String
+        B_ATTRIBUTES: "Generic Port Attributes",    # Dict
+
         # LINK ARANCINO METADATA (L)ink
         L_DEVICE: "Connection Id",                  # String
 
@@ -448,6 +495,8 @@ class ArancinoApiResponseCode:
 
     OK_ARANCINO_CONFIGURATED = 18
 
+    OK_ARANCINO_PORT_IDENTIFYING = 19
+
     ERR_PORT_NOT_FOUND = 20
     ERR_CAN_NOT_CONNECT_PORT_DISABLED = 21
     ERR_GENERIC = 22
@@ -457,6 +506,7 @@ class ArancinoApiResponseCode:
     ERR_NO_ARANCINO_CONFIG_SECTION_PROVIDED = 26
     ERR_NO_ARANCINO_CONFIG_OPTION_PROVIDED = 27
     ERR_NO_ARANCINO_CONFIG_VALUE_PROVIDED = 28
+    ERR_NOT_IMPLEMENTED = 29
 
     __USER_MESSAGES = {
         OK_ALREADY_ENABLED: "Selected port is already enabled.",
@@ -488,6 +538,7 @@ class ArancinoApiResponseCode:
         ERR_NO_ARANCINO_CONFIG_OPTION_PROVIDED: "Sorry, no option configuration found during this operation",
         ERR_NO_ARANCINO_CONFIG_VALUE_PROVIDED: "Sorry, no value configuration found during this operation",
 
+        ERR_NOT_IMPLEMENTED: "Sorry, function not implemented",
 
         OK_ALREADY_HIDDEN: "Selected port is already hidden",
         OK_HIDDEN: "Port hidden successfully",
@@ -497,7 +548,9 @@ class ArancinoApiResponseCode:
 
         OK_CONFIGURATED: "Port configured successfully",
 
-        OK_ARANCINO_CONFIGURATED: "Arancino configured successfully"
+        OK_ARANCINO_CONFIGURATED: "Arancino configured successfully",
+
+        OK_ARANCINO_PORT_IDENTIFYING: "Start Port Identifying"
 
     }
 
@@ -531,6 +584,8 @@ class ArancinoApiResponseCode:
         ERR_NO_ARANCINO_CONFIG_OPTION_PROVIDED: "Sorry, no option configuration found during this operation",
         ERR_NO_ARANCINO_CONFIG_VALUE_PROVIDED: "Sorry, no value configuration found during this operation",
 
+        ERR_NOT_IMPLEMENTED: "Sorry, function not implemented",
+
         OK_ALREADY_HIDDEN: "Selected port is already hidden",
         OK_HIDDEN: "Port hidden successfully",
 
@@ -539,7 +594,9 @@ class ArancinoApiResponseCode:
 
         OK_CONFIGURATED: "Port configured successfully",
 
-        OK_ARANCINO_CONFIGURATED: "Arancino configured successfully"
+        OK_ARANCINO_CONFIGURATED: "Arancino configured successfully",
+
+        OK_ARANCINO_PORT_IDENTIFYING: "Start Port Identifying"
 
     }
 
@@ -548,6 +605,39 @@ class ArancinoApiResponseCode:
 
     def INTERNAL_MESSAGE(self, response_code):
         return self.__INTERNAL_MESSAGES[response_code]
+
+
+class ArancinoPortAttributes:
+
+    MCU_FAMILY = "MCU_FAMILY"
+    FIRMWARE_LIBRARY_VERSION = "FW_LIB_VER"
+    FIRMWARE_NAME = "FW_NAME"
+    FIRMWARE_VERSION = "FW_VER"
+    FIRMWARE_BUILD_TIME = "FW_BUILD_TIME"
+    FIRMWARE_CORE_VERSION = "FW_CORE_VER"
+    FIRMWARE_USE_FREERTOS = "FW_USE_FREERTOS"
+
+    AttributesKeysList = [MCU_FAMILY,
+                          FIRMWARE_LIBRARY_VERSION,
+                          FIRMWARE_NAME,
+                          FIRMWARE_VERSION,
+                          FIRMWARE_BUILD_TIME,
+                          FIRMWARE_CORE_VERSION,
+                          FIRMWARE_USE_FREERTOS]
+
+
+class ArancinoPortInteroceptionAttributes:
+    MEMORY_TOTAL = "MEM_TOT" #
+    MEMORY_FREE = "MEM_FREE" # nel samd21 invia la free
+    MEMORY_USED = "MEM_USED"
+    TEMPERATURE = "TEMP"
+
+
+class MicrocontrollerFamily:
+    SAMD21 =    "SAMD21"
+    NRF52 =     "NRF52"
+    RP20 =      "RP20"
+    STM32 =     "STM32"
 
 
 COMPATIBILITY_MATRIX_MOD_SERIAL = {
@@ -578,6 +668,7 @@ COMPATIBILITY_MATRIX_MOD_SERIAL = {
     "2.1.5": [">=0.4.0,<1.0.0", ">=1.3.0,<2.0.0"],
     "2.2.0": [">=0.4.0,<1.0.0", ">=1.3.0"],
     "2.3.0": [">=1.3.0", ">=1.3.0"],
+    "2.4.0": [">=2.0.0"],
     #"2.0.0": ["<0.3.0", ">=1.2.0"], # for tests
 }
 
@@ -593,4 +684,10 @@ COMPATIBILITY_MATRIX_MOD_TEST = {
     "2.1.5": [">=1.0.0"],
     "2.2.0": [">=1.0.0"],
     "2.3.0": [">=1.0.0"],
+    "2.4.0": [">=1.0.0"],
 }
+
+
+SUFFIX_TMSTP = "TSTMP"
+SUFFIX_TAG = "TSTAG"
+SUFFIX_LBL = "TSLBL"

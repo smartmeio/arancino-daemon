@@ -20,9 +20,8 @@ under the License
 """
 
 import serial
-from serial import SerialException
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
-from arancino.handler.ArancinoSerialHandler import ArancinoSerialHandler
+from arancino.port.serial.ArancinoSerialHandler import ArancinoSerialHandler
 from arancino.ArancinoCortex import *
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
@@ -35,9 +34,9 @@ TRACE = CONF.get_log_print_stack_trace()
 
 class ArancinoSerialPort(ArancinoPort):
 
-    def __init__(self, port_info=None, device=None, baudrate_comm=9600, baudrate_reset=300, m_s_plugged=False, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
+    def __init__(self, port_info=None, device=None, baudrate_comm=9600, baudrate_reset=300, m_s_plugged=False, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, reset_delay=CONF.get_port_serial_reset_reconnection_delay(), upload_cmd=CONF.get_port_serial_upload_command(), receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
 
-        super().__init__(device=device, port_type=PortTypes.SERIAL, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=CONF.get_port_serial_upload_command(), receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
+        super().__init__(device=device, port_type=PortTypes.SERIAL, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=upload_cmd, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
         # self._port_type = PortTypes.Serial
 
@@ -48,6 +47,11 @@ class ArancinoSerialPort(ArancinoPort):
         self.__comm_baudrate = baudrate_comm
         self.__reset_baudrate = baudrate_reset
         self.__timeout = timeout
+
+        # FAMILY PORT PARAMETER
+        self.__reset_delay = reset_delay
+        #self.__upload_command = upload_cmd
+
 
         # SERIAL PORT METADATA
         self.__m_p_vid = None
@@ -67,7 +71,7 @@ class ArancinoSerialPort(ArancinoPort):
         # Command Executor
         # self.__executor = ArancinoCommandExecutor(self.__id, self.__device)
 
-        self._executor = ArancinoCommandExecutor(self._id, self._device, self._port_type)
+        self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
 
         self._compatibility_array = COMPATIBILITY_MATRIX_MOD_SERIAL[str(CONF.get_metadata_version().truncate())]
 
@@ -77,66 +81,7 @@ class ArancinoSerialPort(ArancinoPort):
 
         self._log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
 
-    # def __commandReceivedHandler(self, raw_command):
-    #     """
-    #     This is an Asynchronous function, and represent "handler" to be used by ArancinoSerialHandeler.
-    #         It first receives a Raw Command from the Serial Port, then translate it to an ArancinoCommand object
-    #         and send it back to another callback function
-    #
-    #     :param raw_command: the Raw Command received from the Serial port
-    #     :return: void.
-    #     """
-    #     try:
-    #         # create an Arancino Comamnd from the raw command
-    #         acmd = ArancinoComamnd(raw_command=raw_command)
-    #         LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.getId(), str(acmd.getArguments())))
-    #
-    #         # check if the received command handler callback function is defined
-    #         if self._received_command_handler is not None:
-    #             self._received_command_handler(self._id, acmd)
-    #
-    #         # call the Command Executor and get a raw response
-    #         raw_response = self._executor.exec(acmd)
-    #
-    #         # create the Arancino Response object
-    #         arsp = ArancinoResponse(raw_response=raw_response)
-    #
-    #
-    #     # All Arancino Application Exceptions contains an Error Code
-    #     except ArancinoException as ex:
-    #
-    #         if ex.error_code == ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY:
-    #             self._setComapitibility(False)
-    #
-    #         arsp = ArancinoResponse(rsp_id=ex.error_code, rsp_args=[])
-    #         LOG.error("{} {}".format(self._log_prefix, str(ex)))
-    #
-    #     # Generic Exception uses a generic Error Code
-    #     except Exception as ex:
-    #         arsp = ArancinoResponse(rsp_id=ArancinoCommandErrorCodes.ERR, rsp_args=[])
-    #         LOG.error("{} {}".format(self._log_prefix, str(ex)))
-    #
-    #     finally:
-    #
-    #         try:
-    #             # move there that, becouse if there's an non compatibility error, lib version will not setted
-    #             #  moving that in the finally, it will be setted
-    #             if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
-    #
-    #                 self._retrieveStartCmdArgs(acmd.getArguments())
-    #
-    #                 # if it is not compatible an error was send back to the mcu and the communnication is not started (the mcu receive an errore and try to connect again)
-    #                 # if it is compatible the communication starts and it ready to receive new commands.
-    #                 started = True if self.isCompatible() else False
-    #                 self._setStarted(started)
-    #
-    #             # send the response back.
-    #             self.sendResponse(arsp.getRaw())
-    #             LOG.debug("{} Sending: {}: {}".format(self._log_prefix, arsp.getId(), str(arsp.getArguments())))
-    #
-    #         except SerialException as ex:
-    #             LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex))
-    #
+
 
     def __connectionLostHandler(self):
         """
@@ -286,6 +231,11 @@ class ArancinoSerialPort(ArancinoPort):
     def reset(self):
         try:
 
+            # if self.getMicrocontrollerFamily():
+            #     self._reset_delay = getattr(CONF, "get_port_serial_{}_reset_reconnection_delay()".format(self.getMicrocontrollerFamily().lower()))
+            # else:
+            #     self._reset_delay = CONF.get_port_serial_reset_reconnection_delay()
+
             LOG.info("{} Resetting...".format(self._log_prefix))
             self.disconnect()
             self.setEnabled(False)
@@ -296,7 +246,8 @@ class ArancinoSerialPort(ArancinoPort):
             ser.open()
             ser.close()
             del ser
-            time.sleep(3)
+            #time.sleep( CONF.get_port_serial_reset_reconnection_delay() )
+            time.sleep( self.getResetReconnectionDelay())
             self.setEnabled(True)
             LOG.info("{} Reset".format(self._log_prefix))
             return True
@@ -307,45 +258,46 @@ class ArancinoSerialPort(ArancinoPort):
 
     def upload(self, firmware):
 
-        LOG.info("{} Starting Upload Procedure".format(self._log_prefix))
-        import subprocess
+        if self.getMicrocontrollerFamily() == MicrocontrollerFamily.SAMD21:
+            LOG.info("{} Starting Upload Procedure".format(self._log_prefix))
+            import subprocess
 
-        cmd = self._upload_cmd.format(firmware=firmware, port=self)
-        cmd_arr = cmd.split(" ")
-        LOG.info("{} Ready to run upload command ===> {} <===".format(self._log_prefix, cmd))
+            cmd = self._upload_cmd.format(firmware=firmware, port=self)
+            cmd_arr = cmd.split(" ")
+            LOG.info("{} Ready to run upload command ===> {} <===".format(self._log_prefix, cmd))
 
-        stdout = None
-        stderr = None
-        rtcode = 0
-        try:
-            self.setEnabled(False)
-            self.disconnect()
-            while self.isConnected():
-                pass
+            stdout = None
+            stderr = None
+            rtcode = 0
+            try:
+                self.setEnabled(False)
+                self.disconnect()
+                while self.isConnected():
+                    pass
+
+                proc = subprocess.Popen(cmd_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                stdout, stderr = proc.communicate()
+                stdout = stdout.decode("utf-8")
+                stderr = stderr.decode("utf-8")
+                rtcode = proc.returncode
+
+                if rtcode != 0:
+                    LOG.error("{} Return code: {} - {}".format(self._log_prefix, str(rtcode), stderr))
+                else:
+                    LOG.info("{} Upload Success!".format(self._log_prefix))
+                    LOG.info("{} {}".format(self._log_prefix, stdout))
 
 
-            proc = subprocess.Popen(cmd_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = proc.communicate()
-            stdout = stdout.decode("utf-8")
-            stderr = stderr.decode("utf-8")
-            rtcode = proc.returncode
+            except Exception as ex:
+                rtcode = -1
+                stderr = str(ex)
+                LOG.error("{} Something goes wrong while uploadig: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
 
-            if rtcode != 0:
-                LOG.error("{} Return code: {} - {}".format(self._log_prefix, str(rtcode), stderr))
-            else:
-                LOG.info("{} Upload Success!".format(self._log_prefix))
-                LOG.info("{} {}".format(self._log_prefix, stdout))
-
-
-        except Exception as ex:
-            rtcode = -1
-            stderr = str(ex)
-            LOG.error("{} Something goes wrong while uploadig: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
-
-        finally:
-            self.setEnabled(True)
-            return rtcode, stdout, stderr
-
+            finally:
+                self.setEnabled(True)
+                return rtcode, stdout, stderr
+        else:
+            raise NotImplemented("Upload Function is not available for port {}[{}] of {} Family".format(self.getId(), self.getPortType().name, self.getMicrocontrollerFamily()), ArancinoApiResponseCode.ERR_NOT_IMPLEMENTED)
 
     # SERIAL ARANCINO PORT METADATA
 
@@ -387,3 +339,12 @@ class ArancinoSerialPort(ArancinoPort):
 
     def getInterface(self):
         return self.__m_p_interface
+
+    # SERIAL ARANCINO CONFIG METADATA
+    def getResetReconnectionDelay(self):
+        return self.__reset_delay
+
+    def setResetReconnectionDelay(self, reset_delay):
+
+        if reset_delay:
+            self.__reset_delay = int(reset_delay)

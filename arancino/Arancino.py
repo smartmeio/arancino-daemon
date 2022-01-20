@@ -23,8 +23,8 @@ import threading
 from threading import Thread
 from datetime import datetime
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, secondsToHumanString
-from arancino.discovery.ArancinoSerialDiscovery import ArancinoSerialDiscovery
-from arancino.discovery.ArancinoTestDiscovery import ArancinoTestDiscovery
+from arancino.port.serial.ArancinoSerialDiscovery import ArancinoSerialDiscovery
+from arancino.port.test.ArancinoTestDiscovery import ArancinoTestDiscovery
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
 from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoConstants import ArancinoApiResponseCode
@@ -265,3 +265,6 @@ class Arancino(Thread):
 
     def getDiscoveredPorts(self):
         return self.__ports_discovered
+
+    def identifyPort(self, port_id):
+        self.__datastore.getDataStoreRsvd().set(ArancinoReservedChars.RSVD_KEY_BLINK_ID, "1")

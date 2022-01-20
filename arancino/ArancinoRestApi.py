@@ -23,6 +23,7 @@ import time
 import netifaces
 import os
 from arancino.Arancino import Arancino
+from arancino.ArancinoExceptions import ArancinoException
 from arancino.utils.ArancinoUtils import ArancinoConfig, secondsToHumanString, ArancinoLogger
 from arancino.ArancinoConstants import ArancinoApiResponseCode
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
@@ -85,6 +86,11 @@ class ArancinoApi():
             }
 
             return response, 200
+
+        except ArancinoException as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=ex.error_code, internal_message=[ex.title, ex.message]), 200
+
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
@@ -116,6 +122,10 @@ class ArancinoApi():
             }
             return response, 200
 
+        except ArancinoException as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=ex.error_code, internal_message=[ex.title, ex.message]), 200
+
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
@@ -139,6 +149,11 @@ class ArancinoApi():
             }
 
             return response, 200
+
+        except ArancinoException as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=ex.error_code, internal_message=[ex.title, ex.message]), 200
+
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
@@ -168,6 +183,10 @@ class ArancinoApi():
 
             return response, 200
 
+        except ArancinoException as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=ex.error_code, internal_message=[ex.title, ex.message]), 200
+
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
@@ -187,6 +206,10 @@ class ArancinoApi():
                 }
 
             return response, 200
+
+        except ArancinoException as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=ex.error_code, internal_message=[ex.title, ex.message]), 200
 
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
@@ -211,6 +234,10 @@ class ArancinoApi():
 
             return response, 200
 
+        except ArancinoException as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=ex.error_code, internal_message=[ex.title, ex.message]), 200
+
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)))
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
@@ -233,6 +260,10 @@ class ArancinoApi():
             }
 
             return response, 200
+
+        except ArancinoException as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=ex.error_code, internal_message=[ex.title, ex.message]), 200
 
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
@@ -280,6 +311,10 @@ class ArancinoApi():
             else:
                 return self.__getArancinoConf(), 200
 
+        except ArancinoException as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=ex.error_code, internal_message=[ex.title, ex.message]), 200
+
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
@@ -307,6 +342,11 @@ class ArancinoApi():
                     return self.__apiCreateErrorMessage(error_code=API_CODE.OK_RESET_NOT_PROVIDED), 500
             else:
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 200
+
+        except ArancinoException as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=ex.error_code, internal_message=[ex.title, ex.message]), 200
+
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_RESET, internal_message=[None, str(ex)]), 500
@@ -335,6 +375,10 @@ class ArancinoApi():
 
             else:
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 500
+
+        except ArancinoException as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=ex.error_code, internal_message=[ex.title, ex.message]), 200
 
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
@@ -365,6 +409,10 @@ class ArancinoApi():
 
             else:
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 500
+
+        except ArancinoException as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=ex.error_code, internal_message=[ex.title, ex.message]), 200
 
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
@@ -397,6 +445,11 @@ class ArancinoApi():
 
             else:
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 500
+
+        except ArancinoException as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=ex.error_code, internal_message=[ex.title, ex.message]), 200
+
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_UPLOAD, internal_message=[None, str(ex)]), 500
@@ -451,6 +504,10 @@ class ArancinoApi():
             else:
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 500
 
+        except ArancinoException as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=ex.error_code, internal_message=[ex.title, ex.message]), 200
+
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
@@ -476,6 +533,10 @@ class ArancinoApi():
             else:
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 500
 
+        except ArancinoException as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=ex.error_code, internal_message=[ex.title, ex.message]), 200
+
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
@@ -500,6 +561,10 @@ class ArancinoApi():
 
             else:
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 500
+
+        except ArancinoException as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=ex.error_code, internal_message=[ex.title, ex.message]), 200
 
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
@@ -530,10 +595,34 @@ class ArancinoApi():
 
             return self.__apiCreateOkMessage(response_code=API_CODE.OK_ARANCINO_CONFIGURATED), 200
 
+        except ArancinoException as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=ex.error_code, internal_message=[ex.title, ex.message]), 200
+
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
+    def identifyPort(self, port_id):
+        try:
+
+            port = self.__arancino.findPort(port_id)
+
+            if port:
+                #self.__arancino.identifyPort(port_id)
+                port.identify()
+                return self.__apiCreateOkMessage(response_code=API_CODE.OK_ARANCINO_PORT_IDENTIFYING), 200
+
+            else:
+                return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_PORT_NOT_FOUND), 500
+
+        except ArancinoException as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=ex.error_code, internal_message=[ex.title, ex.message]), 200
+
+        except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 200
 
     #### UTILS ####
     def __getOsInfo(self):
@@ -609,11 +698,14 @@ class ArancinoApi():
             response[DB_KEYS.B_ID] = port.getId()
             response[DB_KEYS.L_DEVICE] = port.getDevice()
             response[DB_KEYS.B_PORT_TYPE] = port.getPortType().name
-            response[DB_KEYS.B_LIB_VER] = None if port.getLibVersion() is None else str(port.getLibVersion())
+            response[DB_KEYS.B_FW_LIB_VER] = None if port.getLibVersion() is None else str(port.getLibVersion())
             response[DB_KEYS.B_FW_NAME] = None if port.getFirmwareName() is None else str(port.getFirmwareName())
             response[DB_KEYS.B_FW_VER] = None if port.getFirmwareVersion() is None else str(port.getFirmwareVersion())
-            response[DB_KEYS.B_FW_COMPILE_DATE] = None if port.getFirmwareUploadDate() is None else port.getFirmwareUploadDate()
+            response[DB_KEYS.B_FW_COMPILE_DATE] = None if port.getFirmwareBuildDate() is None else port.getFirmwareBuildDate()
             response[DB_KEYS.B_FW_CORE_VER] = None if port.getFirmwareCoreVersion() is None else str(port.getFirmwareCoreVersion())
+            response[DB_KEYS.B_MCU_FAMILY] = None if port.getMicrocontrollerFamily() is None else str(port.getMicrocontrollerFamily())
+            response[DB_KEYS.B_ATTRIBUTES] = None if port.getGenericAttributes() is None else port.getGenericAttributes()
+            response[DB_KEYS.B_FW_USE_FREERTOS] = None if port.getFirmwareUseFreeRTOS() is None else port.getFirmwareUseFreeRTOS()
             
             # BASE ARANCINO STATUS METADATA (S)Status
             response[DB_KEYS.S_CONNECTED] = port.isConnected()

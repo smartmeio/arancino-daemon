@@ -1,6 +1,5 @@
-
 ### Arancino Rest API v1.0
-Arancino API runs at HTTP port 1745. The base URL is: `http://{{host}}:1475/api/v1.0` where `{{host}}` is a placeholder
+Arancino API runs at HTTP port 1745. The base URL is: `http://{{host}}:1475/api/v1` where `{{host}}` is a placeholder
 for the ip address or hostname of your Arancino device. They were introduced in version `2.0.0` and are organized in two main categories:
 
 - Queries
@@ -8,7 +7,7 @@ for the ip address or hostname of your Arancino device. They were introduced in 
 
 
 #### Queries API:
-The queries API are useful to get information about the system and the running Arancino Module.
+The queries API are useful to get information about the system and the running Arancino Daemon.
 
 ##### Hello
 Returns a lot of information about the device:
@@ -437,7 +436,7 @@ Return all the *Discovered* ports
 ```
 
 #### Operations API:
-Those API are accesbile with authentication becouse they have impact in the running Arancino Module. To access them \
+Those API are accesbile with authentication becouse they have impact in the running Arancino Daemon. To access them \
 you can use every user defined in Arancino OS except `root`, ie: use the user `me`.
 
 

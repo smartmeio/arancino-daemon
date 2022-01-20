@@ -18,10 +18,8 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 """
-import semantic_version
-from serial import SerialException
 
-from arancino.handler.ArancinoTestHandler import ArancinoTestHandler
+from arancino.port.test.ArancinoTestHandler import ArancinoTestHandler
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.ArancinoCortex import *
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
@@ -42,7 +40,7 @@ class ArancinoTestPort(ArancinoPort):
         self._id = id if id is not None else uuid.uuid1()
         self.__stop = False
 
-        self._executor = ArancinoCommandExecutor(self._id, self._device, self._port_type)
+        self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
 
         self._compatibility_array = COMPATIBILITY_MATRIX_MOD_TEST[str(CONF.get_metadata_version().truncate())]
 
@@ -185,19 +183,18 @@ class ArancinoTestPort(ArancinoPort):
             else:
                 LOG.debug("{} Already Disconnected".format(self._log_prefix))
 
-
         except Exception as ex:
             raise ex
 
+
+    def identify(self):
+        raise NotImplemented("Identify Function is not available for port {}[{}]".format(self.getId(), self.getPortType().name), ArancinoApiResponseCode.ERR_NOT_IMPLEMENTED)
+
     def reset(self):
-        # No reset provided method for this Port
-        return False
-        # LOG.info("{} Starting Reset".format(self.__log_prefix))
-        # LOG.info("{} Reset Success!".format(self.__log_prefix))
+        raise NotImplemented("Reset Function is not available for port {}[{}]".format(self.getId(), self.getPortType().name), ArancinoApiResponseCode.ERR_NOT_IMPLEMENTED)
 
     def upload(self, firmware):
-        # No upload provided method for this Port
-        return False
+        raise NotImplemented("Upload Function is not available for port {}[{}]".format(self.getId(), self.getPortType().name), ArancinoApiResponseCode.ERR_NOT_IMPLEMENTED)
 
     def sendResponse(self, raw_response):
         # Do nothing

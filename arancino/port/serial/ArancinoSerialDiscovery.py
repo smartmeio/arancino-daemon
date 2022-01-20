@@ -22,9 +22,9 @@ under the License
 from serial.tools import list_ports
 
 from arancino.utils.ArancinoUtils import ArancinoConfig
-from arancino.filter.ArancinoPortFilter import FilterTypes
-from arancino.filter.ArancinoSerialPortFilter import ArancinoSerialPortFilter
-from arancino.port.ArancinoSerialPort import ArancinoSerialPort
+from arancino.port.ArancinoPortFilter import FilterTypes
+from arancino.port.serial.ArancinoSerialPortFilter import ArancinoSerialPortFilter
+from arancino.port.serial.ArancinoSerialPort import ArancinoSerialPort
 
 CONF = ArancinoConfig.Instance()
 

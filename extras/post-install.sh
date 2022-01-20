@@ -1,84 +1,60 @@
 #!/bin/bash
 
-echo --------------------------------------
-echo Making Logs and Conf directories
+source extras/vars.env
+
+
+echo ---------Making Logs and Conf directories--------
 # create logs dir
-mkdir -p /var/log/arancino
-#mkdir -p "$ARANCINOLOG"
+echo creating directory: $ARANCINO
+mkdir -p $ARANCINO
 
 # create arancino dir
-mkdir -p /etc/arancino/config
-#mkdir -p "$ARANCINOCONF"
+#mkdir -p /etc/arancino/config
+echo creating directory: $ARANCINOCONF
+mkdir -p $ARANCINOCONF
 
+#mkdir -p /etc/arancino/templates
+echo creating directory: $ARANCINO/templates
+mkdir -p $ARANCINO/templates
+
+# create logs dir
+echo creating directory: $ARANCINOLOG
+mkdir -p $ARANCINOLOG
+
+echo creating directory: /etc/redis/cwd
 mkdir -p /etc/redis/cwd
 chown -R redis:redis /etc/redis/cwd
 
-echo --------------------------------------
+echo -------------------------------------------------
 
-echo --------------------------------------
-echo Giving grants 644 and copying services file
-#change permissions to services files
+echo ---Giving grants 644 and copying services file---
 chown 644 extras/arancino.service
-#chown 644 extras/redis-persistent.service
-#chown 644 extras/redis-volatile.service
-chown 644 config/arancino.prod.cfg
-chown 644 config/arancino.dev.cfg
+chown 644 config/arancino.cfg
 
-#copy arancino service file to /ectc/systemd directory
 cp extras/arancino.service /etc/systemd/system/
+cp extras/vars.env /etc/arancino/
+echo -------------------------------------------------
 
-#copy redis services files to /lib/systemd directory
-#cp extras/redis-*.service /lib/systemd/system/
 
-#copy redis conf files
-#cp extras/*.conf /etc/redis/
-echo --------------------------------------
-
-echo --------------------------------------
-#echo Checking diff of configuration file and making a backup
-##copy arancino config file to /etc/arancino/config <== ARANCINOCONF and make a backup of current conf file, if different
-#crc_new=$(md5sum config/arancino.prod.cfg | awk {'print $1'})
-#crc_old=$(md5sum /etc/arancino/config/arancino.prod.cfg | awk {'print $1'})
-#timestamp=$(date +%Y%m%d_%H%M%S)
-#
-#if [ "$crc_new" != "$crc_old" ]
-#then
-#    echo Creating configuration backup file "/etc/arancino/config/arancino_$timestamp.cfg"
-#    mv /etc/arancino/config/arancino.prod.cfg /etc/arancino/config/arancino_$timestamp.cfg
-#    cp config/arancino.prod.cfg /etc/arancino/config/arancino.prod.cfg
-#fi
-
+echo ------Backup previous configurations files-------
 echo Backup previous configurations files
 timestamp=$(date +%Y%m%d_%H%M%S)
-[ -f /etc/arancino/config/arancino.prod.cfg ] && mv /etc/arancino/config/arancino.prod.cfg /etc/arancino/config/arancino_$timestamp.cfg
-[ -f /etc/arancino/config/arancino.dev.cfg ] && mv /etc/arancino/config/arancino.dev.cfg /etc/arancino/config/arancino_$timestamp.dev.cfg
-cp config/arancino.prod.cfg /etc/arancino/config/arancino.prod.cfg
-cp config/arancino.dev.cfg /etc/arancino/config/arancino.dev.cfg
-cp config/gunicorn.cfg.py /etc/arancino/config/gunicorn.cfg.py
+[ -f /etc/arancino/config/arancino.cfg ] && mv $ARANCINOCONF/arancino.cfg $ARANCINOCONF/arancino_$timestamp.cfg
+echo -------------------------------------------------
 
-echo --------------------------------------
+echo -------------------Copy files--------------------
+cp config/arancino.cfg $ARANCINOCONF/arancino.cfg
+cp config/gunicorn.cfg.py $ARANCINOCONF/gunicorn.cfg.py
 
-echo --------------------------------------
-echo Reloading daemons
+cp templates/default.json.tmpl $ARANCINO/templates/default.json.tmpl
+cp templates/default.xml.tmpl $ARANCINO/templates/default.xml.tmpl
+cp templates/default.yaml.tmpl $ARANCINO/templates/default.yaml.tmpl
+cp templates/S4T_default.json.tmpl $ARANCINO/templates/S4T_default.json.tmpl
+echo -------------------------------------------------
 
-#daemon reload
+echo -------------Reloading daemons--------------------
 systemctl daemon-reload
 
-#enable services
-#systemctl enable redis-volatile
-#systemctl enable redis-persistent
 systemctl enable arancino
 systemctl restart arancino
-
-#start services
-#systemctl start redis-volatile
-#systemctl start redis-persistent
-#systemctl start arancino
-echo --------------------------------------
-
-#echo --------------------------------------
-#echo Resetting main microcontroller
-##reset main mcu
-#echo 0 > /sys/class/gpio/gpio25/value
-#echo 1 > /sys/class/gpio/gpio25/value
-#echo --------------------------------------
+echo -------------------------------------------------

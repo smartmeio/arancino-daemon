@@ -1,6 +1,6 @@
 [Unit]
 Description=Arancino
-After=network.target rc-local.service
+After=network.target rc.local
 
 [Service]
 Type=simple
@@ -9,24 +9,28 @@ Group=root
 
 ### ARANCINO ENV VARS ###
 
-# Arancino Module Directory
-Environment="ARANCINO=/etc/arancino"
+# Environment File
+EnvironmentFile=/etc/arancino/vars.env
+#EnvironmentFile="$ARANCINO/vars.env"
 
-# Arancino Module Configuration Directory
-Environment="ARANCINOCONF=/etc/arancino/config"
+# Arancino Daemon Directory
+######Environment="ARANCINO=/etc/arancino"
 
-# Arancino Module Logs Directory
-Environment="ARANCINOLOG=/var/log/arancino"
+# Arancino Daemon Configuration Directory
+######Environment="ARANCINOCONF=/etc/arancino/config"
 
-# Arancino Module Runnning Environment:
+# Arancino Daemon Logs Directory
+######Environment="ARANCINOLOG=/var/log/arancino"
+
+# Arancino Daemon Runnning Environment:
 #   "production" -> Production Environment
 #   "development" -> Development Environment
-Environment="ARANCINOENV=production"
+######Environment="ARANCINOENV=production"
 
 # Flask Runnning Environment:
 #   "production" -> Production Environment
 #   "development" -> Development Environment
-Environment="FLASK_ENV=production"
+######Environment="FLASK_ENV=production"
 
 ExecStart=/bin/bash -c 'gunicorn -c "$ARANCINOCONF/gunicorn.cfg.py" arancino.ArancinoStart:app'
 Restart=on-failure
