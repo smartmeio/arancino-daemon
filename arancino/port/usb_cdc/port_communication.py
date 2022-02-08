@@ -83,7 +83,7 @@ def main(fd):
                     redisClient.publish(pub_topic, command)
                     del(command)
     except Exception as e:
-        print(e.with_traceback(tb))
+        print(e)
         redisClient.publish(pub_topic, 'disconnected')
         
     
