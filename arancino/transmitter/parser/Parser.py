@@ -19,20 +19,18 @@ License for the specific language governing permissions and limitations
 under the License
 """
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
+from enum import Enum
+from jinja2 import Template
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 import os
 
-from jinja2 import Template
-
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
 TRACE = CONF.get_log_print_stack_trace()
 
-class Parser(object):
-
-    __metaclass__ = ABCMeta
+class Parser(ABC):
 
     def __init__(self):
         #private
@@ -47,6 +45,7 @@ class Parser(object):
         except Exception as ex:
             LOG.error("{}Error while loading template file [{}]: {}".format(self._log_prefix, self.__template_file, ex), exc_info=TRACE)
 
+
     @abstractmethod
     def parse(self, data=None):
         LOG.debug("{}Start Parsing Data...".format(self._log_prefix))
@@ -54,14 +53,22 @@ class Parser(object):
         LOG.debug("{}Finish Parsing Data.".format(self._log_prefix))
         return data, metadata
 
+
     @abstractmethod
     def _do_elaboration(self, data=None):
         raise NotImplementedError
+
 
     @abstractmethod
     def start(self):
         raise NotImplementedError
 
+
     @abstractmethod
     def stop(self):
         raise NotImplementedError
+
+
+class ParserKind(Enum):
+    PARSER_SIMPLE = "ParserSimple"
+    PARSER_STACK_4_THINGS = "ParserS4T"

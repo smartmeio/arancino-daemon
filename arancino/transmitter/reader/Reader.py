@@ -19,26 +19,28 @@ License for the specific language governing permissions and limitations
 under the License
 """
 import time
+from typing import List
 from threading import Thread
 
 from arancino.Arancino import Arancino
 from arancino.ArancinoDataStore import ArancinoDataStore
 import arancino.ArancinoConstants as CONST
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, SingletonMeta
+from arancino.transmitter.TransmitterFlows import TransmitterFlowTemplate
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
 TRACE = CONF.get_log_print_stack_trace()
 
 
-class Reader(Thread):
+class Reader(metaclass=SingletonMeta, Thread):
 
-    def __init__(self, transmitter_handler):
+    def __init__(self):
         Thread.__init__(self, name='ArancinoReader')
         self.__stop = False
         self.__cycle_time = CONF.get_transmitter_reader_cycle_time()
         self.__log_prefix = "Arancino Reader - "
-        self.__transmitter_handler = transmitter_handler
+        self.__transmitter_handlers: List[TransmitterFlowTemplate] = []
         self.__arancino = Arancino()
         self.__handy_series = []
 
@@ -47,10 +49,25 @@ class Reader(Thread):
         self.__datastore_tser = redis.getDataStoreTse()
         self.__datastore_tag = redis.getDataStoreTag()
 
+
+    def attachHandler(self, handler: TransmitterFlowTemplate):
+        self.__transmitter_handlers.append(handler)
+
+    def detachHandler(self, handler: TransmitterFlowTemplate):
+        self.__transmitter_handlers.remove(handler)
+
+    def detachAllHandlers(self):
+        self.__transmitter_handlers.clear()
+
+    def __notiify(self, data):
+        for handler in self.__transmitter_handlers:
+            handler.update(data)
+
     def stop(self):
 
         LOG.info("Stopping reader...".format(self.__log_prefix))
         self.__stop = True
+        self.detachAllHandlers()
 
     def run(self):
         while not self.__stop:
@@ -114,7 +131,7 @@ class Reader(Thread):
             self.__handy_series.append(values)
             
         LOG.debug("Time Series Data: " + str(self.__handy_series))
-        self.__transmitter_handler(self.__handy_series)
+        self.__notiify(self.__handy_series)
         # clear the handy variables
         self.__handy_series = []
 
