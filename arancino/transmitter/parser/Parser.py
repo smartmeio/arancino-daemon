@@ -32,9 +32,13 @@ TRACE = CONF.get_log_print_stack_trace()
 
 class Parser(ABC):
 
-    def __init__(self):
+    def __init__(self, cfg=None):
         #private
-        self.__template_file = os.path.join(CONF.get_arancino_template_path(), CONF.get_transmitter_parser_template_file())
+        self.__cfg = cfg
+
+
+        #self.__template_file = os.path.join(CONF.get_arancino_template_path(), CONF.get_transmitter_parser_template_file())
+        self.__template_file = os.path.join(CONF.get_arancino_template_path(), cfg["parser"]["file"])
 
         #protected
         self._log_prefix = "Parser [Abstract] - "
@@ -45,6 +49,10 @@ class Parser(ABC):
         except Exception as ex:
             LOG.error("{}Error while loading template file [{}]: {}".format(self._log_prefix, self.__template_file, ex), exc_info=TRACE)
 
+
+    @property
+    def cfg(self):
+        return self.__cfg
 
     @abstractmethod
     def parse(self, data=None):

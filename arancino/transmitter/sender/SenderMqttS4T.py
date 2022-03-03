@@ -30,8 +30,9 @@ TRACE = CONF.get_log_print_stack_trace()
 
 class SenderMqttS4T(SenderMqtt):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, cfg=None):
+        super().__init__(cfg=None)
+
         self._log_prefix = "Sender [Mqtt S4T] - "
         
     def _do_trasmission(self, data=None, metadata=None):

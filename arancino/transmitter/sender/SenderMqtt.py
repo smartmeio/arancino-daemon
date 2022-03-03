@@ -31,28 +31,30 @@ TRACE = CONF.get_log_print_stack_trace()
 
 class SenderMqtt(Sender):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, cfg=None):
+        super().__init__(cfg=cfg)
 
         #private
-        self.__use_tls = CONF.get_transmitter_sender_mqtt_use_tls()
-        self.__qos = CONF.get_transmitter_sender_mqtt_qos()
-        self.__broker_host = CONF.get_transmitter_sender_mqtt_host()
-        self.__broker_port = CONF.get_transmitter_sender_mqtt_port()
-        self.__retain = CONF.get_transmitter_sender_mqtt_retain()
+        self.__use_tls = self.cfg["sender.mqtt"]["use_tls"]  #CONF.get_transmitter_sender_mqtt_use_tls()
+        self.__qos = self.cfg["sender.mqtt"]["qos"] #CONF.get_transmitter_sender_mqtt_qos()
+        self.__retain = self.cfg["sender.mqtt"]["retain"] #CONF.get_transmitter_sender_mqtt_retain()
+        self.__broker_host = self.cfg["sender.mqtt"]["host"] #CONF.get_transmitter_sender_mqtt_host()
+        self.__broker_port = self.cfg["sender.mqtt"]["port"] #CONF.get_transmitter_sender_mqtt_port()
+
         self.__client = None
 
         if self.__use_tls:
-            self.__ca_file = CONF.get_transmitter_sender_mqtt_ca_path()
-            self.__cert_file = CONF.get_transmitter_sender_mqtt_cert_path()
-            self.__key_file = CONF.get_transmitter_sender_mqtt_key_path()
+            self.__ca_file = self.cfg["sender.mqtt"]["ca_file"] #CONF.get_transmitter_sender_mqtt_ca_path()
+            self.__cert_file = self.cfg["sender.mqtt"]["cert_file"] #CONF.get_transmitter_sender_mqtt_cert_path()
+            self.__key_file = self.cfg["sender.mqtt"]["key_file"] #CONF.get_transmitter_sender_mqtt_key_path()
         else:
-            self.__username = CONF.get_transmitter_sender_mqtt_username()
-            self.__password = CONF.get_transmitter_sender_mqtt_password()
+            self.__username = self.cfg["sender.mqtt"]["username"] #CONF.get_transmitter_sender_mqtt_username()
+            self.__password = self.cfg["sender.mqtt"]["password"] #CONF.get_transmitter_sender_mqtt_password()
         
         #protected
+        self._topic = self.cfg["sender.mqtt"]["topic"]  # CONF.get_transmitter_sender_mqtt_topic()
+
         self._log_prefix = "Sender [Mqtt] - "
-        self._topic = CONF.get_transmitter_sender_mqtt_topic()
 
 
 

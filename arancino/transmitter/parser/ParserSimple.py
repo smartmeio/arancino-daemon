@@ -31,8 +31,8 @@ TRACE = CONF.get_log_print_stack_trace()
 
 class ParserSimple(Parser):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, cfg=None):
+        super().__init__(cfg=cfg)
         self._log_prefix = "Parser [Simple] - "
 
     def start(self):

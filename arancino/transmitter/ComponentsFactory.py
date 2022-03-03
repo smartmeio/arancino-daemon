@@ -39,7 +39,7 @@ class ParserFactory:
         class_parser_name = parserKind
         module_parser = importlib.import_module("arancino.transmitter.parser." + class_parser_name)
         class_parser = getattr(module_parser, class_parser_name)
-        return class_parser(parserCfg)
+        return class_parser(cfg=parserCfg)
 
 
 class SenderFactory:
@@ -52,7 +52,7 @@ class SenderFactory:
         class_sender_name = senderKind
         module_sender = importlib.import_module("arancino.transmitter.sender." + class_sender_name)
         class_sender = getattr(module_sender, class_sender_name)
-        return class_sender(senderCfg)
+        return class_sender(cfg=senderCfg)
 
 
 class ReaderFactory:

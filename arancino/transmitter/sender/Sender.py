@@ -24,11 +24,16 @@ from enum import Enum
 
 class Sender(ABC):
 
-    def __init__(self):
+    def __init__(self, cfg=None):
 
         #protected
         self._log_prefix = "Sender [Abstract] - "
+        self.__cfg = cfg
 
+
+    @property
+    def cfg(self):
+        return self.__cfg
 
     @abstractmethod
     def send(self, data=None, metadata=None):

@@ -211,7 +211,7 @@ class Flow():
         config.read(os.path.join(arancino_config_path, self.__cfg_file_name))
 
         # Retrieve is the Flow is enabled or disabled
-        self.__is_enabled = stringToBool(config.get("general", "enabled"))
+        self.__is_enabled = stringToBool(config.get("flow", "enabled"))
 
         # Flow Component to use in reflection method
         self.__parser_class_name = config.get("parser", "class")
