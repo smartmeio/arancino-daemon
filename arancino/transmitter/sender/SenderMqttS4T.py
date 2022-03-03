@@ -37,10 +37,10 @@ class SenderMqttS4T(SenderMqtt):
     def _do_trasmission(self, data=None, metadata=None):
         tags = ""
         for key, value in metadata["labels"].items():
-            tmp = "{}={}".format(key,value)
+            tmp = "{}={}".format(key, value)
             tags += tmp + '/'
         for key, value in metadata["tags"].items():
-            tmp = "{}={}".format(key,value)
+            tmp = "{}={}".format(key, value)
             tags += tmp + '/'
-        self._topic = "{}/{}{}".format(metadata["db_name"], tags,metadata["key"].split(':')[1][:-2])
-        return super()._do_trasmission(data = data, metadata = metadata)
+        self._topic = "{}/{}{}".format(metadata["db_name"], tags, metadata["key"].split(':')[1][:-2])
+        return super()._do_trasmission(data=data, metadata=metadata)

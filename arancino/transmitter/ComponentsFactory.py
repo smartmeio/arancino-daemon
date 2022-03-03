@@ -29,25 +29,37 @@ CONF = ArancinoConfig.Instance()
 TRACE = CONF.get_log_print_stack_trace()
 
 
-class ParserFactory():
+class ParserFactory:
 
-    def getParser(self, parserKind) -> Parser:
+    """
+    Get the Parser instance using the reflection method
+    """
+
+    def getParser(self, parserKind, parserCfg) -> Parser:
         class_parser_name = parserKind
         module_parser = importlib.import_module("arancino.transmitter.parser." + class_parser_name)
         class_parser = getattr(module_parser, class_parser_name)
-        return class_parser
+        return class_parser(parserCfg)
 
 
-class SenderFactory():
+class SenderFactory:
 
-    def getSender(self, senderKind) -> Sender:
+    """
+    Get the Sender instance using the reflection method
+    """
+
+    def getSender(self, senderKind, senderCfg) -> Sender:
         class_sender_name = senderKind
         module_sender = importlib.import_module("arancino.transmitter.sender." + class_sender_name)
         class_sender = getattr(module_sender, class_sender_name)
-        return class_sender
+        return class_sender(senderCfg)
 
 
-class ReaderFactory():
+class ReaderFactory:
+
+    """
+    Reader is Singletone: there's only one implementation and instance.
+    """
 
     def getReader(self):
         #Reader is a singleton

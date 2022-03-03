@@ -66,7 +66,7 @@ class ArancinoConfig:
 
 
         self.__arancino_config_path = os.environ.get('ARANCINOCONF')
-        self.__arancino_home_path =  os.environ.get('ARANCINO')
+        self.__arancino_home_path = os.environ.get('ARANCINO')
         self.__arancino_template_path = os.path.join(self.__arancino_home_path, "templates")
 
         self.Config = configparser.ConfigParser()
@@ -206,6 +206,7 @@ class ArancinoConfig:
         # region TRANSMITTER SECTION
         self.__transmitter_reader_cycle_time = int(self.Config.get("transmitter.reader", "cycle_time"))
         self.__is_transmitter_enabled = stringToBool(self.Config.get("transmitter", "enabled"))
+        self.__transmitter_flows = stringToBool(self.Config.get("transmitter", "flows"))
 
         # region TRANSMITTER PARSER
         self.__transmitter_parser_class = self.Config.get("transmitter.parser", "class")
@@ -626,6 +627,11 @@ class ArancinoConfig:
 
     def get_transmitter_reader_cycle_time(self):
         return self.__transmitter_reader_cycle_time
+
+    def get_transmitter_flows(self):
+        return json.loads(self.__transmitter_flows.lower())
+
+
 
     def get_transmitter_parser_class(self):
         return self.__transmitter_parser_class

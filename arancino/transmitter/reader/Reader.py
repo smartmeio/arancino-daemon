@@ -26,7 +26,7 @@ from arancino.Arancino import Arancino
 from arancino.ArancinoDataStore import ArancinoDataStore
 import arancino.ArancinoConstants as CONST
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, SingletonMeta
-from arancino.transmitter.TransmitterFlows import TransmitterFlowTemplate
+from arancino.transmitter.Flows import FlowTemplate
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
@@ -40,7 +40,7 @@ class Reader(metaclass=SingletonMeta, Thread):
         self.__stop = False
         self.__cycle_time = CONF.get_transmitter_reader_cycle_time()
         self.__log_prefix = "Arancino Reader - "
-        self.__transmitter_handlers: List[TransmitterFlowTemplate] = []
+        self.__transmitter_handlers: List[FlowTemplate] = []
         self.__arancino = Arancino()
         self.__handy_series = []
 
@@ -50,10 +50,10 @@ class Reader(metaclass=SingletonMeta, Thread):
         self.__datastore_tag = redis.getDataStoreTag()
 
 
-    def attachHandler(self, handler: TransmitterFlowTemplate):
+    def attachHandler(self, handler: FlowTemplate):
         self.__transmitter_handlers.append(handler)
 
-    def detachHandler(self, handler: TransmitterFlowTemplate):
+    def detachHandler(self, handler: FlowTemplate):
         self.__transmitter_handlers.remove(handler)
 
     def detachAllHandlers(self):
