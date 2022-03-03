@@ -31,7 +31,7 @@ TRACE = CONF.get_log_print_stack_trace()
 class SenderMqttS4T(SenderMqtt):
 
     def __init__(self, cfg=None):
-        super().__init__(cfg=None)
+        super().__init__(cfg=cfg)
 
         self._log_prefix = "Sender [Mqtt S4T] - "
         

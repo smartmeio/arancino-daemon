@@ -35,7 +35,6 @@ class Sender(ABC):
     def cfg(self):
         return self.__cfg
 
-    @abstractmethod
     def send(self, data=None, metadata=None):
         done = self._do_trasmission(data, metadata)
         return done

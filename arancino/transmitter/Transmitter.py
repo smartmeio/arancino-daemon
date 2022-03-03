@@ -17,7 +17,7 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 '''
-
+from arancino.transmitter.Flow import Flow
 from arancino.transmitter.reader.Reader import Reader
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 import importlib
@@ -29,8 +29,6 @@ LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
 TRACE = CONF.get_log_print_stack_trace()
 
-
-from Flows import *
 from typing import List
 
 class Transmitter():

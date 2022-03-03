@@ -19,28 +19,28 @@ License for the specific language governing permissions and limitations
 under the License
 """
 import time
-from typing import List
+from typing import List, Callable
 from threading import Thread
 
 from arancino.Arancino import Arancino
 from arancino.ArancinoDataStore import ArancinoDataStore
 import arancino.ArancinoConstants as CONST
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, SingletonMeta
-from arancino.transmitter.Flows import FlowTemplate
+
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
 TRACE = CONF.get_log_print_stack_trace()
 
 
-class Reader(metaclass=SingletonMeta, Thread):
+class Reader(Thread, metaclass=SingletonMeta):
 
     def __init__(self):
         Thread.__init__(self, name='ArancinoReader')
         self.__stop = False
         self.__cycle_time = CONF.get_transmitter_reader_cycle_time()
         self.__log_prefix = "Arancino Reader - "
-        self.__transmitter_handlers: List[FlowTemplate] = []
+        self.__transmitter_handlers: List[Callable] = []
         self.__arancino = Arancino()
         self.__handy_series = []
 
@@ -50,10 +50,10 @@ class Reader(metaclass=SingletonMeta, Thread):
         self.__datastore_tag = redis.getDataStoreTag()
 
 
-    def attachHandler(self, handler: FlowTemplate):
+    def attachHandler(self, handler: Callable):
         self.__transmitter_handlers.append(handler)
 
-    def detachHandler(self, handler: FlowTemplate):
+    def detachHandler(self, handler: Callable):
         self.__transmitter_handlers.remove(handler)
 
     def detachAllHandlers(self):
@@ -61,7 +61,8 @@ class Reader(metaclass=SingletonMeta, Thread):
 
     def __notiify(self, data):
         for handler in self.__transmitter_handlers:
-            handler.update(data)
+            #handler.update(data)
+            handler(data)
 
     def stop(self):
 

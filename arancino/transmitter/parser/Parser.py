@@ -23,6 +23,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from jinja2 import Template
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+
 import os
 
 
@@ -54,7 +55,6 @@ class Parser(ABC):
     def cfg(self):
         return self.__cfg
 
-    @abstractmethod
     def parse(self, data=None):
         LOG.debug("{}Start Parsing Data...".format(self._log_prefix))
         data, metadata = self._do_elaboration(data)

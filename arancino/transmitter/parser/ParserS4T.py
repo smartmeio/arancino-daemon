@@ -35,7 +35,7 @@ class ParserS4T(ParserSimple):
         super().__init__(cfg=cfg)
         #private
         #self.__db_name = CONF.get_transmitter_parser_s4t_db_name()
-        self.__db_name = cfg["parser.s4t"]["db_name"]
+        self.__db_name = self.cfg["s4t"]["db_name"]
 
         #protected
         self._log_prefix = "Parser [S4T] - "

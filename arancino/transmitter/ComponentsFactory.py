@@ -20,7 +20,7 @@ under the License
 
 from arancino.transmitter.parser import Parser
 from arancino.transmitter.sender import Sender
-from arancino.transmitter.reader import Reader
+from arancino.transmitter.reader.Reader import Reader
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 import importlib
 
@@ -35,11 +35,12 @@ class ParserFactory:
     Get the Parser instance using the reflection method
     """
 
-    def getParser(self, parserKind, parserCfg) -> Parser:
-        class_parser_name = parserKind
+    def getParser(self, parserCls, parserCfg) -> Parser:
+        class_parser_name = parserCls
         module_parser = importlib.import_module("arancino.transmitter.parser." + class_parser_name)
         class_parser = getattr(module_parser, class_parser_name)
-        return class_parser(cfg=parserCfg)
+        parser = class_parser(cfg=parserCfg)
+        return parser
 
 
 class SenderFactory:
@@ -48,11 +49,12 @@ class SenderFactory:
     Get the Sender instance using the reflection method
     """
 
-    def getSender(self, senderKind, senderCfg) -> Sender:
-        class_sender_name = senderKind
+    def getSender(self, senderCls, senderCfg) -> Sender:
+        class_sender_name = senderCls
         module_sender = importlib.import_module("arancino.transmitter.sender." + class_sender_name)
         class_sender = getattr(module_sender, class_sender_name)
-        return class_sender(cfg=senderCfg)
+        sender = class_sender(cfg=senderCfg)
+        return sender
 
 
 class ReaderFactory:

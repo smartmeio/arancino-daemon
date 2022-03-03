@@ -206,8 +206,9 @@ class ArancinoConfig:
         # region TRANSMITTER SECTION
         self.__transmitter_reader_cycle_time = int(self.Config.get("transmitter.reader", "cycle_time"))
         self.__is_transmitter_enabled = stringToBool(self.Config.get("transmitter", "enabled"))
-        self.__transmitter_flows = stringToBool(self.Config.get("transmitter", "flows"))
+        self.__transmitter_flows = self.Config.get("transmitter", "flows")
 
+        """
         # region TRANSMITTER PARSER
         self.__transmitter_parser_class = self.Config.get("transmitter.parser", "class")
 
@@ -249,7 +250,7 @@ class ArancinoConfig:
         self.__transmitter_sender_mqtt_ca_path = self.Config.get("transmitter.sender.mqtt", "ca_path")
         self.__transmitter_sender_mqtt_cert_path = self.Config.get("transmitter.sender.mqtt", "cert_path")
         self.__transmitter_sender_mqtt_key_path = self.Config.get("transmitter.sender.mqtt", "key_path")
-
+        """
 
 
         # endregion
@@ -631,8 +632,7 @@ class ArancinoConfig:
     def get_transmitter_flows(self):
         return json.loads(self.__transmitter_flows.lower())
 
-
-
+    """
     def get_transmitter_parser_class(self):
         return self.__transmitter_parser_class
 
@@ -683,7 +683,7 @@ class ArancinoConfig:
 
     def get_transmitter_sender_mqtt_key_path(self):
         return self.__transmitter_sender_mqtt_key_path
-
+    """
 
 @Singleton
 class ArancinoLogger:
