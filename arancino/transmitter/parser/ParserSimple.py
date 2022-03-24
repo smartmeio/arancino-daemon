@@ -55,11 +55,11 @@ class ParserSimple(Parser):
                     for d in data:
                         last_tms = int(self._datastore_tser.redis.get("{}:{}:{}".format(d["key"], self._flow_name, CONST.SUFFIX_TMSTP)))
                         for i in range(len(d["timestamps"])):
-                            if d["timestamps"][i] > last_tms:
+                            if d["timestamps"][0] > last_tms:
                                 break
                             else:
-                                del d["timestamps"][i]
-                                del d["values"][i]
+                                del d["timestamps"][0]
+                                del d["values"][0]
 
                         if not len(d["values"]):
                             continue
