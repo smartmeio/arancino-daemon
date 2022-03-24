@@ -21,6 +21,7 @@ under the License
 
 from arancino.transmitter.parser.Parser import Parser
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+import arancino.ArancinoConstants as CONST
 
 
 LOG = ArancinoLogger.Instance().getLogger()
@@ -33,7 +34,6 @@ class ParserSimple(Parser):
 
     def __init__(self, cfg=None):
         super().__init__(cfg=cfg)
-        self._log_prefix = "Parser [Simple] - "
 
     def start(self):
         pass
@@ -53,8 +53,20 @@ class ParserSimple(Parser):
                 # do parsing only if template is loaded
                 if self._tmpl:
                     for d in data:
+                        last_tms = int(self._datastore_tser.redis.get("{}:{}:{}".format(d["key"], self._flow_name, CONST.SUFFIX_TMSTP)))
+                        for i in range(len(d["timestamps"])):
+                            if d["timestamps"][i] > last_tms:
+                                break
+                            else:
+                                del d["timestamps"][i]
+                                del d["values"][i]
+
+                        if not len(d["values"]):
+                            continue
+                        
                         md = {}
                         md["key"] = d["key"]
+                        md["flow_name"] = self._flow_name
                         md["last_ts"] = max(d["timestamps"])
                         metadata.append(md)
 

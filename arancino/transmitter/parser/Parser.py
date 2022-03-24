@@ -23,6 +23,8 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from jinja2 import Template
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+from arancino.ArancinoDataStore import ArancinoDataStore
+import arancino.ArancinoConstants as CONST
 
 import os
 
@@ -37,12 +39,15 @@ class Parser(ABC):
         #private
         self.__cfg = cfg
 
-
+        # Redis Data Stores
+        redis = ArancinoDataStore.Instance()
+        self._datastore_tser = redis.getDataStoreTse()
         #self.__template_file = os.path.join(CONF.get_arancino_template_path(), CONF.get_transmitter_parser_template_file())
         self.__template_file = os.path.join(CONF.get_arancino_template_path(), cfg["parser"]["file"])
 
         #protected
-        self._log_prefix = "Parser [Abstract] - "
+        self._flow_name = self.__cfg["name"]
+        self._log_prefix = "Flow [{}] - Parser [{}] - ".format(self._flow_name, self.__cfg["parser"]["class"])
         self._tmpl = None
         try:
             with open(self.__template_file) as f:

@@ -38,7 +38,6 @@ class ParserS4T(ParserSimple):
         self.__db_name = self.cfg["s4t"]["db_name"]
 
         #protected
-        self._log_prefix = "Parser [S4T] - "
     
     def _do_elaboration(self, data=None):
 

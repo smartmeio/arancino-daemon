@@ -31,7 +31,6 @@ class SenderDoNothing(Sender):
 
     def __init__(self, cfg=None):
         super().__init__(cfg=cfg)
-        self._log_prefix = "Sender [Do Nothing] - "
     
     def start(self):
         pass

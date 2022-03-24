@@ -37,7 +37,7 @@ class SenderTcpSocket(Sender):
         self.__connection = None
 
         #protected
-        self._log_prefix = "Sender [Tcp Socket] - "
+        
 
     def _do_trasmission(self, data=None, metadata=None):
         if self.__connection:

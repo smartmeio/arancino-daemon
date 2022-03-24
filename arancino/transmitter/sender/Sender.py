@@ -27,8 +27,10 @@ class Sender(ABC):
     def __init__(self, cfg=None):
 
         #protected
-        self._log_prefix = "Sender [Abstract] - "
         self.__cfg = cfg
+        self._flow_name = self.__cfg["name"]
+        self._log_prefix = "Flow [{}] - Sender [{}] - ".format(self._flow_name, self.__cfg["sender"]["class"])
+        
 
 
     @property

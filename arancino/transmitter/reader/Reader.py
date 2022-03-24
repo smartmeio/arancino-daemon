@@ -81,7 +81,14 @@ class Reader(Thread, metaclass=SingletonMeta):
                 # series = []
                 for key in ts_keys:
                     tags = {}
-                    starting_tms_ts = int(self.__datastore_tser.redis.get("{}:{}".format(key, CONST.SUFFIX_TMSTP)))
+                    tms_pattern = "{}:*:{}".format(key, CONST.SUFFIX_TMSTP)
+                    _, tms_keys = self.__datastore_tser.redis.scan(match = tms_pattern)
+                    if len(tms_keys):
+                        tms_list = self.__datastore_tser.redis.mget(tms_keys)
+                        starting_tms_ts = min(list(map(int, tms_list)))
+                    else:
+                        starting_tms_ts = 0
+                    
                     tag_keys = self.__retrieve_tags_keys(key)
                     label_keys = self.__retrieve_label_keys(key.split(':')[0])
                     tag_keys += label_keys
@@ -187,8 +194,9 @@ class Reader(Thread, metaclass=SingletonMeta):
         # when ack is called, the timestamp of the latest read series is updated.
         key = metadata["key"]
         ending_tms_ts = metadata["last_ts"] + 1
+        flow_name = metadata["flow_name"]
         
-        self.__datastore_tser.redis.set("{}:{}".format(key, CONST.SUFFIX_TMSTP), str(ending_tms_ts))
+        self.__datastore_tser.redis.set("{}:{}:{}".format(key, flow_name, CONST.SUFFIX_TMSTP), str(ending_tms_ts))
 
 
 

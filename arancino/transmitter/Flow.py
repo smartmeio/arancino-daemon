@@ -50,7 +50,10 @@ class Flow:
 
             # Convert ini sections into Dict
             self.__parser_config = {s: dict(config.items(s)) for s in parser_sections_name_list}
+            self.__parser_config["name"] = config.get("flow", "name")
             self.__sender_config = {s: dict(config.items(s)) for s in sender_sections_name_list}
+            self.__sender_config["name"] = config.get("flow", "name")
+            
         except Exception as ex:
             LOG.error("{}Error while loading configuration of the Transmitter Flow {}: {}".format(self.__log_prefix, self.name, str(ex)), exc_info=TRACE)
 

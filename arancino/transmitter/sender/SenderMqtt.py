@@ -54,8 +54,6 @@ class SenderMqtt(Sender):
         #protected
         self._topic = self.cfg["mqtt"]["topic"]  # CONF.get_transmitter_sender_mqtt_topic()
 
-        self._log_prefix = "Sender [Mqtt] - "
-
 
 
     def start(self):

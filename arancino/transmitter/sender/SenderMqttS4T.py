@@ -32,8 +32,6 @@ class SenderMqttS4T(SenderMqtt):
 
     def __init__(self, cfg=None):
         super().__init__(cfg=cfg)
-
-        self._log_prefix = "Sender [Mqtt S4T] - "
         
     def _do_trasmission(self, data=None, metadata=None):
         tags = ""
