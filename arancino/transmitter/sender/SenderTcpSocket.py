@@ -42,7 +42,13 @@ class SenderTcpSocket(Sender):
     def _do_trasmission(self, data=None, metadata=None):
         if self.__connection:
             LOG.debug("{}Sending data to {}:{}...".format(self._log_prefix, self.__server_host, str(self.__server_port)))
-            not_sent = self.__connection.sendall(data.encode())
+            try:
+                not_sent = self.__connection.sendall(data.encode())
+            except socket.error:
+                LOG.warning("{}Warning  while sending data to {}:{}".format(self._log_prefix, self.__server_host, str(self.__server_port)))
+                self.__connection = None
+                self.__connection = self.__get_connection()
+                return False
             if not not_sent:
                 LOG.info("{}Data sent to {}:{}".format(self._log_prefix, self.__server_host, str(self.__server_port)))
                 return True
@@ -51,6 +57,7 @@ class SenderTcpSocket(Sender):
                 return False
         else:
             LOG.warning("{}Can not send data to {}:{}".format(self._log_prefix, self.__server_host, str(self.__server_port)))
+            self.__connection = self.__get_connection()
             return False
 
     def start(self):
