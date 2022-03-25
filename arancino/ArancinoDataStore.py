@@ -43,6 +43,7 @@ class ArancinoDataStore:
         self.__redis_dts_rsvd = redis_instance_type[3]  # Reserved Data Store
         self.__redis_dts_tse = redis_instance_type[4]   # Time Series Data Store
         self.__redis_dts_tag = redis_instance_type[5]   # Time Series Data Store
+        self.__redis_dts_stng = redis_instance_type[6]  # Setting and Configuration Data Store
 
         # data store
         self.__redis_pool_dts = redis(host=self.__redis_dts_std['host'],
@@ -83,6 +84,11 @@ class ArancinoDataStore:
                                                      db=self.__redis_dts_tag['db'],
                                                      decode_responses=self.__redis_dts_tag['dcd_resp'])
 
+        # settings and configuration
+        self.__redis_pool_stng = redis(host=self.__redis_dts_stng['host'],
+                                                     port=self.__redis_dts_stng['port'],
+                                                     db=self.__redis_dts_stng['db'],
+                                                     decode_responses=self.__redis_dts_stng['dcd_resp'])
 
 
 
@@ -92,6 +98,7 @@ class ArancinoDataStore:
         self._redis_conn_dts_pers = self.__redis_pool_dts_pers.redis#redis.Redis(connection_pool=self.__redis_pool_dts_pers)
         self._redis_conn_tse = self.__redis_pool_tse#redis.Redis(connection_pool=self.__redis_pool_tse)
         self._redis_conn_tag = self.__redis_pool_tag.redis
+        self._redis_conn_stng = self.__redis_pool_stng.redis
 
         self.__attempts = 1
         self.__attempts_tot = CONF.get_redis_connection_attempts()
@@ -109,6 +116,8 @@ class ArancinoDataStore:
                 self._redis_conn_dts_rsvd.ping()
                 self._redis_conn_dts_pers.ping()
                 self._redis_conn_tse.redis.ping()
+                self._redis_conn_tag.ping()
+                self._redis_conn_stng.ping()
                 break
 
             except Exception as ex:
@@ -179,6 +188,15 @@ class ArancinoDataStore:
 
         return self._redis_conn_tag
 
+    def getDataStoreStng(self):
+        """
+        Gets a redis client from a connection pool. This client is used to
+            manage yags of time series data.
+        :return:
+        """
+
+        return self._redis_conn_stng
+
 
     def closeAll(self):
         try:
@@ -187,5 +205,6 @@ class ArancinoDataStore:
             self.getDataStorePer().connection_pool.disconnect()
             self.getDataStoreRsvd().connection_pool.disconnect()
             self.getDataStoreTse().connection_pool.disconnect()
+            self.getDataStoreStng().connection_pool.disconnect()
         except Exception as ex:
             pass

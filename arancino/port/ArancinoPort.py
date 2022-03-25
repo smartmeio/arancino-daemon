@@ -24,9 +24,12 @@ from datetime import datetime
 from logging import ERROR
 from types import FunctionType, MethodType
 #from arancino.port.ArancinoPort import PortTypes
-from arancino.ArancinoCortex import *
+#from arancino.ArancinoCortex import
+from arancino.ArancinoPacket import ArancinoCommand, ArancinoResponse
+from arancino.ArancinoCortex2 import *
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, stringToBool2
-from arancino.ArancinoConstants import ArancinoCommandErrorCodes
+from arancino.ArancinoConstants import ArancinoCommandErrorCodes, ArancinoPortAttributes, ArancinoCommandIdentifiers, \
+    MicrocontrollerFamily, ArancinoReservedChars, CortexCompatibilityLists, ArancinoApiResponseCode
 from arancino.ArancinoDataStore import ArancinoDataStore
 import time
 
@@ -56,6 +59,7 @@ class ArancinoPort(object):
         self._firmware_name = None
         self._firmware_build_datetime = None
         self._firmware_core_version = None
+        self._firmware_cortex_version = None
         self._firmware_use_freertos = None
         self._microcontroller_family = None
         self._generic_attributes = {}
@@ -96,213 +100,108 @@ class ArancinoPort(object):
 
         self.__first_time = True
 
+        self.__command_executor_factory = None
 
 
     def _retrieveStartCmdArgs(self, args):
+
+
+        #region port id
+        old_id = self._id
+        self._id = args[PACKET.ARGUMENTS.PORT_ID]
+        DATASTORE.getDataStoreDev().rename(old_id, self._id)
+        self._log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
+        del args[PACKET.ARGUMENTS.PORT_ID]
+        #endregion
+
+        #region library version
+        arancino_lib_version = None
+        arancino_lib_version = args[PACKET.ARGUMENTS.FIRMWARE.LIBRARY_VERSION]
+        arancino_lib_version = semantic_version.Version(arancino_lib_version)
+        self._setLibVersion(arancino_lib_version)
+        del args[PACKET.ARGUMENTS.FIRMWARE.LIBRARY_VERSION]
+        #endegion
+
+        # region MICRO FAMILY
+        arancino_micro_family = None
+        arancino_micro_family = args[PACKET.ARGUMENTS.FIRMWARE.MCU_FAMILY]
+        self._setMicrocontrollerFamily(arancino_micro_family)
+        del args[PACKET.ARGUMENTS.FIRMWARE.MCU_FAMILY]
+        # endregion
+
+        # region FIRMWARE NAME
+        arancino_fw_name = None
+        arancino_fw_name = args[PACKET.ARGUMENTS.FIRMWARE.NAME]
+        self._setFirmwareName(arancino_fw_name)
+        del args[PACKET.ARGUMENTS.FIRMWARE.NAME]
+        # endregion
+
+        # region FIRMWARE VERSION
+        arancino_fw_version = None
+        arancino_fw_version = args[PACKET.ARGUMENTS.FIRMWARE.VERSION]
+        arancino_fw_version = semantic_version.Version(arancino_fw_version)
+        self._setFirmwareVersion(arancino_fw_version)
+        del args[PACKET.ARGUMENTS.FIRMWARE.VERSION]
+        # endregion
+
+        # region FIRMWARE CORE VERSION
+        arancino_fw_core_version = None
+        arancino_fw_core_version = args[PACKET.ARGUMENTS.FIRMWARE.CORE_VERSION]
+        arancino_fw_core_version = semantic_version.Version(arancino_fw_core_version)
+        self._setFirmwareCoreVersion(arancino_fw_core_version)
+        del args[PACKET.ARGUMENTS.FIRMWARE.CORE_VERSION]
+        # endregion
+
+        # region FIRMWARE BUILD DATE TIME
+        arancino_firmware_upload_datetime = None
+        arancino_firmware_upload_datetime = args[PACKET.ARGUMENTS.FIRMWARE.BUILD_TIME]
+        arancino_firmware_upload_datetime = datetime.strptime(arancino_firmware_upload_datetime, '%b %d %Y %H:%M:%S %z')
+        arancino_firmware_upload_datetime = datetime.timestamp(arancino_firmware_upload_datetime)
+        arancino_firmware_upload_datetime = datetime.fromtimestamp(arancino_firmware_upload_datetime)
+        self._setFirmwareBuildDate(arancino_firmware_upload_datetime)
+        del args[PACKET.ARGUMENTS.FIRMWARE.BUILD_TIME]
+        # endregion
+
+        # region FIRMWARE CORTEX VERSION
+        arancino_fw_cortex_version = None
+        arancino_fw_cortex_version = args[PACKET.ARGUMENTS.FIRMWARE.CORTEX_VERSION]
+        arancino_fw_cortex_version = semantic_version.Version(arancino_fw_cortex_version)
+        self._setFirmwareCortexVersion(arancino_fw_cortex_version)
+        del args[PACKET.ARGUMENTS.FIRMWARE.CORTEX_VERSION]
+        # endregion
+
+        # region GENERIC ATTRIBUTES
+
+        self._setGenericAttributes(args)
+
+        # endregion
+
+        # region CHECK COMPATIBILITY
+
         """
-            https://app.clickup.com/t/jz9rjq
-            https://app.clickup.com/t/k1518r
+        Per semplicità, se la versione del protocollo cortex e la versione in uso nel firmware
+        sono nella stessa major version number, allora sono compatibili.
         """
-        """
-            HP2
-        """
-        arg_num = len(args)
 
-        #if arg_num > 0: #forse questo non é necessario (il numero di argomenti passati viene controllato prima da verificare)
+        daemon_cv = CONF.get_metadata_cortex_version()
+        firmware_cv = self.getFirmwareCortexVersion()
 
-        keys = args[0]
-        values = args[1]
+        for ls in CortexCompatibilityLists:
+            if str(daemon_cv) in ls and str(firmware_cv) in ls:
+                self._setComapitibility(True)
+                break
 
-        keys_array = keys.split(ArancinoSpecialChars.CHR_ARR_SEP)
-        values_array = values.split(ArancinoSpecialChars.CHR_ARR_SEP)
+        started = True if self.isCompatible() else False
 
-        if keys_array and values_array and len(keys_array) > 0 and len(values_array) and len(keys_array) == len(values_array):
-            attributes = {}
-            for idx, key in enumerate(keys_array):
-                attributes[key] = values_array[idx]
-
-            #region LIBRARY VERSION
-
-            arancino_lib_version = None
-
-            if ArancinoPortAttributes.FIRMWARE_LIBRARY_VERSION in attributes:
-                arancino_lib_version = attributes[ArancinoPortAttributes.FIRMWARE_LIBRARY_VERSION]
-                arancino_lib_version = semantic_version.Version(arancino_lib_version)
-                del attributes[ArancinoPortAttributes.FIRMWARE_LIBRARY_VERSION]
-
-            self._setLibVersion(arancino_lib_version)
-            #endregion
-
-            #region MICRO FAMILY
-
-            arancino_micro_family = None
-
-            if ArancinoPortAttributes.MCU_FAMILY in attributes:
-                arancino_micro_family = attributes[ArancinoPortAttributes.MCU_FAMILY]
-                del attributes[ArancinoPortAttributes.MCU_FAMILY]
-
-            self._setMicrocontrollerFamily(arancino_micro_family)
-
-            #endregion
-
-            #region FIRMWARE NAME
-
-            arancino_fw_name = None
-            if ArancinoPortAttributes.FIRMWARE_NAME in attributes:
-                arancino_fw_name = attributes[ArancinoPortAttributes.FIRMWARE_NAME]
-                del attributes[ArancinoPortAttributes.FIRMWARE_NAME]
-
-            self._setFirmwareName(arancino_fw_name)
-
-            #endregion
-
-            #region FIRMWARE VERSION
-
-            arancino_fw_version = None
-
-            if ArancinoPortAttributes.FIRMWARE_VERSION in attributes:
-                arancino_fw_version = attributes[ArancinoPortAttributes.FIRMWARE_VERSION]
-                arancino_fw_version = semantic_version.Version(arancino_fw_version)
-                del attributes[ArancinoPortAttributes.FIRMWARE_VERSION]
-
-            self._setFirmwareVersion(arancino_fw_version)
-
-            #endregion
-
-            #region FIRMWARE CORE VERSION
-
-            arancino_fw_core_version = None
-
-            if ArancinoPortAttributes.FIRMWARE_CORE_VERSION in attributes:
-                arancino_fw_core_version = attributes[ArancinoPortAttributes.FIRMWARE_CORE_VERSION]
-                arancino_fw_core_version = semantic_version.Version(arancino_fw_core_version)
-                del attributes[ArancinoPortAttributes.FIRMWARE_CORE_VERSION]
-
-            self._setFirmwareCoreVersion(arancino_fw_core_version)
-
-            #endregion
-
-            # region FIRMWARE BUILD DATE TIME
-
-            arancino_firmware_upload_datetime = None
-
-            if ArancinoPortAttributes.FIRMWARE_BUILD_TIME in attributes:
-                arancino_firmware_upload_datetime = attributes[ArancinoPortAttributes.FIRMWARE_BUILD_TIME]
-                arancino_firmware_upload_datetime = datetime.strptime(arancino_firmware_upload_datetime, '%b %d %Y %H:%M:%S %z')
-                arancino_firmware_upload_datetime = datetime.timestamp(arancino_firmware_upload_datetime)
-                arancino_firmware_upload_datetime = datetime.fromtimestamp(arancino_firmware_upload_datetime)
-                del attributes[ArancinoPortAttributes.FIRMWARE_BUILD_TIME]
-
-            self._setFirmwareBuildDate(arancino_firmware_upload_datetime)
-
-            # endregion
-
-            # region FIRMWARE USE FREETOS
-
-            arancino_firmware_use_freertos = None
-
-            if ArancinoPortAttributes.FIRMWARE_USE_FREERTOS in attributes:
-                arancino_firmware_use_freertos = attributes[ArancinoPortAttributes.FIRMWARE_USE_FREERTOS]
-                del attributes[ArancinoPortAttributes.FIRMWARE_USE_FREERTOS]
-
-            self._setFirmwareUseFreeRTOS(arancino_firmware_use_freertos)
-
-            # endregion
-
-
-
-            #region GENERIC ATTRIBUTES
-
-            self._setGenericAttributes(attributes)
-
-            #endregion
-
-
-            # region CHECK COMPATIBILITY
-
-            for compatible_ver in self._compatibility_array:
-                semver_compatible_ver = semantic_version.SimpleSpec(compatible_ver)
-                if arancino_lib_version in semver_compatible_ver:
-                    self._setComapitibility(True)
-                    break
-
-            started = True if self.isCompatible() else False
-            
-            self._setStarted(started)
-
-            if not self.isCompatible():
-                raise NonCompatibilityException("Module version " + str(CONF.get_metadata_version()) + " can not work with Library version " + str(self.getLibVersion()), ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
-            # endregion
-            
-
-        else:
-            raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
-
-        # else:
-        #     pass
-            # paramentri non sufficienti
-
-
-
-    def __retrieveStartCmdArgs(self, args):
-        arg_num = len(args)
-
-        ### Retrieving some info and metadata: ###
-
-        # Arancino Library Version
-        if arg_num > 0:
-            arancino_lib_version = semantic_version.Version(args[0])
-            self._setLibVersion(arancino_lib_version)
-
-            LOG.debug("{} Arancino Library Compatibile Versions: {}".format(self._log_prefix, self._compatibility_array))
-
-# #version checkpoint
-# checkpoint_version = semantic_version.SimpleSpec("2.0.0")
-# if arancino_lib_version < checkpoint_version:
-
-# - 1 - library version
-# - 2 - firmware name
-# - 3 - firmware version
-# - 4 - upload datetime
-# - 5 - core version
-
-            for compatible_ver in self._compatibility_array:
-                semver_compatible_ver = semantic_version.SimpleSpec(compatible_ver)
-                if arancino_lib_version in semver_compatible_ver:
-                    self._setComapitibility(True)
-                    break
-
-            started = True if self.isCompatible() else False
-            self._setStarted(started)
-
-
-        # Arancino Firmware Name
-        if arg_num > 1:
-            arancino_fw_name = None if args[1].strip() == "" else args[1].strip()
-            self._setFirmwareName(arancino_fw_name)
-
-        # Arancino Firmware Version
-        if arg_num > 2:
-            arancino_fw_version = None if args[2].strip() == "" else semantic_version.Version(args[2])
-            self._setFirmwareVersion(arancino_fw_version)
-
-        # Arancino Firmware Upload Datetime/Timestamp
-        if arg_num > 3:
-            arancino_firmware_upload_datetime = None if args[3].strip() == "" else datetime.strptime(args[3], '%b %d %Y %H:%M:%S %z')
-            arancino_firmware_upload_datetime = datetime.timestamp(arancino_firmware_upload_datetime)
-            arancino_firmware_upload_datetime = datetime.fromtimestamp(arancino_firmware_upload_datetime)
-            self._setFirmwareBuildDate(arancino_firmware_upload_datetime)
-
-        #Arancino Core Version
-        if arg_num > 4:
-            arancino_core_version = None if args[4].strip() == "" else semantic_version.Version(args[4])
-            self._setFirmwareCoreVersion(arancino_core_version)
-
+        self._setStarted(started)
 
         if not self.isCompatible():
-            self._setComapitibility(False)
-            raise NonCompatibilityException("Module version " + str(CONF.get_metadata_version()) + " can not work with Library version " + str(self.getLibVersion()), ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
-            
+            raise NonCompatibilityException(
+                "Daemon version " + str(CONF.get_metadata_version()) + " can not work with Library version " + str(
+                    self.getLibVersion()), ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
+
+    # endregion
+
     def unplug(self):
         self.disconnect()
         self._m_s_plugged = False
@@ -351,8 +250,8 @@ class ArancinoPort(object):
     def upload(self, firmware):
         pass
 
-    #@abstractmethod
-    def _commandReceivedHandlerAbs(self, raw_command):
+
+    def _commandReceivedHandlerAbs(self, packet):
         """
         This is an Asynchronous function, and represent the "handler" to be used by an ArancinoHandler implementation to receive data.
             It first receives a Raw Command from the a "Port" (eg. a Serial Port, a Network Port, etc...) , then translate
@@ -361,45 +260,49 @@ class ArancinoPort(object):
         :param raw_command: the Raw Command received from a "Port"
         :return: void.
         """
-        try:
 
-            # create an Arancino Comamnd from the raw command
-            LOG.debug("{} Received: {}".format(self._log_prefix, raw_command))
-            acmd = ArancinoComamnd(raw_command=raw_command)
-            LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.getId(), str(acmd.getArguments())))
+        try:
+            # create an Arancino Comamnd from the raw command (json or msgpack)
+            LOG.debug("{} Received: {}".format(self._log_prefix, packet))
+            acmd = ArancinoCommand(packet=packet)
+            LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.id, str(acmd.getUnpackedPacket())))
 
             # check if the received command handler callback function is defined
             if self._received_command_handler is not None:
                 self._received_command_handler(self._id, acmd)
 
-            # call the Command Executor and get a arancino response
-            arsp = self._executor.exec(acmd)
+            # call the Command Executor and get an arancino response
+            self.__command_executor_factory = CortexCommandExecutorFactory()
+            cmd = self.__command_executor_factory.getCommandExecutor(cmd=acmd)
+            arsp = cmd.execute()
 
-            # create the Arancino Response object
-            #arsp = ArancinoResponse(raw_response=raw_response)
-
-            # if the command is START command, the ArancinoResponse is generic and it should
-            # evaluated here and not in the CommandExecutor. CommandExecutor only uses the datastore
-            # and not the port itself. The START command contains information about the connecting port
-            # that the command executor is not able to use.
-            if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
-                self._retrieveStartCmdArgs(acmd.getArguments())
+            if acmd.id == "START": #TODO ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
+                self._retrieveStartCmdArgs(acmd.args)
 
         except ArancinoException as ex:
-            arsp = ArancinoResponse(rsp_id=ex.error_code, rsp_args=[])
+            if acmd.cfg["ack"] == 1:
+                arsp = ArancinoResponse(packet=None)
+                arsp.code = ex.error_code
+
             LOG.error("{} {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
 
         # Generic Exception uses a generic Error Code
         except Exception as ex:
-            arsp = ArancinoResponse(rsp_id=ArancinoCommandErrorCodes.ERR, rsp_args=[])
+            if acmd.cfg["ack"] == 1:
+                arsp = ArancinoResponse(packet=None)
+                arsp.code = ArancinoCommandErrorCodes.ERR
+
             LOG.error("{} {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
 
         finally:
 
             try:
-                # send the response back.
-                self.sendResponse(arsp.getRaw())
-                LOG.debug("{} Sending: {}: {}".format(self._log_prefix, arsp.getId(), str(arsp.getArguments())))
+                if acmd.cfg["ack"] == 1:
+                    # send the response back.
+                    self.sendResponse(arsp.getPackedPacket())
+                    LOG.debug("{} Sending: {}: {}".format(self._log_prefix, arsp.code, str(arsp.getUnpackedPacket())))
+                else:
+                    LOG.debug("{} Ack disabled, response is not sent back : {}: {}".format(self._log_prefix, arsp.code, str(arsp.getUnpackedPacket())))
 
             except Exception as ex:
                 LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex), exc_info=TRACE)
@@ -543,21 +446,24 @@ class ArancinoPort(object):
         #  for the specific mcu family
         #self._reset_delay = getattr(CONF, "get_port_serial_{}_reset_reconnection_delay()".format(microcontroller_family.lower()))
 
-        if self._microcontroller_family == MicrocontrollerFamily.SAMD21:
-            self.setResetReconnectionDelay(CONF.get_port_serial_samd21_reset_reconnection_delay())
-            self._setUploadCommand(CONF.get_port_serial_samd21_upload_command())
-        elif self._microcontroller_family == MicrocontrollerFamily.NRF52:
-            self.setResetReconnectionDelay(CONF.get_port_serial_nrf52_reset_reconnection_delay())
-            self._setUploadCommand(CONF.get_port_serial_nrf52_upload_command())
-        elif self._microcontroller_family == MicrocontrollerFamily.RP20:
-            self.setResetReconnectionDelay(CONF.get_port_serial_rp20_reset_reconnection_delay())
-            self._setUploadCommand(CONF.get_port_serial_rp20_upload_command())
-        elif self._microcontroller_family == MicrocontrollerFamily.STM32:
-            self.setResetReconnectionDelay(CONF.get_port_serial_stm32_reset_reconnection_delay())
-            self._setUploadCommand(CONF.get_port_serial_stm32_upload_command())
-        else:
-            self.setResetReconnectionDelay(CONF.get_port_serial_reset_reconnection_delay())
-            self._setUploadCommand(CONF.get_port_serial_upload_command())
+
+        #TODO rivedere meglio per gli altri tipi di porta
+        if not self._port_type == PortTypes.TEST:
+            if self._microcontroller_family == MicrocontrollerFamily.SAMD21:
+                self.setResetReconnectionDelay(CONF.get_port_serial_samd21_reset_reconnection_delay())
+                self._setUploadCommand(CONF.get_port_serial_samd21_upload_command())
+            elif self._microcontroller_family == MicrocontrollerFamily.NRF52:
+                self.setResetReconnectionDelay(CONF.get_port_serial_nrf52_reset_reconnection_delay())
+                self._setUploadCommand(CONF.get_port_serial_nrf52_upload_command())
+            elif self._microcontroller_family == MicrocontrollerFamily.RP20:
+                self.setResetReconnectionDelay(CONF.get_port_serial_rp20_reset_reconnection_delay())
+                self._setUploadCommand(CONF.get_port_serial_rp20_upload_command())
+            elif self._microcontroller_family == MicrocontrollerFamily.STM32:
+                self.setResetReconnectionDelay(CONF.get_port_serial_stm32_reset_reconnection_delay())
+                self._setUploadCommand(CONF.get_port_serial_stm32_upload_command())
+            else:
+                self.setResetReconnectionDelay(CONF.get_port_serial_reset_reconnection_delay())
+                self._setUploadCommand(CONF.get_port_serial_upload_command())
 
     #endregion
 
@@ -568,9 +474,16 @@ class ArancinoPort(object):
     def _setFirmwareUseFreeRTOS(self, firmware_use_freertos):
 
         self._firmware_use_freertos = stringToBool2(firmware_use_freertos)
-
     # endregion
 
+    # region FIRMWARE CORTEX VERSION
+    def getFirmwareCortexVersion(self):
+        return self._firmware_cortex_version
+
+    def _setFirmwareCortexVersion(self, firmware_cortex_version):
+        self._firmware_cortex_version = firmware_cortex_version
+
+    # endregion
 
     def getUploadCommand(self):
         return self._upload_cmd
@@ -684,8 +597,7 @@ class ArancinoPort(object):
 class PortTypes(Enum):
 
     SERIAL = 1        # Serial
-    NETWORK = 2       # Wi-Fi or Ethernet Http connection
-    TCP = 3           # TCP Socket
-    MQTT = 4          # Network MQTT
-    BLUETOOTH = 5     # Bluetooth
-    TEST = 6          # Fake Port for Test purpose
+    TCP = 2           # TCP Socket
+    MQTT = 3          # Network MQTT
+    BLUETOOTH = 4     # Bluetooth
+    TEST = 5          # Fake Port for Test purpose
