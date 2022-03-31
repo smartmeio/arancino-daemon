@@ -19,19 +19,10 @@ License for the specific language governing permissions and limitations
 under the License
 """
 
-from enum import Enum
 from abc import ABC, abstractmethod
-
-import msgpack
-
 from arancino.ArancinoConstants import ArancinoCommandErrorCodes
 from arancino.ArancinoExceptions import InvalidCommandException
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
-
-
-#LOG = ArancinoLogger.Instance().getLogger()
-#CONF = ArancinoConfig.Instance()
-#TRACE = CONF.get_log_print_stack_trace()
+import msgpack
 
 
 class ArancinoPacket_(ABC):
@@ -159,9 +150,6 @@ class ArancinoResponse_(ArancinoPacket_):
         pass
 
 
-
-
-
 class ArancinoPacket(ABC):
     """
     Usato per Arancino Command e Arancino Response, perche hanno la stessa struttura di base,
@@ -220,6 +208,7 @@ class ArancinoPacket(ABC):
         packed_pck = msgpack.packb(pck, use_bin_type=True)
         return packed_pck
 
+
 class ArancinoCommand(ArancinoPacket):
 
     def __init__(self, packet):
@@ -261,11 +250,12 @@ class ArancinoCommand(ArancinoPacket):
     def _create_packet(self):
 
         pck = {}
-        pck.update({PACKET.COMMAND_ID: self.id})
-        pck.update({PACKET.CONFIGURATION: self.cfg})
-        pck.update({PACKET.ARGUMENT: self.args})
+        pck.update({PACKET.CMD.COMMAND_ID: self.id})
+        pck.update({PACKET.CMD.CONFIGURATION: self.cfg})
+        pck.update({PACKET.CMD.ARGUMENT: self.args})
 
         return pck
+
 
 class ArancinoResponse(ArancinoPacket):
 
@@ -307,71 +297,81 @@ class ArancinoResponse(ArancinoPacket):
     def _create_packet(self):
 
         pck = {}
-        pck.update({PACKET.RESPONSE_CODE: self.code})
-        pck.update({PACKET.CONFIGURATION: self.cfg})
-        pck.update({PACKET.ARGUMENT: self.args})
+        pck.update({PACKET.RSP.RESPONSE_CODE: self.code})
+        pck.update({PACKET.RSP.CONFIGURATION: self.cfg})
+        pck.update({PACKET.RSP.ARGUMENT: self.args})
 
         return pck
 
 
-
-
-
-
-
-class Operator(Enum):
-    EQUAL = "EQ"
-    LESS_THAN = "LT"
-    LESS_THAN_OR_EQUAL = "LTE"
-    GREATER_THAN = "GT"
-    GREATER_THAN_OR_EQUAL = "GTE"
-    NOT_EQUAL = "NEQ"
-    BETWEEN = "BET"
-
 class PACKET:
 
-    CONFIGURATION = "cfg"
-    ARGUMENT = " args"
-    RESPONSE_CODE = "code"
-    COMMAND_ID = "cmd"
+    class CMD:
 
-    class ARGUMENTS:
+        COMMAND_ID = "cmd"
+        CONFIGURATION = "cfg"
+        ARGUMENT = " args"
 
-        ITEMS = "items"
-        KEYS = "keys"
-        PORT_ID = "port_id"
+        class ARGUMENTS:
 
-        class FIRMWARE:
+            ITEMS = "items"
+            KEYS = "keys"
+            PORT_ID = "port_id"
+            PORT_TYPE = "port_type"
 
-            MCU_FAMILY = "fw_mcu_family"
-            LIBRARY_VERSION = "fw_lib_ver"
-            NAME = "fw_name"
-            VERSION = "fw_ver"
-            BUILD_TIME = "fw_build_time"
-            CORE_VERSION = "fw_core_ver"
-            CORTEX_VERSION = "fw_crtx_ver"
+            KEY = "key"
+            TIMESTAMP = "ts"
+
+            class FIRMWARE:
+
+                MCU_FAMILY = "fw_mcu_family"
+                LIBRARY_VERSION = "fw_lib_ver"
+                NAME = "fw_name"
+                VERSION = "fw_ver"
+                BUILD_TIME = "fw_build_time"
+                CORE_VERSION = "fw_core_ver"
+                CORTEX_VERSION = "fw_crtx_ver"
+
+        class CONFIGURATIONS:
+            SECURE_MODE = "scr_mod"
+            SIGNER_CERTIFICATE = "crt_sig"
+            DEVICE_CERTIFICATE = "dev_sig"
+
+            SIGNATURE = "sgntr"
+
+            PERSISTENT = "pers"
+            ACKNOLEDGEMENT = "ack"
+
+            TYPE = "type"
+
+            class TYPES:
+
+                APPLICATION = "appl"
+                SETTING = "stng"
+                RESERVED = "rsvd"
 
 
-    class CONFIGURATIONS:
+    class RSP:
 
-        SIGNATURE = "sgntr"
-        CHALLENGE = "chlng"
+        RESPONSE_CODE = "code"
+        CONFIGURATION = "cfg"
+        ARGUMENT = " args"
 
-        SIGNER_CERTIFICATE = "crt_sig"
-        DEVICE_CERTIFICATE = "dev_sig"
 
-        TIMESTAMP = "ts"
-        LOG_LEVEL = "log_lvl"
-        DAEMON_VERSION = "dmn_ver"
-        DAEMON_ENVIRONMENT = "dmn_env"
-        SECURE_MODE = "scr_mod"
+        class ARGUMENTS:
 
-        PERSISTENT = "pers"
-        ACKNOLEDGEMENT = "ack"
-        TYP = "type"
+            DAEMON_VERSION = "dmn_ver"
+            DAEMON_ENVIRONMENT = "dmn_env"
 
-        class TYPE():
+            ITEMS = "items"
+            KEYS = "keys"
 
-            APPLICATION = "appl"
-            SETTING = "stng"
-            RESERVED = "rsvd"
+            CLIENTS = "clients"
+
+
+        class CONFIGURATIONS:
+
+            CHALLENGE = "chlng"
+
+            TIMESTAMP = "ts"
+            LOG_LEVEL = "log_lvl"
