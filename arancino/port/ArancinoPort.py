@@ -97,7 +97,7 @@ class ArancinoPort(object):
 
         self.__heartbeatSent = False        # é una variabile che mi indica se é stato inviato il ping/hearbeat alla porta e quindi se stare in attesa di risposta.
         self.__heartbeatRate = 5           #10 secondi é il rate con cui gira l'hearbeat
-        self.__heartbeatTimeRange = 0.005   # 5 millisecondi é il tempo minimo di risposta che ci aspettiamo.
+        self.__heartbeatTimeRange = 15   # 5 millisecondi é il tempo minimo di risposta che ci aspettiamo.
         #self.__heartbeatTime0 = None        # servono per misurare il tempo.
         #self.__heartbeatTime1 = None
         self.__heartbeatCount = 1           # contantore del numero di heartbeat prima della risposta
@@ -215,6 +215,16 @@ class ArancinoPort(object):
             self._setGenericAttributes(attributes)
 
             #endregion
+
+
+            for compatible_ver in self._compatibility_array:
+                semver_compatible_ver = semantic_version.SimpleSpec(compatible_ver)
+                if arancino_lib_version in semver_compatible_ver:
+                    self._setComapitibility(True)
+                    break
+
+            started = True if self.isCompatible() else False
+            self._setStarted(started)
 
         else:
             raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
@@ -514,12 +524,11 @@ class ArancinoPort(object):
                                 #### TODO TODO TODO
                                 #### TODO send a notification to someone.
                                 #### TODO TODO TODO
-                                
-                                # reset delle variabili
 
-                                self.__heartbeatTime0 = None
-                                self.__heartbeatTime1 = None
-                                self.__heartbeatCount = 0
+                            # reset delle variabili
+                            self.__heartbeatTime0 = None
+                            self.__heartbeatTime1 = None
+                            self.__heartbeatCount = 1
 
                         # se non é arrivato il secondo hb incremento il contatore
                         else:
