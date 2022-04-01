@@ -280,6 +280,7 @@ class Arancino(Thread):
                     LOG.exception(ex)
             else:
                 self.__isPaused = True
+
             time.sleep(self.__cycle_time)
 
 

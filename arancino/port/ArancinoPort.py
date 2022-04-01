@@ -30,6 +30,7 @@ from arancino.ArancinoDataStore import ArancinoDataStore
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 import time
 
+
 import semantic_version
 
 LOG = ArancinoLogger.Instance().getLogger()
@@ -108,6 +109,11 @@ class ArancinoPort(object):
         self.__th_heartbeat = Thread(target=self.__heartbeat)
         self.__heartbeatTime0 = None
         self.__heartbeatTime1 = None
+
+        self.__redis_heartbeat_pubsub = DATASTORE.getDataStoreRsvd().pubsub()
+        self.__redis_heartbeat_pubsub_thread = None
+        self.__redis_hearbeat_ch0 = "{}_HB0".format(self.getId())
+        self.__redis_hearbeat_ch1 = "{}_HB1".format(self.getId())
 
 
 
@@ -419,6 +425,11 @@ class ArancinoPort(object):
     def stopHeartbeat(self):
         self.__heartbeatStop.set()
 
+        self.__redis_heartbeat_pubsub.unsubscribe(self.__redis_hearbeat_ch0)
+        self.__redis_heartbeat_pubsub.unsubscribe(self.__redis_hearbeat_ch0)
+        if self.__redis_heartbeat_pubsub_thread:
+            self.__redis_heartbeat_pubsub_thread.stop()
+
 
     # def __heartbeat(self):
 
@@ -549,11 +560,16 @@ class ArancinoPort(object):
 
     #region heartbeat subscriotion redis
     def __heartbeat_subscribe(self):
-        redis = DATASTORE.getDataStoreRsvd()
-        redis = redis.pubsub()
-        redis.subscribe(str(self.getId() + "_HB0"))
-        redis.subscribe(str(self.getId() + "_HB1"))
+        self.__redis_heartbeat_pubsub.subscribe(**{
+            self.__redis_hearbeat_ch0: self.__heartbeat_sub_0,
+            self.__redis_hearbeat_ch1: self.__heartbeat_sub_1
+        })
+        self.__redis_heartbeat_pubsub_thread = self.__redis_heartbeat_pubsub.run_in_thread(sleep_time=.01)
 
+        """
+        redis_pubsub.subscribe(str(self.getId() + "_HB0"))
+        redis_pubsub.subscribe(str(self.getId() + "_HB1"))
+        
         for data_raw in redis.listen():
             if data_raw['type'] != "message":
                 continue
@@ -564,16 +580,19 @@ class ArancinoPort(object):
                 self.__heartbeat_sub_1(data_raw)
             else:
                 continue
+        """
+        
+        
 
     def __heartbeat_sub_0(self, data):
         LOG.debug("RECEIVING HB 0: {}".format(data))
         ts_str = data['data']
-        self.__heartbeatTime0 = self.__heartbeat_convert_timestamp(ts_str)
+        #self.__heartbeatTime0 = self.__heartbeat_convert_timestamp(ts_str)
 
     def __heartbeat_sub_1(self, data):
         LOG.debug("RECEIVING HB 1: {}".format(data))
         ts_str = data['data']
-        self.__heartbeatTime1 = self.__heartbeat_convert_timestamp(ts_str)
+        #self.__heartbeatTime1 = self.__heartbeat_convert_timestamp(ts_str)
         
 
     def __heartbeat_convert_timestamp(self, ts_str):
