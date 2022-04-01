@@ -112,8 +112,6 @@ class ArancinoPort(object):
 
         self.__redis_heartbeat_pubsub = DATASTORE.getDataStoreRsvd().pubsub()
         self.__redis_heartbeat_pubsub_thread = None
-        self.__redis_hearbeat_ch0 = "{}_HB0".format(self.getId())
-        self.__redis_hearbeat_ch1 = "{}_HB1".format(self.getId())
 
 
 
@@ -418,6 +416,8 @@ class ArancinoPort(object):
 
 
     def startHeartbeat(self):
+        self.__redis_hearbeat_ch0 = "{}_HB0".format(self.getId())
+        self.__redis_hearbeat_ch1 = "{}_HB1".format(self.getId())
         self.__th_heartbeat.start()
         self.__heartbeat_subscribe()
 
@@ -528,7 +528,7 @@ class ArancinoPort(object):
                             ts = self.__heartbeatTime1 - self.__heartbeatTime0
 
                             if ts <= self.__heartbeatTimeRange:
-                                LOG.debug("{} Heartbeat detected: {}".format(self._log_prefix, ts))
+                                LOG.info("{} Heartbeat detected: {}".format(self._log_prefix, ts))
                             else:
                                 LOG.warn("{} Heartbeat detected but over the range: {}".format(self._log_prefix, ts))
 
@@ -587,12 +587,12 @@ class ArancinoPort(object):
     def __heartbeat_sub_0(self, data):
         LOG.debug("RECEIVING HB 0: {}".format(data))
         ts_str = data['data']
-        #self.__heartbeatTime0 = self.__heartbeat_convert_timestamp(ts_str)
+        self.__heartbeatTime0 = int(datetime.now().timestamp() * 1000)
 
     def __heartbeat_sub_1(self, data):
         LOG.debug("RECEIVING HB 1: {}".format(data))
         ts_str = data['data']
-        #self.__heartbeatTime1 = self.__heartbeat_convert_timestamp(ts_str)
+        self.__heartbeatTime1 = int(datetime.now().timestamp() * 1000)
         
 
     def __heartbeat_convert_timestamp(self, ts_str):
