@@ -52,8 +52,12 @@ class ParserSimple(Parser):
 
                 # do parsing only if template is loaded
                 if self._tmpl:
-                    for d in data:
-                        last_tms = int(self._datastore_tser.redis.get("{}:{}:{}".format(d["key"], self._flow_name, CONST.SUFFIX_TMSTP)))
+                    for d in data: 
+                        last_tms = self._datastore_tser.redis.get("{}:{}:{}".format(d["key"], self._flow_name, CONST.SUFFIX_TMSTP))
+                        if last_tms:
+                            last_tms = int(last_tms)
+                        else:
+                            last_tms = 0
                         for i in range(len(d["timestamps"])):
                             if d["timestamps"][0] > last_tms:
                                 break

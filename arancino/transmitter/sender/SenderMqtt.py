@@ -66,7 +66,7 @@ class SenderMqtt(Sender):
             self._client.disconnect()
 
     def _do_trasmission(self, data=None, metadata=None):
-        if self._client and self._client.connected_flag:
+        if self._client and self._client.connected_flag and len(data):
 
             LOG.debug("{}Sending data to {}:{}...".format(self._log_prefix, self._broker_host, str(self._broker_port)))
             info = self._client.publish(topic=self._topic, payload=data, qos=self._qos, retain=self._retain)

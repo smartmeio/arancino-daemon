@@ -40,7 +40,7 @@ class SenderTcpSocket(Sender):
         
 
     def _do_trasmission(self, data=None, metadata=None):
-        if self.__connection:
+        if self.__connection and len(data):
             LOG.debug("{}Sending data to {}:{}...".format(self._log_prefix, self.__server_host, str(self.__server_port)))
             try:
                 not_sent = self.__connection.sendall(data.encode())

@@ -82,12 +82,15 @@ class Reader(Thread, metaclass=SingletonMeta):
                 for key in ts_keys:
                     tags = {}
                     tms_pattern = "{}:*:{}".format(key, CONST.SUFFIX_TMSTP)
-                    _, tms_keys = self.__datastore_tser.redis.scan(match = tms_pattern)
+                    tms_keys = self.__datastore_tser.redis.keys(tms_pattern)
                     if len(tms_keys):
                         tms_list = self.__datastore_tser.redis.mget(tms_keys)
                         starting_tms_ts = min(list(map(int, tms_list)))
                     else:
-                        starting_tms_ts = 0
+                        k_info = self.__datastore_tser.info(key)
+                        starting_tms_ts = k_info.first_time_stamp
+                        if starting_tms_ts == 0:
+                            continue
                     
                     tag_keys = self.__retrieve_tags_keys(key)
                     label_keys = self.__retrieve_label_keys(key.split(':')[0])
