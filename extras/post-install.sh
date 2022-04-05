@@ -52,9 +52,15 @@ cp templates/default.yaml.tmpl $ARANCINO/templates/default.yaml.tmpl
 cp templates/S4T_default.json.tmpl $ARANCINO/templates/S4T_default.json.tmpl
 echo -------------------------------------------------
 
+echo ----Restoring redis databases to default number---
+sed -i 's/databases 6/databases 16/g' /etc/redis/redis-volatile.conf
+sed -i 's/databases 6/databases 16/g' /etc/redis/redis-persistent.conf
+
 echo -------------Reloading daemons--------------------
 systemctl daemon-reload
 
+systemctl restart redis-volatile
+systemctl restart redis-persistent
 systemctl enable arancino
 systemctl restart arancino
 echo -------------------------------------------------
