@@ -25,14 +25,18 @@ import logging
 import sys
 import os
 import json
+from enum import Enum
+
 import arancino
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 
 import semantic_version
 
-from arancino.ArancinoConstants import RedisInstancesType
+from arancino.ArancinoConstants import RedisInstancesType, EnvType
 from arancino.port.ArancinoPortFilter import FilterTypes
+
+import yaml
 
 class Singleton:
 
@@ -53,8 +57,115 @@ class Singleton:
         return isinstance(inst, self._cls)
 
 
+
+@Singleton
+class ArancinoEnvironment:
+
+
+    def __init__(self):
+
+
+        self._env = os.environ.get('ARANCINOENV')
+        self._home_dir = os.environ.get('ARANCINO')
+        self._cfg_dir = os.environ.get('ARANCINOCONF')
+        self._log_dir = os.environ.get('ARANCINOCONF')
+        self._version = semantic_version.Version(arancino.__version__)
+
+
+    @property
+    def env(self):
+        return self._env
+
+
+    @property
+    def cfg_dir(self):
+        return self._cfg_dir
+
+
+    @property
+    def version(self):
+        return self._version
+
+
+    @property
+    def home_dir(self):
+        return self._home_dir
+
+
+    @property
+    def log_dir(self):
+        return self._log_dir
+
+
+
+@Singleton
+class ArancinoConfig2:
+
+    def __init__(self):
+
+        _env = ArancinoEnvironment.Instance().env
+        _cfg_dir = ArancinoEnvironment.Instance().cfg_dir
+        _cfg_file = ""
+
+        if _env.upper() == EnvType.DEV \
+                or _env.upper() == EnvType.TEST \
+                or _env.upper() == EnvType.DEVELOPMENT:
+            _cfg_file = "arancino.dev.cfg.yml"
+
+        elif _env.upper() == EnvType.PROD \
+                or _env.upper() == EnvType.PRODUCTION:
+            _cfg_file = "arancino.cfg.yml"
+
+        file = os.path.join(_cfg_dir, _cfg_file)
+
+        with open(file, "r") as ymlfile:
+            self._cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
+
+
+    @property
+    def cfg(self):
+        return self._cfg
+
+
 @Singleton
 class ArancinoConfig:
+    """
+    def getConf(self):
+
+
+
+
+        sys.path.append(os.environ.get('ARANCINOCONF'))
+
+        env = os.environ.get('ARANCINOENV')
+        if env.upper() == "DEV" or env.upper() == "TEST" or env.upper() == "DEVELOPMENT":
+            module = "arancino.dev.cfg.py"
+        elif env.upper() == "PROD" or env.upper() == "PRODUCTION":
+            module = "arancino.cfg"
+
+        module_path = module
+
+        if module_path in sys.modules:
+            return sys.modules[module_path]
+
+        return __import__(module_path, fromlist=[module])
+    """
+    def load(self):
+
+        env = os.environ.get('ARANCINOENV')
+        cfg_dir = os.environ.get('ARANCINOCONF')
+        if env.upper() == "DEV" or env.upper() == "TEST" or env.upper() == "DEVELOPMENT":
+            cfg_file = "arancino.dev.cfg.yml"
+        elif env.upper() == "PROD" or env.upper() == "PRODUCTION":
+            cfg_file = "arancino.cfg.yml"
+
+        file = os.path.join(cfg_dir, cfg_file)
+
+        with open(file, "r") as ymlfile:
+            return yaml.load(ymlfile, Loader=yaml.FullLoader)
+
+         #importlib.import_module(m)
+
 
     def __init__(self):
 
@@ -63,6 +174,10 @@ class ArancinoConfig:
             self.__cfg_file = "arancino.dev.cfg"
         elif env.upper() == "PROD" or env.upper() == "PRODUCTION":
             self.__cfg_file = "arancino.cfg"
+
+
+
+
 
 
         self.__arancino_config_path = os.environ.get('ARANCINOCONF')

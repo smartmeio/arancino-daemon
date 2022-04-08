@@ -22,6 +22,13 @@ under the License
 from enum import Enum
 
 
+class EnvType:
+    DEV = "DEV"
+    DEVELOPMENT = "DEVELOPMENT"
+    PROD = "PROD"
+    TEST = "TEST"
+    PRODUCTION = "PRODUCTION"
+
 class RedisInstancesType(Enum):
     VOLATILE = 1
     PERSISTENT = 2
