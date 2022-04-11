@@ -64,6 +64,13 @@ redis:
     datastore_tse_db: 4
     datastore_tag_db: 5
 
+    host_volatile: "localhost"
+    port_volatile: 6379
+
+    host_persistent: "localhost"
+    port_persistent: 6379
+
+
   persistent:
     datastore_std_db: 0
     datastore_dev_db: 1
@@ -71,16 +78,27 @@ redis:
     datastore_rsvd_db: 3
     datastore_tse_db: 4
     datastore_tag_db: 5
+    host_volatile: "localhost"
+    port_volatile: 6380
+    host_persistent: "localhost"
+    port_persistent: 6380
 
   volatile_persistent:
     #volatile
     datastore_std_db: 0
     datastore_rsvd_db: 1
     datastore_tse_db: 2
+
+    host_volatile: "localhost"
+    port_volatile: 6379
+
     #persistent
     datastore_dev_db: 0
     datastore_per_db: 1
     datastore_tag_db: 2
+
+    host_persistent: "localhost"
+    port_persistent: 6380
 
 
 port:
