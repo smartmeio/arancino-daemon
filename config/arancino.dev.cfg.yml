@@ -286,3 +286,81 @@ log:
 
   # Enables or disables printing of stack trace on errors
   print_stack_trace: true
+
+
+transmitter:
+
+  # Enable or disable the transmitter module of Arancino
+  enabled: false
+
+
+  reader:
+
+    # Represents the time (in seconds) in which the reader collects data
+    # and transfers it to the upper level
+    cycle_time: 10
+
+  parser:
+
+    class: "ParserSimple"
+
+    # template file used to parse data with the template engine (jinja2)
+    #   default available templates:
+    #   - default.yaml.tmpl
+    #   - default.json.tmpl
+    #   - default.xml.tmpl
+
+    file: "default.json.tmpl"
+
+    #PARSER SIMPLE#
+    simple: null
+      # Configuration for ParserSimple
+
+    #PARSER S4T#
+    s4t:
+      # Configuration for ParserS4T
+
+      db_name: "db_name"
+
+  sender:
+    # Available Senders are: SenderDoNothing, SenderTcpSocket, SenderMqtt, SenderMqttS4T
+    class: "SenderDoNothing"
+
+    #SENDER DO NOTHING
+    donothing: null
+
+    #SENDER TCP SOCKET
+    tcpsocket:
+      host: "tcp_server_ip"
+      port: 0000
+
+    #SENDER MQTT
+    mqtt:
+      use_tls: false
+      qos: 1
+      retain: False
+
+      # NOTE: non available at the moment.
+      # channel parameter can contains placeholder with the using of "{" and "}"
+      # placeholder can be:
+      #   - key -> the name of the key that contains the measurements
+      #   - labels.port_id -> the identifier of the port that provides the measurements
+      #   - labels.port_type -> the type of the port that provides the measurements
+      #   - labels.device_id -> the identifier of the device where the ports are connected to. (Note: not always available)
+      #   - labels.?????
+
+      topic: "your_topic"
+
+      # plain
+      host: "mqtt_broker_ip"
+      port: 1883
+      username: "your_username"
+      password: "your_password"
+
+      # secure
+      ca_path: null
+      cert_path: null
+      key_path: null
+
+    #SENDER MQTT S4T
+    mqtts4t:

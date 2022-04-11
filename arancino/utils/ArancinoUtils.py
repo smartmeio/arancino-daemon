@@ -64,7 +64,9 @@ class ArancinoEnvironment:
         self._env = os.environ.get('ARANCINOENV')
         self._home_dir = os.environ.get('ARANCINO')
         self._cfg_dir = os.environ.get('ARANCINOCONF')
-        self._log_dir = os.environ.get('ARANCINOCONF')
+        self._log_dir = os.environ.get('ARANCINOLOG')
+        self._tmplt_dir = os.path.join(self._home_dir, "templates")
+
         self._version = semantic_version.Version(arancino.__version__)
         self._serial_number = self._retrieve_serial_number()
 
@@ -91,6 +93,11 @@ class ArancinoEnvironment:
     @property
     def log_dir(self):
         return self._log_dir
+
+
+    @property
+    def tmplt_dir(self):
+        return self._tmplt_dir
 
 
     @property

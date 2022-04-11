@@ -24,11 +24,13 @@ import os
 
 from jinja2 import Template
 
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoConfig2, ArancinoEnvironment
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance()
-TRACE = CONF.get_log_print_stack_trace()
+CONF = ArancinoConfig2.Instance().cfg
+TRACE = CONF.get("log").get("trace")
+ENV = ArancinoEnvironment.Instance()
+
 
 class Parser(object):
 
@@ -36,7 +38,8 @@ class Parser(object):
 
     def __init__(self):
         #private
-        self.__template_file = os.path.join(CONF.get_arancino_template_path(), CONF.get_transmitter_parser_template_file())
+        parser_file = CONF.get("transmitter").get("parser").get("file")
+        self.__template_file = os.path.join(ENV.tmplt_dir, parser_file)
 
         #protected
         self._log_prefix = "Parser [Abstract] - "
