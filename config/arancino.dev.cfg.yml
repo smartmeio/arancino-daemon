@@ -158,13 +158,25 @@ port:
     #   - 0x04D8:0xECDA - E1000 (aka Arancino) (SAMD21)
     #   - 0x1915:0x521F - A3000 (aka Arancino Volante) (NRF52)
     #   - 0x2E8A:0x000A - A4000 (aka Arancino Pico) (RP2040)
-    #   - 0x0483 0x5740 - A6000-A7000-A8000 (aka Arancino V*) (STM32)
+    #   - 0x0483:0x5740 - A6000-A7000-A8000 (aka Arancino V*) (STM32)
     filter_list:
       - "0x04D8:0xECD9"
       - "0x04D8:0xECDA"
       - "0x1915:0x521F"
       - "0x2E8A:0x000A"
       - "0x0483 0x5740"
+
+    family:
+      samd21:
+        - "0x04D8:0xECDA"
+        - "0x04D8:0xECD9"
+      nrf52:
+        - "0x1915:0x521F"
+      rp20:
+        - "0x2E8A:0x000A"
+      stm32:
+        - "0x0483:0x5740"
+
 
 
     # Timeout in seconds in serial connection Min: 1

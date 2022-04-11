@@ -545,22 +545,22 @@ class ArancinoPort(object):
         #  for the specific mcu family
         #self._reset_delay = getattr(CONF, "get_port_serial_{}_reset_reconnection_delay()".format(microcontroller_family.lower()))
 
-        if self.getPortType() == PortTypes.SERIAL:
-            if self._microcontroller_family == MicrocontrollerFamily.SAMD21:
-                self.setResetReconnectionDelay(CONF.get("port").get("serial").get("samd21").get("reset_reconnection_delay"))
-                self._setUploadCommand(CONF.get("port").get("serial").get("samd21").get("upload_command"))
-            elif self._microcontroller_family == MicrocontrollerFamily.NRF52:
-                self.setResetReconnectionDelay(CONF.get("port").get("serial").get("nrf52").get("reset_reconnection_delay"))
-                self._setUploadCommand(CONF.get("port").get("serial").get("nrf52").get("upload_command"))
-            elif self._microcontroller_family == MicrocontrollerFamily.RP20:
-                self.setResetReconnectionDelay(CONF.get("port").get("serial").get("rp20").get("reset_reconnection_delay"))
-                self._setUploadCommand(CONF.get("port").get("serial").get("rp20").get("upload_command"))
-            elif self._microcontroller_family == MicrocontrollerFamily.STM32:
-                self.setResetReconnectionDelay(CONF.get("port").get("serial").get("stm32").get("reset_reconnection_delay"))
-                self._setUploadCommand(CONF.get("port").get("serial").get("stm32").get("upload_command"))
-            else:
-                self.setResetReconnectionDelay(CONF.get("port").get("serial").get("reset_reconnection_delay"))
-                self._setUploadCommand(CONF.get("port").get("serial").get("upload_command"))
+        #if self.getPortType() == PortTypes.SERIAL:
+        if self._microcontroller_family == MicrocontrollerFamily.SAMD21:
+            self.setResetReconnectionDelay(CONF.get("port").get("serial").get("samd21").get("reset_reconnection_delay"))
+            self._setUploadCommand(CONF.get("port").get("serial").get("samd21").get("upload_command"))
+        elif self._microcontroller_family == MicrocontrollerFamily.NRF52:
+            self.setResetReconnectionDelay(CONF.get("port").get("serial").get("nrf52").get("reset_reconnection_delay"))
+            self._setUploadCommand(CONF.get("port").get("serial").get("nrf52").get("upload_command"))
+        elif self._microcontroller_family == MicrocontrollerFamily.RP20:
+            self.setResetReconnectionDelay(CONF.get("port").get("serial").get("rp20").get("reset_reconnection_delay"))
+            self._setUploadCommand(CONF.get("port").get("serial").get("rp20").get("upload_command"))
+        elif self._microcontroller_family == MicrocontrollerFamily.STM32:
+            self.setResetReconnectionDelay(CONF.get("port").get("serial").get("stm32").get("reset_reconnection_delay"))
+            self._setUploadCommand(CONF.get("port").get("serial").get("stm32").get("upload_command"))
+        else:
+            self.setResetReconnectionDelay(CONF.get("port").get("reset_reconnection_delay"))
+            self._setUploadCommand(CONF.get("port").get("upload_command"))
 
     #endregion
 

@@ -111,8 +111,24 @@ class ArancinoSerialDiscovery:
             p_baudrate = CONF.get("port").get("serial").get("comm_baudrate")
             p_baudrate_reset = CONF.get("port").get("serial").get("reset_baudrate")
 
-            p = ArancinoSerialPort(timeout=p_timeout, port_info=port, m_s_plugged=True, m_c_enabled=p_enabled, m_c_hide=p_hide, baudrate_comm=p_baudrate, baudrate_reset=p_baudrate_reset)
+            f = self.__retrieve_family_by_vid_pid(port)
+
+            p = ArancinoSerialPort(mcu_family=f, timeout=p_timeout, port_info=port, m_s_plugged=True, m_c_enabled=p_enabled, m_c_hide=p_hide, baudrate_comm=p_baudrate, baudrate_reset=p_baudrate_reset)
 
             new_ports_struct[p.getId()] = p
 
         return new_ports_struct
+
+
+
+    def __retrieve_family_by_vid_pid(self, port):
+        families = CONF.get("port").get("serial").get("family")
+        vidpid = "{}:{}".format("0X{:04X}".format(port.vid), "0X{:04X}".format(port.pid))
+        for fam in families:
+
+            for item in families[fam]:
+                if item.upper() == vidpid:
+
+                    return fam
+
+        return None
