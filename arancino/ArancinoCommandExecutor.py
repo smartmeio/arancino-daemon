@@ -33,7 +33,7 @@ from arancino.port.ArancinoPort import PortTypes
 from datetime import datetime
 
 
-CONF = ArancinoConfig2.Instance()
+CONF = ArancinoConfig2.Instance().cfg
 ENV = ArancinoEnvironment.Instance()
 
 class ArancinoCommandExecutor:
@@ -1181,8 +1181,8 @@ class ArancinoCommandExecutor:
                 "port_type": self.__port_type.name
             }
 
-            if not ENV.serial_numer == "0000000000000000" and not ENV.serial_numer == "ERROR000000000":
-                labels["device_id"] = ENV.serial_numer
+            if not ENV.serial_number == "0000000000000000" and not ENV.serial_number == "ERROR000000000":
+                labels["device_id"] = ENV.serial_number
 
             self.__datastore_tser.create(key, labels=labels, duplicate_policy='last', retention_msecs=CONF.get("redis").get("retetion")) #self.__conf.get_redis_timeseries_retation())
             self.__datastore_tser.redis.set("{}:{}".format(key, SUFFIX_TMSTP), 0)  # Starting timestamp

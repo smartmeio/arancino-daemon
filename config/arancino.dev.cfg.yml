@@ -82,6 +82,7 @@ redis:
     datastore_per_db: 1
     datastore_tag_db: 2
 
+
 port:
 
   # Folder for firmware to be flashed onto microcontroller.
@@ -217,7 +218,7 @@ port:
     
     
     # The number of Oort to create for test purpose
-    num: 0
+    num: 1
 
 
     # Delay between each command in seconds (accepts float)
@@ -225,6 +226,7 @@ port:
 
     # prefix of the id generated for the test port
     id_template: TESTPORT
+
 
 log:
 

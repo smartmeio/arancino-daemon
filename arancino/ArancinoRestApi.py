@@ -41,7 +41,7 @@ CONF__ = ArancinoConfig.Instance()
 CONF = ArancinoConfig2.Instance().cfg
 LOG = ArancinoLogger.Instance().getLogger()
 TRACE = CONF.get("log").get("trace")
-ENV = ArancinoEnvironment.Istance()
+ENV = ArancinoEnvironment.Instance()
 
 class ArancinoApi():
 

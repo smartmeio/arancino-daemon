@@ -81,13 +81,13 @@ class ArancinoSerialDiscovery:
 
     def __postFilterPorts(self, ports={}, filter_type=FilterTypes.ALL, filter_list=[]):
 
-        if filter_type == FilterTypes.ONLY:
+        if filter_type == FilterTypes.ONLY.name:
             return self.__filter.filterOnly(ports, filter_list)
 
-        elif filter_type == FilterTypes.EXCLUDE:
+        elif filter_type == FilterTypes.EXCLUDE.name:
             return self.__filter.filterExclude(ports, filter_list)
 
-        elif filter_type == FilterTypes.ALL:
+        elif filter_type == FilterTypes.ALL.name:
             return self.__filter.filterAll(ports, filter_list)
 
 

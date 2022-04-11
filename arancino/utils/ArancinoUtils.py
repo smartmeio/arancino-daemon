@@ -25,18 +25,15 @@ import logging
 import sys
 import os
 import json
-from enum import Enum
-
+import semantic_version
+import yaml
 import arancino
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
-
-import semantic_version
-
 from arancino.ArancinoConstants import RedisInstancesType, EnvType
 from arancino.port.ArancinoPortFilter import FilterTypes
 
-import yaml
+
 
 class Singleton:
 
@@ -57,7 +54,6 @@ class Singleton:
         return isinstance(inst, self._cls)
 
 
-
 @Singleton
 class ArancinoEnvironment:
 
@@ -70,8 +66,7 @@ class ArancinoEnvironment:
         self._cfg_dir = os.environ.get('ARANCINOCONF')
         self._log_dir = os.environ.get('ARANCINOCONF')
         self._version = semantic_version.Version(arancino.__version__)
-        self._serial_numer = self.__retrieve_serial_number()
-
+        self._serial_number = self._retrieve_serial_number()
 
     @property
     def env(self):
@@ -101,10 +96,11 @@ class ArancinoEnvironment:
     @property
     def serial_number(self):
         return self._serial_number
+        #return self.__retrieve_serial_number()
 
 
     # TODO: rivedere questo metodo.
-    def __retrieve_serial_number(self):
+    def _retrieve_serial_number(self):
         # Extract serial from cpuinfo file
         serial = "0000000000000000"
         try:
@@ -769,19 +765,20 @@ class ArancinoLogger:
         self.__logger = None
 
         # logger configuration
-        CONF = ArancinoConfig.Instance()
+        CONF__ = ArancinoConfig.Instance()
+        CONF = ArancinoConfig2.Instance().cfg
+        ENV = ArancinoEnvironment.Instance()
 
-        self.__name = CONF.get_log_name()  # 'Arancino Serial'
-        self.__filename = CONF.get_log_file_log()  # 'arancino.log'
-        self.__error_filename = CONF.get_log_file_error()  # 'arancino.error.log'
-        # self.__stats_filename = conf.get_log_stats_file()  # 'arancino.stats.log'
+        self.__name = CONF.get("log").get("name")
+        self.__filename = CONF.get("log").get("file_log") # 'arancino.log'
+        self.__error_filename = CONF.get("log").get("file_error")   # 'arancino.error.log'
 
         # __dirlog = Config["log"].get("path")           #'/var/log/arancino'
-        self.__dirlog = os.environ.get('ARANCINOLOG')
+        self.__dirlog = ENV.log_dir     #os.environ.get('ARANCINOLOG')
         self.__format = CustomConsoleFormatter(level='DEBUG')  #logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-        self.__log_size = CONF.get_log_size()
-        self.__log_rotate = CONF.get_log_rotate()
+        self.__log_size = CONF.get("log").get("size")
+        self.__log_rotate = CONF.get("log").get("rotate")
 
         # logging.basicConfig(level=logging.getLevelName(CONF.get_log_level()))
         # if CONF.get_log_handler_console():
@@ -789,12 +786,12 @@ class ArancinoLogger:
 
 
         self.__logger = logging.getLogger(self.__name) #CustomLogger(self.__name)#
-        self.__logger.setLevel(logging.getLevelName(CONF.get_log_level()))
+        self.__logger.setLevel(logging.getLevelName(CONF.get("log").get("level")))
 
-        if CONF.get_log_handler_console():
+        if CONF.get("log").get("handler_console"):
             self.__logger.addHandler(self.__getConsoleHandler())
 
-        if CONF.get_log_handler_file():
+        if CONF.get("log").get("lehandler_filevel"):
             self.__logger.addHandler(self.__getFileHandler())
             self.__logger.addHandler(self.__getErrorFileHandler())
 
@@ -817,21 +814,6 @@ class ArancinoLogger:
     def getLogger(self):
         return self.__logger
         # return logging
-
-
-# class CustomLogger(logging.Logger):
-#
-#
-#     def debug(self, msg, *args, **kwargs):
-#
-#         if self.isEnabledFor(logging.DEBUG):
-#             self._log(logging.DEBUG, msg, args, **kwargs)
-#
-#     def error(self, msg, *args, **kwargs):
-#
-#         if self.isEnabledFor(logging.DEBUG):
-#             self._log(logging.DEBUG, msg, args, **kwargs)
-#
 
 
 class CustomConsoleFormatter(logging.Formatter):
@@ -937,29 +919,3 @@ def secondsToHumanString(total_seconds):
 
     return string
     #return string
-
-
-# from timestampt to datetime
-'''
-from datetime import datetime
-
-timestamp = 1545730073
-dt_object = datetime.fromtimestamp(timestamp)
-
-print("dt_object =", dt_object)
-print("type(dt_object) =", type(dt_object))
-
-'''
-
-# from datetime to timestamp
-'''
-from datetime import datetime
-
-# current date and time
-now = datetime.now()
-
-timestamp = datetime.timestamp(now)
-print("timestamp =", timestamp)
-
-
-'''
