@@ -108,7 +108,7 @@ port:
   serial:
 
     # Automatically enables (and connect) a new discovered Port.
-    enabled: true
+    auto_enable: true
 
     # It's a flag used by an UI, to make the Port showable or not
     #   Sets to true to make it not visible
@@ -199,7 +199,7 @@ port:
 
   test:
 
-    enabled: True
+    auto_enable: True
 
     hide: True
 

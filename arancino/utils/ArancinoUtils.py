@@ -70,6 +70,7 @@ class ArancinoEnvironment:
         self._cfg_dir = os.environ.get('ARANCINOCONF')
         self._log_dir = os.environ.get('ARANCINOCONF')
         self._version = semantic_version.Version(arancino.__version__)
+        self._serial_numer = self.__retrieve_serial_number()
 
 
     @property
@@ -97,15 +98,42 @@ class ArancinoEnvironment:
         return self._log_dir
 
 
+    @property
+    def serial_number(self):
+        return self._serial_number
+
+
+    # TODO: rivedere questo metodo.
+    def __retrieve_serial_number(self):
+        # Extract serial from cpuinfo file
+        serial = "0000000000000000"
+        try:
+            f = open('/proc/cpuinfo', 'r')
+            for line in f:
+                if line[0:6] == 'Serial':
+                    serial = line[10:26]
+            f.close()
+        except Exception as ex:
+            try:
+                f = open('cat /sys/class/dmi/id/product_uuid')
+                serial = f.readline().strip()
+                f.close()
+            except Exception as ex:
+                serial = "ERROR000000000"
+
+        return serial
+
 
 @Singleton
 class ArancinoConfig2:
 
     def __init__(self):
 
+
         _env = ArancinoEnvironment.Instance().env
         _cfg_dir = ArancinoEnvironment.Instance().cfg_dir
         _cfg_file = ""
+
 
         if _env.upper() == EnvType.DEV \
                 or _env.upper() == EnvType.TEST \
@@ -116,7 +144,9 @@ class ArancinoConfig2:
                 or _env.upper() == EnvType.PRODUCTION:
             _cfg_file = "arancino.cfg.yml"
 
+
         file = os.path.join(_cfg_dir, _cfg_file)
+
 
         with open(file, "r") as ymlfile:
             self._cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
@@ -129,43 +159,6 @@ class ArancinoConfig2:
 
 @Singleton
 class ArancinoConfig:
-    """
-    def getConf(self):
-
-
-
-
-        sys.path.append(os.environ.get('ARANCINOCONF'))
-
-        env = os.environ.get('ARANCINOENV')
-        if env.upper() == "DEV" or env.upper() == "TEST" or env.upper() == "DEVELOPMENT":
-            module = "arancino.dev.cfg.py"
-        elif env.upper() == "PROD" or env.upper() == "PRODUCTION":
-            module = "arancino.cfg"
-
-        module_path = module
-
-        if module_path in sys.modules:
-            return sys.modules[module_path]
-
-        return __import__(module_path, fromlist=[module])
-    """
-    def load(self):
-
-        env = os.environ.get('ARANCINOENV')
-        cfg_dir = os.environ.get('ARANCINOCONF')
-        if env.upper() == "DEV" or env.upper() == "TEST" or env.upper() == "DEVELOPMENT":
-            cfg_file = "arancino.dev.cfg.yml"
-        elif env.upper() == "PROD" or env.upper() == "PRODUCTION":
-            cfg_file = "arancino.cfg.yml"
-
-        file = os.path.join(cfg_dir, cfg_file)
-
-        with open(file, "r") as ymlfile:
-            return yaml.load(ymlfile, Loader=yaml.FullLoader)
-
-         #importlib.import_module(m)
-
 
     def __init__(self):
 
@@ -175,11 +168,6 @@ class ArancinoConfig:
         elif env.upper() == "PROD" or env.upper() == "PRODUCTION":
             self.__cfg_file = "arancino.cfg"
 
-
-
-
-
-
         self.__arancino_config_path = os.environ.get('ARANCINOCONF')
         self.__arancino_home_path =  os.environ.get('ARANCINO')
         self.__arancino_template_path = os.path.join(self.__arancino_home_path, "templates")
@@ -187,7 +175,7 @@ class ArancinoConfig:
         self.Config = configparser.ConfigParser()
         self.Config.read(os.path.join(self.__arancino_config_path, self.__cfg_file))
 
-        self.__serial_number = self.__retrieve_serial_number()
+        self.__serial_number = ArancinoEnvironment.Instance().serial_number
 
         # region CONFIG METADATA SECTION
         self.__metadata_version = semantic_version.Version(arancino.__version__)
@@ -415,26 +403,6 @@ class ArancinoConfig:
 
     # def get_general_users(self):
     #     return json.loads(self.__general_users)
-
-    # TODO: rivedere questo metodo.
-    def __retrieve_serial_number(self):
-        # Extract serial from cpuinfo file
-        serial = "0000000000000000"
-        try:
-            f = open('/proc/cpuinfo', 'r')
-            for line in f:
-                if line[0:6] == 'Serial':
-                    serial = line[10:26]
-            f.close()
-        except Exception as ex:
-            try:
-                f = open('cat /sys/class/dmi/id/product_uuid')
-                serial = f.readline().strip()
-                f.close()
-            except Exception as ex:
-                serial = "ERROR000000000"
-
-        return serial
 
 
     def get_serial_number(self):

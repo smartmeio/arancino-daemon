@@ -34,10 +34,9 @@ from arancino.ArancinoConstants import ArancinoReservedChars
 import time
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance()
 API_CODE = ArancinoApiResponseCode()
 ENV = ArancinoEnvironment.Instance()
-CONF2 = ArancinoConfig2.Instance()
+CONF = ArancinoConfig2.Instance().cfg
 
 
 #@Singleton
@@ -62,10 +61,10 @@ class Arancino(Thread):
             self.__stop = False
             self.__pause = False
             self.__isPaused = False
-            self.__cycle_time = CONF2.cfg.get("general").get("cycle_time")#CONF.get_general_cycle_time()
+            self.__cycle_time = CONF.get("general").get("cycle_time")
             self.__version = ENV.version
 
-            LOG.info("Arancino version {} starts on environment {}!".format(self.__version, ENV.env))#CONF.get_general_env()))
+            LOG.info("Arancino version {} starts on environment {}!".format(self.__version, ENV.env))
 
             self.__thread_start = None
             self.__thread_start_reset = None
@@ -82,7 +81,7 @@ class Arancino(Thread):
             # store in datastore: module version, module environment running mode
             self.__datastore.getDataStoreRsvd().set(ArancinoReservedChars.RSVD_KEY_MODVERSION, str(self.__version))
             self.__datastore.getDataStoreRsvd().set(ArancinoReservedChars.RSVD_KEY_MODENVIRONMENT, ENV.env)
-            self.__datastore.getDataStoreRsvd().set(ArancinoReservedChars.RSVD_KEY_MODLOGLEVEL, CONF2.cfg.get("log").get("level"))#CONF.get_log_level())
+            self.__datastore.getDataStoreRsvd().set(ArancinoReservedChars.RSVD_KEY_MODLOGLEVEL, CONF.get("log").get("level"))
 
             # signal.signal(signal.SIGINT, self.__kill)
             # signal.signal(signal.SIGTERM, self.__kill)
@@ -253,7 +252,7 @@ class Arancino(Thread):
         self.__cycle_time = 1
 
     def resumeArancinoThread(self):
-        self.__cycle_time = CONF.get_general_cycle_time()
+        self.__cycle_time = CONF.get("general").get("cycle_time")
         self.__pause = False
 
     def isPaused(self):

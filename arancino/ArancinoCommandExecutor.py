@@ -28,10 +28,13 @@ import semantic_version as semver
 from arancino.ArancinoCortex import ArancinoResponse
 from arancino.ArancinoExceptions import *
 from arancino.ArancinoDataStore import ArancinoDataStore
-from arancino.utils.ArancinoUtils import ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoConfig, ArancinoConfig2, ArancinoEnvironment
 from arancino.port.ArancinoPort import PortTypes
 from datetime import datetime
 
+
+CONF = ArancinoConfig2.Instance()
+ENV = ArancinoEnvironment.Instance()
 
 class ArancinoCommandExecutor:
 
@@ -51,7 +54,7 @@ class ArancinoCommandExecutor:
         self.__datastore_tser = redis.getDataStoreTse()
         self.__datastore_tag = redis.getDataStoreTag()
 
-        self.__conf = ArancinoConfig.Instance()
+        #self.__conf = ArancinoConfig.Instance()
 #        self.__compatibility_array_serial = COMPATIBILITY_MATRIX_MOD_SERIAL[str(self.__conf.get_metadata_version().truncate())]
 #        self.__compatibility_array_test = COMPATIBILITY_MATRIX_MOD_TEST[str(self.__conf.get_metadata_version().truncate())]
 
@@ -1178,10 +1181,10 @@ class ArancinoCommandExecutor:
                 "port_type": self.__port_type.name
             }
 
-            if not self.__conf.get_serial_number() == "0000000000000000" and not self.__conf.get_serial_number() == "ERROR000000000":
-                labels["device_id"] = self.__conf.get_serial_number()
+            if not ENV.serial_numer == "0000000000000000" and not ENV.serial_numer == "ERROR000000000":
+                labels["device_id"] = ENV.serial_numer
 
-            self.__datastore_tser.create(key, labels=labels, duplicate_policy='last', retention_msecs=self.__conf.get_redis_timeseries_retation())
+            self.__datastore_tser.create(key, labels=labels, duplicate_policy='last', retention_msecs=CONF.get("redis").get("retetion")) #self.__conf.get_redis_timeseries_retation())
             self.__datastore_tser.redis.set("{}:{}".format(key, SUFFIX_TMSTP), 0)  # Starting timestamp
 
     #endregion

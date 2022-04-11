@@ -21,19 +21,20 @@ under the License
 
 from serial.tools import list_ports
 
-from arancino.utils.ArancinoUtils import ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoConfig2
 from arancino.port.ArancinoPortFilter import FilterTypes
 from arancino.port.serial.ArancinoSerialPortFilter import ArancinoSerialPortFilter
 from arancino.port.serial.ArancinoSerialPort import ArancinoSerialPort
 
-CONF = ArancinoConfig.Instance()
+CONF = ArancinoConfig2.Instance().cfg
+
 
 class ArancinoSerialDiscovery:
 
     def __init__(self):
         self.__filter = ArancinoSerialPortFilter()
-        self.__filter_type = CONF.get_port_serial_filter_type()
-        self.__filter_list = CONF.get_port_serial_filter_list()
+        self.__filter_type = CONF.get("port").get("serial").get("filter_type")
+        self.__filter_list = CONF.get("port").get("serial").get("filter_list")
 
 
     # TODO: this can be an abstract method
@@ -104,7 +105,14 @@ class ArancinoSerialDiscovery:
 
         for port in ports:
 
-            p = ArancinoSerialPort(timeout=CONF.get_port_serial_timeout(), port_info=port, m_s_plugged=True, m_c_enabled=CONF.get_port_serial_enabled(), m_c_hide=CONF.get_port_serial_hide(), baudrate_comm=CONF.get_port_serial_comm_baudrate(), baudrate_reset=CONF.get_port_serial_reset_baudrate())
+            p_timeout = CONF.get("port").get("serial").get("timeout")
+            p_enabled = CONF.get("port").get("serial").get("auto_enable")
+            p_hide = CONF.get("port").get("serial").get("hide")
+            p_baudrate = CONF.get("port").get("serial").get("comm_baudrate")
+            p_baudrate_reset = CONF.get("port").get("serial").get("reset_baudrate")
+
+            p = ArancinoSerialPort(timeout=p_timeout, port_info=port, m_s_plugged=True, m_c_enabled=p_enabled, m_c_hide=p_hide, baudrate_comm=p_baudrate, baudrate_reset=p_baudrate_reset)
+
             new_ports_struct[p.getId()] = p
 
         return new_ports_struct
