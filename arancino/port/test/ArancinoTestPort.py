@@ -201,3 +201,14 @@ class ArancinoTestPort(ArancinoPort):
     def sendResponse(self, raw_response):
         # Do nothing
         pass
+
+
+    # region MICRO CONTROLLER FAMILY
+
+    def getMicrocontrollerFamily(self):
+        return None
+
+    def _setMicrocontrollerFamily(self, microcontroller_family):
+        pass
+
+    #endregion

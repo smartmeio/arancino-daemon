@@ -44,8 +44,7 @@ class ArancinoSerialPort(ArancinoPort):
         self.__serial_port = None       # type: serial.Serial
         self.__port_info = port_info    # type: serial.tools.ListPortInfo
 
-        if mcu_family:
-            self._setMicrocontrollerFamily(mcu_family.upper())
+
 
         # SERIAL PORT PARAMETER
         self.__comm_baudrate = baudrate_comm
@@ -53,8 +52,11 @@ class ArancinoSerialPort(ArancinoPort):
         self.__timeout = timeout
 
         # FAMILY PORT PARAMETER
-        self.__reset_delay = reset_delay
-        #self.__upload_command = upload_cmd
+        if mcu_family:
+            self._setMicrocontrollerFamily(mcu_family.upper())
+        else:
+            self.__reset_delay = reset_delay
+            self.__upload_command = upload_cmd
 
 
         # SERIAL PORT METADATA

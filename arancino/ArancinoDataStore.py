@@ -39,6 +39,7 @@ class ArancinoDataStore:
 
 
         ist_type = CONF.get("redis").get("instance_type").lower()
+
         db_std = CONF.get("redis").get(ist_type).get("datastore_std_db")# Standard Data Store
         db_dev = CONF.get("redis").get(ist_type).get("datastore_dev_db")# Device Data Store
         db_per = CONF.get("redis").get(ist_type).get("datastore_per_db")# Persistent Data Store
