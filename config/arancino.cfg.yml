@@ -1,0 +1,388 @@
+general:
+
+  # Polling cycle time (in seconds) to discover new ports.
+  cycle_time: 10
+
+
+redis:
+
+  # Redis Server host of volatile instance
+  host_volatile: "localhost"
+
+
+  # Redis Server host of persistent instance
+  host_persistent: "localhost"
+
+
+  # Redis Server port of volatile instance
+  port_volatile: 6379
+
+
+  # Redis Server port of persistent instance
+  port_persistent: 6379
+
+
+  # Decode the response in Redis client response.
+  decode_response: true
+
+
+  # Instance type to use; policy for data storage: accepted values are:
+  #      - VOLATILE: all databases are volatile
+  #      - PERSISTENT: all databases are persistent
+  #      - VOLATILE_PERSISTENT:
+  #          volatile: data, reserved key, time series;
+  #          persistent: device, persistent data, time series tags, settings;
+  #
+  instance_type: VOLATILE_PERSISTENT
+
+
+  #  Number of connection attempts to Redis Server, one attempt every 3 second
+  #      - No limits: -1
+  #      - Default: 5
+  connection_attempts: 5
+
+
+  #  Time Series data retetion time. It's the maximum age for samples compared
+  #      to last event time (in milliseconds)
+  #
+  #      - Default: 0 - The global retention secs configuration of the database.
+  #          When set to 0, the series is not trimmed at all
+  #      - 1 Minute: 60000
+  #      - 12 Hours: 43200000
+  #      - 1 Day: 86400000
+  #      - 7 Days: 604800000
+  #
+  #      Note: Time Series data are usually stored in the volatile instance. If the device
+  #          power off, you lose your data in any case.
+  retetion: 3600000
+
+  volatile:
+    datastore_std_db: 0
+    datastore_dev_db: 1
+    datastore_per_db: 2
+    datastore_rsvd_db: 3
+    datastore_tse_db: 4
+    datastore_tag_db: 5
+
+    host_volatile: "localhost"
+    port_volatile: 6379
+
+    host_persistent: "localhost"
+    port_persistent: 6379
+
+
+  persistent:
+    datastore_std_db: 0
+    datastore_dev_db: 1
+    datastore_per_db: 2
+    datastore_rsvd_db: 3
+    datastore_tse_db: 4
+    datastore_tag_db: 5
+    host_volatile: "localhost"
+    port_volatile: 6380
+    host_persistent: "localhost"
+    port_persistent: 6380
+
+  volatile_persistent:
+    #volatile
+    datastore_std_db: 0
+    datastore_rsvd_db: 1
+    datastore_tse_db: 2
+
+    host_volatile: "localhost"
+    port_volatile: 6379
+
+    #persistent
+    datastore_dev_db: 0
+    datastore_per_db: 1
+    datastore_tag_db: 2
+
+    host_persistent: "localhost"
+    port_persistent: 6380
+
+
+port:
+
+  # Folder for firmware to be flashed onto microcontroller.
+  firmware_path: /tmp/arancino/firmware
+
+
+  # Allowed firmware file extensions
+  firmware_file_types: ["bin", "hex", "uf2", "zip"]
+
+
+  # Reset the port on connection.
+  #   When the Daemon is restarted and the port are already connected means
+  #   that the port already sent the START command, but Daemon loose the info
+  #   due to the restart. so Arancino Daemon requires a reset of the
+  #   microcontroller
+  reset_on_connect: true
+
+  # Reconnection delay after a reset (in seconds)
+  #   When call the Reset function of a Port, the Daemon waits to
+  #   do a new connection
+  reset_reconnection_delay: 40
+
+
+  serial:
+
+
+    # Automatically enables (and connect) a new discovered Port.
+    auto_enable: true
+
+    # It's a flag used by an UI, to make the Port showable or not
+    #   Sets to true to make it not visible
+    hide: false
+
+
+    # Communication Baudrate
+    comm_baudrate: 4000000
+
+
+    # Reset Baudrate: Arancino Dameon opens a connection with this baudarate
+    #  to reset the microcontroller. 'touch' reset.
+    reset_baudrate: 300
+
+
+    # Filter works with the below list (filter_list). Accepted filter
+    #   type are: EXCLUDE, ONLY, ALL
+    #   - EXCLUDE: excludes the ones in the filter_list.
+    #   - ONLY: acceptes only the ones in the filter_list.
+    #   - ALL: no filter, accepts all. This is the default filter type.
+    filter_type: ALL
+
+
+    # List parameters used in function of the filter_type
+    #   for Serial Port the filter_list is list of VID:PID.
+    #   Following the list of VID:PID of smartme.IO products
+    #   - 0x04D8:0xECD9 - A1000 (aka Arancino Mignon) (SAMD21)
+    #   - 0x04D8:0xECDA - E1000 (aka Arancino) (SAMD21)
+    #   - 0x1915:0x521F - A3000 (aka Arancino Volante) (NRF52)
+    #   - 0x2E8A:0x000A - A4000 (aka Arancino Pico) (RP2040)
+    #   - 0x0483:0x5740 - A6000-A7000-A8000 (aka Arancino V*) (STM32)
+    filter_list:
+      - "0x04D8:0xECD9"
+      - "0x04D8:0xECDA"
+      - "0x1915:0x521F"
+      - "0x2E8A:0x000A"
+      - "0x0483 0x5740"
+
+
+    family:
+
+      samd21:
+        - "0x04D8:0xECDA"
+        - "0x04D8:0xECD9"
+
+      nrf52:
+        - "0x1915:0x521F"
+
+      rp20:
+        - "0x2E8A:0x000A"
+
+      stm32:
+        - "0x0483:0x5740"
+
+
+
+    # Timeout in seconds in serial connection Min: 1
+    timeout: 1
+
+
+    # Command spawned when Upload function is called. The command
+    #   could have one or more placeholders. Placeholders are all the
+    #   attributes of the Port Class.
+    upload_command: "/usr/bin/run-arancino-bossac {port._device} {firmware}"
+
+
+    # Reset the port on connection, override the default configuration (can be overrided by the mcu family)
+    reset_on_connect: true
+
+
+    # Reconnection delay after a reset (in seconds).
+    reset_reconnection_delay: 40
+
+
+    # Specific configurations for the SAMD21 microcontoller.
+    samd21:
+      upload_command: "/usr/bin/run-arancino-bossac {port._device} {firmware}"
+      reset_on_connect: true
+      reset_reconnection_delay: 5
+      comm_baudrate: 115200
+
+
+    # Specific configurations for the NRF52 microcontoller.
+    nrf52:
+      upload_command: "/usr/bin/adafruit-nrfutil dfu serial -pkg {firmware} -p {port._device} -b 115200 --singlebank"
+      reset_on_connect: true
+      reset_reconnection_delay: 40
+      comm_baudrate: 256000
+
+
+    # Specific configurations for the STM32 microcontoller.
+    stm32:
+      upload_command: "/usr/bin/run-arancino-arduinoSTM32load {port._device} {firmware}"
+      reset_on_connect: true
+      reset_reconnection_delay: 5
+      comm_baudrate: 256000
+
+
+    # Specific configurations for the RP20 microcontoller.
+    rp20:
+      upload_command: "/usr/bin/run-arancino-uf2conv {port._device} {firmware}"
+      reset_on_connect: true
+      reset_reconnection_delay: 5
+      comm_baudrate: 256000
+
+
+  test:
+
+
+    auto_enable: True
+
+
+    hide: True
+
+
+    filter_type: ALL
+
+
+    filter_list: null
+
+
+    reset_on_connect: false
+
+
+    upload_command: null
+    
+    
+    # The number of Oort to create for test purpose
+    num: 0
+
+
+    # Delay between each command in seconds (accepts float)
+    delay: 5
+
+
+    # prefix of the id generated for the test port
+    id_template: TESTPORT
+
+
+log:
+
+  # Log Level for the Logger. Accetpted values are:
+  #   - ERROR
+  #   - WARNING
+  #   - INFO
+  #   - DEBUG
+  level: INFO
+
+
+  # Name to print with the logger
+  name: Arancino
+
+
+  # Available Log Handlers, sets to true to enable or false to disable
+  # Console Handler
+  handler_console: false
+
+
+  # File Handler
+  handler_file: true
+
+
+  # Size in MBytes only for the handler_file. Min: 1, Max: 5, Default: 1
+  size: 1
+
+  # Number of files to use in rotate mode. Min: 1, Max: 10, Default: 1
+  rotate: 5
+
+  # Names of log files
+  # Standard Log File
+  file_log: arancino.log
+
+
+  # Error Log File
+  file_error: arancino.error.log
+
+
+  # Enables or disables printing of stack trace on errors
+  print_stack_trace: true
+
+
+transmitter:
+
+  # Enable or disable the transmitter module of Arancino
+  enabled: true
+
+
+  reader:
+
+    # Represents the time (in seconds) in which the reader collects data
+    # and transfers it to the upper level
+    cycle_time: 10
+
+  parser:
+
+    class: "ParserSimple"
+
+    # template file used to parse data with the template engine (jinja2)
+    #   default available templates:
+    #   - default.yaml.tmpl
+    #   - default.json.tmpl
+    #   - default.xml.tmpl
+
+    file: "default.json.tmpl"
+
+    #PARSER SIMPLE#
+    simple: null
+      # Configuration for ParserSimple
+
+    #PARSER S4T#
+    s4t:
+      # Configuration for ParserS4T
+
+      db_name: "db_name"
+
+  sender:
+    # Available Senders are: SenderDoNothing, SenderTcpSocket, SenderMqtt, SenderMqttS4T
+    class: "SenderDoNothing"
+
+    #SENDER DO NOTHING
+    donothing: null
+
+    #SENDER TCP SOCKET
+    tcpsocket:
+      host: "tcp_server_ip"
+      port: 0000
+
+    #SENDER MQTT
+    mqtt:
+      use_tls: false
+      qos: 1
+      retain: False
+
+      # NOTE: non available at the moment.
+      # channel parameter can contains placeholder with the using of "{" and "}"
+      # placeholder can be:
+      #   - key -> the name of the key that contains the measurements
+      #   - labels.port_id -> the identifier of the port that provides the measurements
+      #   - labels.port_type -> the type of the port that provides the measurements
+      #   - labels.device_id -> the identifier of the device where the ports are connected to. (Note: not always available)
+      #   - labels.?????
+
+      topic: "your_topic"
+
+      # plain
+      host: "mqtt_broker_ip"
+      port: 1883
+      username: "your_username"
+      password: "your_password"
+
+      # secure
+      ca_path: null
+      cert_path: null
+      key_path: null
+
+    #SENDER MQTT S4T
+    mqtts4t:

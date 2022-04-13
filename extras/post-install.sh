@@ -29,7 +29,7 @@ echo -------------------------------------------------
 
 echo ---Giving grants 644 and copying services file---
 chown 644 extras/arancino.service
-chown 644 config/arancino.cfg
+chown 644 config/arancino.cfg.yml
 
 cp extras/arancino.service /etc/systemd/system/
 cp extras/vars.env /etc/arancino/
@@ -39,11 +39,11 @@ echo -------------------------------------------------
 echo ------Backup previous configurations files-------
 echo Backup previous configurations files
 timestamp=$(date +%Y%m%d_%H%M%S)
-[ -f /etc/arancino/config/arancino.cfg ] && mv $ARANCINOCONF/arancino.cfg $ARANCINOCONF/arancino_$timestamp.cfg
+[ -f /etc/arancino/config/arancino.cfg.yml ] && mv $ARANCINOCONF/arancino.cfg.yml $ARANCINOCONF/arancino_$timestamp.cfg.yml
 echo -------------------------------------------------
 
 echo -------------------Copy files--------------------
-cp config/arancino.cfg $ARANCINOCONF/arancino.cfg
+cp config/arancino.cfg.yml $ARANCINOCONF/arancino.cfg.yml
 cp config/gunicorn.cfg.py $ARANCINOCONF/gunicorn.cfg.py
 
 cp templates/default.json.tmpl $ARANCINO/templates/default.json.tmpl
