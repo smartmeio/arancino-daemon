@@ -28,12 +28,12 @@ TRACE = CONF.get_log_print_stack_trace()
 
 class SenderTcpSocket(Sender):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, cfg=None):
+        super().__init__(cfg=cfg)
 
         #private
-        self.__server_host = CONF.get_transmitter_sender_tcp_socket_host()
-        self.__server_port = CONF.get_transmitter_sender_tcp_socket_port()
+        self.__server_host = self.cfg["tcpsocket"]["host"] #CONF.get_transmitter_sender_tcp_socket_host()
+        self.__server_port = int(self.cfg["tcpsocket"]["port"]) #CONF.get_transmitter_sender_tcp_socket_port()
         self.__connection = None
 
         #protected
@@ -74,7 +74,7 @@ class SenderTcpSocket(Sender):
 
             del connection
             connection = None
-            LOG.error("{}Error during connecting to {}:{}: {}".format(self._log_prefix, str(ex), self.__server_host, str(self.__server_port)), exc_info=TRACE)
+            LOG.error("{}Error during connecting to {} - {}:{}".format(self._log_prefix, str(ex), self.__server_host, str(self.__server_port)), exc_info=TRACE)
 
         finally:
             return connection

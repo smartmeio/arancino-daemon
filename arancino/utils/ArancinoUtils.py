@@ -66,7 +66,7 @@ class ArancinoConfig:
 
 
         self.__arancino_config_path = os.environ.get('ARANCINOCONF')
-        self.__arancino_home_path =  os.environ.get('ARANCINO')
+        self.__arancino_home_path = os.environ.get('ARANCINO')
         self.__arancino_template_path = os.path.join(self.__arancino_home_path, "templates")
 
         self.Config = configparser.ConfigParser()
@@ -206,7 +206,9 @@ class ArancinoConfig:
         # region TRANSMITTER SECTION
         self.__transmitter_reader_cycle_time = int(self.Config.get("transmitter.reader", "cycle_time"))
         self.__is_transmitter_enabled = stringToBool(self.Config.get("transmitter", "enabled"))
+        self.__transmitter_flows = self.Config.get("transmitter", "flows")
 
+        """
         # region TRANSMITTER PARSER
         self.__transmitter_parser_class = self.Config.get("transmitter.parser", "class")
 
@@ -248,7 +250,7 @@ class ArancinoConfig:
         self.__transmitter_sender_mqtt_ca_path = self.Config.get("transmitter.sender.mqtt", "ca_path")
         self.__transmitter_sender_mqtt_cert_path = self.Config.get("transmitter.sender.mqtt", "cert_path")
         self.__transmitter_sender_mqtt_key_path = self.Config.get("transmitter.sender.mqtt", "key_path")
-
+        """
 
 
         # endregion
@@ -627,6 +629,10 @@ class ArancinoConfig:
     def get_transmitter_reader_cycle_time(self):
         return self.__transmitter_reader_cycle_time
 
+    def get_transmitter_flows(self):
+        return json.loads(self.__transmitter_flows.lower())
+
+    """
     def get_transmitter_parser_class(self):
         return self.__transmitter_parser_class
 
@@ -677,7 +683,7 @@ class ArancinoConfig:
 
     def get_transmitter_sender_mqtt_key_path(self):
         return self.__transmitter_sender_mqtt_key_path
-
+    """
 
 @Singleton
 class ArancinoLogger:
@@ -880,3 +886,23 @@ print("timestamp =", timestamp)
 
 
 '''
+
+
+class SingletonMeta(type):
+    """
+    The Singleton class can be implemented in different ways in Python. Some
+    possible methods include: base class, decorator, metaclass. We will use the
+    metaclass because it is best suited for this purpose.
+    """
+
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        """
+        Possible changes to the value of the `__init__` argument do not affect
+        the returned instance.
+        """
+        if cls not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[cls] = instance
+        return cls._instances[cls]
