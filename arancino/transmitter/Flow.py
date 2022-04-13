@@ -1,16 +1,17 @@
-import configparser, os, json
+import yaml, os, json
 from arancino.transmitter.ComponentsFactory import ReaderFactory, ParserFactory, SenderFactory
-from arancino.utils.ArancinoUtils import stringToBool, ArancinoLogger, ArancinoConfig
+from arancino.utils.ArancinoUtils import stringToBool, ArancinoLogger, ArancinoConfig, ArancinoConfig2, ArancinoEnvironment
 
+CONF = ArancinoConfig2.Instance().cfg
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance()
-TRACE = CONF.get_log_print_stack_trace()
+TRACE = CONF.get("log").get("trace")
+ENV = ArancinoEnvironment.Instance()
 
 class Flow:
 
     def __init__(self, flowname):
         self.__name = flowname
-        self.__cfg_file_name = "transmitter.flow.{}.cfg".format(flowname)
+        self.__cfg_file_name = "transmitter.flow.{}.cfg.yml".format(flowname)
 
         self.__is_loaded = False
         self.__is_enabled = False
@@ -30,29 +31,36 @@ class Flow:
 
     def __load_cfg(self):
         try:
+
+            self.__log_prefix = ""
+
             # Retrieve arancino config path from Env Vars
-            arancino_config_path = os.environ.get('ARANCINOCONF')
+            flow_cfg_file = os.path.join(ENV._cfg_dir, self.__cfg_file_name)
 
             # Read Flow the configuration file
-            config = configparser.ConfigParser()
-            config.read(os.path.join(arancino_config_path, self.__cfg_file_name))
+            #config = configparser.ConfigParser()
+            #config.read(flow_cfg_file)
+
+            with open(flow_cfg_file, "r") as ymlfile:
+                self._cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
+
 
             # Retrieve is the Flow is enabled or disabled
-            self.__is_enabled = stringToBool(config.get("flow", "enabled"))
+            self.__is_enabled = self._cfg.get("flow").get("enabled") #stringToBool(config.get("flow", "enabled"))
 
             # Flow Component to use in reflection method
-            self.__parser_class_name = config.get("parser", "class")
-            self.__sender_class_name = config.get("sender", "class")
+            self.__parser_class_name = self._cfg.get("parser").get("class")#config.get("parser", "class")
+            self.__sender_class_name = self._cfg.get("sender").get("class")#config.get("sender", "class")
 
             # Config to be sent to the Flow Components
-            parser_sections_name_list = json.loads(config.get("parser", "section"))
-            sender_sections_name_list = json.loads(config.get("sender", "section"))
+            parser_sections_name_list = self._cfg.get("parser").get("section")#json.loads(config.get("parser", "section"))
+            sender_sections_name_list =  self._cfg.get("sender").get("section")#json.loads(config.get("sender", "section"))
 
             # Convert ini sections into Dict
-            self.__parser_config = {s: dict(config.items(s)) for s in parser_sections_name_list}
-            self.__parser_config["name"] = config.get("flow", "name")
-            self.__sender_config = {s: dict(config.items(s)) for s in sender_sections_name_list}
-            self.__sender_config["name"] = config.get("flow", "name")
+            self.__parser_config = self._cfg.get("parser") #{s: dict(config.items(s)) for s in parser_sections_name_list}
+            self.__parser_config["name"] = self._cfg.get("flow").get("name") #config.get("flow", "name")
+            self.__sender_config = self._cfg.get("sender") #{s: dict(config.items(s)) for s in sender_sections_name_list}
+            self.__sender_config["name"] = self._cfg.get("flow").get("name") #config.get("flow", "name")
             
         except Exception as ex:
             LOG.error("{}Error while loading configuration of the Transmitter Flow {}: {}".format(self.__log_prefix, self.name, str(ex)), exc_info=TRACE)

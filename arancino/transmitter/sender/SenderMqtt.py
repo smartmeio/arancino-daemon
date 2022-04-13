@@ -35,24 +35,24 @@ class SenderMqtt(Sender):
         super().__init__(cfg=cfg)
 
         #private
-        self._use_tls = stringToBool(self.cfg["mqtt"]["use_tls"])  #CONF.get_transmitter_sender_mqtt_use_tls()
-        self._qos = int(self.cfg["mqtt"]["qos"]) #CONF.get_transmitter_sender_mqtt_qos()
-        self._retain = stringToBool(self.cfg["mqtt"]["retain"]) #CONF.get_transmitter_sender_mqtt_retain()
-        self._broker_host = self.cfg["mqtt"]["host"] #CONF.get_transmitter_sender_mqtt_host()
-        self._broker_port = int(self.cfg["mqtt"]["port"]) #CONF.get_transmitter_sender_mqtt_port()
+        self._use_tls = self.cfg.get("mqtt").get("use_tls") #CONF.get_transmitter_sender_mqtt_use_tls()
+        self._qos = self.cfg.get("mqtt").get("qos") #CONF.get_transmitter_sender_mqtt_qos()
+        self._retain = self.cfg.get("mqtt").get("retain") #CONF.get_transmitter_sender_mqtt_retain()
+        self._broker_host = self.cfg.get("mqtt").get("host") #CONF.get_transmitter_sender_mqtt_host()
+        self._broker_port = self.cfg.get("mqtt").get("port") #CONF.get_transmitter_sender_mqtt_port()
 
         self._client = None
 
         if self._use_tls:
-            self._ca_file = self.cfg["mqtt"]["ca_file"] #CONF.get_transmitter_sender_mqtt_ca_path()
-            self._cert_file = self.cfg["mqtt"]["cert_file"] #CONF.get_transmitter_sender_mqtt_cert_path()
-            self._key_file = self.cfg["mqtt"]["key_file"] #CONF.get_transmitter_sender_mqtt_key_path()
+            self._ca_file = self.cfg.get("mqtt").get("ca_file") #CONF.get_transmitter_sender_mqtt_ca_path()
+            self._cert_file = self.cfg.get("mqtt").get("cert_file") #CONF.get_transmitter_sender_mqtt_cert_path()
+            self._key_file = self.cfg.get("mqtt").get("key_file") #CONF.get_transmitter_sender_mqtt_key_path()
         else:
-            self._username = self.cfg["mqtt"]["username"] #CONF.get_transmitter_sender_mqtt_username()
-            self._password = self.cfg["mqtt"]["password"] #CONF.get_transmitter_sender_mqtt_password()
+            self._username = self.cfg.get("mqtt").get("username") #CONF.get_transmitter_sender_mqtt_username()
+            self._password = self.cfg.get("mqtt").get("password") #CONF.get_transmitter_sender_mqtt_password()
         
         #protected
-        self._topic = self.cfg["mqtt"]["topic"]  # CONF.get_transmitter_sender_mqtt_topic()
+        self._topic = self.cfg.get("mqtt").get("topic")  # CONF.get_transmitter_sender_mqtt_topic()
 
 
 

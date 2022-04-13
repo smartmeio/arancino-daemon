@@ -19,15 +19,15 @@ under the License
 '''
 from arancino.transmitter.Flow import Flow
 from arancino.transmitter.reader.Reader import Reader
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoConfig2
 import importlib
 
 from abc import ABC, abstractmethod
 from enum import Enum
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance()
-TRACE = CONF.get_log_print_stack_trace()
+CONF = ArancinoConfig2.Instance().cfg
+TRACE = CONF.get("log").get("trace")
 
 from typing import List
 
@@ -37,10 +37,10 @@ class Transmitter():
 
         self.__log_prefix = "Arancino Transmitter - "
         self.__flows: List[Flow] = []
-
+        self.__is_enabled = CONF.get("transmitter").get("enabled")
 
         try:
-            if CONF.is_transmitter_enabled():
+            if self.__is_enabled:
                 # region # .1 create the transmitter flows
 
                 """
@@ -51,7 +51,7 @@ class Transmitter():
                 f2.load_configuration()
                 """
 
-                flow_list_name = CONF.get_transmitter_flows()
+                flow_list_name = CONF.get("transmitter").get("flows")
                 for f in flow_list_name:
                     flow: Flow = Flow(f)
                     self.__flows.append(flow)
@@ -70,12 +70,12 @@ class Transmitter():
 
 
     def start(self):
-        if CONF.is_transmitter_enabled():
+        if self.__is_enabled:
             for flow in self.__flows:
                 flow.start()
 
     def stop(self):
-        if CONF.is_transmitter_enabled():
+        if self.__is_enabled:
             for flow in self.__flows:
                 flow.stop()
 
@@ -86,20 +86,20 @@ class Transmitter():
         self.__log_prefix = "Arancino Transmitter - "
 
         try:
-            if CONF.is_transmitter_enabled():
+            if CONF.get("transmitter").get("enabled"):
                 # region # .1 instance of reader class
                 self.__reader = Reader(self.__do_elaboration)
                 # endregion
 
                 # region # .2 instance of parser class
-                class_parser_name = CONF.get_transmitter_parser_class()
+                class_parser_name = CONF.get("transmitter").get("parser").get("class")
                 module_parser = importlib.import_module("arancino.transmitter.parser." + class_parser_name)
                 class_parser = getattr(module_parser, class_parser_name)
                 self.__parser = class_parser()
                 # endregion
 
                 # region # .3 instance of sender class
-                class_sender_name = CONF.get_transmitter_sender_class()
+                class_sender_name = CONF.get("transmitter").get("sender").get("class")
                 module_sender = importlib.import_module("arancino.transmitter.sender." + class_sender_name)
                 class_sender = getattr(module_sender, class_sender_name)
                 self.__sender = class_sender()
@@ -111,13 +111,13 @@ class Transmitter():
             LOG.error("{}Error while starting Transmitter's components : {}".format(self.__log_prefix, str(ex)), exc_info=TRACE)
 
     def start(self):
-        if CONF.is_transmitter_enabled():
+        if CONF.get("transmitter").get("enabled"):
             self.__sender.start()
             self.__parser.start()
             self.__reader.start()
 
     def stop(self):
-        if CONF.is_transmitter_enabled():
+        if CONF.get("transmitter").get("enabled"):
             self.__sender.stop()
             self.__parser.stop()
             self.__reader.stop()

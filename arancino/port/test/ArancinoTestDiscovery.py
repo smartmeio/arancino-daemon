@@ -19,12 +19,12 @@ License for the specific language governing permissions and limitations
 under the License
 """
 
-from arancino.utils.ArancinoUtils import ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoConfig2
 # from arancino.filter import FilterTypes
 
 from arancino.port.test.ArancinoTestPort import ArancinoTestPort
 
-CONF = ArancinoConfig.Instance()
+CONF = ArancinoConfig2.Instance().cfg
 
 class ArancinoTestDiscovery:
 
@@ -44,8 +44,8 @@ class ArancinoTestDiscovery:
         """
 
         #ports = {}
-        num = CONF.get_port_test_num()
-        tmpl_id = CONF.get_port_test_id_template()
+        num = CONF.get("port").get("test").get("num")
+        tmpl_id = CONF.get("port").get("test").get("id_template")
         test_ports = []
         for count in range(1, int(num)+1):  # Generates port ids
             id = tmpl_id + str(count)
@@ -53,7 +53,11 @@ class ArancinoTestDiscovery:
 
             # if the id is not in passed list of ports, then create a Test Port and put it in the list.
             if id not in collection:
-                port = ArancinoTestPort(id=id, device="There", m_s_plugged=True, m_c_enabled=CONF.get_port_test_enabled(), m_c_auto_connect=True, m_c_alias=id, m_c_hide=CONF.get_port_test_hide())
+
+                p_enabled = CONF.get("port").get("test").get("auto_enable")
+                p_hide = CONF.get("port").get("test").get("hide")
+
+                port = ArancinoTestPort(id=id, device="There", m_s_plugged=True, m_c_enabled=p_enabled, m_c_auto_connect=True, m_c_alias=id, m_c_hide=p_hide)
                 #ports[id] = port
                 collection[id] = port
             else:

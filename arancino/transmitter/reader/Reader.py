@@ -25,12 +25,12 @@ from threading import Thread
 from arancino.Arancino import Arancino
 from arancino.ArancinoDataStore import ArancinoDataStore
 import arancino.ArancinoConstants as CONST
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, SingletonMeta
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig2, SingletonMeta
 
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance()
-TRACE = CONF.get_log_print_stack_trace()
+CONF = ArancinoConfig2.Instance().cfg
+TRACE = CONF.get("log").get("trace")
 
 
 class Reader(Thread, metaclass=SingletonMeta):
@@ -38,7 +38,7 @@ class Reader(Thread, metaclass=SingletonMeta):
     def __init__(self):
         Thread.__init__(self, name='ArancinoReader')
         self.__stop = False
-        self.__cycle_time = CONF.get_transmitter_reader_cycle_time()
+        self.__cycle_time = CONF.get("transmitter").get("reader").get("cycle_time")
         self.__log_prefix = "Arancino Reader - "
         self.__transmitter_handlers: List[Callable] = []
         self.__arancino = Arancino()

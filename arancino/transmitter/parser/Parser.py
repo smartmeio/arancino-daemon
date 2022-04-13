@@ -21,17 +21,17 @@ under the License
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from jinja2 import Template
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
-from arancino.ArancinoDataStore import ArancinoDataStore
-import arancino.ArancinoConstants as CONST
-
 import os
+from jinja2 import Template
+from arancino.ArancinoDataStore import ArancinoDataStore
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoConfig2, ArancinoEnvironment
 
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance()
-TRACE = CONF.get_log_print_stack_trace()
+CONF = ArancinoConfig2.Instance().cfg
+TRACE = CONF.get("log").get("trace")
+ENV = ArancinoEnvironment.Instance()
+
 
 class Parser(ABC):
 
@@ -43,11 +43,12 @@ class Parser(ABC):
         redis = ArancinoDataStore.Instance()
         self._datastore_tser = redis.getDataStoreTse()
         #self.__template_file = os.path.join(CONF.get_arancino_template_path(), CONF.get_transmitter_parser_template_file())
-        self.__template_file = os.path.join(CONF.get_arancino_template_path(), cfg["parser"]["file"])
+        self.__template_file = os.path.join(ENV.tmplt_dir, self.cfg.get("file"))
+
 
         #protected
-        self._flow_name = self.__cfg["name"]
-        self._log_prefix = "Flow [{}] - Parser [{}] - ".format(self._flow_name, self.__cfg["parser"]["class"])
+        self._flow_name = self.cfg.get("name")
+        self._log_prefix = "Flow [{}] - Parser [{}] - ".format(self._flow_name, self.cfg.get("class"))
         self._tmpl = None
         try:
             with open(self.__template_file) as f:

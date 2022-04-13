@@ -32,8 +32,8 @@ class SenderTcpSocket(Sender):
         super().__init__(cfg=cfg)
 
         #private
-        self.__server_host = self.cfg["tcpsocket"]["host"] #CONF.get_transmitter_sender_tcp_socket_host()
-        self.__server_port = int(self.cfg["tcpsocket"]["port"]) #CONF.get_transmitter_sender_tcp_socket_port()
+        self.__server_host = self.cfg.get("tcpsocket").get("host") #CONF.get_transmitter_sender_tcp_socket_host()
+        self.__server_port = self.cfg.get("tcpsocket").get("port") #CONF.get_transmitter_sender_tcp_socket_port()
         self.__connection = None
 
         #protected

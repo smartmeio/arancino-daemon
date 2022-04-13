@@ -23,18 +23,19 @@ import serial
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.port.serial.ArancinoSerialHandler import ArancinoSerialHandler
 from arancino.ArancinoCortex import *
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoConfig2, ArancinoEnvironment
 from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 import time
 
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance()
-TRACE = CONF.get_log_print_stack_trace()
+CONF = ArancinoConfig2.Instance().cfg
+TRACE = CONF.get("general").get("trace")
+ENV = ArancinoEnvironment.Instance()
 
 class ArancinoSerialPort(ArancinoPort):
 
-    def __init__(self, port_info=None, device=None, baudrate_comm=9600, baudrate_reset=300, m_s_plugged=False, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, reset_delay=CONF.get_port_serial_reset_reconnection_delay(), upload_cmd=CONF.get_port_serial_upload_command(), receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
+    def __init__(self, mcu_family=None, port_info=None, device=None, baudrate_comm=9600, baudrate_reset=300, m_s_plugged=False, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, reset_delay=CONF.get("port").get("serial").get("reset_reconnection_delay"), upload_cmd=CONF.get("port").get("serial").get("upload_command"), receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
 
         super().__init__(device=device, port_type=PortTypes.SERIAL, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=upload_cmd, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
@@ -43,14 +44,19 @@ class ArancinoSerialPort(ArancinoPort):
         self.__serial_port = None       # type: serial.Serial
         self.__port_info = port_info    # type: serial.tools.ListPortInfo
 
+
+
         # SERIAL PORT PARAMETER
         self.__comm_baudrate = baudrate_comm
         self.__reset_baudrate = baudrate_reset
         self.__timeout = timeout
 
         # FAMILY PORT PARAMETER
-        self.__reset_delay = reset_delay
-        #self.__upload_command = upload_cmd
+        if mcu_family:
+            self._setMicrocontrollerFamily(mcu_family.upper())
+        else:
+            self.__reset_delay = reset_delay
+            self.__upload_command = upload_cmd
 
 
         # SERIAL PORT METADATA
@@ -73,7 +79,7 @@ class ArancinoSerialPort(ArancinoPort):
 
         self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
 
-        self._compatibility_array = COMPATIBILITY_MATRIX_MOD_SERIAL[str(CONF.get_metadata_version().truncate())]
+        self._compatibility_array = COMPATIBILITY_MATRIX_MOD_SERIAL[str(ENV.version.truncate())]
 
         # # CALLBACK FUNCTIONS
         #self.setReceivedCommandHandler(receivedCommandHandler)  # this is the handler to be used to receive an ArancinoCommand and exec that command.
@@ -181,7 +187,7 @@ class ArancinoSerialPort(ArancinoPort):
 
                         LOG.info("{} Connecting...".format(self._log_prefix))
 
-                        if CONF.get_port_serial_reset_on_connect():
+                        if CONF.get("port").get("serial").get("reset_on_connect"):
                             # first resetting
                             self.reset()
 

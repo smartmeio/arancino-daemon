@@ -20,12 +20,12 @@ under the License
 """
 
 from arancino.transmitter.parser.ParserSimple import ParserSimple
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
-
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig2, ArancinoEnvironment
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance()
-TRACE = CONF.get_log_print_stack_trace()
+CONF = ArancinoConfig2.Instance().cfg
+TRACE = CONF.get("log").get("trace")
+ENV = ArancinoEnvironment.Instance()
 
 
 
@@ -34,8 +34,10 @@ class ParserS4T(ParserSimple):
     def __init__(self, cfg=None):
         super().__init__(cfg=cfg)
         #private
+
         #self.__db_name = CONF.get_transmitter_parser_s4t_db_name()
-        self.__db_name = self.cfg["s4t"]["db_name"]
+        self.__db_name = self.cfg.get("s4t").get("db_name")
+
 
         #protected
     

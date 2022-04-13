@@ -21,69 +21,57 @@ under the License
 import sys
 import time
 
-from arancino.utils.ArancinoUtils import Singleton, ArancinoConfig, ArancinoLogger
+from arancino.utils.ArancinoUtils import Singleton, ArancinoConfig, ArancinoConfig2, ArancinoLogger
 #import redis
 from redistimeseries.client import Client as redis
 
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance()
-TRACE = CONF.get_log_print_stack_trace()
+CONF__ = ArancinoConfig.Instance()
+CONF = ArancinoConfig2.Instance().cfg
+TRACE = CONF.get("log").get("trace")
 
 @Singleton
 class ArancinoDataStore:
 
     def __init__(self):
 
-        redis_instance_type = CONF.get_redis_instances_conf()
 
-        self.__redis_dts_std = redis_instance_type[0]   # Standard Data Store
-        self.__redis_dts_dev = redis_instance_type[1]   # Device Data Store
-        self.__redis_dts_pers = redis_instance_type[2]  # Persistent Data Store
-        self.__redis_dts_rsvd = redis_instance_type[3]  # Reserved Data Store
-        self.__redis_dts_tse = redis_instance_type[4]   # Time Series Data Store
-        self.__redis_dts_tag = redis_instance_type[5]   # Time Series Data Store
+
+        ist_type = CONF.get("redis").get("instance_type").lower()
+
+        db_std = CONF.get("redis").get(ist_type).get("datastore_std_db")# Standard Data Store
+        db_dev = CONF.get("redis").get(ist_type).get("datastore_dev_db")# Device Data Store
+        db_per = CONF.get("redis").get(ist_type).get("datastore_per_db")# Persistent Data Store
+        db_rsvd = CONF.get("redis").get(ist_type).get("datastore_rsvd_db")# Reserved Data Store
+        db_tse = CONF.get("redis").get(ist_type).get("datastore_tse_db")# Time Series Data Store
+        db_tag = CONF.get("redis").get(ist_type).get("datastore_tag_db")# Time Series Tags Data Store
+
+        host_vol = CONF.get("redis").get(ist_type).get("host_volatile")
+        host_per = CONF.get("redis").get(ist_type).get("host_persistent")
+        port_vol = CONF.get("redis").get(ist_type).get("port_volatile")
+        port_per = CONF.get("redis").get(ist_type).get("port_persistent")
+
+        dcd_rsp = CONF.get("redis").get("decode_response")
+
 
         # data store
-        self.__redis_pool_dts = redis(host=self.__redis_dts_std['host'],
-                                                     port=self.__redis_dts_std['port'],
-                                                     db=self.__redis_dts_std['db'],
-                                                     decode_responses=self.__redis_dts_std['dcd_resp'])
+        self.__redis_pool_dts = redis(host=host_vol, port=port_vol, db=db_std, decode_responses=dcd_rsp)
 
         # data store (reserved keys)
-        self.__redis_pool_dts_rsvd = redis(host=self.__redis_dts_rsvd['host'],
-                                                          port=self.__redis_dts_rsvd['port'],
-                                                          db=self.__redis_dts_rsvd['db'],
-                                                          decode_responses=self.__redis_dts_rsvd['dcd_resp'])
-
+        self.__redis_pool_dts_rsvd = redis(host=host_vol, port=port_vol, db=db_rsvd, decode_responses=dcd_rsp)
 
         # device store
-        self.__redis_pool_dvs = redis(host=self.__redis_dts_dev['host'],
-                                                     port=self.__redis_dts_dev['port'],
-                                                     db=self.__redis_dts_dev['db'],
-                                                     decode_responses=self.__redis_dts_dev['dcd_resp'])
+        self.__redis_pool_dvs = redis(host=host_per, port=port_per, db=db_dev, decode_responses=dcd_rsp)
 
         # data store persistent
-        self.__redis_pool_dts_pers = redis(host=self.__redis_dts_pers['host'],
-                                                          port=self.__redis_dts_pers['port'],
-                                                          db=self.__redis_dts_pers['db'],
-                                                          decode_responses=self.__redis_dts_pers['dcd_resp'])
-
+        self.__redis_pool_dts_pers = redis(host=host_per, port=port_per, db=db_per, decode_responses=dcd_rsp)
 
         # time series
-        #self.__redis_pool_tse = redis.ConnectionPool(host=self.__redis_dts_tse['host'],
-        self.__redis_pool_tse = redis(host=self.__redis_dts_tse['host'],
-                                                     port=self.__redis_dts_tse['port'],
-                                                     db=self.__redis_dts_tse['db'],
-                                                     decode_responses=self.__redis_dts_tse['dcd_resp'])
+        self.__redis_pool_tse = redis(host=host_vol, port=port_vol, db=db_tse, decode_responses=dcd_rsp)
 
         # time series tags
-        self.__redis_pool_tag = redis(host=self.__redis_dts_tag['host'],
-                                                     port=self.__redis_dts_tag['port'],
-                                                     db=self.__redis_dts_tag['db'],
-                                                     decode_responses=self.__redis_dts_tag['dcd_resp'])
-
-
+        self.__redis_pool_tag = redis(host=host_per, port=port_per, db=db_tag, decode_responses=dcd_rsp)
 
 
         self._redis_conn_dts = self.__redis_pool_dts.redis#redis.Redis(connection_pool=self.__redis_pool_dts)
@@ -94,7 +82,7 @@ class ArancinoDataStore:
         self._redis_conn_tag = self.__redis_pool_tag.redis
 
         self.__attempts = 1
-        self.__attempts_tot = CONF.get_redis_connection_attempts()
+        self.__attempts_tot = CONF.get("redis").get("connection_attempts")
 
         while True:
 

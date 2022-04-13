@@ -20,7 +20,7 @@ under the License
 """
 
 import threading
-from arancino.utils.ArancinoUtils import *
+from arancino.utils.ArancinoUtils import ArancinoConfig2, ArancinoLogger
 from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoCortex import ArancinoCommandIdentifiers as cmdId
 from arancino.ArancinoConstants import ArancinoSpecialChars as specChars, ArancinoPortAttributes
@@ -30,7 +30,9 @@ from arancino.ArancinoConstants import SUFFIX_TMSTP
 import time
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance()
+CONF = ArancinoConfig2.Instance().cfg
+
+
 
 class ArancinoTestHandler(threading.Thread):
 
@@ -45,7 +47,7 @@ class ArancinoTestHandler(threading.Thread):
         self.__commandReceivedHandler = commandReceivedHandler  # handler to be called when a raw command is complete and ready to be translated and executed.
         self.__connectionLostHandler = connectionLostHandler    # handler to be called when a connection is lost or stopped
 
-        self.__command_delay = CONF.get_port_test_delay()
+        self.__command_delay = CONF.get("port").get("test").get("delay")
 
         self.__stop = False
 

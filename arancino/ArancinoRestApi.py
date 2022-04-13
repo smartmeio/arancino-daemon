@@ -24,7 +24,8 @@ import netifaces
 import os
 from arancino.Arancino import Arancino
 from arancino.ArancinoExceptions import ArancinoException
-from arancino.utils.ArancinoUtils import ArancinoConfig, secondsToHumanString, ArancinoLogger
+from arancino.utils.ArancinoUtils import ArancinoConfig, secondsToHumanString, ArancinoLogger, ArancinoEnvironment, \
+    ArancinoConfig2
 from arancino.ArancinoConstants import ArancinoApiResponseCode
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
 from arancino.ArancinoConstants import ArancinoDBKeys
@@ -36,9 +37,11 @@ from arancino.port.ArancinoPort import PortTypes
 
 API_CODE = ArancinoApiResponseCode()
 DB_KEYS = ArancinoDBKeys()
-CONF = ArancinoConfig.Instance()
+CONF__ = ArancinoConfig.Instance()
+CONF = ArancinoConfig2.Instance().cfg
 LOG = ArancinoLogger.Instance().getLogger()
-TRACE = CONF.get_log_print_stack_trace()
+TRACE = CONF.get("log").get("trace")
+ENV = ArancinoEnvironment.Instance()
 
 class ArancinoApi():
 
@@ -70,7 +73,7 @@ class ArancinoApi():
                     },
                     "arancino": {
                         "uptime" : [ara_upt, secondsToHumanString(int(ara_upt))],
-                        "version": str(CONF.get_metadata_version()),
+                        "version": str(ENV.version),
                         "ports": {
                             "discovered": d,
                             "connected": c
@@ -106,7 +109,7 @@ class ArancinoApi():
                 "arancino": {
                     "arancino": {
                         "uptime": [ara_upt, secondsToHumanString(int(ara_upt))],
-                        "version": str(CONF.get_metadata_version()),
+                        "version": str(ENV.versio),
                         "ports": {
                             "discovered": d,
                             "connected": c
@@ -272,7 +275,7 @@ class ArancinoApi():
     def __getArancinoConf(self):
         # return all the configurations
         try:
-            config = CONF.get_config_all()
+            config = CONF__.get_config_all()
             response = {
                 "arancino": {
                     "config": config
@@ -297,7 +300,7 @@ class ArancinoApi():
                         config[section] = {}
 
                     #if option not in config[section]:
-                    config[section][option] = CONF.get_config_by_name(section, option)
+                    config[section][option] = CONF__.get_config_by_name(section, option)
 
                     print(config)
 
@@ -591,7 +594,7 @@ class ArancinoApi():
             except Exception as ex:
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_NO_ARANCINO_CONFIG_VALUE_PROVIDED, internal_message=[None, str(ex)]), 500
 
-            CONF.set_config_by_name(section, option, value)
+            CONF__.set_config_by_name(section, option, value)
 
             return self.__apiCreateOkMessage(response_code=API_CODE.OK_ARANCINO_CONFIGURATED), 200
 

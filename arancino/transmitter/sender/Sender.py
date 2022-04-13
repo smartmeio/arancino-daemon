@@ -28,8 +28,8 @@ class Sender(ABC):
 
         #protected
         self.__cfg = cfg
-        self._flow_name = self.__cfg["name"]
-        self._log_prefix = "Flow [{}] - Sender [{}] - ".format(self._flow_name, self.__cfg["sender"]["class"])
+        self._flow_name = self.cfg.get("name")
+        self._log_prefix = "Flow [{}] - Sender [{}] - ".format(self._flow_name, self.cfg.get("class"))
         
 
 

@@ -22,8 +22,9 @@ import os
 import signal
 import requests
 
+from arancino.ArancinoConstants import EnvType
 from arancino.transmitter.Transmitter import Transmitter
-from arancino.utils.ArancinoUtils import ArancinoLogger
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoEnvironment
 from arancino.Arancino import Arancino
 from arancino.utils.ArancinoUtils import ArancinoConfig
 from arancino.utils.pam import pamAuthentication
@@ -44,7 +45,7 @@ m = Arancino()
 t = Transmitter()
 
 LOG = ArancinoLogger.Instance().getLogger()
-ENV = os.environ.get('ARANCINOENV')
+ENV = ArancinoEnvironment.Instance()
 
 def shutdown_server():
     func = request.environ.get('werkzeug.server.shutdown')
@@ -97,7 +98,7 @@ def __get_arancinoapi_app():
         #else:
         #    return False
 
-    if os.getenv('ARANCINOENV', 'DEV') == 'DEV':
+    if os.getenv('ARANCINOENV', 'DEV') == EnvType.DEV:
         @app.route('/api/v1/shutdown-not-easy-to-find-api', methods=['POST'])
         def shutdown():
             shutdown_server()
