@@ -28,21 +28,27 @@ TRACE = CONF.get_log_print_stack_trace()
 
 class SenderTcpSocket(Sender):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, cfg=None):
+        super().__init__(cfg=cfg)
 
         #private
-        self.__server_host = CONF.get_transmitter_sender_tcp_socket_host()
-        self.__server_port = CONF.get_transmitter_sender_tcp_socket_port()
+        self.__server_host = self.cfg["tcpsocket"]["host"] #CONF.get_transmitter_sender_tcp_socket_host()
+        self.__server_port = int(self.cfg["tcpsocket"]["port"]) #CONF.get_transmitter_sender_tcp_socket_port()
         self.__connection = None
 
         #protected
-        self._log_prefix = "Sender [Tcp Socket] - "
+        
 
     def _do_trasmission(self, data=None, metadata=None):
-        if self.__connection:
+        if self.__connection and len(data):
             LOG.debug("{}Sending data to {}:{}...".format(self._log_prefix, self.__server_host, str(self.__server_port)))
-            not_sent = self.__connection.sendall(data.encode())
+            try:
+                not_sent = self.__connection.sendall(data.encode())
+            except socket.error:
+                LOG.warning("{}Warning  while sending data to {}:{}".format(self._log_prefix, self.__server_host, str(self.__server_port)))
+                self.__connection = None
+                self.__connection = self.__get_connection()
+                return False
             if not not_sent:
                 LOG.info("{}Data sent to {}:{}".format(self._log_prefix, self.__server_host, str(self.__server_port)))
                 return True
@@ -51,6 +57,7 @@ class SenderTcpSocket(Sender):
                 return False
         else:
             LOG.warning("{}Can not send data to {}:{}".format(self._log_prefix, self.__server_host, str(self.__server_port)))
+            self.__connection = self.__get_connection()
             return False
 
     def start(self):
@@ -74,7 +81,7 @@ class SenderTcpSocket(Sender):
 
             del connection
             connection = None
-            LOG.error("{}Error during connecting to {}:{}: {}".format(self._log_prefix, str(ex), self.__server_host, str(self.__server_port)), exc_info=TRACE)
+            LOG.error("{}Error during connecting to {} - {}:{}".format(self._log_prefix, str(ex), self.__server_host, str(self.__server_port)), exc_info=TRACE)
 
         finally:
             return connection

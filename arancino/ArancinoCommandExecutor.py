@@ -1182,7 +1182,6 @@ class ArancinoCommandExecutor:
                 labels["device_id"] = self.__conf.get_serial_number()
 
             self.__datastore_tser.create(key, labels=labels, duplicate_policy='last', retention_msecs=self.__conf.get_redis_timeseries_retation())
-            self.__datastore_tser.redis.set("{}:{}".format(key, SUFFIX_TMSTP), 0)  # Starting timestamp
 
     #endregion
 

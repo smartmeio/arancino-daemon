@@ -29,9 +29,8 @@ TRACE = CONF.get_log_print_stack_trace()
 
 class SenderDoNothing(Sender):
 
-    def __init__(self):
-        super().__init__()
-        self._log_prefix = "Sender [Do Nothing] - "
+    def __init__(self, cfg=None):
+        super().__init__(cfg=cfg)
     
     def start(self):
         pass

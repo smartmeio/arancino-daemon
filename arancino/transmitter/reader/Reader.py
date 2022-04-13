@@ -19,26 +19,28 @@ License for the specific language governing permissions and limitations
 under the License
 """
 import time
+from typing import List, Callable
 from threading import Thread
 
 from arancino.Arancino import Arancino
 from arancino.ArancinoDataStore import ArancinoDataStore
 import arancino.ArancinoConstants as CONST
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, SingletonMeta
+
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
 TRACE = CONF.get_log_print_stack_trace()
 
 
-class Reader(Thread):
+class Reader(Thread, metaclass=SingletonMeta):
 
-    def __init__(self, transmitter_handler):
+    def __init__(self):
         Thread.__init__(self, name='ArancinoReader')
         self.__stop = False
         self.__cycle_time = CONF.get_transmitter_reader_cycle_time()
         self.__log_prefix = "Arancino Reader - "
-        self.__transmitter_handler = transmitter_handler
+        self.__transmitter_handlers: List[Callable] = []
         self.__arancino = Arancino()
         self.__handy_series = []
 
@@ -47,10 +49,26 @@ class Reader(Thread):
         self.__datastore_tser = redis.getDataStoreTse()
         self.__datastore_tag = redis.getDataStoreTag()
 
+
+    def attachHandler(self, handler: Callable):
+        self.__transmitter_handlers.append(handler)
+
+    def detachHandler(self, handler: Callable):
+        self.__transmitter_handlers.remove(handler)
+
+    def detachAllHandlers(self):
+        self.__transmitter_handlers.clear()
+
+    def __notiify(self, data):
+        for handler in self.__transmitter_handlers:
+            #handler.update(data)
+            handler(data)
+
     def stop(self):
 
         LOG.info("Stopping reader...".format(self.__log_prefix))
         self.__stop = True
+        self.detachAllHandlers()
 
     def run(self):
         while not self.__stop:
@@ -63,7 +81,17 @@ class Reader(Thread):
                 # series = []
                 for key in ts_keys:
                     tags = {}
-                    starting_tms_ts = int(self.__datastore_tser.redis.get("{}:{}".format(key, CONST.SUFFIX_TMSTP)))
+                    tms_pattern = "{}:*:{}".format(key, CONST.SUFFIX_TMSTP)
+                    tms_keys = self.__datastore_tser.redis.keys(tms_pattern)
+                    if len(tms_keys):
+                        tms_list = self.__datastore_tser.redis.mget(tms_keys)
+                        starting_tms_ts = min(list(map(int, tms_list)))
+                    else:
+                        k_info = self.__datastore_tser.info(key)
+                        starting_tms_ts = k_info.first_time_stamp
+                        if starting_tms_ts == 0:
+                            continue
+                    
                     tag_keys = self.__retrieve_tags_keys(key)
                     label_keys = self.__retrieve_label_keys(key.split(':')[0])
                     tag_keys += label_keys
@@ -114,7 +142,7 @@ class Reader(Thread):
             self.__handy_series.append(values)
             
         LOG.debug("Time Series Data: " + str(self.__handy_series))
-        self.__transmitter_handler(self.__handy_series)
+        self.__notiify(self.__handy_series)
         # clear the handy variables
         self.__handy_series = []
 
@@ -169,8 +197,9 @@ class Reader(Thread):
         # when ack is called, the timestamp of the latest read series is updated.
         key = metadata["key"]
         ending_tms_ts = metadata["last_ts"] + 1
+        flow_name = metadata["flow_name"]
         
-        self.__datastore_tser.redis.set("{}:{}".format(key, CONST.SUFFIX_TMSTP), str(ending_tms_ts))
+        self.__datastore_tser.redis.set("{}:{}:{}".format(key, flow_name, CONST.SUFFIX_TMSTP), str(ending_tms_ts))
 
 
 

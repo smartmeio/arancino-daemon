@@ -17,17 +17,70 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 '''
-
+from arancino.transmitter.Flow import Flow
 from arancino.transmitter.reader.Reader import Reader
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 import importlib
+
+from abc import ABC, abstractmethod
+from enum import Enum
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
 TRACE = CONF.get_log_print_stack_trace()
 
+from typing import List
+
 class Transmitter():
 
+    def __init__(self):
+
+        self.__log_prefix = "Arancino Transmitter - "
+        self.__flows: List[Flow] = []
+
+
+        try:
+            if CONF.is_transmitter_enabled():
+                # region # .1 create the transmitter flows
+
+                """
+                f1: FlowTemplate = FlowSmartme()
+                f2: FlowTemplate = FlowClient()
+
+                f1.load_configuration()
+                f2.load_configuration()
+                """
+
+                flow_list_name = CONF.get_transmitter_flows()
+                for f in flow_list_name:
+                    flow: Flow = Flow(f)
+                    self.__flows.append(flow)
+
+
+
+
+                # endregion
+
+            else:
+                LOG.warning("{} Can Not Start: Disabled".format(self.__log_prefix))
+
+        except Exception as ex:
+            LOG.error("{}Error while starting Transmitter's components : {}".format(self.__log_prefix, str(ex)),
+                      exc_info=TRACE)
+
+
+    def start(self):
+        if CONF.is_transmitter_enabled():
+            for flow in self.__flows:
+                flow.start()
+
+    def stop(self):
+        if CONF.is_transmitter_enabled():
+            for flow in self.__flows:
+                flow.stop()
+
+
+    """
     def __init__(self):
 
         self.__log_prefix = "Arancino Transmitter - "
@@ -90,3 +143,4 @@ class Transmitter():
         else:
             # DO NOT update timestamp in the time series
             pass
+    """
