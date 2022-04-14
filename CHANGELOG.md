@@ -1,5 +1,11 @@
 # Changelog
 
+#### v 2.X.Y 2022.XX.YY
+* Improve: Arancino Transmitter with multiple Flows. [#21pg3qp](https://app.clickup.com/t/21pg3qp)
+* Add: support for .zip firmware extension. [#1zhvp2j](https://app.clickup.com/t/1zhvp2j ) 
+* Change: configuration files type to yaml. [#1q2rh0a](https://app.clickup.com/t/1q2rh0a)
+* Improve: retrieve MCU family by vid and pid on discovery, for Serial Port type. [#26b2fxb](https://app.clickup.com/t/26b2fxb)  
+
 #### v 2.4.0 2022.01.20
 * Introduced Arancino Transmitter [#gn8b8f](https://app.clickup.com/t/gn8b8f)
 * Changed timestamp format sent in response of `START` command. [#j1b6yc](https://app.clickup.com/t/j1b6yc)

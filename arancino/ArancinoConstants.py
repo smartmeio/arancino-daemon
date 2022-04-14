@@ -640,13 +640,6 @@ class ArancinoPortInteroceptionAttributes:
     TEMPERATURE = "TEMP"
 
 
-class MicrocontrollerFamily:
-    SAMD21 =    "SAMD21"
-    NRF52 =     "NRF52"
-    RP20 =      "RP20"
-    STM32 =     "STM32"
-
-
 COMPATIBILITY_MATRIX_MOD_SERIAL = {
     #MODULE : #LIBRARY
 #    "0.0.1" : ["0.0.1"],
