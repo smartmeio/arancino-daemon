@@ -119,9 +119,27 @@ class ArancinoSerialDiscovery:
 
         return new_ports_struct
 
-
-
     def __retrieve_family_by_vid_pid(self, port):
+
+        # recupero la coppia vid:pid della porta corrente
+        current_vidpid = "{}:{}".format("0X{:04X}".format(port.vid), "0X{:04X}".format(port.pid))
+
+        # recupero da configurazione l'elenco dei tipi di mcu per il tipo di porta (seriale in questo caso)
+        serial_mcu_list = CONF.get("port").get("serial").get("mcu_type_list")
+
+        # per ogni tipo di porta, faccio le verifiche
+        for mcu_family in serial_mcu_list:
+
+            # recupero la lista di vid:pid disponibili per il tipo di mcu
+            mcu_vidpid_list = CONF.get("port").get("serial").get(mcu_family).get("list")
+
+            if current_vidpid in mcu_vidpid_list:
+                return mcu_family.upper()
+
+        return None
+
+    """
+    def __retrieve_family_by_vid_pid_old(self, port):
         families = CONF.get("port").get("serial").get("family")
         vidpid = "{}:{}".format("0X{:04X}".format(port.vid), "0X{:04X}".format(port.pid))
         for fam in families:
@@ -132,3 +150,4 @@ class ArancinoSerialDiscovery:
                     return fam
 
         return None
+    """
