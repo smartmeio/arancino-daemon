@@ -124,11 +124,23 @@ port:
   reset_reconnection_delay: 40
 
 
+  port_type_list:
+    - serial
+    - test
+
+
   serial:
+
+    mcu_type_list:
+      - samd21
+      - nrf52
+      - stm32
+      - rp20
 
 
     # Automatically enables (and connect) a new discovered Port.
     auto_enable: true
+
 
     # It's a flag used by an UI, to make the Port showable or not
     #   Sets to true to make it not visible
@@ -192,7 +204,7 @@ port:
     # Command spawned when Upload function is called. The command
     #   could have one or more placeholders. Placeholders are all the
     #   attributes of the Port Class.
-    upload_command: "/usr/bin/run-arancino-bossac {port._device} {firmware}"
+    #upload_command: "/usr/bin/run-arancino-bossac {port._device} {firmware}"
 
 
     # Reset the port on connection, override the default configuration (can be overrided by the mcu family)
@@ -205,6 +217,9 @@ port:
 
     # Specific configurations for the SAMD21 microcontoller.
     samd21:
+      list: #list of possible vid:pid
+        - "0x04D8:0xECDA"
+        - "0x04D8:0xECD9"
       upload_command: "/usr/bin/run-arancino-bossac {port._device} {firmware}"
       reset_on_connect: true
       reset_reconnection_delay: 5
@@ -213,6 +228,8 @@ port:
 
     # Specific configurations for the NRF52 microcontoller.
     nrf52:
+      list: #list of possible vid:pid
+        - "0x1915:0x521F"
       upload_command: "/usr/bin/adafruit-nrfutil dfu serial -pkg {firmware} -p {port._device} -b 115200 --singlebank"
       reset_on_connect: true
       reset_reconnection_delay: 40
@@ -221,6 +238,8 @@ port:
 
     # Specific configurations for the STM32 microcontoller.
     stm32:
+      list: #list of possible vid:pid
+        - "0x0483:0x5740"
       upload_command: "/usr/bin/run-arancino-arduinoSTM32load {port._device} {firmware}"
       reset_on_connect: true
       reset_reconnection_delay: 5
@@ -229,6 +248,8 @@ port:
 
     # Specific configurations for the RP20 microcontoller.
     rp20:
+      list: #list of possible vid:pid
+        - "0x2E8A:0x000A"
       upload_command: "/usr/bin/run-arancino-uf2conv {port._device} {firmware}"
       reset_on_connect: true
       reset_reconnection_delay: 5

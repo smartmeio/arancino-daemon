@@ -129,6 +129,7 @@ port:
   #   attributes of the Port Class.
   upload_command: null
 
+
   port_type_list:
     - serial
     - test
@@ -141,8 +142,10 @@ port:
       - stm32
       - rp20
 
+
     # Automatically enables (and connect) a new discovered Port.
     auto_enable: true
+
 
     # It's a flag used by an UI, to make the Port showable or not
     #   Sets to true to make it not visible

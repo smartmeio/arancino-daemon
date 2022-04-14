@@ -187,7 +187,7 @@ class ArancinoSerialPort(ArancinoPort):
 
                         LOG.info("{} Connecting...".format(self._log_prefix))
 
-                        if CONF.get("port").get("serial").get("reset_on_connect"):
+                        if self.getResetOnConnect():
                             # first resetting
                             self.reset()
 
