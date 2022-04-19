@@ -56,12 +56,17 @@ class ArancinoSerialHandler(threading.Thread):
             # Ricezione dati
             try:
 
-                # Read bytes one by one
-                data = self.__serial_port.read(1)
+                # Read the buffer
+                data_size = self.__serial_port.in_waiting
 
-                unpacker.feed(data)
-                for raw_cmd in unpacker:
-                    self.__commandReceivedHandler(raw_cmd)
+                if data > 0:
+
+                    data = self.__serial_port.read(size=data_size)
+
+                    unpacker.feed(data)
+
+                    for raw_cmd in unpacker:
+                        self.__commandReceivedHandler(raw_cmd)
 
                 """
                 if len(data) > 0:
