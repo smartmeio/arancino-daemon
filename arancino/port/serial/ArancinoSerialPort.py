@@ -22,9 +22,9 @@ under the License
 import serial
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.port.serial.ArancinoSerialHandler import ArancinoSerialHandler
-from arancino.ArancinoCortex import *
+#from arancino.ArancinoCortex import *
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
-from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
+#from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 import time
 
 
@@ -71,7 +71,7 @@ class ArancinoSerialPort(ArancinoPort):
         # Command Executor
         # self.__executor = ArancinoCommandExecutor(self.__id, self.__device)
 
-        self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
+        #self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
 
 
         # # CALLBACK FUNCTIONS
