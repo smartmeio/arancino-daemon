@@ -258,7 +258,6 @@ class ArancinoSerialPort(ArancinoPort):
 
     def upload(self, firmware):
 
-        if self.getMicrocontrollerFamily() == MicrocontrollerFamily.SAMD21:
             LOG.info("{} Starting Upload Procedure".format(self._log_prefix))
             import subprocess
 
@@ -296,8 +295,6 @@ class ArancinoSerialPort(ArancinoPort):
             finally:
                 self.setEnabled(True)
                 return rtcode, stdout, stderr
-        else:
-            raise NotImplemented("Upload Function is not available for port {}[{}] of {} Family".format(self.getId(), self.getPortType().name, self.getMicrocontrollerFamily()), ArancinoApiResponseCode.ERR_NOT_IMPLEMENTED)
 
     # SERIAL ARANCINO PORT METADATA
 
