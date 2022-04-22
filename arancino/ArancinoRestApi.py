@@ -24,8 +24,7 @@ import netifaces
 import os
 from arancino.Arancino import Arancino
 from arancino.ArancinoExceptions import ArancinoException
-from arancino.utils.ArancinoUtils import ArancinoConfig, secondsToHumanString, ArancinoLogger, ArancinoEnvironment, \
-    ArancinoConfig2
+from arancino.utils.ArancinoUtils import ArancinoConfig, secondsToHumanString, ArancinoLogger, ArancinoEnvironment, ArancinoConfig2
 from arancino.ArancinoConstants import ArancinoApiResponseCode
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
 from arancino.ArancinoConstants import ArancinoDBKeys
@@ -272,6 +271,7 @@ class ArancinoApi():
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
+    """
     def __getArancinoConf(self):
         # return all the configurations
         try:
@@ -302,7 +302,7 @@ class ArancinoApi():
                     #if option not in config[section]:
                     config[section][option] = CONF__.get_config_by_name(section, option)
 
-                    print(config)
+                    #print(config)
 
                 response = {
                     "arancino": {
@@ -321,9 +321,48 @@ class ArancinoApi():
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
-    #
-    # def getArancinoConf(self, section, option):
-    #     pass
+    """
+
+    def _get_option(self, cfg,  opts):
+
+        val = cfg.get(opts[0])
+        if val and len(opts) > 1:
+            opts.pop(0)
+            val = self._get_option(val, opts)
+
+        return val
+
+
+    def getArancinoConf(self, params=None):
+
+        if (params and params["config"]):  # check if there's the "config" key in the json, else return all the configuration.
+            config = []
+            for item in params["config"]:
+                option = item["option"]
+                opts = option.copy()
+                val = self._get_option(CONF, opts)
+            #     print(val)
+                item["value"] = val
+                config.append(item)
+
+            response = {
+                "arancino": {
+                    "config": config
+                }
+            }
+            return response, 200
+
+        else:
+            response = {
+                "arancino": {
+                    "config": CONF
+                }
+            }
+            return response, 200
+
+
+
+
 
 
     #### OPERATIONS ####
@@ -573,6 +612,7 @@ class ArancinoApi():
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
+    """
     def setArancinoConf(self, section, option, value):
         try:
 
@@ -605,6 +645,50 @@ class ArancinoApi():
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
+    """
+
+    def _set_option(self, cfg,  opts, val):
+
+        if cfg:
+            if len(opts) > 1:
+                cfg = cfg.get(opts[0])
+                opts.pop(0)
+                cfg = self._set_option(cfg, opts, val)
+            else:
+                if opts[0] in cfg:
+                    cfg[opts[0]] = val
+                else:
+                    raise Exception("Option is empty or does not exist")
+            return cfg
+        else:
+            raise Exception("Option is empty or does not exist")
+
+    def setArancinoConf(self, params=None):
+        try:
+
+            if params and params["config"]:
+
+                option = params["config"]["option"]
+                value = params["config"]["value"]
+
+                if option and value:
+
+                    self._set_option(CONF, option, value)
+                    ArancinoConfig2.Instance().save()
+
+                else:
+                    raise Exception("Configuration Option and/or Value are empty")
+            else:
+                raise Exception("Configuration is empty")
+
+        except ArancinoException as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=ex.error_code, internal_message=[ex.title, ex.message]), 200
+
+        except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
+
 
     def identifyPort(self, port_id):
         try:

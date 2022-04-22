@@ -26,7 +26,7 @@ import sys
 import os
 import json
 import semantic_version
-import yaml
+from ruamel.yaml import YAML
 import arancino
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
@@ -131,7 +131,7 @@ class ArancinoEnvironment:
 class ArancinoConfig2:
 
     def __init__(self):
-
+        self.__yaml = YAML()#YAML(typ='safe', pure=True)
 
         _env = ArancinoEnvironment.Instance().env
         _cfg_dir = ArancinoEnvironment.Instance().cfg_dir
@@ -148,11 +148,25 @@ class ArancinoConfig2:
             _cfg_file = "arancino.cfg.yml"
 
 
-        file = os.path.join(_cfg_dir, _cfg_file)
+        self.__file = os.path.join(_cfg_dir, _cfg_file)
+
+        self.__open()
 
 
-        with open(file, "r") as ymlfile:
-            self._cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
+
+    def __open(self):
+        with open(self.__file, "r") as ymlfile:
+            #self._cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
+            self._cfg = self.__yaml.load(ymlfile)
+            ymlfile.close()
+
+    def save(self):
+        yaml = YAML()
+        with open(self.__file, "w") as ymlfile:
+            yaml.dump(self._cfg, ymlfile)
+            ymlfile.close()
+
+        #self.__open()
 
 
     @property

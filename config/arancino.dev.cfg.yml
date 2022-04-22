@@ -7,11 +7,11 @@ general:
 redis:
 
   # Redis Server host of volatile instance
-  host_volatile: "localhost"
+  host_volatile: localhost
 
 
   # Redis Server host of persistent instance
-  host_persistent: "localhost"
+  host_persistent: localhost
 
 
   # Redis Server port of volatile instance
@@ -64,10 +64,10 @@ redis:
     datastore_tse_db: 4
     datastore_tag_db: 5
 
-    host_volatile: "localhost"
+    host_volatile: localhost
     port_volatile: 6379
 
-    host_persistent: "localhost"
+    host_persistent: localhost
     port_persistent: 6379
 
 
@@ -78,9 +78,9 @@ redis:
     datastore_rsvd_db: 3
     datastore_tse_db: 4
     datastore_tag_db: 5
-    host_volatile: "localhost"
+    host_volatile: localhost
     port_volatile: 6380
-    host_persistent: "localhost"
+    host_persistent: localhost
     port_persistent: 6380
 
   volatile_persistent:
@@ -89,7 +89,7 @@ redis:
     datastore_rsvd_db: 1
     datastore_tse_db: 2
 
-    host_volatile: "localhost"
+    host_volatile: localhost
     port_volatile: 6379
 
     #persistent
@@ -97,7 +97,7 @@ redis:
     datastore_per_db: 1
     datastore_tag_db: 2
 
-    host_persistent: "localhost"
+    host_persistent: localhost
     port_persistent: 6380
 
 
@@ -108,7 +108,7 @@ port:
 
 
   # Allowed firmware file extensions
-  firmware_file_types: ["bin", "hex", "uf2", "zip"]
+  firmware_file_types: [bin, hex, uf2, zip]
 
 
   # Reset the port on connection.
@@ -127,20 +127,20 @@ port:
   # Command spawned when Upload function is called. The command
   #   could have one or more placeholders. Placeholders are all the
   #   attributes of the Port Class.
-  upload_command: null
+  upload_command:
 
 
   port_type_list:
-    - serial
-    - test
+  - serial
+  - test
 
   serial:
 
     mcu_type_list:
-      - samd21
-      - nrf52
-      - stm32
-      - rp20
+    - samd21
+    - nrf52
+    - stm32
+    - rp20
 
 
     # Automatically enables (and connect) a new discovered Port.
@@ -178,11 +178,11 @@ port:
     #   - 0x2E8A:0x000A - A4000 (aka Arancino Pico) (RP2040)
     #   - 0x0483:0x5740 - A6000-A7000-A8000 (aka Arancino V*) (STM32)
     filter_list:
-      - "0x04D8:0xECD9"
-      - "0x04D8:0xECDA"
-      - "0x1915:0x521F"
-      - "0x2E8A:0x000A"
-      - "0x0483 0x5740"
+    - 0x04D8:0xECD9
+    - 0x04D8:0xECDA
+    - 0x1915:0x521F
+    - 0x2E8A:0x000A
+    - 0x0483 0x5740
 
 
     # Timeout in seconds in serial connection Min: 1
@@ -192,7 +192,7 @@ port:
     # Command spawned when Upload function is called. The command
     #   could have one or more placeholders. Placeholders are all the
     #   attributes of the Port Class.
-    upload_command: "/usr/bin/run-arancino-bossac {port._device} {firmware}"
+    upload_command: /usr/bin/run-arancino-bossac {port._device} {firmware}
 
 
     # Reset the port on connection, override the default configuration (can be overrided by the mcu family)
@@ -206,9 +206,9 @@ port:
     # Specific configurations for the SAMD21 microcontoller.
     samd21:
       list: #list of possible vid:pid
-        - "0x04D8:0xECDA"
-        - "0x04D8:0xECD9"
-      upload_command: "/usr/bin/run-arancino-bossac {port._device} {firmware}"
+      - 0x04D8:0xECDA
+      - 0x04D8:0xECD9
+      upload_command: /usr/bin/run-arancino-bossac {port._device} {firmware}
       reset_on_connect: true
       reset_reconnection_delay: 5
       comm_baudrate: 115200
@@ -217,8 +217,9 @@ port:
     # Specific configurations for the NRF52 microcontoller.
     nrf52:
       list: #list of possible vid:pid
-        - "0x1915:0x521F"
-      upload_command: "/usr/bin/adafruit-nrfutil dfu serial -pkg {firmware} -p {port._device} -b 115200 --singlebank"
+      - 0x1915:0x521F
+      upload_command: /usr/bin/adafruit-nrfutil dfu serial -pkg {firmware} -p {port._device}
+        -b 115200 --singlebank
       reset_on_connect: true
       reset_reconnection_delay: 40
       comm_baudrate: 256000
@@ -227,8 +228,8 @@ port:
     # Specific configurations for the STM32 microcontoller.
     stm32:
       list: #list of possible vid:pid
-        - "0x0483:0x5740"
-      upload_command: "/usr/bin/run-arancino-arduinoSTM32load {port._device} {firmware}"
+      - 0x0483:0x5740
+      upload_command: /usr/bin/run-arancino-arduinoSTM32load {port._device} {firmware}
       reset_on_connect: true
       reset_reconnection_delay: 5
       comm_baudrate: 256000
@@ -237,31 +238,31 @@ port:
     # Specific configurations for the RP20 microcontoller.
     rp20:
       list: #list of possible vid:pid
-        - "0x2E8A:0x000A"
-      upload_command: "/usr/bin/run-arancino-uf2conv {port._device} {firmware}"
+      - 0x2E8A:0x000A
+      upload_command: /usr/bin/run-arancino-uf2conv {port._device} {firmware}
       reset_on_connect: true
       reset_reconnection_delay: 5
       comm_baudrate: 256000
 
   test:
 
-    auto_enable: True
+    auto_enable: true
 
-    hide: True
+    hide: true
 
 
     filter_type: ALL
 
 
-    filter_list: null
+    filter_list:
 
 
     reset_on_connect: false
 
 
-    upload_command: null
-    
-    
+    upload_command:
+
+
     # The number of Oort to create for test purpose
     num: 1
 
@@ -330,7 +331,7 @@ transmitter:
 
   parser:
 
-    class: "ParserSimple"
+    class: ParserSimple
 
     # template file used to parse data with the template engine (jinja2)
     #   default available templates:
@@ -338,35 +339,35 @@ transmitter:
     #   - default.json.tmpl
     #   - default.xml.tmpl
 
-    file: "default.json.tmpl"
+    file: default.json.tmpl
 
     #PARSER SIMPLE#
-    simple: null
+    simple:
       # Configuration for ParserSimple
 
     #PARSER S4T#
     s4t:
       # Configuration for ParserS4T
 
-      db_name: "db_name"
+      db_name: db_name
 
   sender:
     # Available Senders are: SenderDoNothing, SenderTcpSocket, SenderMqtt, SenderMqttS4T
-    class: "SenderDoNothing"
+    class: SenderDoNothing
 
     #SENDER DO NOTHING
-    donothing: null
+    donothing:
 
     #SENDER TCP SOCKET
     tcpsocket:
-      host: "tcp_server_ip"
+      host: tcp_server_ip
       port: 0000
 
     #SENDER MQTT
     mqtt:
       use_tls: false
       qos: 1
-      retain: False
+      retain: false
 
       # NOTE: non available at the moment.
       # channel parameter can contains placeholder with the using of "{" and "}"
@@ -377,18 +378,18 @@ transmitter:
       #   - labels.device_id -> the identifier of the device where the ports are connected to. (Note: not always available)
       #   - labels.?????
 
-      topic: "your_topic"
+      topic: your_topic
 
       # plain
-      host: "mqtt_broker_ip"
+      host: mqtt_broker_ip
       port: 1883
-      username: "your_username"
-      password: "your_password"
+      username: your_username
+      password: your_password
 
       # secure
-      ca_path: null
-      cert_path: null
-      key_path: null
+      ca_path:
+      cert_path:
+      key_path:
 
     #SENDER MQTT S4T
     mqtts4t:

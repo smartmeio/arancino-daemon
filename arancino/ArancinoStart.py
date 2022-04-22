@@ -275,11 +275,13 @@ def __get_arancinoapi_app():
     def api_arancino_conf_set():
 
         """
-        """
         section = request.args.get("section")
         option = request.args.get("option")
         value = request.args.get("value")
         result = api.setArancinoConf(section, option, value)
+        """
+
+        result = api.setArancinoConf(request.get_json())
 
         response = jsonify(result[0])
         response.status_code = result[1]
