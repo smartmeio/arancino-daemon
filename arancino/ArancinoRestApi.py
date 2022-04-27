@@ -690,6 +690,7 @@ class ArancinoApi():
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
     def setArancinoTransmitterConf(self, flow_name=None, params=None):
+
         if flow_name and params and params["config"]:
 
             option = params["config"]["option"]
@@ -710,6 +711,38 @@ class ArancinoApi():
         else:
 
             raise Exception("Configuration is empty")
+
+    def getArancinoTransmitterConf(self, flow_name=None, params=None):
+
+        if flow_name and params and params["config"]:  # check if there's the "config" key in the json, else return all the configuration.
+            config = []
+            for item in params["config"]:
+                option = item["option"]
+                opts = option.copy()
+
+                cfgs = ArancinoTransmitterConfig.Instance().cfgs
+                cfg = cfgs[flow_name]
+
+
+                val = self._get_option(cfg, opts)
+            #     print(val)
+                item["value"] = val
+                config.append(item)
+
+            response = {
+                "arancino": {
+                    "config": config
+                }
+            }
+            return response, 200
+
+        else:
+            response = {
+                "arancino": {
+                    "config": CONF
+                }
+            }
+            return response, 200
 
     def identifyPort(self, port_id):
         try:

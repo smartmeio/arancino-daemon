@@ -298,6 +298,18 @@ def __get_arancinoapi_app():
         response.status_code = result[1]
         return response
 
+    @app.route('/api/v1/arancino/transmitter/<flow_name>/config', methods=['GET'])
+    def api_arancino_transmitter_conf_get(flow_name=None):
+
+        #if(request.get_json()): # una o piu conf specifica/e
+        result = api.getArancinoTransmitterConf(flow_name, request.get_json())
+        #else:   # tutte le conf.
+        #    result = api.getArancinoConf()
+
+        response = jsonify(result[0])
+        response.status_code = result[1]
+        return response
+
 
     @app.route('/api/v1/ports/<port_id>/identify', methods=['POST'])
     @auth.login_required
