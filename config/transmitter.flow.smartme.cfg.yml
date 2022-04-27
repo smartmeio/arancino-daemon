@@ -1,5 +1,5 @@
 flow:
-  name: SmartmeFlow
+  name: Smartme
   enabled: true
 
 parser:

@@ -1,5 +1,5 @@
 flow:
-  name: TestFlow
+  name: Test
   enabled: true
 
 parser:

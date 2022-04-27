@@ -24,7 +24,7 @@ import netifaces
 import os
 from arancino.Arancino import Arancino
 from arancino.ArancinoExceptions import ArancinoException
-from arancino.utils.ArancinoUtils import ArancinoConfig, secondsToHumanString, ArancinoLogger, ArancinoEnvironment, ArancinoConfig2
+from arancino.utils.ArancinoUtils import ArancinoConfig, secondsToHumanString, ArancinoLogger, ArancinoEnvironment, ArancinoConfig2, ArancinoTransmitterConfig
 from arancino.ArancinoConstants import ArancinoApiResponseCode
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
 from arancino.ArancinoConstants import ArancinoDBKeys
@@ -503,7 +503,7 @@ class ArancinoApi():
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_NO_CONFIG_PROVIDED), 500
 
             port = self.__arancino.findPort(port_id)
-            
+
             if port:
 
                 if 'alias' in config:
@@ -689,6 +689,27 @@ class ArancinoApi():
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
+    def setArancinoTransmitterConf(self, flow_name=None, params=None):
+        if flow_name and params and params["config"]:
+
+            option = params["config"]["option"]
+            value = params["config"]["value"]
+
+            cfgs = ArancinoTransmitterConfig.Instance().cfgs
+            cfg = cfgs[flow_name]
+
+            if option and value:
+                self._set_option(cfg, option, value)
+                ArancinoTransmitterConfig.Instance().save(flow_name)
+
+                return self.__apiCreateOkMessage(response_code=API_CODE.OK_ARANCINO_PORT_IDENTIFYING), 200
+
+            else:
+                raise Exception("Configuration Option and/or Value are empty")
+
+        else:
+
+            raise Exception("Configuration is empty")
 
     def identifyPort(self, port_id):
         try:
@@ -793,7 +814,7 @@ class ArancinoApi():
             response[DB_KEYS.B_MCU_FAMILY] = None if port.getMicrocontrollerFamily() is None else str(port.getMicrocontrollerFamily())
             response[DB_KEYS.B_ATTRIBUTES] = None if port.getGenericAttributes() is None else port.getGenericAttributes()
             response[DB_KEYS.B_FW_USE_FREERTOS] = None if port.getFirmwareUseFreeRTOS() is None else port.getFirmwareUseFreeRTOS()
-            
+
             # BASE ARANCINO STATUS METADATA (S)Status
             response[DB_KEYS.S_CONNECTED] = port.isConnected()
             response[DB_KEYS.S_PLUGGED] = port.isPlugged()
