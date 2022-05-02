@@ -68,7 +68,10 @@ class ArancinoEnvironment:
         self._tmplt_dir = os.path.join(self._home_dir, "templates")
 
         self._version = semantic_version.Version(arancino.__version__)
-        self._serial_number = self._retrieve_serial_number()
+
+        # Recupero il serial number / uuid dalla variabile di ambiente (quando sarà disponibile) altrimenti lo recupero dal seriale
+        #   del dispositivo come veniva fatto in precedenza
+        self._serial_number = os.getenv("EDGEUUID") if os.getenv("EDGEUUID") else self._retrieve_serial_number()
 
     @property
     def env(self):
@@ -109,6 +112,7 @@ class ArancinoEnvironment:
     # TODO: rivedere questo metodo.
     def _retrieve_serial_number(self):
         # Extract serial from cpuinfo file
+
         serial = "0000000000000000"
         try:
             f = open('/proc/cpuinfo', 'r')
@@ -126,6 +130,29 @@ class ArancinoEnvironment:
 
         return serial
 
+        #return self.__getMachine_addr()
+
+    """
+    def __getMachine_addr(self):
+
+        try:
+
+            os_type = sys.platform.lower()
+
+            if "win" in os_type:
+                command = "wmic bios get serialnumber"
+
+            elif "linux" in os_type:
+                command = "hal-get-property --udi /org/freedesktop/Hal/devices/computer --key system.hardware.uuid"
+
+            elif "darwin" in os_type:
+                command = "ioreg -l | grep IOPlatformSerialNumber"
+
+            return os.popen(command).read().replace("\n", "").replace("	", "").replace(" ", "")
+
+        except Exception as ex:
+            return "ERROR000000000"
+    """
 
 @Singleton
 class ArancinoTransmitterConfig:
