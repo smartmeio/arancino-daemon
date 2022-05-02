@@ -30,6 +30,7 @@ from arancino.ArancinoDataStore import ArancinoDataStore
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 import time
 
+
 import semantic_version
 
 LOG = ArancinoLogger.Instance().getLogger()
@@ -202,36 +203,6 @@ class ArancinoPort(object):
 
             #endregion
 
-        else:
-            raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
-
-        # else:
-        #     pass
-            # paramentri non sufficienti
-
-
-    """
-    def _retrieveStartCmdArgs(self, args):
-        arg_num = len(args)
-
-        ### Retrieving some info and metadata: ###
-
-        # Arancino Library Version
-        if arg_num > 0:
-            arancino_lib_version = semantic_version.Version(args[0])
-            self._setLibVersion(arancino_lib_version)
-
-            LOG.debug("{} Arancino Library Compatibile Versions: {}".format(self._log_prefix, self._compatibility_array))
-
-# #version checkpoint
-# checkpoint_version = semantic_version.SimpleSpec("2.0.0")
-# if arancino_lib_version < checkpoint_version:
-
-# - 1 - library version
-# - 2 - firmware name
-# - 3 - firmware version
-# - 4 - upload datetime
-# - 5 - core version
 
             for compatible_ver in self._compatibility_array:
                 semver_compatible_ver = semantic_version.SimpleSpec(compatible_ver)
@@ -242,35 +213,13 @@ class ArancinoPort(object):
             started = True if self.isCompatible() else False
             self._setStarted(started)
 
+        else:
+            raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
 
-        # Arancino Firmware Name
-        if arg_num > 1:
-            arancino_fw_name = None if args[1].strip() == "" else args[1].strip()
-            self._setFirmwareName(arancino_fw_name)
+        # else:
+        #     pass
+            # paramentri non sufficienti
 
-        # Arancino Firmware Version
-        if arg_num > 2:
-            arancino_fw_version = None if args[2].strip() == "" else semantic_version.Version(args[2])
-            self._setFirmwareVersion(arancino_fw_version)
-
-        # Arancino Firmware Upload Datetime/Timestamp
-        if arg_num > 3:
-            arancino_firmware_upload_datetime = None if args[3].strip() == "" else datetime.strptime(args[3], '%b %d %Y %H:%M:%S %z')
-            arancino_firmware_upload_datetime = datetime.timestamp(arancino_firmware_upload_datetime)
-            arancino_firmware_upload_datetime = datetime.fromtimestamp(arancino_firmware_upload_datetime)
-            self._setFirmwareBuildDate(arancino_firmware_upload_datetime)
-
-        #Arancino Core Version
-        if arg_num > 4:
-            arancino_core_version = None if args[4].strip() == "" else semantic_version.Version(args[4])
-            self._setFirmwareCoreVersion(arancino_core_version)
-
-
-        if not self.isCompatible():
-            self._setComapitibility(False)
-            raise NonCompatibilityException("Module version " + str(CONF.get_metadata_version()) + " can not work with Library version " + str(self.getLibVersion()), ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
-
-    """
 
     def _retrieveStartCmdArgs(self, args):
         """
@@ -409,7 +358,6 @@ class ArancinoPort(object):
             # paramentri non sufficienti
 
 
-
     def unplug(self):
         self.disconnect()
         self._m_s_plugged = False
@@ -425,6 +373,7 @@ class ArancinoPort(object):
         self.__HEARTBEAT = ArancinoHeartBeat(self)
         self.__HEARTBEAT.start()
 
+
     @abstractmethod
     def disconnect(self):
         """
@@ -434,7 +383,6 @@ class ArancinoPort(object):
         #####self.stopHeartbeat()
         self.__HEARTBEAT.stop()
         
-
 
     @abstractmethod
     def sendResponse(self, response):
@@ -460,6 +408,7 @@ class ArancinoPort(object):
     @abstractmethod
     def upload(self, firmware):
         pass
+
 
     #@abstractmethod
     def _commandReceivedHandlerAbs(self, raw_command):
@@ -528,6 +477,7 @@ class ArancinoPort(object):
         :return: void
         """
         pass
+
 
     #region BASE METADATA Encapsulators
 
@@ -763,7 +713,7 @@ class ArancinoPort(object):
 
 class ArancinoHeartBeat(threading.Thread):
 
-    def __init__(self, port ):
+    def __init__(self, port):
         
         self.__port = port
         self.__name = "{}-{}".format(self.__class__.__name__, self.__port.getId())
@@ -772,6 +722,7 @@ class ArancinoHeartBeat(threading.Thread):
         port_type = port._port_type.name.lower() 
 
         #reflection
+        # TODO da rivedere dopo il passaggio al nuovo sistema di configurazione
         cfg_rate = getattr(CONF, "get_port_{}_heartbeat_rate".format(port_type))
         cfg_time = getattr(CONF, "get_port_{}_heartbeat_time".format(port_type))
         cfg_attempts = getattr(CONF, "get_port_{}_heartbeat_attempts".format(port_type))
@@ -786,16 +737,31 @@ class ArancinoHeartBeat(threading.Thread):
         self.__heartbeatStop = True
         self.__heartbeatTime0 = None
         self.__heartbeatTime1 = None
+
+        self.__redis_heartbeat_pubsub = DATASTORE.getDataStoreRsvd().pubsub()
+        self.__redis_heartbeat_pubsub_thread = None
+        self.__redis_hearbeat_ch0 = "{}_HB0".format(self.__port.getId())
+        self.__redis_hearbeat_ch1 = "{}_HB1".format(self.__port.getId())
         
         self._log_prefix = "Heartbeat [{} - {}]".format(str(port._port_type.name), port.getId())
 
     def stop(self):
+        self.__redis_heartbeat_pubsub.unsubscribe(self.__redis_hearbeat_ch0)
+        self.__redis_heartbeat_pubsub.unsubscribe(self.__redis_hearbeat_ch0)
+        if self.__redis_heartbeat_pubsub_thread:
+            self.__redis_heartbeat_pubsub_thread.stop()
+
         self.__heartbeatStop = True
+
+
+
 
     def run(self):
         LOG.info("{} Start Heartbeat".format(self._log_prefix))
         self.__heartbeatStop = False
         #self.__heartbeat_subscribe()
+
+        self.__heartbeat_subscribe()
 
         #while not self.__heartbeatStop.is_set():
         while not self.__heartbeatStop:
@@ -830,7 +796,7 @@ class ArancinoHeartBeat(threading.Thread):
 
                                 self.__heartbeatTime0 = None
                                 self.__heartbeatTime1 = None
-                                self.__heartbeatCount = 0
+                                self.__heartbeatCount = 1
 
                         # se non é arrivato il secondo hb incremento il contatore
                         else:
@@ -850,32 +816,23 @@ class ArancinoHeartBeat(threading.Thread):
 
     #region heartbeat subscriotion redis
     def __heartbeat_subscribe(self):
-        redis = DATASTORE.getDataStoreRsvd()
-        redis = redis.pubsub()
-        redis.subscribe(str(self.__port._id + "_HB0"))
-        redis.subscribe(str(self.__port._id + "_HB1"))
 
-        for data_raw in redis.listen():
-            if data_raw['type'] != "message":
-                continue
-            
-            if data_raw['channel'] == str(self.__port._id + "_HB0"):
-                self.__heartbeat_sub_0(data_raw)
-            elif data_raw['channel'] == str(self.__port._id + "_HB1"):
-                self.__heartbeat_sub_1(data_raw)
-            else:
-                continue
+        self.__redis_heartbeat_pubsub.subscribe(**{
+            self.__redis_hearbeat_ch0: self.__heartbeat_sub_0,
+            self.__redis_hearbeat_ch1: self.__heartbeat_sub_1
+        })
+        self.__redis_heartbeat_pubsub_thread = self.__redis_heartbeat_pubsub.run_in_thread(sleep_time=.01)
+
 
     def __heartbeat_sub_0(self, data):
         LOG.debug("RECEIVING HB 0: {}".format(data))
         ts_str = data['data']
-        self.__heartbeatTime0 = self.__heartbeat_convert_timestamp(ts_str)
+        self.__heartbeatTime0 = int(datetime.now().timestamp() * 1000)
 
     def __heartbeat_sub_1(self, data):
         LOG.debug("RECEIVING HB 1: {}".format(data))
         ts_str = data['data']
-        self.__heartbeatTime1 = self.__heartbeat_convert_timestamp(ts_str)
-        
+        self.__heartbeatTime1 = int(datetime.now().timestamp() * 1000)
 
     def __heartbeat_convert_timestamp(self, ts_str):
 

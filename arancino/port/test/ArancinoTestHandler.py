@@ -20,6 +20,8 @@ under the License
 """
 
 import threading
+
+from arancino.ArancinoDataStore import ArancinoDataStore
 from arancino.utils.ArancinoUtils import *
 from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoCortex import ArancinoCommandIdentifiers as cmdId
@@ -31,6 +33,7 @@ import time
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
+DATASTORE = ArancinoDataStore.Instance()
 
 class ArancinoTestHandler(threading.Thread):
 
@@ -52,10 +55,15 @@ class ArancinoTestHandler(threading.Thread):
         self.__command_test_list = self.__getCommnandsList()
         self.__command_test_del_list = self.__getCommnandsDelList()
 
+        self.__th_service = threading.Thread(target=self.__service_task)
+        self.__serviceStop = threading.Event()
+
     def run(self):
         time.sleep(1.5) # do il tempo ad Arancino di inserire la porta in lista
         commands_test_num = len(self.__command_test_list)
         count = 0
+
+        self.__th_service.start()
 
         if commands_test_num > 0:
             while not self.__stop:
@@ -113,6 +121,7 @@ class ArancinoTestHandler(threading.Thread):
 
     def stop(self):
         self.__stop = True
+        self.__serviceStop.set()
 
     def __getCommnandsDelList(self):
 
@@ -406,3 +415,17 @@ class ArancinoTestHandler(threading.Thread):
         
         return list
 
+    def __service_task(self):
+        LOG.info("{} Start Service Task Emulation".format(self.__log_prefix))
+        datastore = DATASTORE.getDataStoreStd()
+        while not self.__serviceStop.is_set():
+
+            try:
+                datastore.publish("{}_HB{}".format(self.__id, "0"), str(int(datetime.now().timestamp() * 1000)))
+                time.sleep(0) #cambia il tempo per emulare casi diversi
+                datastore.publish("{}_HB{}".format(self.__id, "1"), str(int(datetime.now().timestamp() * 1000)))
+                time.sleep(100)
+            except Exception as ex:
+                print(ex)
+
+            #region HEARTBEAT

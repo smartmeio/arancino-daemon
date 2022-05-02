@@ -131,10 +131,10 @@ class Arancino(Thread):
         for id, port in self.__ports_discovered.items():
             port.unplug()
 
+        time.sleep(2)
         LOG.info("Disconnecting Data Stores... ")
+        time.sleep(3)
         self.__datastore.closeAll()
-
-
 
         LOG.info("Bye!")
 
@@ -281,6 +281,7 @@ class Arancino(Thread):
                     LOG.exception(ex)
             else:
                 self.__isPaused = True
+
             time.sleep(self.__cycle_time)
 
 
