@@ -1,3 +1,4 @@
+{% if not data['key'].startswith('CPU_STATS:') %}
 data:
   - key: "{{data['key']}}"
     values:
@@ -16,3 +17,4 @@ data:
       {%- for key, value in data['tags'].items() %}
       - {{key}}: {{value}}
       {%- endfor %}
+{% endif %}

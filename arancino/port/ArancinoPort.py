@@ -25,7 +25,8 @@ from logging import ERROR
 from types import FunctionType, MethodType
 #from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoCortex import *
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, stringToBool2
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, stringToBool2, ArancinoConfig2, \
+    ArancinoEnvironment
 from arancino.ArancinoConstants import ArancinoCommandErrorCodes
 from arancino.ArancinoDataStore import ArancinoDataStore
 import time
@@ -33,10 +34,11 @@ import time
 import semantic_version
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance()
-TRACE = CONF.get_log_print_stack_trace()
+CONF = ArancinoConfig2.Instance().cfg
+TRACE = CONF.get("general").get("trace")
 ERR_CODES = ArancinoCommandErrorCodes
 DATASTORE = ArancinoDataStore.Instance()
+ENV = ArancinoEnvironment.Instance()
 
 class ArancinoPort(object):
 
@@ -79,6 +81,8 @@ class ArancinoPort(object):
 
         #region OTHER
         self._upload_cmd = upload_cmd
+        self._reset_on_connect = None
+        self._reset_reconnection_delay = None
         #endregion
 
         # Command Executor
@@ -95,7 +99,6 @@ class ArancinoPort(object):
         #endregion
 
         self.__first_time = True
-
 
 
     def _retrieveStartCmdArgs(self, args):
@@ -231,7 +234,7 @@ class ArancinoPort(object):
             self._setStarted(started)
 
             if not self.isCompatible():
-                raise NonCompatibilityException("Module version " + str(CONF.get_metadata_version()) + " can not work with Library version " + str(self.getLibVersion()), ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
+                raise NonCompatibilityException("Module version " + str(ENV.version) + " can not work with Library version " + str(self.getLibVersion()), ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
             # endregion
             
 
@@ -241,7 +244,6 @@ class ArancinoPort(object):
         # else:
         #     pass
             # paramentri non sufficienti
-
 
 
     def __retrieveStartCmdArgs(self, args):
@@ -301,8 +303,9 @@ class ArancinoPort(object):
 
         if not self.isCompatible():
             self._setComapitibility(False)
-            raise NonCompatibilityException("Module version " + str(CONF.get_metadata_version()) + " can not work with Library version " + str(self.getLibVersion()), ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
-            
+            raise NonCompatibilityException("Module version " + str(ENV.version) + " can not work with Library version " + str(self.getLibVersion()), ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
+
+
     def unplug(self):
         self.disconnect()
         self._m_s_plugged = False
@@ -543,21 +546,46 @@ class ArancinoPort(object):
         #  for the specific mcu family
         #self._reset_delay = getattr(CONF, "get_port_serial_{}_reset_reconnection_delay()".format(microcontroller_family.lower()))
 
-        if self._microcontroller_family == MicrocontrollerFamily.SAMD21:
-            self.setResetReconnectionDelay(CONF.get_port_serial_samd21_reset_reconnection_delay())
-            self._setUploadCommand(CONF.get_port_serial_samd21_upload_command())
-        elif self._microcontroller_family == MicrocontrollerFamily.NRF52:
-            self.setResetReconnectionDelay(CONF.get_port_serial_nrf52_reset_reconnection_delay())
-            self._setUploadCommand(CONF.get_port_serial_nrf52_upload_command())
-        elif self._microcontroller_family == MicrocontrollerFamily.RP20:
-            self.setResetReconnectionDelay(CONF.get_port_serial_rp20_reset_reconnection_delay())
-            self._setUploadCommand(CONF.get_port_serial_rp20_upload_command())
-        elif self._microcontroller_family == MicrocontrollerFamily.STM32:
-            self.setResetReconnectionDelay(CONF.get_port_serial_stm32_reset_reconnection_delay())
-            self._setUploadCommand(CONF.get_port_serial_stm32_upload_command())
+    def _setPortProperties(self):
+
+        if self.getPortType() == PortTypes.SERIAL:
+
+            # Recupero le proprietà di base della porta seriale
+            self.setResetReconnectionDelay(CONF.get("port").get("serial").get("reset_reconnection_delay"))
+            self._setUploadCommand(CONF.get("port").get("serial").get("upload_command"))
+
         else:
-            self.setResetReconnectionDelay(CONF.get_port_serial_reset_reconnection_delay())
-            self._setUploadCommand(CONF.get_port_serial_upload_command())
+
+            # Altrimenti imposto quelle generiche
+            self.setResetReconnectionDelay(CONF.get("port").get("reset_reconnection_delay"))
+            self._setUploadCommand(CONF.get("port").get("upload_command"))
+
+
+    def _setMicrocontrollerProperties(self):
+
+        # Recupero il tipo di MCU
+        mcu = self.getMicrocontrollerFamily().lower() if self.getMicrocontrollerFamily() else None
+
+        if mcu:
+
+            if self.getPortType() == PortTypes.SERIAL:
+                #Quando la port è SERIAL e l'MCU è definito
+
+                if mcu in CONF.get("port").get("mcu_type_list"):
+
+                    # Se
+                    self.setResetReconnectionDelay(CONF.get("port").get("serial").get(mcu).get("reset_reconnection_delay"))
+                    self._setUploadCommand(CONF.get("port").get("serial").get(mcu).get("upload_command"))
+                else:
+                    self.setResetReconnectionDelay(CONF.get("port").get("serial").get("reset_reconnection_delay"))
+                    self._setUploadCommand(CONF.get("port").get("serial").get("upload_command"))
+
+            else:
+                self.setResetReconnectionDelay(CONF.get("port").get("reset_reconnection_delay"))
+                self._setUploadCommand(CONF.get("port").get("upload_command"))
+        else:
+            self.setResetReconnectionDelay(CONF.get("port").get("reset_reconnection_delay"))
+            self._setUploadCommand(CONF.get("port").get("upload_command"))
 
     #endregion
 

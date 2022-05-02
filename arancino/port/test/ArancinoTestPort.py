@@ -22,7 +22,7 @@ under the License
 from arancino.port.test.ArancinoTestHandler import ArancinoTestHandler
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.ArancinoCortex import *
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig2, ArancinoEnvironment
 from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 import uuid
 import time
@@ -30,19 +30,21 @@ import time
 
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance()
-TRACE = CONF.get_log_print_stack_trace()
+
+CONF = ArancinoConfig2.Instance().cfg
+TRACE = CONF.get("general").get("trace")
+ENV = ArancinoEnvironment.Instance()
 
 class ArancinoTestPort(ArancinoPort):
     def __init__(self, id=None, device=None, m_s_plugged=True, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None):
-        super().__init__(device=device, port_type=PortTypes.TEST, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=CONF.get_port_test_upload_command(), receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
+        super().__init__(device=device, port_type=PortTypes.TEST, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=CONF.get("port").get("test").get("upload_command"), receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
         self._id = id if id is not None else uuid.uuid1()
         self.__stop = False
 
         self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
 
-        self._compatibility_array = COMPATIBILITY_MATRIX_MOD_TEST[str(CONF.get_metadata_version().truncate())]
+        self._compatibility_array = COMPATIBILITY_MATRIX_MOD_TEST[str(ENV.version.truncate())]
 
         self._log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
 
@@ -140,7 +142,7 @@ class ArancinoTestPort(ArancinoPort):
 
                         LOG.info("{} Connecting...".format(self._log_prefix))
 
-                        if CONF.get_port_test_reset_on_connect():
+                        if CONF.get("port").get("test").get("reset_on_connect"):
                             # first resetting
                             self.reset()
 
@@ -199,3 +201,14 @@ class ArancinoTestPort(ArancinoPort):
     def sendResponse(self, raw_response):
         # Do nothing
         pass
+
+
+    # region MICRO CONTROLLER FAMILY
+
+    def getMicrocontrollerFamily(self):
+        return None
+
+    def _setMicrocontrollerFamily(self, microcontroller_family):
+        pass
+
+    #endregion

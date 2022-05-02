@@ -19,25 +19,33 @@ License for the specific language governing permissions and limitations
 under the License
 """
 
-from abc import ABC, ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
+from enum import Enum
 
-class Sender():
+class Sender(ABC):
 
-    #__metaclass__ = ABCMeta
-
-    def __init__(self):
+    def __init__(self, cfg=None):
 
         #protected
-        self._log_prefix = "Sender [Abstract] - "
+        self.__cfg = cfg
+        self._flow_name = self.cfg.get("name")
+        self._log_prefix = "Flow [{}] - Sender [{}] - ".format(self._flow_name, self.cfg.get("class"))
+        
 
-    @abstractmethod
+
+    @property
+    def cfg(self):
+        return self.__cfg
+
     def send(self, data=None, metadata=None):
         done = self._do_trasmission(data, metadata)
         return done
 
+
     @abstractmethod
     def _do_trasmission(self, data=None, metadata=None):
         raise NotImplementedError
+
 
     @abstractmethod
     def start(self):
@@ -48,3 +56,8 @@ class Sender():
     def stop(self):
         raise NotImplementedError
 
+class SenderKind(Enum):
+    SENDER_DO_NOTHING = "SenderDoNothing"
+    SENDER_MQTT = "SenderMqtt"
+    SENDER_MQTT_STACK_4_THINGS = "SenderMqttS4T"
+    SENDER_TCP_SOCKET = "SenderTcpSocket"

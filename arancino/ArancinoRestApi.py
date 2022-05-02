@@ -24,7 +24,7 @@ import netifaces
 import os
 from arancino.Arancino import Arancino
 from arancino.ArancinoExceptions import ArancinoException
-from arancino.utils.ArancinoUtils import ArancinoConfig, secondsToHumanString, ArancinoLogger
+from arancino.utils.ArancinoUtils import ArancinoConfig, secondsToHumanString, ArancinoLogger, ArancinoEnvironment, ArancinoConfig2, ArancinoTransmitterConfig
 from arancino.ArancinoConstants import ArancinoApiResponseCode
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
 from arancino.ArancinoConstants import ArancinoDBKeys
@@ -36,9 +36,11 @@ from arancino.port.ArancinoPort import PortTypes
 
 API_CODE = ArancinoApiResponseCode()
 DB_KEYS = ArancinoDBKeys()
-CONF = ArancinoConfig.Instance()
+CONF__ = ArancinoConfig.Instance()
+CONF = ArancinoConfig2.Instance().cfg
 LOG = ArancinoLogger.Instance().getLogger()
-TRACE = CONF.get_log_print_stack_trace()
+TRACE = CONF.get("log").get("trace")
+ENV = ArancinoEnvironment.Instance()
 
 class ArancinoApi():
 
@@ -70,7 +72,7 @@ class ArancinoApi():
                     },
                     "arancino": {
                         "uptime" : [ara_upt, secondsToHumanString(int(ara_upt))],
-                        "version": str(CONF.get_metadata_version()),
+                        "version": str(ENV.version),
                         "ports": {
                             "discovered": d,
                             "connected": c
@@ -106,7 +108,7 @@ class ArancinoApi():
                 "arancino": {
                     "arancino": {
                         "uptime": [ara_upt, secondsToHumanString(int(ara_upt))],
-                        "version": str(CONF.get_metadata_version()),
+                        "version": str(ENV.versio),
                         "ports": {
                             "discovered": d,
                             "connected": c
@@ -269,10 +271,11 @@ class ArancinoApi():
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
+    """
     def __getArancinoConf(self):
         # return all the configurations
         try:
-            config = CONF.get_config_all()
+            config = CONF__.get_config_all()
             response = {
                 "arancino": {
                     "config": config
@@ -297,9 +300,9 @@ class ArancinoApi():
                         config[section] = {}
 
                     #if option not in config[section]:
-                    config[section][option] = CONF.get_config_by_name(section, option)
+                    config[section][option] = CONF__.get_config_by_name(section, option)
 
-                    print(config)
+                    #print(config)
 
                 response = {
                     "arancino": {
@@ -318,9 +321,48 @@ class ArancinoApi():
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
-    #
-    # def getArancinoConf(self, section, option):
-    #     pass
+    """
+
+    def _get_option(self, cfg,  opts):
+
+        val = cfg.get(opts[0])
+        if val and len(opts) > 1:
+            opts.pop(0)
+            val = self._get_option(val, opts)
+
+        return val
+
+
+    def getArancinoConf(self, params=None):
+
+        if (params and params["config"]):  # check if there's the "config" key in the json, else return all the configuration.
+            config = []
+            for item in params["config"]:
+                option = item["option"]
+                opts = option.copy()
+                val = self._get_option(CONF, opts)
+            #     print(val)
+                item["value"] = val
+                config.append(item)
+
+            response = {
+                "arancino": {
+                    "config": config
+                }
+            }
+            return response, 200
+
+        else:
+            response = {
+                "arancino": {
+                    "config": CONF
+                }
+            }
+            return response, 200
+
+
+
+
 
 
     #### OPERATIONS ####
@@ -461,7 +503,7 @@ class ArancinoApi():
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_NO_CONFIG_PROVIDED), 500
 
             port = self.__arancino.findPort(port_id)
-            
+
             if port:
 
                 if 'alias' in config:
@@ -570,6 +612,7 @@ class ArancinoApi():
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
 
+    """
     def setArancinoConf(self, section, option, value):
         try:
 
@@ -591,7 +634,7 @@ class ArancinoApi():
             except Exception as ex:
                 return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_NO_ARANCINO_CONFIG_VALUE_PROVIDED, internal_message=[None, str(ex)]), 500
 
-            CONF.set_config_by_name(section, option, value)
+            CONF__.set_config_by_name(section, option, value)
 
             return self.__apiCreateOkMessage(response_code=API_CODE.OK_ARANCINO_CONFIGURATED), 200
 
@@ -602,6 +645,104 @@ class ArancinoApi():
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
+    """
+
+    def _set_option(self, cfg,  opts, val):
+
+        if cfg:
+            if len(opts) > 1:
+                cfg = cfg.get(opts[0])
+                opts.pop(0)
+                cfg = self._set_option(cfg, opts, val)
+            else:
+                if opts[0] in cfg:
+                    cfg[opts[0]] = val
+                else:
+                    raise Exception("Option is empty or does not exist")
+            return cfg
+        else:
+            raise Exception("Option is empty or does not exist")
+
+    def setArancinoConf(self, params=None):
+        try:
+
+            if params and params["config"]:
+
+                option = params["config"]["option"]
+                value = params["config"]["value"]
+
+                if option and value:
+
+                    self._set_option(CONF, option, value)
+                    ArancinoConfig2.Instance().save()
+
+                else:
+                    raise Exception("Configuration Option and/or Value are empty")
+            else:
+                raise Exception("Configuration is empty")
+
+        except ArancinoException as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=ex.error_code, internal_message=[ex.title, ex.message]), 200
+
+        except Exception as ex:
+            LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
+            return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
+
+    def setArancinoTransmitterConf(self, flow_name=None, params=None):
+
+        if flow_name and params and params["config"]:
+
+            option = params["config"]["option"]
+            value = params["config"]["value"]
+
+            cfgs = ArancinoTransmitterConfig.Instance().cfgs
+            cfg = cfgs[flow_name]
+
+            if option and value:
+                self._set_option(cfg, option, value)
+                ArancinoTransmitterConfig.Instance().save(flow_name)
+
+                return self.__apiCreateOkMessage(response_code=API_CODE.OK_ARANCINO_PORT_IDENTIFYING), 200
+
+            else:
+                raise Exception("Configuration Option and/or Value are empty")
+
+        else:
+
+            raise Exception("Configuration is empty")
+
+    def getArancinoTransmitterConf(self, flow_name=None, params=None):
+
+        if flow_name and params and params["config"]:  # check if there's the "config" key in the json, else return all the configuration.
+            config = []
+            for item in params["config"]:
+                option = item["option"]
+                opts = option.copy()
+
+                cfgs = ArancinoTransmitterConfig.Instance().cfgs
+                cfg = cfgs[flow_name]
+
+
+                val = self._get_option(cfg, opts)
+            #     print(val)
+                item["value"] = val
+                config.append(item)
+
+            response = {
+                "arancino": {
+                    "config": config
+                }
+            }
+            return response, 200
+
+        else:
+            response = {
+                "arancino": {
+                    "config": CONF
+                }
+            }
+            return response, 200
 
     def identifyPort(self, port_id):
         try:
@@ -706,7 +847,7 @@ class ArancinoApi():
             response[DB_KEYS.B_MCU_FAMILY] = None if port.getMicrocontrollerFamily() is None else str(port.getMicrocontrollerFamily())
             response[DB_KEYS.B_ATTRIBUTES] = None if port.getGenericAttributes() is None else port.getGenericAttributes()
             response[DB_KEYS.B_FW_USE_FREERTOS] = None if port.getFirmwareUseFreeRTOS() is None else port.getFirmwareUseFreeRTOS()
-            
+
             # BASE ARANCINO STATUS METADATA (S)Status
             response[DB_KEYS.S_CONNECTED] = port.isConnected()
             response[DB_KEYS.S_PLUGGED] = port.isPlugged()

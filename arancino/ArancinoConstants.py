@@ -22,6 +22,13 @@ under the License
 from enum import Enum
 
 
+class EnvType:
+    DEV = "DEV"
+    DEVELOPMENT = "DEVELOPMENT"
+    PROD = "PROD"
+    TEST = "TEST"
+    PRODUCTION = "PRODUCTION"
+
 class RedisInstancesType(Enum):
     VOLATILE = 1
     PERSISTENT = 2
@@ -631,13 +638,6 @@ class ArancinoPortInteroceptionAttributes:
     MEMORY_FREE = "MEM_FREE" # nel samd21 invia la free
     MEMORY_USED = "MEM_USED"
     TEMPERATURE = "TEMP"
-
-
-class MicrocontrollerFamily:
-    SAMD21 =    "SAMD21"
-    NRF52 =     "NRF52"
-    RP20 =      "RP20"
-    STM32 =     "STM32"
 
 
 COMPATIBILITY_MATRIX_MOD_SERIAL = {

@@ -25,14 +25,15 @@ import logging
 import sys
 import os
 import json
+import semantic_version
+from ruamel.yaml import YAML
 import arancino
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
-
-import semantic_version
-
-from arancino.ArancinoConstants import RedisInstancesType
+from arancino.ArancinoConstants import RedisInstancesType, EnvType
 from arancino.port.ArancinoPortFilter import FilterTypes
+
+
 
 class Singleton:
 
@@ -54,6 +55,202 @@ class Singleton:
 
 
 @Singleton
+class ArancinoEnvironment:
+
+
+    def __init__(self):
+
+
+        self._env = os.environ.get('ARANCINOENV')
+        self._home_dir = os.environ.get('ARANCINO')
+        self._cfg_dir = os.environ.get('ARANCINOCONF')
+        self._log_dir = os.environ.get('ARANCINOLOG')
+        self._tmplt_dir = os.path.join(self._home_dir, "templates")
+
+        self._version = semantic_version.Version(arancino.__version__)
+
+        # Recupero il serial number / uuid dalla variabile di ambiente (quando sarà disponibile) altrimenti lo recupero dal seriale
+        #   del dispositivo come veniva fatto in precedenza
+        self._serial_number = os.getenv("EDGEUUID") if os.getenv("EDGEUUID") else self._retrieve_serial_number()
+
+    @property
+    def env(self):
+        return self._env
+
+
+    @property
+    def cfg_dir(self):
+        return self._cfg_dir
+
+
+    @property
+    def version(self):
+        return self._version
+
+
+    @property
+    def home_dir(self):
+        return self._home_dir
+
+
+    @property
+    def log_dir(self):
+        return self._log_dir
+
+
+    @property
+    def tmplt_dir(self):
+        return self._tmplt_dir
+
+
+    @property
+    def serial_number(self):
+        return self._serial_number
+        #return self.__retrieve_serial_number()
+
+
+    # TODO: rivedere questo metodo.
+    def _retrieve_serial_number(self):
+        # Extract serial from cpuinfo file
+
+        serial = "0000000000000000"
+        try:
+            f = open('/proc/cpuinfo', 'r')
+            for line in f:
+                if line[0:6] == 'Serial':
+                    serial = line[10:26]
+            f.close()
+        except Exception as ex:
+            try:
+                f = open('cat /sys/class/dmi/id/product_uuid')
+                serial = f.readline().strip()
+                f.close()
+            except Exception as ex:
+                serial = "ERROR000000000"
+
+        return serial
+
+        #return self.__getMachine_addr()
+
+    """
+    def __getMachine_addr(self):
+
+        try:
+
+            os_type = sys.platform.lower()
+
+            if "win" in os_type:
+                command = "wmic bios get serialnumber"
+
+            elif "linux" in os_type:
+                command = "hal-get-property --udi /org/freedesktop/Hal/devices/computer --key system.hardware.uuid"
+
+            elif "darwin" in os_type:
+                command = "ioreg -l | grep IOPlatformSerialNumber"
+
+            return os.popen(command).read().replace("\n", "").replace("	", "").replace(" ", "")
+
+        except Exception as ex:
+            return "ERROR000000000"
+    """
+
+@Singleton
+class ArancinoTransmitterConfig:
+
+    def __init__(self):
+        self.__yaml = YAML()#YAML(typ='safe', pure=True)
+
+        _env = ArancinoEnvironment.Instance().env
+        _cfg_dir = ArancinoEnvironment.Instance().cfg_dir
+        _cfg_file = ""
+        self.__files = []
+        self._cfgs = {}
+
+        from pathlib import Path
+        for yml_path in Path(_cfg_dir).glob("transmitter.flow.*.cfg.yml"):
+            self.__files.append(yml_path)
+
+        self.__open()
+
+
+
+    def __open(self):
+
+        for f in self.__files:
+            with open(f, "r") as ymlfile:
+                #self._cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
+                y = self.__yaml.load(ymlfile)
+                self._cfgs[y.get("flow").get("name").lower()] = y
+                ymlfile.close()
+
+
+    def save(self, flow_name):
+        yaml = YAML()
+        file = os.path.join(ArancinoEnvironment.Instance().cfg_dir, "transmitter.flow.{}.cfg.yml".format(flow_name))
+        for f in self.__files:
+
+            if str(f) == file:
+                with open(f, "w") as ymlfile:
+                    yaml.dump(self._cfgs[flow_name], ymlfile)
+                    ymlfile.close()
+                break
+
+
+
+
+
+    @property
+    def cfgs(self):
+        return self._cfgs
+
+@Singleton
+class ArancinoConfig2:
+
+    def __init__(self):
+        self.__yaml = YAML()#YAML(typ='safe', pure=True)
+
+        _env = ArancinoEnvironment.Instance().env
+        _cfg_dir = ArancinoEnvironment.Instance().cfg_dir
+        _cfg_file = ""
+
+
+        if _env.upper() == EnvType.DEV \
+                or _env.upper() == EnvType.TEST \
+                or _env.upper() == EnvType.DEVELOPMENT:
+            _cfg_file = "arancino.dev.cfg.yml"
+
+        elif _env.upper() == EnvType.PROD \
+                or _env.upper() == EnvType.PRODUCTION:
+            _cfg_file = "arancino.cfg.yml"
+
+
+        self.__file = os.path.join(_cfg_dir, _cfg_file)
+
+        self.__open()
+
+
+
+    def __open(self):
+        with open(self.__file, "r") as ymlfile:
+            #self._cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
+            self._cfg = self.__yaml.load(ymlfile)
+            ymlfile.close()
+
+    def save(self):
+        yaml = YAML()
+        with open(self.__file, "w") as ymlfile:
+            yaml.dump(self._cfg, ymlfile)
+            ymlfile.close()
+
+        #self.__open()
+
+
+    @property
+    def cfg(self):
+        return self._cfg
+
+
+@Singleton
 class ArancinoConfig:
 
     def __init__(self):
@@ -64,15 +261,14 @@ class ArancinoConfig:
         elif env.upper() == "PROD" or env.upper() == "PRODUCTION":
             self.__cfg_file = "arancino.cfg"
 
-
         self.__arancino_config_path = os.environ.get('ARANCINOCONF')
-        self.__arancino_home_path =  os.environ.get('ARANCINO')
+        self.__arancino_home_path = os.environ.get('ARANCINO')
         self.__arancino_template_path = os.path.join(self.__arancino_home_path, "templates")
 
         self.Config = configparser.ConfigParser()
         self.Config.read(os.path.join(self.__arancino_config_path, self.__cfg_file))
 
-        self.__serial_number = self.__retrieve_serial_number()
+        self.__serial_number = ArancinoEnvironment.Instance().serial_number
 
         # region CONFIG METADATA SECTION
         self.__metadata_version = semantic_version.Version(arancino.__version__)
@@ -206,7 +402,9 @@ class ArancinoConfig:
         # region TRANSMITTER SECTION
         self.__transmitter_reader_cycle_time = int(self.Config.get("transmitter.reader", "cycle_time"))
         self.__is_transmitter_enabled = stringToBool(self.Config.get("transmitter", "enabled"))
+        self.__transmitter_flows = self.Config.get("transmitter", "flows")
 
+        """
         # region TRANSMITTER PARSER
         self.__transmitter_parser_class = self.Config.get("transmitter.parser", "class")
 
@@ -248,7 +446,7 @@ class ArancinoConfig:
         self.__transmitter_sender_mqtt_ca_path = self.Config.get("transmitter.sender.mqtt", "ca_path")
         self.__transmitter_sender_mqtt_cert_path = self.Config.get("transmitter.sender.mqtt", "cert_path")
         self.__transmitter_sender_mqtt_key_path = self.Config.get("transmitter.sender.mqtt", "key_path")
-
+        """
 
 
         # endregion
@@ -300,26 +498,6 @@ class ArancinoConfig:
 
     # def get_general_users(self):
     #     return json.loads(self.__general_users)
-
-    # TODO: rivedere questo metodo.
-    def __retrieve_serial_number(self):
-        # Extract serial from cpuinfo file
-        serial = "0000000000000000"
-        try:
-            f = open('/proc/cpuinfo', 'r')
-            for line in f:
-                if line[0:6] == 'Serial':
-                    serial = line[10:26]
-            f.close()
-        except Exception as ex:
-            try:
-                f = open('cat /sys/class/dmi/id/product_uuid')
-                serial = f.readline().strip()
-                f.close()
-            except Exception as ex:
-                serial = "ERROR000000000"
-
-        return serial
 
 
     def get_serial_number(self):
@@ -627,6 +805,10 @@ class ArancinoConfig:
     def get_transmitter_reader_cycle_time(self):
         return self.__transmitter_reader_cycle_time
 
+    def get_transmitter_flows(self):
+        return json.loads(self.__transmitter_flows.lower())
+
+    """
     def get_transmitter_parser_class(self):
         return self.__transmitter_parser_class
 
@@ -677,7 +859,7 @@ class ArancinoConfig:
 
     def get_transmitter_sender_mqtt_key_path(self):
         return self.__transmitter_sender_mqtt_key_path
-
+    """
 
 @Singleton
 class ArancinoLogger:
@@ -686,19 +868,20 @@ class ArancinoLogger:
         self.__logger = None
 
         # logger configuration
-        CONF = ArancinoConfig.Instance()
+        CONF__ = ArancinoConfig.Instance()
+        CONF = ArancinoConfig2.Instance().cfg
+        ENV = ArancinoEnvironment.Instance()
 
-        self.__name = CONF.get_log_name()  # 'Arancino Serial'
-        self.__filename = CONF.get_log_file_log()  # 'arancino.log'
-        self.__error_filename = CONF.get_log_file_error()  # 'arancino.error.log'
-        # self.__stats_filename = conf.get_log_stats_file()  # 'arancino.stats.log'
+        self.__name = CONF.get("log").get("name")
+        self.__filename = CONF.get("log").get("file_log") # 'arancino.log'
+        self.__error_filename = CONF.get("log").get("file_error")   # 'arancino.error.log'
 
         # __dirlog = Config["log"].get("path")           #'/var/log/arancino'
-        self.__dirlog = os.environ.get('ARANCINOLOG')
+        self.__dirlog = ENV.log_dir     #os.environ.get('ARANCINOLOG')
         self.__format = CustomConsoleFormatter(level='DEBUG')  #logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-        self.__log_size = CONF.get_log_size()
-        self.__log_rotate = CONF.get_log_rotate()
+        self.__log_size = CONF.get("log").get("size")
+        self.__log_rotate = CONF.get("log").get("rotate")
 
         # logging.basicConfig(level=logging.getLevelName(CONF.get_log_level()))
         # if CONF.get_log_handler_console():
@@ -706,12 +889,12 @@ class ArancinoLogger:
 
 
         self.__logger = logging.getLogger(self.__name) #CustomLogger(self.__name)#
-        self.__logger.setLevel(logging.getLevelName(CONF.get_log_level()))
+        self.__logger.setLevel(logging.getLevelName(CONF.get("log").get("level")))
 
-        if CONF.get_log_handler_console():
+        if CONF.get("log").get("handler_console"):
             self.__logger.addHandler(self.__getConsoleHandler())
 
-        if CONF.get_log_handler_file():
+        if CONF.get("log").get("lehandler_filevel"):
             self.__logger.addHandler(self.__getFileHandler())
             self.__logger.addHandler(self.__getErrorFileHandler())
 
@@ -734,21 +917,6 @@ class ArancinoLogger:
     def getLogger(self):
         return self.__logger
         # return logging
-
-
-# class CustomLogger(logging.Logger):
-#
-#
-#     def debug(self, msg, *args, **kwargs):
-#
-#         if self.isEnabledFor(logging.DEBUG):
-#             self._log(logging.DEBUG, msg, args, **kwargs)
-#
-#     def error(self, msg, *args, **kwargs):
-#
-#         if self.isEnabledFor(logging.DEBUG):
-#             self._log(logging.DEBUG, msg, args, **kwargs)
-#
 
 
 class CustomConsoleFormatter(logging.Formatter):
@@ -853,30 +1021,25 @@ def secondsToHumanString(total_seconds):
     string += str(seconds) + " " + (seconds == 1 and "second" or "seconds")
 
     return string
+
+
+class SingletonMeta(type):
+    """
+    The Singleton class can be implemented in different ways in Python. Some
+    possible methods include: base class, decorator, metaclass. We will use the
+    metaclass because it is best suited for this purpose.
+    """
+
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        """
+        Possible changes to the value of the `__init__` argument do not affect
+        the returned instance.
+        """
+        if cls not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[cls] = instance
+        return cls._instances[cls]
     #return string
 
-
-# from timestampt to datetime
-'''
-from datetime import datetime
-
-timestamp = 1545730073
-dt_object = datetime.fromtimestamp(timestamp)
-
-print("dt_object =", dt_object)
-print("type(dt_object) =", type(dt_object))
-
-'''
-
-# from datetime to timestamp
-'''
-from datetime import datetime
-
-# current date and time
-now = datetime.now()
-
-timestamp = datetime.timestamp(now)
-print("timestamp =", timestamp)
-
-
-'''
