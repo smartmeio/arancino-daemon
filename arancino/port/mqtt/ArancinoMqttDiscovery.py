@@ -51,9 +51,10 @@ class ArancinoMqttDiscovery(object):
         self.__mqtt_arancino_daemon_discovery_pass = CONF.get_port_mqtt_password()
         self.__mqtt_arancino_daemon_broker_host = CONF.get_port_mqtt_host()
         self.__mqtt_arancino_daemon_broker_port = CONF.get_port_mqtt_port()
+        self.__mqtt_arancino_daemon_client_id = CONF.get_port_mqtt_client_id()
         
         try:
-            self.__mqtt_client = mqtt.Client()
+            self.__mqtt_client = mqtt.Client(client_id=self.__mqtt_arancino_daemon_client_id)
             self.__mqtt_client.on_connect = self.__on_connect
             self.__mqtt_client.on_disconnect = self.__on_disconnect
             #self.__mqtt_client.on_message = self.__on_discovery
@@ -74,7 +75,7 @@ class ArancinoMqttDiscovery(object):
             LOG.debug("{} Connected to {}:{}...".format(self._log_prefix, self.__mqtt_arancino_daemon_broker_host, str(self.__mqtt_arancino_daemon_broker_port)))
 
             client.subscribe(self.__mqtt_discovery_topic)
-            client.subscribe("{}/+/cmd_from_mcu".format(self.__mqtt_cortex_topic))   # used to send response to the mqtt port
+            #client.subscribe("{}/+/{}/cmd_from_mcu".format(self.__mqtt_cortex_topic, pid))   # used to send response to the mqtt port
             #client.subscribe(self.__mqtt_discovery_topic + "/+/rsp_from_mcu")   # for future use: when the daemon will send cmd to the port, it will response in this topic
             client.message_callback_add(self.__mqtt_discovery_topic, self.__on_discovery)
             #reset all mcu connected at the broker by sending a special cmd
@@ -90,6 +91,7 @@ class ArancinoMqttDiscovery(object):
         pid = str(msg.payload.decode('utf-8', errors='strict'))
         if pid not in self.__list_discovered:
             self.__list_discovered.append(pid)
+            client.subscribe("{}/{}/cmd_from_mcu".format(self.__mqtt_cortex_topic, pid))  # used to send response to the mqtt port
     # endregion
 
     # region ON DICONNECT

@@ -29,13 +29,15 @@ import paho.mqtt.client as mqtt
 
 
 LOG = ArancinoLogger.Instance().getLogger()
+CONF = ArancinoConfig.Instance()
+TRACE = CONF.get_log_print_stack_trace()
 
 class ArancinoMqttHandler():
 
-    def __init__(self, id, mqtt_client, mqtt_topic_cmd_from_mcu, device, commandReceivedHandler, connectionLostHandler):
+    def __init__(self, handler_name, mqtt_client, id, mqtt_topic_cmd_from_mcu, device, commandReceivedHandler, connectionLostHandler):
         
         self.__mqtt_client = mqtt_client      # the mqtt client port
-        self.__name = id          # the name, usually the arancino port id
+        self.__name = handler_name          # the name, usually the arancino port id
         self.__id = id
         self.__device = device
         self.__log_prefix = "[{} - {} at {}]".format(PortTypes(PortTypes.MQTT).name, self.__id, self.__device)
@@ -48,6 +50,9 @@ class ArancinoMqttHandler():
         #self.__stop = False
         
         #self.__mqtt_client.message_callback_add(mqtt_topic_cmd_from_mcu, self.__on_cmd_received)
+
+        self.__mqtt_client.message_callback_add(mqtt_topic_cmd_from_mcu, self.__on_cmd_received)
+
 
 
     def __on_cmd_received(self, client, userdata, msg):

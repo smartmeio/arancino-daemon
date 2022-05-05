@@ -119,7 +119,7 @@ class ArancinoMqttPort(ArancinoPort):
                             # this must be setted to False. If True can be caused an infinite loop of connection and disconnection
                         #    self.reset()
                         
-                        self.__mqtt_handler = ArancinoMqttHandler("ArancinoMqttHandler-"+self._id, self.__mqtt_client, self.__mqtt_topic_cmd_from_mcu, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
+                        self.__mqtt_handler = ArancinoMqttHandler("ArancinoMqttHandler-"+self._id, self.__mqtt_client, self._id, self.__mqtt_topic_cmd_from_mcu, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
                         self._m_s_connected = True
                         
                         LOG.info("{} Connected".format(self._log_prefix))

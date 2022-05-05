@@ -210,6 +210,7 @@ class ArancinoConfig:
         self.__port_mqtt_hb_time = float(self.Config.get("port.mqtt", "heartbeat_time"))
         self.__port_mqtt_hb_rate = float(self.Config.get("port.mqtt", "heartbeat_rate"))
         self.__port_mqtt_hb_attempts = float(self.Config.get("port.mqtt", "heartbeat_attempts"))
+        self.__port_mqtt_client_id = self.Config.get("port.mqtt", "client_id")
 
         # endregion
         # endregion
@@ -567,6 +568,9 @@ class ArancinoConfig:
 
     def get_port_mqtt_port(self):
         return self.__port_mqtt_port
+
+    def get_port_mqtt_client_id(self):
+        return self.__port_mqtt_client_id
 
     def get_port_mqtt_topic_discovery(self):
         return self.__port_mqtt_topic_discovery
