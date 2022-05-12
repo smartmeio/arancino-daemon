@@ -28,6 +28,7 @@ from arancino import ArancinoCortex
 from arancino.ArancinoCortex import *
 from arancino.ArancinoDataStore import ArancinoDataStore
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+from arancino.utils.ArancinoEventMessage import ArancinoEventMessage
 import time
 
 
@@ -370,7 +371,7 @@ class ArancinoPort(object):
         :return:
         """
         #####self.startHeartbeat()
-        self.__HEARTBEAT = ArancinoHeartBeat(self)
+        self.__HEARTBEAT = ArancinoHeartBeat(self, self.sendArancinoEventsMessage)
         self.__HEARTBEAT.start()
 
 
@@ -477,6 +478,21 @@ class ArancinoPort(object):
         :return: void
         """
         pass
+
+    @abstractmethod
+    def sendArancinoEventsMessage(self, message: ArancinoEventMessage):
+        try:
+
+            ds = DATASTORE.getDataStoreStd()
+            channel = "events"
+            message = message.getMessageString()
+            num = ds.publish(channel, message)
+
+            if num == 0:
+                LOG.warn("{} No clients received Arancino Event Message. Is Arancino Interface running?".format(self._log_prefix))
+
+        except Exception as ex:
+            LOG.error("{} Error while sending Arancino Event Message: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
 
 
     #region BASE METADATA Encapsulators
@@ -713,10 +729,11 @@ class ArancinoPort(object):
 
 class ArancinoHeartBeat(threading.Thread):
 
-    def __init__(self, port):
+    def __init__(self, port, sendEventHandler):
         
         self.__port = port
         self.__name = "{}-{}".format(self.__class__.__name__, self.__port.getId())
+        self.__sendEventHandler = sendEventHandler
         threading.Thread.__init__(self, name=self.__name)
 
         port_type = port._port_type.name.lower() 
@@ -788,12 +805,18 @@ class ArancinoHeartBeat(threading.Thread):
                             else:
                                 LOG.warn("{} Heartbeat detected but over the range: {}".format(self._log_prefix, ts))
 
-                                #### TODO TODO TODO
-                                #### TODO send a notification to someone.
-                                #### TODO TODO TODO
-                                
-                                # reset delle variabili
+                                # crea Arancino Event Message.
+                                aem = ArancinoEventMessage()
+                                aem.AES = CONF.get_serial_number()
+                                aem.MESSAGE = "{} Heartbeat detected but over the range: {}".format(self._log_prefix, ts)
+                                aem.SEVERITY = aem.Serverity.WARNING
+                                aem.SOURCE = "DAEMON"
 
+                                # invia Arancino Event Message tramite Handler esterno.
+                                self.__sendEventHandler(aem)
+
+
+                                # reset delle variabili
                                 self.__heartbeatTime0 = None
                                 self.__heartbeatTime1 = None
                                 self.__heartbeatCount = 1
@@ -810,6 +833,18 @@ class ArancinoHeartBeat(threading.Thread):
                 else:
                     LOG.warn("{} No Heartbeat detected for the port.".format(self._log_prefix))
                      #self.stopHeartbeat()
+
+                    # Create Arancino Event Message.
+                    aem = ArancinoEventMessage()
+                    aem.AES = CONF.get_serial_number()
+                    aem.MESSAGE = "{} No Heartbeat detected for the port.".format(self._log_prefix)
+                    aem.SEVERITY = aem.Serverity.ERROR
+                    aem.SOURCE = "DAEMON"
+
+                    # invia Arancino Event Message tramite Handler esterno.
+                    self.__sendEventHandler(aem)
+
+
                     self.__port.disconnect()
 
         LOG.info("{} End Heartbeat".format(self._log_prefix))
