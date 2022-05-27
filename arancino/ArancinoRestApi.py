@@ -36,7 +36,7 @@ from arancino.port.ArancinoPort import PortTypes
 
 API_CODE = ArancinoApiResponseCode()
 DB_KEYS = ArancinoDBKeys()
-CONF__ = ArancinoConfig.Instance()
+#CONF__ = ArancinoConfig.Instance()
 CONF = ArancinoConfig2.Instance().cfg
 LOG = ArancinoLogger.Instance().getLogger()
 TRACE = CONF.get("log").get("trace")

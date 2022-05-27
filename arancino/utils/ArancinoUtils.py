@@ -868,7 +868,7 @@ class ArancinoLogger:
         self.__logger = None
 
         # logger configuration
-        CONF__ = ArancinoConfig.Instance()
+        #CONF__ = ArancinoConfig.Instance()
         CONF = ArancinoConfig2.Instance().cfg
         ENV = ArancinoEnvironment.Instance()
 

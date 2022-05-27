@@ -27,7 +27,7 @@ from redistimeseries.client import Client as redis
 
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF__ = ArancinoConfig.Instance()
+#CONF__ = ArancinoConfig.Instance()
 CONF = ArancinoConfig2.Instance().cfg
 TRACE = CONF.get("log").get("trace")
 

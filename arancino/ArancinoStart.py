@@ -26,7 +26,7 @@ from arancino.ArancinoConstants import EnvType
 from arancino.transmitter.Transmitter import Transmitter
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoEnvironment
 from arancino.Arancino import Arancino
-from arancino.utils.ArancinoUtils import ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoConfig2
 from arancino.utils.pam import pamAuthentication
 from threading import Thread
 
@@ -40,7 +40,7 @@ from arancino.ArancinoRestApi import ArancinoApi
 
 auth = HTTPBasicAuth()
 
-c = ArancinoConfig.Instance()
+c = ArancinoConfig2.Instance().cfg
 m = Arancino()
 t = Transmitter()
 
@@ -74,10 +74,10 @@ def __get_arancinoapi_app():
         app.logger.addHandler(handler)
         log_server.addHandler(handler)
 
-    app.logger.setLevel(logging.getLevelName(c.get_log_level()))
-    log_server.setLevel(logging.getLevelName(c.get_log_level()))
+    app.logger.setLevel(logging.getLevelName(c.get('log').get('level')))
+    log_server.setLevel(logging.getLevelName(c.get('log').get('level')))
 
-    ALLOWED_EXTENSIONS = set(c.get_port_firmware_file_types())
+    ALLOWED_EXTENSIONS = set(c.get('port').get('firmware_file_types'))
 
     from arancino.ArancinoDataStore import ArancinoDataStore
     __devicestore = ArancinoDataStore.Instance().getDataStoreDev()
