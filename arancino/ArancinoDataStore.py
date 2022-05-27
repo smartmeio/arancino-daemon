@@ -21,14 +21,13 @@ under the License
 import sys
 import time
 
-from arancino.utils.ArancinoUtils import Singleton, ArancinoConfig, ArancinoConfig2, ArancinoLogger
+from arancino.utils.ArancinoUtils import Singleton, ArancinoConfig, ArancinoLogger
 #import redis
 from redistimeseries.client import Client as redis
 
 
 LOG = ArancinoLogger.Instance().getLogger()
-#CONF__ = ArancinoConfig.Instance()
-CONF = ArancinoConfig2.Instance().cfg
+CONF = ArancinoConfig.Instance().cfg
 TRACE = CONF.get("log").get("trace")
 
 @Singleton

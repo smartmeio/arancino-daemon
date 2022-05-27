@@ -1,8 +1,8 @@
 import yaml, os, json
 from arancino.transmitter.ComponentsFactory import ReaderFactory, ParserFactory, SenderFactory
-from arancino.utils.ArancinoUtils import stringToBool, ArancinoLogger, ArancinoConfig, ArancinoConfig2, ArancinoEnvironment
+from arancino.utils.ArancinoUtils import stringToBool, ArancinoLogger, ArancinoConfig, ArancinoEnvironment
 
-CONF = ArancinoConfig2.Instance().cfg
+CONF = ArancinoConfig.Instance().cfg
 LOG = ArancinoLogger.Instance().getLogger()
 TRACE = CONF.get("log").get("trace")
 ENV = ArancinoEnvironment.Instance()

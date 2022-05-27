@@ -26,7 +26,7 @@ from arancino.ArancinoConstants import EnvType
 from arancino.transmitter.Transmitter import Transmitter
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoEnvironment
 from arancino.Arancino import Arancino
-from arancino.utils.ArancinoUtils import ArancinoConfig2
+from arancino.utils.ArancinoUtils import ArancinoConfig
 from arancino.utils.pam import pamAuthentication
 from threading import Thread
 
@@ -40,7 +40,7 @@ from arancino.ArancinoRestApi import ArancinoApi
 
 auth = HTTPBasicAuth()
 
-c = ArancinoConfig2.Instance().cfg
+c = ArancinoConfig.Instance().cfg
 m = Arancino()
 t = Transmitter()
 

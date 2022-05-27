@@ -25,7 +25,7 @@ from logging import ERROR
 from types import FunctionType, MethodType
 #from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoCortex import *
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, stringToBool2, ArancinoConfig2, \
+from arancino.utils.ArancinoUtils import ArancinoLogger, stringToBool2, ArancinoConfig, \
     ArancinoEnvironment
 from arancino.ArancinoConstants import ArancinoCommandErrorCodes
 from arancino.ArancinoDataStore import ArancinoDataStore
@@ -34,7 +34,7 @@ import time
 import semantic_version
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig2.Instance().cfg
+CONF = ArancinoConfig.Instance().cfg
 TRACE = CONF.get("general").get("trace")
 ERR_CODES = ArancinoCommandErrorCodes
 DATASTORE = ArancinoDataStore.Instance()

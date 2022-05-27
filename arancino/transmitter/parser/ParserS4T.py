@@ -20,10 +20,10 @@ under the License
 """
 
 from arancino.transmitter.parser.ParserSimple import ParserSimple
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig2, ArancinoEnvironment
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig2.Instance().cfg
+CONF = ArancinoConfig.Instance().cfg
 TRACE = CONF.get("log").get("trace")
 ENV = ArancinoEnvironment.Instance()
 

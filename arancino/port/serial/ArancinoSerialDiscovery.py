@@ -21,12 +21,12 @@ under the License
 
 from serial.tools import list_ports
 
-from arancino.utils.ArancinoUtils import ArancinoConfig2
+from arancino.utils.ArancinoUtils import ArancinoConfig
 from arancino.port.ArancinoPortFilter import FilterTypes
 from arancino.port.serial.ArancinoSerialPortFilter import ArancinoSerialPortFilter
 from arancino.port.serial.ArancinoSerialPort import ArancinoSerialPort
 
-CONF = ArancinoConfig2.Instance().cfg
+CONF = ArancinoConfig.Instance().cfg
 
 
 class ArancinoSerialDiscovery:

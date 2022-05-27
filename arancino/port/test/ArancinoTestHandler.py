@@ -20,7 +20,7 @@ under the License
 """
 
 import threading
-from arancino.utils.ArancinoUtils import ArancinoConfig2, ArancinoLogger
+from arancino.utils.ArancinoUtils import ArancinoConfig, ArancinoLogger
 from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoCortex import ArancinoCommandIdentifiers as cmdId
 from arancino.ArancinoConstants import ArancinoSpecialChars as specChars, ArancinoPortAttributes
@@ -30,7 +30,7 @@ from arancino.ArancinoConstants import SUFFIX_TMSTP
 import time
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig2.Instance().cfg
+CONF = ArancinoConfig.Instance().cfg
 
 
 

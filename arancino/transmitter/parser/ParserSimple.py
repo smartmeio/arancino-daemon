@@ -21,12 +21,12 @@ under the License
 
 from arancino.transmitter.parser.Parser import Parser
 import arancino.ArancinoConstants as CONST
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig2
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 
 
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig2.Instance().cfg
+CONF = ArancinoConfig.Instance().cfg
 TRACE = CONF.get("log").get("trace")
 
 

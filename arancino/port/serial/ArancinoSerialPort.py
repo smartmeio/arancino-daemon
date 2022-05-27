@@ -23,13 +23,13 @@ import serial
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.port.serial.ArancinoSerialHandler import ArancinoSerialHandler
 from arancino.ArancinoCortex import *
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoConfig2, ArancinoEnvironment
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
 from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 import time
 
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig2.Instance().cfg
+CONF = ArancinoConfig.Instance().cfg
 TRACE = CONF.get("general").get("trace")
 ENV = ArancinoEnvironment.Instance()
 

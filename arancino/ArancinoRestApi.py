@@ -24,7 +24,7 @@ import netifaces
 import os
 from arancino.Arancino import Arancino
 from arancino.ArancinoExceptions import ArancinoException
-from arancino.utils.ArancinoUtils import ArancinoConfig, secondsToHumanString, ArancinoLogger, ArancinoEnvironment, ArancinoConfig2, ArancinoTransmitterConfig
+from arancino.utils.ArancinoUtils import secondsToHumanString, ArancinoLogger, ArancinoEnvironment, ArancinoConfig, ArancinoTransmitterConfig
 from arancino.ArancinoConstants import ArancinoApiResponseCode
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
 from arancino.ArancinoConstants import ArancinoDBKeys
@@ -36,8 +36,7 @@ from arancino.port.ArancinoPort import PortTypes
 
 API_CODE = ArancinoApiResponseCode()
 DB_KEYS = ArancinoDBKeys()
-#CONF__ = ArancinoConfig.Instance()
-CONF = ArancinoConfig2.Instance().cfg
+CONF = ArancinoConfig.Instance().cfg
 LOG = ArancinoLogger.Instance().getLogger()
 TRACE = CONF.get("log").get("trace")
 ENV = ArancinoEnvironment.Instance()
@@ -674,7 +673,7 @@ class ArancinoApi():
                 if option and value:
 
                     self._set_option(CONF, option, value)
-                    ArancinoConfig2.Instance().save()
+                    ArancinoConfig.Instance().save()
 
                 else:
                     raise Exception("Configuration Option and/or Value are empty")

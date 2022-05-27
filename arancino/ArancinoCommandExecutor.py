@@ -28,12 +28,12 @@ import semantic_version as semver
 from arancino.ArancinoCortex import ArancinoResponse
 from arancino.ArancinoExceptions import *
 from arancino.ArancinoDataStore import ArancinoDataStore
-from arancino.utils.ArancinoUtils import ArancinoConfig, ArancinoConfig2, ArancinoEnvironment
+from arancino.utils.ArancinoUtils import ArancinoConfig, ArancinoEnvironment
 from arancino.port.ArancinoPort import PortTypes
 from datetime import datetime
 
 
-CONF = ArancinoConfig2.Instance().cfg
+CONF = ArancinoConfig.Instance().cfg
 ENV = ArancinoEnvironment.Instance()
 
 class ArancinoCommandExecutor:

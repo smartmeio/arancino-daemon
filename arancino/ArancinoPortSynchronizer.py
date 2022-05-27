@@ -24,13 +24,12 @@ from redis import RedisError
 
 from arancino.ArancinoDataStore import ArancinoDataStore
 from arancino.ArancinoConstants import ArancinoDBKeys, SUFFIX_LBL
-from arancino.utils.ArancinoUtils import stringToBool, stringToDatetime, datetimeToString, ArancinoLogger, \
-    ArancinoConfig, ArancinoConfig2
+from arancino.utils.ArancinoUtils import stringToBool, stringToDatetime, datetimeToString, ArancinoLogger, ArancinoConfig
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from datetime import datetime
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig2.Instance().cfg
+CONF = ArancinoConfig.Instance().cfg
 TRACE = CONF.get("log").get("trace")
 
 class ArancinoPortSynch:

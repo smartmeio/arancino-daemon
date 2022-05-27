@@ -25,11 +25,11 @@ from threading import Thread
 from arancino.Arancino import Arancino
 from arancino.ArancinoDataStore import ArancinoDataStore
 import arancino.ArancinoConstants as CONST
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig2, SingletonMeta
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, SingletonMeta
 
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig2.Instance().cfg
+CONF = ArancinoConfig.Instance().cfg
 TRACE = CONF.get("log").get("trace")
 
 

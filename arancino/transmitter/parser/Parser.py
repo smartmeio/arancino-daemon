@@ -24,11 +24,11 @@ from enum import Enum
 import os
 from jinja2 import Template
 from arancino.ArancinoDataStore import ArancinoDataStore
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoConfig2, ArancinoEnvironment
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
 
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig2.Instance().cfg
+CONF = ArancinoConfig.Instance().cfg
 TRACE = CONF.get("log").get("trace")
 ENV = ArancinoEnvironment.Instance()
 

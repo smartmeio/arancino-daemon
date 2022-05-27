@@ -19,14 +19,14 @@ under the License
 '''
 from arancino.transmitter.Flow import Flow
 from arancino.transmitter.reader.Reader import Reader
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoConfig2
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
 import importlib
 
 from abc import ABC, abstractmethod
 from enum import Enum
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig2.Instance().cfg
+CONF = ArancinoConfig.Instance().cfg
 TRACE = CONF.get("log").get("trace")
 
 from typing import List

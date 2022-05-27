@@ -22,7 +22,7 @@ under the License
 import threading
 from threading import Thread
 from datetime import datetime
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoConfig2, ArancinoEnvironment, secondsToHumanString
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment, secondsToHumanString
 from arancino.port.serial.ArancinoSerialDiscovery import ArancinoSerialDiscovery
 from arancino.port.test.ArancinoTestDiscovery import ArancinoTestDiscovery
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
@@ -36,7 +36,7 @@ import time
 LOG = ArancinoLogger.Instance().getLogger()
 API_CODE = ArancinoApiResponseCode()
 ENV = ArancinoEnvironment.Instance()
-CONF = ArancinoConfig2.Instance().cfg
+CONF = ArancinoConfig.Instance().cfg
 
 
 #@Singleton

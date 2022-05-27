@@ -19,12 +19,12 @@ License for the specific language governing permissions and limitations
 under the License
 """
 
-from arancino.utils.ArancinoUtils import ArancinoConfig2
+from arancino.utils.ArancinoUtils import ArancinoConfig
 # from arancino.filter import FilterTypes
 
 from arancino.port.test.ArancinoTestPort import ArancinoTestPort
 
-CONF = ArancinoConfig2.Instance().cfg
+CONF = ArancinoConfig.Instance().cfg
 
 class ArancinoTestDiscovery:
 
