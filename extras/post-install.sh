@@ -45,11 +45,14 @@ echo -------------------------------------------------
 echo -------------------Copy files--------------------
 cp config/arancino.cfg.yml $ARANCINOCONF/arancino.cfg.yml
 cp config/gunicorn.cfg.py $ARANCINOCONF/gunicorn.cfg.py
+cp config/transmitter.flow.smartme.cfg.yml $ARANCINOCONF/transmitter.flow.smartme.cfg.yml
+cp config/transmitter.flow.stats.cfg.yml $ARANCINOCONF/transmitter.flow.stats.cfg.yml
 
 cp templates/default.json.tmpl $ARANCINO/templates/default.json.tmpl
 cp templates/default.xml.tmpl $ARANCINO/templates/default.xml.tmpl
 cp templates/default.yaml.tmpl $ARANCINO/templates/default.yaml.tmpl
 cp templates/S4T_default.json.tmpl $ARANCINO/templates/S4T_default.json.tmpl
+cp templates/STATS_default.json.tmpl $ARANCINO/templates/STATS_default.json.tmpl
 echo -------------------------------------------------
 
 echo ----Restoring redis databases to default number---
