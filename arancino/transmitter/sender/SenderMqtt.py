@@ -20,14 +20,15 @@ under the License
 """
 
 from arancino.transmitter.sender.Sender import Sender
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, stringToBool
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
 import paho.mqtt.client as mqtt
 import time
 
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance().cfg
-TRACE = CONF.get('log').get('trace')
+TRACE = CONF.get("log").get("trace")
+ENV = ArancinoEnvironment.Instance()
 
 class SenderMqtt(Sender):
 

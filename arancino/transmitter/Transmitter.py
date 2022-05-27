@@ -18,18 +18,13 @@ License for the specific language governing permissions and limitations
 under the License
 '''
 from arancino.transmitter.Flow import Flow
-from arancino.transmitter.reader.Reader import Reader
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
-import importlib
-
-from abc import ABC, abstractmethod
-from enum import Enum
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
+from typing import List
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance().cfg
 TRACE = CONF.get("log").get("trace")
-
-from typing import List
+ENV = ArancinoEnvironment.Instance()
 
 class Transmitter():
 

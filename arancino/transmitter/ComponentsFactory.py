@@ -21,12 +21,13 @@ under the License
 from arancino.transmitter.parser import Parser
 from arancino.transmitter.sender import Sender
 from arancino.transmitter.reader.Reader import Reader
-from arancino.utils.ArancinoUtils import ArancinoLogger,ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
 import importlib
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance().cfg
 TRACE = CONF.get("log").get("trace")
+ENV = ArancinoEnvironment.Instance()
 
 
 class ParserFactory:

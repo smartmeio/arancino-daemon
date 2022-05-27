@@ -25,12 +25,12 @@ from threading import Thread
 from arancino.Arancino import Arancino
 from arancino.ArancinoDataStore import ArancinoDataStore
 import arancino.ArancinoConstants as CONST
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, SingletonMeta
-
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, SingletonMeta, ArancinoEnvironment
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance().cfg
 TRACE = CONF.get("log").get("trace")
+ENV = ArancinoEnvironment.Instance()
 
 
 class Reader(Thread, metaclass=SingletonMeta):
