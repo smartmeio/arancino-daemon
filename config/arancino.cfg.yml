@@ -19,7 +19,7 @@ redis:
 
 
   # Redis Server port of persistent instance
-  port_persistent: 6379
+  port_persistent: 6380
 
 
   # Decode the response in Redis client response.
@@ -67,9 +67,6 @@ redis:
     host_volatile: "localhost"
     port_volatile: 6379
 
-    host_persistent: "localhost"
-    port_persistent: 6379
-
 
   persistent:
     datastore_std_db: 0
@@ -78,8 +75,7 @@ redis:
     datastore_rsvd_db: 3
     datastore_tse_db: 4
     datastore_tag_db: 5
-    host_volatile: "localhost"
-    port_volatile: 6380
+
     host_persistent: "localhost"
     port_persistent: 6380
 
@@ -261,7 +257,6 @@ port:
 
     auto_enable: True
 
-
     hide: True
 
 
@@ -275,8 +270,8 @@ port:
 
 
     upload_command: null
-    
-    
+
+
     # The number of Oort to create for test purpose
     num: 0
 
