@@ -19,7 +19,7 @@ redis:
 
 
   # Redis Server port of persistent instance
-  port_persistent: 6379
+  port_persistent: 6380
 
 
   # Decode the response in Redis client response.
@@ -104,7 +104,7 @@ redis:
 port:
 
   # Folder for firmware to be flashed onto microcontroller.
-  firmware_path: /tmp/arancino/firmware
+  firmware_path: "/tmp/arancino/firmware"
 
 
   # Allowed firmware file extensions
@@ -118,10 +118,17 @@ port:
   #   microcontroller
   reset_on_connect: true
 
+
   # Reconnection delay after a reset (in seconds)
   #   When call the Reset function of a Port, the Daemon waits to
   #   do a new connection
   reset_reconnection_delay: 40
+
+
+  # Command spawned when Upload function is called. The command
+  #   could have one or more placeholders. Placeholders are all the
+  #   attributes of the Port Class.
+  upload_command: null
 
 
   port_type_list:
@@ -178,23 +185,6 @@ port:
       - "0x1915:0x521F"
       - "0x2E8A:0x000A"
       - "0x0483 0x5740"
-
-
-    family:
-
-      samd21:
-        - "0x04D8:0xECDA"
-        - "0x04D8:0xECD9"
-
-      nrf52:
-        - "0x1915:0x521F"
-
-      rp20:
-        - "0x2E8A:0x000A"
-
-      stm32:
-        - "0x0483:0x5740"
-
 
 
     # Timeout in seconds in serial connection Min: 1
@@ -261,25 +251,19 @@ port:
 
     auto_enable: True
 
-
     hide: True
-
 
     filter_type: ALL
 
-
     filter_list: null
-
 
     reset_on_connect: false
 
-
     upload_command: null
-    
-    
+
+
     # The number of Oort to create for test purpose
     num: 0
-
 
     # Delay between each command in seconds (accepts float)
     delay: 5
@@ -331,8 +315,6 @@ log:
   print_stack_trace: true
 
 
-
-
 transmitter:
 
   # Enable or disable the transmitter module of Arancino
@@ -341,6 +323,7 @@ transmitter:
 
   # Flows that run on the transmitter. Each flow is defined by a configuration file.
   flows:
+    - smartme
     - stats
 
 
@@ -349,87 +332,3 @@ transmitter:
     # Represents the time (in seconds) in which the reader collects data
     # and transfers it to the upper level
     cycle_time: 10
-
-
-
-
-
-
-
-
-transmitter_old:
-
-  # Enable or disable the transmitter module of Arancino
-  enabled: true
-
-
-  reader:
-
-    # Represents the time (in seconds) in which the reader collects data
-    # and transfers it to the upper level
-    cycle_time: 10
-
-  parser:
-
-    class: "ParserSimple"
-
-    # template file used to parse data with the template engine (jinja2)
-    #   default available templates:
-    #   - default.yaml.tmpl
-    #   - default.json.tmpl
-    #   - default.xml.tmpl
-
-    file: "default.json.tmpl"
-
-    #PARSER SIMPLE#
-    simple: null
-      # Configuration for ParserSimple
-
-    #PARSER S4T#
-    s4t:
-      # Configuration for ParserS4T
-
-      db_name: "db_name"
-
-  sender:
-    # Available Senders are: SenderDoNothing, SenderTcpSocket, SenderMqtt, SenderMqttS4T
-    class: "SenderDoNothing"
-
-    #SENDER DO NOTHING
-    donothing: null
-
-    #SENDER TCP SOCKET
-    tcpsocket:
-      host: "tcp_server_ip"
-      port: 0000
-
-    #SENDER MQTT
-    mqtt:
-      use_tls: false
-      qos: 1
-      retain: False
-
-      # NOTE: non available at the moment.
-      # channel parameter can contains placeholder with the using of "{" and "}"
-      # placeholder can be:
-      #   - key -> the name of the key that contains the measurements
-      #   - labels.port_id -> the identifier of the port that provides the measurements
-      #   - labels.port_type -> the type of the port that provides the measurements
-      #   - labels.device_id -> the identifier of the device where the ports are connected to. (Note: not always available)
-      #   - labels.?????
-
-      topic: "your_topic"
-
-      # plain
-      host: "mqtt_broker_ip"
-      port: 1883
-      username: "your_username"
-      password: "your_password"
-
-      # secure
-      ca_path: null
-      cert_path: null
-      key_path: null
-
-    #SENDER MQTT S4T
-    mqtts4t:
