@@ -401,8 +401,21 @@ class ArancinoPort(object):
 
             try:
                 # send the response back.
-                self.sendResponse(arsp.getRaw())
-                LOG.debug("{} Sending: {}: {}".format(self._log_prefix, arsp.getId(), str(arsp.getArguments())))
+                if CONF.get("port").get("send_response"):
+                    self.sendResponse(arsp.getRaw())
+                    LOG.debug("{} Sending: {}: {}".format(self._log_prefix, arsp.getId(), str(arsp.getArguments())))
+                else:
+                    if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"] or \
+                        acmd.getId() == ArancinoCommandIdentifiers.CMD_APP_GET["id"] or \
+                        acmd.getId() == ArancinoCommandIdentifiers.CMD_APP_GET_RSVD["id"] or \
+                        acmd.getId() == ArancinoCommandIdentifiers.CMD_APP_HGET["id"] or \
+                        acmd.getId() == ArancinoCommandIdentifiers.CMD_APP_HGETALL["id"] or \
+                        acmd.getId() == ArancinoCommandIdentifiers.CMD_APP_HVALS["id"] or \
+                        acmd.getId() == ArancinoCommandIdentifiers.CMD_APP_KEYS["id"] or \
+                        acmd.getId() == ArancinoCommandIdentifiers.CMD_APP_MGET["id"] or
+
+                        self.sendResponse(arsp.getRaw())
+                        LOG.debug("{} Sending: {}: {}".format(self._log_prefix, arsp.getId(), str(arsp.getArguments())))
 
             except Exception as ex:
                 LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex), exc_info=TRACE)
