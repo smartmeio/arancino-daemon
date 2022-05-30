@@ -26,6 +26,7 @@ from adafruit_ble.services.nordic import UARTService
 from bleak import BleakError
 
 from arancino.port.ArancinoPortFilter import FilterTypes
+from arancino.port.uart_ble.ArancinoUartBleService import ArancinoUartBleService
 from arancino.utils.ArancinoUtils import ArancinoConfig, ArancinoLogger
 from arancino.port.uart_ble.ArancinoUartBlePort import ArancinoUartBlePort
 from arancino.port.uart_ble.ArancinoUartBlePortFilter import ArancinoUartBlePortFilter
@@ -117,7 +118,7 @@ class ArancinoUartBleDiscovery:
         ports_filterd = []
 
         for id, adv in ports.items():
-            if UARTService in adv.services:
+            if ArancinoUartBleService in adv.services:
                 ports_filterd.append(adv)
 
         return ports_filterd

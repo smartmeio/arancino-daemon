@@ -20,7 +20,6 @@ under the License
 """
 
 import serial
-from adafruit_ble.services.nordic import UARTService
 
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.port.serial.ArancinoSerialHandler import ArancinoSerialHandler
@@ -31,6 +30,7 @@ from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 from adafruit_ble import BLERadio
 import time
 
+from .ArancinoUartBleService import ArancinoUartBleService
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
@@ -118,7 +118,7 @@ class ArancinoUartBlePort(ArancinoPort):
 
 
                         self.__ble_connection = BLERadio().connect(self.__adv, timeout=self.__timeout)
-                        self.__ble_uart_service = self.__ble_connection[UARTService]
+                        self.__ble_uart_service = self.__ble_connection[ArancinoUartBleService]
 
                         self.__uart_ble_handler = ArancinoUartBleHandler(self.__ble_connection, self._id, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
                         self._m_s_connected = True

@@ -190,6 +190,10 @@ class ArancinoConfig:
         self.__port_uart_ble_hb_time = float(self.Config.get("port.uart_ble", "heartbeat_time"))
         self.__port_uart_ble_hb_rate = float(self.Config.get("port.uart_ble", "heartbeat_rate"))
         self.__port_uart_ble_hb_attempts = float(self.Config.get("port.uart_ble", "heartbeat_attempts"))
+        self.__port_uart_ble_buffer_size = int(self.Config.get("port.uart_ble", "buffer_size"))
+        self.__port_uart_ble_vendor_tx_uuid = self.Config.get("port.uart_ble", "vendor_tx_uuid")
+        self.__port_uart_ble_vendor_rx_uuid = self.Config.get("port.uart_ble", "vendor_rx_uuid")
+        
 
         # endregion
         
@@ -636,6 +640,16 @@ class ArancinoConfig:
 
     def get_port_uart_ble_heartbeat_attempts(self):
         return self.__port_uart_ble_hb_attempts
+
+    def get_port_uart_ble_buffer_size(self):
+        return self.__port_uart_ble_buffer_size
+
+    def get_port_uart_ble_vendor_tx_uuid(self):
+        return self.__port_uart_ble_vendor_tx_uuid
+    
+    def get_port_uart_ble_vendor_rx_uuid(self):
+        return self.__port_uart_ble_vendor_rx_uuid
+    
     #endregion
     #endregion
 

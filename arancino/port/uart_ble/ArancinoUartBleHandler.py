@@ -21,7 +21,8 @@ under the License
 
 import threading
 
-from adafruit_ble.services.nordic import UARTService
+#from adafruit_ble.services.nordic import UARTService
+from .ArancinoUartBleService import ArancinoUartBleService
 
 from arancino.ArancinoConstants import *
 from arancino.utils.ArancinoUtils import *
@@ -38,8 +39,8 @@ class ArancinoUartBleHandler(threading.Thread):
 
         threading.Thread.__init__(self, name=self.__name)
 
-        self.__conn = conn  # the uart service of the uart-ble port
-        self.__service = self.__conn[UARTService]
+        self.__conn = conn  # the uart service of the uart-ble port        
+        self.__service = self.__conn[ArancinoUartBleService]
         self.__id = id
         self.__device = device
         self.__log_prefix = "[{} - {} at {}]".format(PortTypes(PortTypes.UART_BLE).name, self.__id, self.__device)
