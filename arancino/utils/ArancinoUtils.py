@@ -280,7 +280,7 @@ class ArancinoLogger:
         if CONF.get("log").get("handler_console"):
             self.__logger.addHandler(self.__getConsoleHandler())
 
-        if CONF.get("log").get("lehandler_filevel"):
+        if CONF.get("log").get("handler_file"):
             self.__logger.addHandler(self.__getFileHandler())
             self.__logger.addHandler(self.__getErrorFileHandler())
 
