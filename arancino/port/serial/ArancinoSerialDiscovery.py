@@ -122,7 +122,7 @@ class ArancinoSerialDiscovery:
     def __retrieve_family_by_vid_pid(self, port):
 
         # recupero la coppia vid:pid della porta corrente
-        current_vidpid = "{}:{}".format("0X{:04X}".format(port.vid), "0X{:04X}".format(port.pid))
+        current_vidpid = "{}:{}".format("0x{:04X}".format(port.vid), "0x{:04X}".format(port.pid))
 
         # recupero da configurazione l'elenco dei tipi di mcu per il tipo di porta (seriale in questo caso)
         serial_mcu_list = CONF.get("port").get("serial").get("mcu_type_list")

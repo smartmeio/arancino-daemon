@@ -571,7 +571,7 @@ class ArancinoPort(object):
             if self.getPortType() == PortTypes.SERIAL:
                 #Quando la port è SERIAL e l'MCU è definito
 
-                if mcu in CONF.get("port").get("mcu_type_list"):
+                if mcu in CONF.get("port").get("serial").get("mcu_type_list"):
 
                     # Se
                     self.setResetReconnectionDelay(CONF.get("port").get("serial").get(mcu).get("reset_reconnection_delay"))
