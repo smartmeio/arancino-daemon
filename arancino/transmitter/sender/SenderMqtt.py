@@ -81,6 +81,7 @@ class SenderMqtt(Sender):
 
         else:
             LOG.warning("{}Can not send data to {}:{}".format(self._log_prefix, self._broker_host, str(self._broker_port)))
+            LOG.warning("TOPIC: {}".format(self._topic))
             return False
 
 
