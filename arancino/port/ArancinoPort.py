@@ -412,7 +412,7 @@ class ArancinoPort(object):
                         acmd.getId() == ArancinoCommandIdentifiers.CMD_APP_HGETALL["id"] or \
                         acmd.getId() == ArancinoCommandIdentifiers.CMD_APP_HVALS["id"] or \
                         acmd.getId() == ArancinoCommandIdentifiers.CMD_APP_KEYS["id"] or \
-                        acmd.getId() == ArancinoCommandIdentifiers.CMD_APP_MGET["id"] or
+                        acmd.getId() == ArancinoCommandIdentifiers.CMD_APP_MGET["id"]:
 
                         self.sendResponse(arsp.getRaw())
                         LOG.debug("{} Sending: {}: {}".format(self._log_prefix, arsp.getId(), str(arsp.getArguments())))
