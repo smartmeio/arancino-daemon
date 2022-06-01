@@ -179,7 +179,14 @@ class ArancinoUartBleDiscovery:
         new_ports_struct = {}
 
         for adv in ports:
-            id = adv.address.string
+
+            name_arr = adv.complete_name.split("-")
+            if len(name_arr) == 2:
+                id = name_arr[1].strip()
+            else:
+                id = adv.address.string
+
+
             name = adv.complete_name
             device = self.__ble.name
             p = ArancinoUartBlePort(adv=adv, id=id, device=device, m_c_alias=name, m_s_plugged=True, timeout=CONF.get_port_uart_ble_timeout())
