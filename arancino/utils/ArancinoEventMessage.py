@@ -56,6 +56,10 @@ class ArancinoEventMessage:
     def SOURCE(self):
         return self._SOURCE
 
+    @SOURCE.setter
+    def SOURCE(self, source):
+        self._SOURCE = source
+
 
     @property
     def MESSAGE(self):
@@ -124,7 +128,7 @@ class ArancinoEventMessage:
 
     def getMessageString(self):
         msg_json = self.getMessage()
-        msg_str = json.dump(msg_json)
+        msg_str = json.dumps(msg_json)
         return msg_str
 
 
