@@ -180,8 +180,9 @@ class ArancinoUartBleDiscovery:
         new_ports_struct = {}
 
         for adv in ports:
+
             id = adv.address.string
-            id = id.replace(":","")
+            id = id.replace(":", "")
 
             name = adv.complete_name
             device = self.__ble.name
