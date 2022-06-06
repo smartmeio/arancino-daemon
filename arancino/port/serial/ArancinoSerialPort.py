@@ -275,6 +275,7 @@ class ArancinoSerialPort(ArancinoPort):
                 #self._m_s_connected = False
 
                 self.__serial_handler.stop()
+                super().disconnect()
 
             else:
                 LOG.debug("{} Already Disconnected".format(self._log_prefix))

@@ -150,7 +150,7 @@ class ArancinoUartBlePort(ArancinoPort):
             if self._m_s_connected:
 
                 self.__uart_ble_handler.stop()
-                super.disconnect()
+                super().disconnect()
 
             else:
                 LOG.debug("{} Already Disconnected".format(self._log_prefix))

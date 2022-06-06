@@ -816,10 +816,10 @@ class ArancinoHeartBeat(threading.Thread):
                                 self.__sendEventHandler(aem)
 
 
-                                # reset delle variabili
-                                self.__heartbeatTime0 = None
-                                self.__heartbeatTime1 = None
-                                self.__heartbeatCount = 1
+                            # reset delle variabili
+                            self.__heartbeatTime0 = None
+                            self.__heartbeatTime1 = None
+                            self.__heartbeatCount = 1
 
                         # se non é arrivato il secondo hb incremento il contatore
                         else:
