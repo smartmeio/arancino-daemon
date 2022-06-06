@@ -34,10 +34,6 @@ from threading import Thread, Lock
 import time
 from arancino.port.ArancinoPort import PortTypes
 
-
-import adafruit_ble
-
-
 CONF = ArancinoConfig.Instance()
 LOG = ArancinoLogger.Instance().getLogger()
 
@@ -186,7 +182,7 @@ class ArancinoUartBleDiscovery:
         for adv in ports:
             id = adv.address.string
             id = id.replace(":","")
-            
+
             name = adv.complete_name
             device = self.__ble.name
             p = ArancinoUartBlePort(adv=adv, id=id, device=device, m_c_alias=name, m_s_plugged=True, timeout=CONF.get_port_uart_ble_timeout())
