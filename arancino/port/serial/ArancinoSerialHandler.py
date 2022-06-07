@@ -71,7 +71,9 @@ class ArancinoSerialHandler(threading.Thread):
                             self.__partial_command = self.__partial_bytes_command.decode('utf-8', errors='backslashreplace')
 
                         if self.__commandReceivedHandler is not None:
-                            self.__commandReceivedHandler(self.__partial_command)
+                            th = threading.Thread(target= self.__commandReceivedHandler, args = (self.__partial_command,))
+                            th.start()
+                            #self.__commandReceivedHandler(self.__partial_command)
 
                         # clear the handy variables and start again
                         self.__partial_command = ""
