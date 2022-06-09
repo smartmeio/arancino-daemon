@@ -31,10 +31,13 @@ from arancino.ArancinoDataStore import ArancinoDataStore
 from arancino.utils.ArancinoUtils import ArancinoConfig, ArancinoEnvironment
 from arancino.port.ArancinoPort import PortTypes
 from datetime import datetime
+from arancino.utils.ArancinoUtils import *
+import timeit
 
 
 CONF = ArancinoConfig.Instance().cfg
 ENV = ArancinoEnvironment.Instance()
+LOG = ArancinoLogger.Instance().getLogger()
 
 class ArancinoCommandExecutor:
 
@@ -53,6 +56,8 @@ class ArancinoCommandExecutor:
         self.__datastore_pers = redis.getDataStorePer()
         self.__datastore_tser = redis.getDataStoreTse()
         self.__datastore_tag = redis.getDataStoreTag()
+        self.mstore_pipeline = self.__datastore_tser.pipeline()
+        self.pipe_counter = 0
 
         #self.__conf = ArancinoConfig.Instance()
 #        self.__compatibility_array_serial = COMPATIBILITY_MATRIX_MOD_SERIAL[str(self.__conf.get_metadata_version().truncate())]
@@ -1086,7 +1091,7 @@ class ArancinoCommandExecutor:
                 timestamp = args[2]
 
             self.__check_ts_exist_and_create(key)
-
+            
             ts = self.__datastore_tser.add(key, timestamp, value)
 
             return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
@@ -1142,9 +1147,23 @@ class ArancinoCommandExecutor:
 
                     #create the timeseries if it doesn't exists
                     self.__check_ts_exist_and_create(key)
+                
+                #ts_array = self.__datastore_tser.madd(list)
 
-                ts_array = self.__datastore_tser.madd(list)
-                ts = ArancinoSpecialChars.CHR_SEP.join(str(item) for item in ts_array)
+                self.pipe_counter += 1
+                start1 = timeit.default_timer()
+                self.mstore_pipeline.madd(list)
+                stop1 = timeit.default_timer()
+                #LOG.warning(f"PIPELINE APPENDING TIME: {stop1 - start1}")
+                #ts = ArancinoSpecialChars.CHR_SEP.join(str(item) for item in ts_array)
+                ts = ''
+
+                if self.pipe_counter == 500:
+                    start2 = timeit.default_timer()
+                    self.mstore_pipeline.execute()
+                    stop2 = timeit.default_timer()
+                    self.pipe_counter = 0
+                    LOG.warning(f"PIPELINE EXECUTION TIME: {stop2 - start2}")
 
                 return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
 

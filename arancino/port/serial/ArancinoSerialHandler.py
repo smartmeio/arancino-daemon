@@ -23,7 +23,9 @@ import threading
 from arancino.ArancinoConstants import *
 from arancino.utils.ArancinoUtils import *
 from arancino.port.ArancinoPort import PortTypes
+from queue import Queue
 import time
+import timeit
 
 LOG = ArancinoLogger.Instance().getLogger()
 
@@ -44,6 +46,11 @@ class ArancinoSerialHandler(threading.Thread):
         self.__partial_bytes_command = bytearray(b'')
         self.__stop = False
 
+        self.__cmd_queue = Queue(maxsize = 8192)
+        self.__th_cmd_executor = threading.Thread(target = self.__exec_cmd)
+        self.__th_cmd_executor.start()
+
+
     def run(self):
         time.sleep(1.5)  # do il tempo ad Arancino di inserire la porta in lista
         count = 0
@@ -51,33 +58,43 @@ class ArancinoSerialHandler(threading.Thread):
         while not self.__stop:
             # Ricezione dati
             try:
+                # # Read bytes one by one
+                # data = self.__serial_port.read(1)
+                # #self.__partial_bytes_command = self.__serial_port.read_until(ArancinoSpecialChars.CHR_EOT.encode())
 
-                # Read bytes one by one
-                data = self.__serial_port.read(1)
+                # if len(data) > 0:
+                #     self.__partial_bytes_command.append(data[0])
 
-                if len(data) > 0:
-                    self.__partial_bytes_command.append(data[0])
+                #     #https://app.clickup.com/t/dk226t
+                #     if (data == ArancinoSpecialChars.CHR_EOT.encode()) is True:
 
-                    #https://app.clickup.com/t/dk226t
-                    if (data == ArancinoSpecialChars.CHR_EOT.encode()) is True:
+                #         # now command is completed and can be used
+                #         try:
+                #             self.__partial_command = self.__partial_bytes_command.decode('utf-8', errors='strict')
 
-                        # now command is completed and can be used
-                        try:
-                            self.__partial_command = self.__partial_bytes_command.decode('utf-8', errors='strict')
+                #         except UnicodeDecodeError as ex:
 
-                        except UnicodeDecodeError as ex:
+                #             LOG.warning("{}Decode Warning while reading data from serial port: {}".format(self.__log_prefix, str(ex)))
 
-                            LOG.warning("{}Decode Warning while reading data from serial port: {}".format(self.__log_prefix, str(ex)))
-                            self.__partial_command = self.__partial_bytes_command.decode('utf-8', errors='backslashreplace')
+                #             self.__partial_command = self.__partial_bytes_command.decode('utf-8', errors='backslashreplace')
 
-                        if self.__commandReceivedHandler is not None:
-                            th = threading.Thread(target= self.__commandReceivedHandler, args = (self.__partial_command,))
-                            th.start()
-                            #self.__commandReceivedHandler(self.__partial_command)
+                #         if self.__commandReceivedHandler is not None:
+                #             #th = threading.Thread(target= self.__commandReceivedHandler, args = (self.__partial_command,))
+                #             #th.start()
+                #             self.__commandReceivedHandler(self.__partial_command)
 
-                        # clear the handy variables and start again
-                        self.__partial_command = ""
-                        self.__partial_bytes_command = bytearray(b'')
+                #         # clear the handy variables and start again
+                #         self.__partial_command = ""
+                #         self.__partial_bytes_command = bytearray(b'')
+                self.__partial_bytes_command = self.__serial_port.read(self.__serial_port.in_waiting or 1)
+                #self.__partial_bytes_command += self.__serial_port.read_all()
+                # while b'\x04' in self.__partial_bytes_command:
+                #     var, self.__partial_bytes_command = self.__partial_bytes_command.split(b'\x04', 1)
+                #     self.__cmd_queue.put(var)
+                self.__cmd_queue.put(self.__partial_bytes_command)
+                #LOG.warning(f"QUEUE LENGHT: {self.__cmd_queue.qsize()}")
+
+
 
 
             except Exception as ex:
@@ -104,6 +121,38 @@ class ArancinoSerialHandler(threading.Thread):
 
         except Exception as ex:
             LOG.exception("{}Error on connection lost: {}".format(self.__log_prefix, str(ex)))
+
+    def __exec_cmd(self):
+        line = b''
+        try:
+            while not self.__stop:
+                if not self.__cmd_queue.empty():
+                    line += self.__cmd_queue.get()
+                    while b'\x04' in line:
+                        var, line = line.split(b'\x04', 1)
+                    
+                        try:
+                            var = var.decode('utf-8', errors='strict')
+
+                        except UnicodeDecodeError as ex:
+                            LOG.warning("{}Decode Warning while reading data from serial port: {}".format(self.__log_prefix, str(ex)))
+                            #line = line.decode('utf-8', errors='backslashreplace')
+
+                        if self.__commandReceivedHandler is not None:
+                            start3 = timeit.default_timer()
+                            self.__commandReceivedHandler(var)
+                            stop3 = timeit.default_timer()
+                            #LOG.warning(f"TOTAL TIME EXECUTION: {stop3 - start3}")
+                            #time.sleep(.1)
+
+                #LOG.warning(f"QUEUE LENGHT OUT WHILE: {self.__cmd_queue.qsize()}")
+                
+        except Exception as ex:
+            LOG.error("{}I/O Error while reading data from serial port: {}".format(self.__log_prefix, str(ex)))
+
+            self.__stop = True
+            self.__connection_lost()
+
 
     def stop(self):
         self.__stop = True
