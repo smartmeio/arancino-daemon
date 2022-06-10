@@ -23,7 +23,6 @@ import signal
 import requests
 
 from arancino.ArancinoConstants import EnvType
-from arancino.transmitter.Transmitter import Transmitter
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoEnvironment
 from arancino.Arancino import Arancino
 from arancino.utils.ArancinoUtils import ArancinoConfig
@@ -42,7 +41,6 @@ auth = HTTPBasicAuth()
 
 c = ArancinoConfig.Instance().cfg
 m = Arancino()
-t = Transmitter()
 
 LOG = ArancinoLogger.Instance().getLogger()
 ENV = ArancinoEnvironment.Instance()
@@ -56,12 +54,10 @@ def shutdown_server():
         func()
 
 def __kill():
-    t.stop()
     m.stop()
 
 def __runArancino():
     m.start()
-    t.start()
 
 def __get_arancinoapi_app():
     api = ArancinoApi()

@@ -54,7 +54,8 @@ redis:
   #
   #      Note: Time Series data are usually stored in the volatile instance. If the device
   #          power off, you lose your data in any case.
-  retetion: 3600000
+  #retetion: 3600000
+  retetion: 10000
 
   volatile:
     datastore_std_db: 0
@@ -262,11 +263,11 @@ port:
 
 
     # The number of Oort to create for test purpose
-    num: 0
+    num: 1
 
 
     # Delay between each command in seconds (accepts float)
-    delay: 5
+    delay: 0
 
 
     # prefix of the id generated for the test port
@@ -280,7 +281,7 @@ log:
   #   - WARNING
   #   - INFO
   #   - DEBUG
-  level: DEBUG
+  level: INFO
 
 
   # Name to print with the logger
@@ -313,23 +314,3 @@ log:
 
   # Enables or disables printing of stack trace on errors
   print_stack_trace: true
-
-
-transmitter:
-
-  # Enable or disable the transmitter module of Arancino
-  enabled: true
-
-
-  # Flows that run on the transmitter. Each flow is defined by a configuration file.
-  flows:
-    - test
-    - smartme
-    - stats
-
-
-  reader:
-
-    # Represents the time (in seconds) in which the reader collects data
-    # and transfers it to the upper level
-    cycle_time: 10

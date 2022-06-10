@@ -315,22 +315,3 @@ log:
 
   # Enables or disables printing of stack trace on errors
   print_stack_trace: true
-
-
-transmitter:
-
-  # Enable or disable the transmitter module of Arancino
-  enabled: true
-
-
-  # Flows that run on the transmitter. Each flow is defined by a configuration file.
-  flows:
-    - smartme
-    - stats
-
-
-  reader:
-
-    # Represents the time (in seconds) in which the reader collects data
-    # and transfers it to the upper level
-    cycle_time: 10

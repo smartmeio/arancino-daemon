@@ -24,7 +24,7 @@ import netifaces
 import os
 from arancino.Arancino import Arancino
 from arancino.ArancinoExceptions import ArancinoException
-from arancino.utils.ArancinoUtils import secondsToHumanString, ArancinoLogger, ArancinoEnvironment, ArancinoConfig, ArancinoTransmitterConfig
+from arancino.utils.ArancinoUtils import secondsToHumanString, ArancinoLogger, ArancinoEnvironment, ArancinoConfig
 from arancino.ArancinoConstants import ArancinoApiResponseCode
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
 from arancino.ArancinoConstants import ArancinoDBKeys
@@ -687,7 +687,7 @@ class ArancinoApi():
         except Exception as ex:
             LOG.error("Error on api call: {}".format(str(ex)), exc_info=TRACE)
             return self.__apiCreateErrorMessage(error_code=API_CODE.ERR_GENERIC, internal_message=[None, str(ex)]), 500
-
+    """
     def setArancinoTransmitterConf(self, flow_name=None, params=None):
 
         if flow_name and params and params["config"]:
@@ -742,7 +742,7 @@ class ArancinoApi():
                 }
             }
             return response, 200
-
+    """
     def identifyPort(self, port_id):
         try:
 
