@@ -58,6 +58,12 @@ class ArancinoCommandExecutor:
         self.__datastore_tag = redis.getDataStoreTag()
         self.mstore_pipeline = self.__datastore_tser.pipeline()
         self.pipe_counter = 0
+        self.pipe_length = CONF.get('general').get('pipeline_length')
+
+        if self.pipe_length < 1:
+            self.pipe_length = 1
+        elif self.pipe_length > 1000:
+            self.pipe_length = 1000
 
         #self.__conf = ArancinoConfig.Instance()
 #        self.__compatibility_array_serial = COMPATIBILITY_MATRIX_MOD_SERIAL[str(self.__conf.get_metadata_version().truncate())]
@@ -176,7 +182,8 @@ class ArancinoCommandExecutor:
             # STORE
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_STORE['id']:
                 raw_response = self.__OPTS_STORE(cmd_args)
-                return ArancinoResponse(raw_response=raw_response)
+                return None
+                #return ArancinoResponse(raw_response=raw_response)
             # STORETAGS
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_STORETAGS['id']:
                 raw_response = self.__OPTS_STORETAGS(cmd_args)
@@ -184,7 +191,8 @@ class ArancinoCommandExecutor:
             # MSTORE
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_MSTORE['id']:
                 raw_response = self.__OPTS_MSTORE(cmd_args)
-                return ArancinoResponse(raw_response=raw_response)
+                return None
+                #return ArancinoResponse(raw_response=raw_response)
             # Default
             else:
                 raw_response = ArancinoCommandErrorCodes.ERR_CMD_NOT_FND + ArancinoSpecialChars.CHR_SEP
@@ -1092,9 +1100,18 @@ class ArancinoCommandExecutor:
 
             self.__check_ts_exist_and_create(key)
             
-            ts = self.__datastore_tser.add(key, timestamp, value)
+            self.pipe_counter += 1
+            self.mstore_pipeline.add(key, timestamp, value)
 
-            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
+            if self.pipe_counter == self.pipe_length:
+                start2 = timeit.default_timer()
+                self.mstore_pipeline.execute()
+                stop2 = timeit.default_timer()
+                self.pipe_counter = 0
+                LOG.warning(f"PIPELINE EXECUTION TIME: {stop2 - start2}")
+
+            #return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
+            return None
 
         except RedisError as ex:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
@@ -1158,14 +1175,16 @@ class ArancinoCommandExecutor:
                 #ts = ArancinoSpecialChars.CHR_SEP.join(str(item) for item in ts_array)
                 ts = ''
 
-                if self.pipe_counter == 500:
+                if self.pipe_counter == self.pipe_length:
                     start2 = timeit.default_timer()
                     self.mstore_pipeline.execute()
                     stop2 = timeit.default_timer()
                     self.pipe_counter = 0
                     LOG.warning(f"PIPELINE EXECUTION TIME: {stop2 - start2}")
 
-                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
+                #return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
+
+                return None
 
             else:
                 raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)

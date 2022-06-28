@@ -2,6 +2,7 @@ general:
 
   # Polling cycle time (in seconds) to discover new ports.
   cycle_time: 10
+  pipeline_length: 1000
 
 
 redis:
@@ -205,6 +206,9 @@ port:
     # Reconnection delay after a reset (in seconds).
     reset_reconnection_delay: 40
 
+    # Queue size for buffering commands
+    queue_max_size: 1024
+
 
     # Specific configurations for the SAMD21 microcontoller.
     samd21:
@@ -214,7 +218,7 @@ port:
       upload_command: "/usr/bin/run-arancino-bossac {port._device} {firmware}"
       reset_on_connect: true
       reset_reconnection_delay: 5
-      comm_baudrate: 115200
+      comm_baudrate: 4000000
 
 
     # Specific configurations for the NRF52 microcontoller.

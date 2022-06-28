@@ -28,6 +28,7 @@ import time
 import timeit
 
 LOG = ArancinoLogger.Instance().getLogger()
+CONF = ArancinoConfig.Instance().cfg
 
 class ArancinoSerialHandler(threading.Thread):
 
@@ -46,7 +47,7 @@ class ArancinoSerialHandler(threading.Thread):
         self.__partial_bytes_command = bytearray(b'')
         self.__stop = False
 
-        self.__cmd_queue = Queue(maxsize = 8192)
+        self.__cmd_queue = Queue(maxsize = CONF.get('port').get('serial').get('queue_max_size'))
         self.__th_cmd_executor = threading.Thread(target = self.__exec_cmd)
         self.__th_cmd_executor.start()
 
@@ -58,41 +59,17 @@ class ArancinoSerialHandler(threading.Thread):
         while not self.__stop:
             # Ricezione dati
             try:
-                # # Read bytes one by one
-                # data = self.__serial_port.read(1)
-                # #self.__partial_bytes_command = self.__serial_port.read_until(ArancinoSpecialChars.CHR_EOT.encode())
-
-                # if len(data) > 0:
-                #     self.__partial_bytes_command.append(data[0])
-
-                #     #https://app.clickup.com/t/dk226t
-                #     if (data == ArancinoSpecialChars.CHR_EOT.encode()) is True:
-
-                #         # now command is completed and can be used
-                #         try:
-                #             self.__partial_command = self.__partial_bytes_command.decode('utf-8', errors='strict')
-
-                #         except UnicodeDecodeError as ex:
-
-                #             LOG.warning("{}Decode Warning while reading data from serial port: {}".format(self.__log_prefix, str(ex)))
-
-                #             self.__partial_command = self.__partial_bytes_command.decode('utf-8', errors='backslashreplace')
-
-                #         if self.__commandReceivedHandler is not None:
-                #             #th = threading.Thread(target= self.__commandReceivedHandler, args = (self.__partial_command,))
-                #             #th.start()
-                #             self.__commandReceivedHandler(self.__partial_command)
-
-                #         # clear the handy variables and start again
-                #         self.__partial_command = ""
-                #         self.__partial_bytes_command = bytearray(b'')
+                
                 self.__partial_bytes_command = self.__serial_port.read(self.__serial_port.in_waiting or 1)
-                #self.__partial_bytes_command += self.__serial_port.read_all()
-                # while b'\x04' in self.__partial_bytes_command:
-                #     var, self.__partial_bytes_command = self.__partial_bytes_command.split(b'\x04', 1)
-                #     self.__cmd_queue.put(var)
-                self.__cmd_queue.put(self.__partial_bytes_command)
-                #LOG.warning(f"QUEUE LENGHT: {self.__cmd_queue.qsize()}")
+                
+                try:
+
+                    self.__cmd_queue.put(self.__partial_bytes_command)
+
+                except Exception as ex:
+                    
+                    LOG.error("{}Error while appending data from serial port to queue: {}".format(self.__log_prefix, str(ex)))
+                
 
 
 
