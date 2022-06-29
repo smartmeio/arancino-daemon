@@ -65,9 +65,9 @@ class ArancinoSerialHandler(threading.Thread):
                 try:
 
                     self.__cmd_queue.put(self.__partial_bytes_command)
-
+                    #LOG.error("QUEUE LENGTH:  {}".format(self.__cmd_queue.qsize()))
                 except Exception as ex:
-                    
+
                     LOG.error("{}Error while appending data from serial port to queue: {}".format(self.__log_prefix, str(ex)))
                 
 
@@ -103,32 +103,32 @@ class ArancinoSerialHandler(threading.Thread):
         line = b''
         try:
             while not self.__stop:
-                if not self.__cmd_queue.empty():
-                    line += self.__cmd_queue.get()
-                    while b'\x04' in line:
-                        var, line = line.split(b'\x04', 1)
-                    
-                        try:
-                            var = var.decode('utf-8', errors='strict')
+                try:
+                    if not self.__cmd_queue.empty():
+                        line += self.__cmd_queue.get()
+                        while b'\x04' in line:
+                            var, line = line.split(b'\x04', 1)
+                        
+                            try:
+                                var = var.decode('utf-8', errors='strict')
 
-                        except UnicodeDecodeError as ex:
-                            LOG.warning("{}Decode Warning while reading data from serial port: {}".format(self.__log_prefix, str(ex)))
-                            #line = line.decode('utf-8', errors='backslashreplace')
+                            except UnicodeDecodeError as ex:
+                                LOG.warning("{}Decode Warning while reading data from serial port: {}".format(self.__log_prefix, str(ex)))
+                                #line = line.decode('utf-8', errors='backslashreplace')
 
-                        if self.__commandReceivedHandler is not None:
-                            start3 = timeit.default_timer()
-                            self.__commandReceivedHandler(var)
-                            stop3 = timeit.default_timer()
-                            #LOG.warning(f"TOTAL TIME EXECUTION: {stop3 - start3}")
-                            #time.sleep(.1)
+                            if self.__commandReceivedHandler is not None:
+                                start3 = timeit.default_timer()
+                                self.__commandReceivedHandler(var)
+                                stop3 = timeit.default_timer()
+                                #LOG.warning(f"TOTAL TIME EXECUTION: {stop3 - start3}")
+                                #time.sleep(.1)
 
-                #LOG.warning(f"QUEUE LENGHT OUT WHILE: {self.__cmd_queue.qsize()}")
+                        #LOG.warning(f"QUEUE LENGHT OUT WHILE: {self.__cmd_queue.qsize()}")
+                except Exception as ex:
+                    LOG.error("{}CMD execution failed: {}".format(self.__log_prefix, str(ex)))
                 
         except Exception as ex:
-            LOG.error("{}I/O Error while reading data from serial port: {}".format(self.__log_prefix, str(ex)))
-
-            self.__stop = True
-            self.__connection_lost()
+            LOG.error("{}Dequeue thread failed: {}".format(self.__log_prefix, str(ex)))
 
 
     def stop(self):
