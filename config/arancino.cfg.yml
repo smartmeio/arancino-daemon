@@ -2,7 +2,11 @@ general:
 
   # Polling cycle time (in seconds) to discover new ports.
   cycle_time: 10
+  
+  #number of commands (store, mstore) to add in the pipeline before executing them min: 1 max: 1000
   pipeline_length: 1000
+
+  #flag to use the pipeline or not
   use_pipeline: true
 
 
