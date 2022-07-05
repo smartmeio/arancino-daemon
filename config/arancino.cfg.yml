@@ -142,8 +142,6 @@ port:
     - test
 
 
-  send_response: false
-
   serial:
 
     mcu_type_list:
