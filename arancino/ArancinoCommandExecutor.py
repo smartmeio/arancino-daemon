@@ -182,7 +182,7 @@ class ArancinoCommandExecutor:
             # STORE
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_STORE['id']:
                 raw_response = self.__OPTS_STORE(cmd_args)
-                return None
+                return ArancinoResponse(raw_response=raw_response) if raw_response else None
                 #return ArancinoResponse(raw_response=raw_response)
             # STORETAGS
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_STORETAGS['id']:
@@ -191,7 +191,7 @@ class ArancinoCommandExecutor:
             # MSTORE
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_MSTORE['id']:
                 raw_response = self.__OPTS_MSTORE(cmd_args)
-                return None
+                return ArancinoResponse(raw_response=raw_response) if raw_response else None
                 #return ArancinoResponse(raw_response=raw_response)
             # Default
             else:
@@ -1100,18 +1100,25 @@ class ArancinoCommandExecutor:
 
             self.__check_ts_exist_and_create(key)
             
-            self.pipe_counter += 1
-            self.mstore_pipeline.add(key, timestamp, value)
+            if CONF.get('general').get('use_pipeline'):
+                self.pipe_counter += 1
+                self.mstore_pipeline.add(key, timestamp, value)
 
-            if self.pipe_counter == self.pipe_length:
-                start2 = timeit.default_timer()
-                self.mstore_pipeline.execute()
-                stop2 = timeit.default_timer()
-                self.pipe_counter = 0
-                LOG.warning(f"PIPELINE EXECUTION TIME: {stop2 - start2}")
+                if self.pipe_counter == self.pipe_length:
+                    start2 = timeit.default_timer()
+                    self.mstore_pipeline.execute()
+                    stop2 = timeit.default_timer()
+                    self.pipe_counter = 0
+                    LOG.debug(f"PIPELINE EXECUTION TIME: {stop2 - start2}")
 
-            #return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
-            return None
+                return None
+
+            else:
+
+                ts = self.__datastore_tser.add(key, timestamp, value)
+
+                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
+
 
         except RedisError as ex:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
@@ -1165,26 +1172,25 @@ class ArancinoCommandExecutor:
                     #create the timeseries if it doesn't exists
                     self.__check_ts_exist_and_create(key)
                 
-                #ts_array = self.__datastore_tser.madd(list)
+                if CONF.get('general').get('use_pipeline'):
 
-                self.pipe_counter += 1
-                start1 = timeit.default_timer()
-                self.mstore_pipeline.madd(list)
-                stop1 = timeit.default_timer()
-                #LOG.warning(f"PIPELINE APPENDING TIME: {stop1 - start1}")
-                #ts = ArancinoSpecialChars.CHR_SEP.join(str(item) for item in ts_array)
-                ts = ''
+                    self.pipe_counter += 1
+                    self.mstore_pipeline.madd(list)
 
-                if self.pipe_counter == self.pipe_length:
-                    start2 = timeit.default_timer()
-                    self.mstore_pipeline.execute()
-                    stop2 = timeit.default_timer()
-                    self.pipe_counter = 0
-                    LOG.warning(f"PIPELINE EXECUTION TIME: {stop2 - start2}")
+                    if self.pipe_counter == self.pipe_length:
+                        start2 = timeit.default_timer()
+                        self.mstore_pipeline.execute()
+                        stop2 = timeit.default_timer()
+                        self.pipe_counter = 0
+                        LOG.debug(f"PIPELINE EXECUTION TIME: {stop2 - start2}")
 
-                #return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
+                    return None
+                else:
 
-                return None
+                    ts_array = self.__datastore_tser.madd(list)
+                    ts = ArancinoSpecialChars.CHR_SEP.join(str(item) for item in ts_array)
+
+                    return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
 
             else:
                 raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)

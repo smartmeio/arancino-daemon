@@ -3,6 +3,7 @@ general:
   # Polling cycle time (in seconds) to discover new ports.
   cycle_time: 10
   pipeline_length: 1000
+  use_pipeline: true
 
 
 redis:
