@@ -152,56 +152,6 @@ class ArancinoEnvironment:
 
 
 @Singleton
-class ArancinoTransmitterConfig:
-
-    def __init__(self):
-        self.__yaml = YAML()#YAML(typ='safe', pure=True)
-
-        _env = ArancinoEnvironment.Instance().env
-        _cfg_dir = ArancinoEnvironment.Instance().cfg_dir
-        _cfg_file = ""
-        self.__files = []
-        self._cfgs = {}
-
-        from pathlib import Path
-        for yml_path in Path(_cfg_dir).glob("transmitter.flow.*.cfg.yml"):
-            self.__files.append(yml_path)
-
-        self.__open()
-
-
-
-    def __open(self):
-
-        for f in self.__files:
-            with open(f, "r") as ymlfile:
-                #self._cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
-                y = self.__yaml.load(ymlfile)
-                self._cfgs[y.get("flow").get("name").lower()] = y
-                ymlfile.close()
-
-
-    def save(self, flow_name):
-        yaml = YAML()
-        file = os.path.join(ArancinoEnvironment.Instance().cfg_dir, "transmitter.flow.{}.cfg.yml".format(flow_name))
-        for f in self.__files:
-
-            if str(f) == file:
-                with open(f, "w") as ymlfile:
-                    yaml.dump(self._cfgs[flow_name], ymlfile)
-                    ymlfile.close()
-                break
-
-
-
-
-
-    @property
-    def cfgs(self):
-        return self._cfgs
-
-
-@Singleton
 class ArancinoConfig:
 
     def __init__(self):

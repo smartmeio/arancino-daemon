@@ -365,7 +365,9 @@ class ArancinoPort(object):
         :return: void.
         """
         try:
-
+            
+            arsp = None
+            acmd = None
             # create an Arancino Comamnd from the raw command
             LOG.debug("{} Received: {}".format(self._log_prefix, raw_command))
             acmd = ArancinoComamnd(raw_command=raw_command)
@@ -389,20 +391,29 @@ class ArancinoPort(object):
                 self._retrieveStartCmdArgs(acmd.getArguments())
 
         except ArancinoException as ex:
-            arsp = ArancinoResponse(rsp_id=ex.error_code, rsp_args=[])
+            if acmd is not None:
+                if acmd.getId() == ArancinoCommandIdentifiers.CMD_APP_STORE["id"] or acmd.getId() == ArancinoCommandIdentifiers.CMD_APP_MSTORE["id"]:
+                    arsp = None
+                else:
+                    arsp = ArancinoResponse(rsp_id=ArancinoCommandErrorCodes.ERR, rsp_args=[])
             LOG.error("{} {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
 
         # Generic Exception uses a generic Error Code
         except Exception as ex:
-            arsp = ArancinoResponse(rsp_id=ArancinoCommandErrorCodes.ERR, rsp_args=[])
+            if acmd is not None:
+                if acmd.getId() == ArancinoCommandIdentifiers.CMD_APP_STORE["id"] or acmd.getId() == ArancinoCommandIdentifiers.CMD_APP_MSTORE["id"]:
+                    arsp = None
+                else:
+                    arsp = ArancinoResponse(rsp_id=ArancinoCommandErrorCodes.ERR, rsp_args=[])
             LOG.error("{} {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
 
         finally:
 
             try:
                 # send the response back.
-                self.sendResponse(arsp.getRaw())
-                LOG.debug("{} Sending: {}: {}".format(self._log_prefix, arsp.getId(), str(arsp.getArguments())))
+                if arsp is not None: 
+                    self.sendResponse(arsp.getRaw())
+                    LOG.debug("{} Sending: {}: {}".format(self._log_prefix, arsp.getId(), str(arsp.getArguments())))
 
             except Exception as ex:
                 LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex), exc_info=TRACE)

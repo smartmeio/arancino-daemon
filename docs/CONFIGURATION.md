@@ -159,6 +159,15 @@ after the time setted in `cycle_time`. The value is expressed in seconds. To cha
 cycle_time = 10
 ```
 
+<!-- #TODO
+#number of commands (store, mstore) to add in the pipeline before executing them min: 1 max: 1000
+  pipeline_length: 1000
+
+#flag to use the pipeline or not
+  use_pipeline: true
+
+-->
+
 ### Arancino Ports
 Arancino Daemon scans serial ports for new devices to connect to. If a new device is plugged Arancino Daemon applies
 the configuration of the `[port]` section of the configuration file. From version `2.0.0` Arancino Daemon supports
@@ -253,6 +262,11 @@ filter_list = ["0x04d8:0xecd9", "0x04d8:0xecd9","0x04d8:0xecd9"]
 upload_command = /usr/bin/run-bossac-cli {port._device} {firmware}
 ```
 
+<!-- #TODO
+Queue size for buffering commands 
+    queue_max_size: 1024 
+-->
+
 #### Arancino Test Ports
 This is new in version `2.0.0` and it's used to make tests of Cortex commands, stress test or unit test:
 
@@ -286,3 +300,5 @@ id_template = TESTPORT
 # command to be spawn when upload api is called. The command could have one or more placeholders.
 upload_command =
 ```
+
+
