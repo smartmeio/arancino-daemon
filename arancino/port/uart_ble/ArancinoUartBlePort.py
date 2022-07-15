@@ -30,7 +30,7 @@ from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 from adafruit_ble import BLERadio
 import time
 
-from .ArancinoUartBleService import ArancinoUartBleService
+from .ArancinoUartBleService import ArancinoUartBleService, ArancinoResetBleService
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance()
@@ -116,9 +116,9 @@ class ArancinoUartBlePort(ArancinoPort):
                             # first resetting
                             self.reset()
 
-
                         self.__ble_connection = BLERadio().connect(self.__adv, timeout=self.__timeout)
                         self.__ble_uart_service = self.__ble_connection[ArancinoUartBleService]
+                        #self.__ble_reset_service = self.__ble_connection[ArancinoResetBleService]
 
                         self.__uart_ble_handler = ArancinoUartBleHandler(self.__ble_connection, self._id, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
                         self._m_s_connected = True
@@ -161,9 +161,24 @@ class ArancinoUartBlePort(ArancinoPort):
 
     def reset(self):
         # No reset provided method for this Port
-        return False
-        # LOG.info("{} Starting Reset".format(self.__log_prefix))
-        # LOG.info("{} Reset Success!".format(self.__log_prefix))
+        #self.__ble_reset_service.reset()
+        try:
+            self.__ble_connection = BLERadio().connect(self.__adv, timeout=self.__timeout)
+            self.__ble_reset_service = self.__ble_connection[ArancinoResetBleService]
+
+            LOG.info("{} Resetting...".format(self._log_prefix))
+            self.disconnect()
+            self.setEnabled(False)
+            # touch to reset
+            self.__ble_reset_service.reset()
+            
+            time.sleep(20)
+            self.setEnabled(True)
+            LOG.info("{} Reset".format(self._log_prefix))
+            return True
+        except Exception as ex:
+            #LOG.info("{} Connected".format(self.__log_prefix))
+            LOG.exception(self._log_prefix + str(ex))
 
     def upload(self, firmware):
         # No upload provided method for this Port
