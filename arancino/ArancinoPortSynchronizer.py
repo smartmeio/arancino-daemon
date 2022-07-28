@@ -29,8 +29,8 @@ from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from datetime import datetime
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance()
-TRACE = CONF.get_log_print_stack_trace()
+CONF = ArancinoConfig.Instance().cfg
+TRACE = CONF.get("log").get("trace")
 
 class ArancinoPortSynch:
 

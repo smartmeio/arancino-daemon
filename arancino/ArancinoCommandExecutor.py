@@ -28,10 +28,16 @@ import semantic_version as semver
 from arancino.ArancinoCortex import ArancinoResponse
 from arancino.ArancinoExceptions import *
 from arancino.ArancinoDataStore import ArancinoDataStore
-from arancino.utils.ArancinoUtils import ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoConfig, ArancinoEnvironment
 from arancino.port.ArancinoPort import PortTypes
 from datetime import datetime
+from arancino.utils.ArancinoUtils import *
+import timeit
 
+
+CONF = ArancinoConfig.Instance().cfg
+ENV = ArancinoEnvironment.Instance()
+LOG = ArancinoLogger.Instance().getLogger()
 
 class ArancinoCommandExecutor:
 
@@ -50,8 +56,16 @@ class ArancinoCommandExecutor:
         self.__datastore_pers = redis.getDataStorePer()
         self.__datastore_tser = redis.getDataStoreTse()
         self.__datastore_tag = redis.getDataStoreTag()
+        self.mstore_pipeline = self.__datastore_tser.pipeline()
+        self.pipe_counter = 0
+        self.pipe_length = CONF.get('general').get('pipeline_length')
 
-        self.__conf = ArancinoConfig.Instance()
+        if self.pipe_length < 1:
+            self.pipe_length = 1
+        elif self.pipe_length > 1000:
+            self.pipe_length = 1000
+
+        #self.__conf = ArancinoConfig.Instance()
 #        self.__compatibility_array_serial = COMPATIBILITY_MATRIX_MOD_SERIAL[str(self.__conf.get_metadata_version().truncate())]
 #        self.__compatibility_array_test = COMPATIBILITY_MATRIX_MOD_TEST[str(self.__conf.get_metadata_version().truncate())]
 
@@ -168,7 +182,8 @@ class ArancinoCommandExecutor:
             # STORE
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_STORE['id']:
                 raw_response = self.__OPTS_STORE(cmd_args)
-                return ArancinoResponse(raw_response=raw_response)
+                return ArancinoResponse(raw_response=raw_response) if raw_response else None
+                #return ArancinoResponse(raw_response=raw_response)
             # STORETAGS
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_STORETAGS['id']:
                 raw_response = self.__OPTS_STORETAGS(cmd_args)
@@ -176,7 +191,8 @@ class ArancinoCommandExecutor:
             # MSTORE
             elif cmd_id == ArancinoCommandIdentifiers.CMD_APP_MSTORE['id']:
                 raw_response = self.__OPTS_MSTORE(cmd_args)
-                return ArancinoResponse(raw_response=raw_response)
+                return ArancinoResponse(raw_response=raw_response) if raw_response else None
+                #return ArancinoResponse(raw_response=raw_response)
             # Default
             else:
                 raw_response = ArancinoCommandErrorCodes.ERR_CMD_NOT_FND + ArancinoSpecialChars.CHR_SEP
@@ -1083,10 +1099,26 @@ class ArancinoCommandExecutor:
                 timestamp = args[2]
 
             self.__check_ts_exist_and_create(key)
+            
+            if CONF.get('general').get('use_pipeline'):
+                self.pipe_counter += 1
+                self.mstore_pipeline.add(key, timestamp, value)
 
-            ts = self.__datastore_tser.add(key, timestamp, value)
+                if self.pipe_counter == self.pipe_length:
+                    start2 = timeit.default_timer()
+                    self.mstore_pipeline.execute()
+                    stop2 = timeit.default_timer()
+                    self.pipe_counter = 0
+                    LOG.debug(f"PIPELINE EXECUTION TIME: {stop2 - start2}")
 
-            return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
+                return None
+
+            else:
+
+                ts = self.__datastore_tser.add(key, timestamp, value)
+
+                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
+
 
         except RedisError as ex:
             raise RedisGenericException("Redis Error: " + str(ex), ArancinoCommandErrorCodes.ERR_REDIS)
@@ -1139,11 +1171,26 @@ class ArancinoCommandExecutor:
 
                     #create the timeseries if it doesn't exists
                     self.__check_ts_exist_and_create(key)
+                
+                if CONF.get('general').get('use_pipeline'):
 
-                ts_array = self.__datastore_tser.madd(list)
-                ts = ArancinoSpecialChars.CHR_SEP.join(str(item) for item in ts_array)
+                    self.pipe_counter += 1
+                    self.mstore_pipeline.madd(list)
 
-                return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
+                    if self.pipe_counter == self.pipe_length:
+                        start2 = timeit.default_timer()
+                        self.mstore_pipeline.execute()
+                        stop2 = timeit.default_timer()
+                        self.pipe_counter = 0
+                        LOG.debug(f"PIPELINE EXECUTION TIME: {stop2 - start2}")
+
+                    return None
+                else:
+
+                    ts_array = self.__datastore_tser.madd(list)
+                    ts = ArancinoSpecialChars.CHR_SEP.join(str(item) for item in ts_array)
+
+                    return ArancinoCommandResponseCodes.RSP_OK + ArancinoSpecialChars.CHR_SEP + str(ts) + ArancinoSpecialChars.CHR_EOT
 
             else:
                 raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
@@ -1178,11 +1225,11 @@ class ArancinoCommandExecutor:
                 "port_type": self.__port_type.name
             }
 
-            if not self.__conf.get_serial_number() == "0000000000000000" and not self.__conf.get_serial_number() == "ERROR000000000":
-                labels["device_id"] = self.__conf.get_serial_number()
+            if not ENV.serial_number == "0000000000000000" and not ENV.serial_number == "ERROR000000000":
+                labels["device_id"] = ENV.serial_number
 
-            self.__datastore_tser.create(key, labels=labels, duplicate_policy='last', retention_msecs=self.__conf.get_redis_timeseries_retation())
-            self.__datastore_tser.redis.set("{}:{}".format(key, SUFFIX_TMSTP), 0)  # Starting timestamp
+            self.__datastore_tser.create(key, labels=labels, duplicate_policy='last', retention_msecs=CONF.get("redis").get("retetion")) #self.__conf.get_redis_timeseries_retation())
+            #self.__datastore_tser.redis.set("{}:{}".format(key, SUFFIX_TMSTP), 0)  # Starting timestamp 
 
     #endregion
 

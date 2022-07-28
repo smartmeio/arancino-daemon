@@ -20,7 +20,7 @@ under the License
 """
 
 import threading
-from arancino.utils.ArancinoUtils import *
+from arancino.utils.ArancinoUtils import ArancinoConfig, ArancinoLogger
 from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoCortex import ArancinoCommandIdentifiers as cmdId
 from arancino.ArancinoConstants import ArancinoSpecialChars as specChars, ArancinoPortAttributes
@@ -30,7 +30,9 @@ from arancino.ArancinoConstants import SUFFIX_TMSTP
 import time
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance()
+CONF = ArancinoConfig.Instance().cfg
+
+
 
 class ArancinoTestHandler(threading.Thread):
 
@@ -45,7 +47,7 @@ class ArancinoTestHandler(threading.Thread):
         self.__commandReceivedHandler = commandReceivedHandler  # handler to be called when a raw command is complete and ready to be translated and executed.
         self.__connectionLostHandler = connectionLostHandler    # handler to be called when a connection is lost or stopped
 
-        self.__command_delay = CONF.get_port_test_delay()
+        self.__command_delay = CONF.get("port").get("test").get("delay")
 
         self.__stop = False
 
@@ -367,7 +369,7 @@ class ArancinoTestHandler(threading.Thread):
         keys = "TAG_1" + specChars.CHR_ARR_SEP + "TAG_2" + specChars.CHR_ARR_SEP + "TAG_3"
         values = "VAL_1" + specChars.CHR_ARR_SEP + "VAL_2" + specChars.CHR_ARR_SEP + "VAL_3"
 
-        list.append(cmdId.CMD_APP_STORETAGS["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
+        #list.append(cmdId.CMD_APP_STORETAGS["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
 
         list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
 
@@ -385,11 +387,10 @@ class ArancinoTestHandler(threading.Thread):
         list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
         list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
         list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-
         keys = "TAG_1" + specChars.CHR_ARR_SEP + "TAG_2" + specChars.CHR_ARR_SEP + "TAG_3"
         values = "VAL_1-1" + specChars.CHR_ARR_SEP + "VAL_2-1" + specChars.CHR_ARR_SEP + "VAL_3-1"
 
-        list.append(cmdId.CMD_APP_STORETAGS["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
+        #list.append(cmdId.CMD_APP_STORETAGS["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
 
 
         list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)

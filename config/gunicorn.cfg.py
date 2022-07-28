@@ -11,7 +11,7 @@ class GunicornLogger(Logger):
 bind = '0.0.0.0:1475'
 workers = 1
 worker_class = 'sync'
-timeout = 30
+timeout = 300
 keepalive = 2
 
 logger_class = GunicornLogger

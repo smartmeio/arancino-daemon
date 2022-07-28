@@ -22,8 +22,8 @@ import os
 import signal
 import requests
 
-from arancino.transmitter.Transmitter import Transmitter
-from arancino.utils.ArancinoUtils import ArancinoLogger
+from arancino.ArancinoConstants import EnvType
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoEnvironment
 from arancino.Arancino import Arancino
 from arancino.utils.ArancinoUtils import ArancinoConfig
 from arancino.utils.pam import pamAuthentication
@@ -39,12 +39,11 @@ from arancino.ArancinoRestApi import ArancinoApi
 
 auth = HTTPBasicAuth()
 
-c = ArancinoConfig.Instance()
+c = ArancinoConfig.Instance().cfg
 m = Arancino()
-t = Transmitter()
 
 LOG = ArancinoLogger.Instance().getLogger()
-ENV = os.environ.get('ARANCINOENV')
+ENV = ArancinoEnvironment.Instance()
 
 def shutdown_server():
     func = request.environ.get('werkzeug.server.shutdown')
@@ -55,12 +54,10 @@ def shutdown_server():
         func()
 
 def __kill():
-    t.stop()
     m.stop()
 
 def __runArancino():
     m.start()
-    t.start()
 
 def __get_arancinoapi_app():
     api = ArancinoApi()
@@ -73,10 +70,10 @@ def __get_arancinoapi_app():
         app.logger.addHandler(handler)
         log_server.addHandler(handler)
 
-    app.logger.setLevel(logging.getLevelName(c.get_log_level()))
-    log_server.setLevel(logging.getLevelName(c.get_log_level()))
+    app.logger.setLevel(logging.getLevelName(c.get('log').get('level')))
+    log_server.setLevel(logging.getLevelName(c.get('log').get('level')))
 
-    ALLOWED_EXTENSIONS = set(c.get_port_firmware_file_types())
+    ALLOWED_EXTENSIONS = set(c.get('port').get('firmware_file_types'))
 
     from arancino.ArancinoDataStore import ArancinoDataStore
     __devicestore = ArancinoDataStore.Instance().getDataStoreDev()
@@ -97,7 +94,7 @@ def __get_arancinoapi_app():
         #else:
         #    return False
 
-    if os.getenv('ARANCINOENV', 'DEV') == 'DEV':
+    if os.getenv('ARANCINOENV', 'DEV') == EnvType.DEV:
         @app.route('/api/v1/shutdown-not-easy-to-find-api', methods=['POST'])
         def shutdown():
             shutdown_server()
@@ -274,15 +271,41 @@ def __get_arancinoapi_app():
     def api_arancino_conf_set():
 
         """
-        """
         section = request.args.get("section")
         option = request.args.get("option")
         value = request.args.get("value")
         result = api.setArancinoConf(section, option, value)
+        """
+
+        result = api.setArancinoConf(request.get_json())
 
         response = jsonify(result[0])
         response.status_code = result[1]
         return response
+
+
+    @app.route('/api/v1/arancino/transmitter/<flow_name>/config', methods=['POST'])
+    @auth.login_required
+    def api_arancino_transmitter_conf_set(flow_name=None):
+
+        result = api.setArancinoTransmitterConf(flow_name, request.get_json())
+
+        response = jsonify(result[0])
+        response.status_code = result[1]
+        return response
+
+    @app.route('/api/v1/arancino/transmitter/<flow_name>/config', methods=['GET'])
+    def api_arancino_transmitter_conf_get(flow_name=None):
+
+        #if(request.get_json()): # una o piu conf specifica/e
+        result = api.getArancinoTransmitterConf(flow_name, request.get_json())
+        #else:   # tutte le conf.
+        #    result = api.getArancinoConf()
+
+        response = jsonify(result[0])
+        response.status_code = result[1]
+        return response
+
 
     @app.route('/api/v1/ports/<port_id>/identify', methods=['POST'])
     @auth.login_required

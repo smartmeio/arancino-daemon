@@ -1,5 +1,13 @@
 # Changelog
 
+#### v 2.X.Y 2022.XX.YY
+* Improve: Serial ports commands are read and queued, the execution is done in a separate thread. [#31egtz3](https://app.clickup.com/t/31egtz3)
+* Improve: Store and Mstore commands are executed in pipeline. [#31egugq](https://app.clickup.com/t/31egugq)
+* Delete: Arancino Transmitter moved to new service. [#31egqqg](https://app.clickup.com/t/31egqqg)
+* Add: support for .zip firmware extension. [#1zhvp2j](https://app.clickup.com/t/1zhvp2j ) 
+* Change: configuration files type to yaml. [#1q2rh0a](https://app.clickup.com/t/1q2rh0a)
+* Improve: retrieve MCU family by vid and pid on discovery, for Serial Port type. [#26b2fxb](https://app.clickup.com/t/26b2fxb)  
+
 #### v 2.4.0 2022.01.20
 * Introduced Arancino Transmitter [#gn8b8f](https://app.clickup.com/t/gn8b8f)
 * Changed timestamp format sent in response of `START` command. [#j1b6yc](https://app.clickup.com/t/j1b6yc)

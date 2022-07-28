@@ -22,6 +22,13 @@ under the License
 from enum import Enum
 
 
+class EnvType:
+    DEV = "DEV"
+    DEVELOPMENT = "DEVELOPMENT"
+    PROD = "PROD"
+    TEST = "TEST"
+    PRODUCTION = "PRODUCTION"
+
 class RedisInstancesType(Enum):
     VOLATILE = 1
     PERSISTENT = 2
@@ -633,13 +640,6 @@ class ArancinoPortInteroceptionAttributes:
     TEMPERATURE = "TEMP"
 
 
-class MicrocontrollerFamily:
-    SAMD21 =    "SAMD21"
-    NRF52 =     "NRF52"
-    RP20 =      "RP20"
-    STM32 =     "STM32"
-
-
 COMPATIBILITY_MATRIX_MOD_SERIAL = {
     #MODULE : #LIBRARY
 #    "0.0.1" : ["0.0.1"],
@@ -669,6 +669,8 @@ COMPATIBILITY_MATRIX_MOD_SERIAL = {
     "2.2.0": [">=0.4.0,<1.0.0", ">=1.3.0"],
     "2.3.0": [">=1.3.0", ">=1.3.0"],
     "2.4.0": [">=2.0.0"],
+    "2.4.1": [">=2.0.0"],
+    "2.5.0": [">=2.0.0"],
     #"2.0.0": ["<0.3.0", ">=1.2.0"], # for tests
 }
 
@@ -685,6 +687,8 @@ COMPATIBILITY_MATRIX_MOD_TEST = {
     "2.2.0": [">=1.0.0"],
     "2.3.0": [">=1.0.0"],
     "2.4.0": [">=1.0.0"],
+    "2.4.1": [">=1.0.0"],
+    "2.5.0": [">=1.0.0"],
 }
 
 

@@ -6,7 +6,7 @@ implement the Arancino Cortex Protocol. It can manage multiple connection at tim
 - [Getting Started](docs/GETTINGSTARTED.md)
 - [Configuration](docs:/CONFIGURATION.md)
 - [Rest API v1.0](docs/APIv1.0.md)
-- [Transmitter Module](docs/TRANSMITTER.md)
+
 
 
 ## Compatibility Matrix
@@ -47,3 +47,4 @@ implement the Arancino Cortex Protocol. It can manage multiple connection at tim
 | `2.2.0`			| 		| 					|
 | `2.3.0`			| 		| 					|
 | `2.4.0`			| 		| `2.0.0`			|
+| `2.5.0`			| `>=`  | `2.0.0`			|
