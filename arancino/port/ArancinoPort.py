@@ -18,18 +18,20 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 """
-
+import threading
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from logging import ERROR
 from types import FunctionType, MethodType
 #from arancino.port.ArancinoPort import PortTypes
+from arancino import ArancinoCortex
 from arancino.ArancinoCortex import *
-from arancino.utils.ArancinoUtils import ArancinoLogger, stringToBool2, ArancinoConfig, \
-    ArancinoEnvironment
+from arancino.utils.ArancinoUtils import ArancinoLogger, stringToBool2, ArancinoConfig, ArancinoEnvironment
 from arancino.ArancinoConstants import ArancinoCommandErrorCodes
 from arancino.ArancinoDataStore import ArancinoDataStore
+from arancino.utils.ArancinoEventMessage import ArancinoEventMessage
 import time
+
 
 import semantic_version
 
@@ -85,6 +87,8 @@ class ArancinoPort(object):
         self._reset_reconnection_delay = None
         #endregion
 
+        self._log_prefix = ""
+
         # Command Executor
         # self._executor = ArancinoCommandExecutor(self._id, self._device)
 
@@ -100,6 +104,7 @@ class ArancinoPort(object):
 
         self.__first_time = True
 
+        self.__HEARTBEAT = None
 
     def _retrieveStartCmdArgs(self, args):
         """
@@ -240,72 +245,8 @@ class ArancinoPort(object):
 
         else:
             raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
-
-        # else:
-        #     pass
-            # paramentri non sufficienti
-
-
-    def __retrieveStartCmdArgs(self, args):
-        arg_num = len(args)
-
-        ### Retrieving some info and metadata: ###
-
-        # Arancino Library Version
-        if arg_num > 0:
-            arancino_lib_version = semantic_version.Version(args[0])
-            self._setLibVersion(arancino_lib_version)
-
-            LOG.debug("{} Arancino Library Compatibile Versions: {}".format(self._log_prefix, self._compatibility_array))
-
-# #version checkpoint
-# checkpoint_version = semantic_version.SimpleSpec("2.0.0")
-# if arancino_lib_version < checkpoint_version:
-
-# - 1 - library version
-# - 2 - firmware name
-# - 3 - firmware version
-# - 4 - upload datetime
-# - 5 - core version
-
-            for compatible_ver in self._compatibility_array:
-                semver_compatible_ver = semantic_version.SimpleSpec(compatible_ver)
-                if arancino_lib_version in semver_compatible_ver:
-                    self._setComapitibility(True)
-                    break
-
-            started = True if self.isCompatible() else False
-            self._setStarted(started)
-
-
-        # Arancino Firmware Name
-        if arg_num > 1:
-            arancino_fw_name = None if args[1].strip() == "" else args[1].strip()
-            self._setFirmwareName(arancino_fw_name)
-
-        # Arancino Firmware Version
-        if arg_num > 2:
-            arancino_fw_version = None if args[2].strip() == "" else semantic_version.Version(args[2])
-            self._setFirmwareVersion(arancino_fw_version)
-
-        # Arancino Firmware Upload Datetime/Timestamp
-        if arg_num > 3:
-            arancino_firmware_upload_datetime = None if args[3].strip() == "" else datetime.strptime(args[3], '%b %d %Y %H:%M:%S %z')
-            arancino_firmware_upload_datetime = datetime.timestamp(arancino_firmware_upload_datetime)
-            arancino_firmware_upload_datetime = datetime.fromtimestamp(arancino_firmware_upload_datetime)
-            self._setFirmwareBuildDate(arancino_firmware_upload_datetime)
-
-        #Arancino Core Version
-        if arg_num > 4:
-            arancino_core_version = None if args[4].strip() == "" else semantic_version.Version(args[4])
-            self._setFirmwareCoreVersion(arancino_core_version)
-
-
-        if not self.isCompatible():
-            self._setComapitibility(False)
-            raise NonCompatibilityException("Module version " + str(ENV.version) + " can not work with Library version " + str(self.getLibVersion()), ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
-
-
+       
+            
     def unplug(self):
         self.disconnect()
         self._m_s_plugged = False
@@ -317,7 +258,9 @@ class ArancinoPort(object):
 
         :return:
         """
-        pass
+        #####self.startHeartbeat()
+        self.__HEARTBEAT = ArancinoHeartBeat(self, self.sendArancinoEventsMessage)
+        self.__HEARTBEAT.start()
 
 
     @abstractmethod
@@ -326,8 +269,9 @@ class ArancinoPort(object):
 
         :return:
         """
-        pass
-
+        #####self.stopHeartbeat()
+        self.__HEARTBEAT.stop()
+        
 
     @abstractmethod
     def sendResponse(self, response):
@@ -354,6 +298,7 @@ class ArancinoPort(object):
     def upload(self, firmware):
         pass
 
+
     #@abstractmethod
     def _commandReceivedHandlerAbs(self, raw_command):
         """
@@ -373,22 +318,27 @@ class ArancinoPort(object):
             acmd = ArancinoComamnd(raw_command=raw_command)
             LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.getId(), str(acmd.getArguments())))
 
-            # check if the received command handler callback function is defined
-            if self._received_command_handler is not None:
-                self._received_command_handler(self._id, acmd)
+            if acmd.getId() == ArancinoCommandIdentifiers.RSP_SYS_HEARTBEAT["id"]:
+                self.__heartbeatResponse()
+            else:
 
-            # call the Command Executor and get a arancino response
-            arsp = self._executor.exec(acmd)
+                # check if the received command handler callback function is defined
+                if self._received_command_handler is not None:
+                    self._received_command_handler(self._id, acmd)
 
-            # create the Arancino Response object
-            #arsp = ArancinoResponse(raw_response=raw_response)
 
-            # if the command is START command, the ArancinoResponse is generic and it should
-            # evaluated here and not in the CommandExecutor. CommandExecutor only uses the datastore
-            # and not the port itself. The START command contains information about the connecting port
-            # that the command executor is not able to use.
-            if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
-                self._retrieveStartCmdArgs(acmd.getArguments())
+                # call the Command Executor and get a arancino response
+                arsp = self._executor.exec(acmd)
+
+                # create the Arancino Response object
+                #arsp = ArancinoResponse(raw_response=raw_response)
+
+                # if the command is START command, the ArancinoResponse is generic and it should
+                # evaluated here and not in the CommandExecutor. CommandExecutor only uses the datastore
+                # and not the port itself. The START command contains information about the connecting port
+                # that the command executor is not able to use.
+                if acmd.getId() == ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
+                    self._retrieveStartCmdArgs(acmd.getArguments())
 
         except ArancinoException as ex:
             if acmd is not None:
@@ -428,6 +378,21 @@ class ArancinoPort(object):
         :return: void
         """
         pass
+
+    @abstractmethod
+    def sendArancinoEventsMessage(self, message: ArancinoEventMessage):
+        try:
+
+            ds = DATASTORE.getDataStoreStd()
+            channel = "events"
+            message = message.getMessageString()
+            num = ds.publish(channel, message)
+
+            if num == 0:
+                LOG.warn("{} No clients received Arancino Event Message. Is Arancino Interface running?".format(self._log_prefix))
+
+        except Exception as ex:
+            LOG.error("{} Error while sending Arancino Event Message: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
 
 
     def identify(self):
@@ -702,6 +667,15 @@ class ArancinoPort(object):
 
     #endregion
 
+    #region UPLOAD CMD
+    def _setUploadCmd(self, upload_cmd):
+        if upload_cmd:
+            self.__upload_cmd = upload_cmd
+
+    def getUploadCmd(self):
+        return self.__upload_cmd
+    #endregion
+
     #region Set Handlers
 
     def setDisconnectionHandler(self, disconnection_handler):
@@ -720,6 +694,161 @@ class ArancinoPort(object):
     #endregion
 
 
+class ArancinoHeartBeat(threading.Thread):
+
+    def __init__(self, port, sendEventHandler):
+        
+        self.__port = port
+        self.__name = "{}-{}".format(self.__class__.__name__, self.__port.getId())
+        self.__sendEventHandler = sendEventHandler
+        threading.Thread.__init__(self, name=self.__name)
+
+        port_type = port._port_type.name.lower() 
+
+        #reflection
+        # TODO da rivedere dopo il passaggio al nuovo sistema di configurazione
+        cfg_rate = getattr(CONF, "get_port_{}_heartbeat_rate".format(port_type))
+        cfg_time = getattr(CONF, "get_port_{}_heartbeat_time".format(port_type))
+        cfg_attempts = getattr(CONF, "get_port_{}_heartbeat_attempts".format(port_type))
+        
+        # heartbeat configuration
+        self.__heartbeatRate = cfg_rate()
+        self.__heartbeatTimeRange = cfg_time()
+        self.__heartbeatCountMax = cfg_attempts()
+        
+        # heartbeat control variables
+        self.__heartbeatCount = 1
+        self.__heartbeatStop = True
+        self.__heartbeatTime0 = None
+        self.__heartbeatTime1 = None
+
+        self.__redis_heartbeat_pubsub = DATASTORE.getDataStoreRsvd().pubsub()
+        self.__redis_heartbeat_pubsub_thread = None
+        self.__redis_hearbeat_ch0 = "{}_HB0".format(self.__port.getId())
+        self.__redis_hearbeat_ch1 = "{}_HB1".format(self.__port.getId())
+        
+        self._log_prefix = "Heartbeat [{} - {}]".format(str(port._port_type.name), port.getId())
+
+    def stop(self):
+        self.__redis_heartbeat_pubsub.unsubscribe(self.__redis_hearbeat_ch0)
+        self.__redis_heartbeat_pubsub.unsubscribe(self.__redis_hearbeat_ch0)
+        if self.__redis_heartbeat_pubsub_thread:
+            self.__redis_heartbeat_pubsub_thread.stop()
+
+        self.__heartbeatStop = True
+
+
+
+
+    def run(self):
+        LOG.info("{} Start Heartbeat".format(self._log_prefix))
+        self.__heartbeatStop = False
+        #self.__heartbeat_subscribe()
+
+        self.__heartbeat_subscribe()
+
+        #while not self.__heartbeatStop.is_set():
+        while not self.__heartbeatStop:
+
+            time.sleep(self.__heartbeatRate)
+
+            if self.__port.isConnected() and self.__port.isStarted():
+
+                # check sul numero di tentativi
+                if self.__heartbeatCount <= self.__heartbeatCountMax:
+                    
+                    LOG.debug("{} Heartbeat Attempt #{} for the port".format(self._log_prefix, str(self.__heartbeatCount)))
+
+                    # verifico se il primo hb é arrivato
+                    if self.__heartbeatTime0:
+                        
+                        # verifico se il secondo hb é arrivato 
+                        if self.__heartbeatTime1:
+                            
+                            ts = self.__heartbeatTime1 - self.__heartbeatTime0
+
+                            if ts <= self.__heartbeatTimeRange:
+                                LOG.debug("{} Heartbeat detected: {}".format(self._log_prefix, ts))
+                            else:
+                                LOG.warn("{} Heartbeat detected but over the range: {}".format(self._log_prefix, ts))
+
+                                # crea Arancino Event Message.
+                                aem = ArancinoEventMessage()
+                                aem.AES = CONF.get_serial_number()
+                                aem.MESSAGE = "{} Heartbeat detected but over the range: {}".format(self._log_prefix, ts)
+                                aem.SEVERITY = aem.Serverity.WARNING
+                                aem.SOURCE = "DAEMON"
+
+                                # invia Arancino Event Message tramite Handler esterno.
+                                self.__sendEventHandler(aem)
+
+
+                            # reset delle variabili
+                            self.__heartbeatTime0 = None
+                            self.__heartbeatTime1 = None
+                            self.__heartbeatCount = 1
+
+                        # se non é arrivato il secondo hb incremento il contatore
+                        else:
+                            self.__heartbeatCount += 1
+                            
+                    
+                    # se non é arrivato il primohb incremento il contatore
+                    else:
+                        self.__heartbeatCount += 1
+                    
+                else:
+                    LOG.warn("{} No Heartbeat detected for the port.".format(self._log_prefix))
+                     #self.stopHeartbeat()
+
+                    # Create Arancino Event Message.
+                    aem = ArancinoEventMessage()
+                    aem.AES = CONF.get_serial_number()
+                    aem.MESSAGE = "{} No Heartbeat detected for the port.".format(self._log_prefix)
+                    aem.SEVERITY = aem.Serverity.ERROR
+                    aem.SOURCE = "DAEMON"
+
+                    # invia Arancino Event Message tramite Handler esterno.
+                    self.__sendEventHandler(aem)
+
+
+                    self.__port.disconnect()
+
+        LOG.info("{} End Heartbeat".format(self._log_prefix))
+
+    #region heartbeat subscriotion redis
+    def __heartbeat_subscribe(self):
+
+        self.__redis_heartbeat_pubsub.subscribe(**{
+            self.__redis_hearbeat_ch0: self.__heartbeat_sub_0,
+            self.__redis_hearbeat_ch1: self.__heartbeat_sub_1
+        })
+        self.__redis_heartbeat_pubsub_thread = self.__redis_heartbeat_pubsub.run_in_thread(sleep_time=.01)
+
+
+    def __heartbeat_sub_0(self, data):
+        LOG.debug("RECEIVING HB 0: {}".format(data))
+        ts_str = data['data']
+        self.__heartbeatTime0 = int(datetime.now().timestamp() * 1000)
+
+    def __heartbeat_sub_1(self, data):
+        LOG.debug("RECEIVING HB 1: {}".format(data))
+        ts_str = data['data']
+        self.__heartbeatTime1 = int(datetime.now().timestamp() * 1000)
+
+    def __heartbeat_convert_timestamp(self, ts_str):
+
+        ts = None
+        try:
+            ts = float(ts_str)
+        except ValueError as ex:
+            LOG.error("{} Conversion Error: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
+        finally:
+            return ts
+
+    #endregion
+
+
 class PortTypes(Enum):
 
     SERIAL = 1        # Serial
@@ -728,3 +857,4 @@ class PortTypes(Enum):
     MQTT = 4          # Network MQTT
     BLUETOOTH = 5     # Bluetooth
     TEST = 6          # Fake Port for Test purpose
+    UART_BLE = 7      # UART simulated port over BLE

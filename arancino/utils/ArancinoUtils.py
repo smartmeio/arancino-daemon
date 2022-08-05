@@ -197,7 +197,6 @@ class ArancinoConfig:
     def cfg(self):
         return self._cfg
 
-
 @Singleton
 class ArancinoLogger:
 
@@ -275,7 +274,7 @@ class CustomConsoleFormatter(logging.Formatter):
 
         #format_pre = "%(asctime)s - %(name)s - "
         if self.__level.upper() == 'DEBUG':
-            format_pre = "%(asctime)s - %(name)s : %(threadName)s.%(filename)s.%(funcName)s:%(lineno)d - "
+            format_pre = "%(asctime)s - %(name)s : [%(thread)d]%(threadName)s.%(filename)s.%(funcName)s:%(lineno)d - "
 
 
         self.FORMATS = {

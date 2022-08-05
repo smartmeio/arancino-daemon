@@ -21,6 +21,7 @@ under the License
 
 from serial.tools import list_ports
 
+from arancino.port.ArancinoPort import PortTypes
 from arancino.utils.ArancinoUtils import ArancinoConfig
 from arancino.port.ArancinoPortFilter import FilterTypes
 from arancino.port.serial.ArancinoSerialPortFilter import ArancinoSerialPortFilter
@@ -35,6 +36,9 @@ class ArancinoSerialDiscovery:
         self.__filter = ArancinoSerialPortFilter()
         self.__filter_type = CONF.get("port").get("serial").get("filter_type")
         self.__filter_list = CONF.get("port").get("serial").get("filter_list")
+
+        self.__portType = PortTypes.SERIAL
+        self.__log_prefix = "Arancino Discovery {}".format(self.__portType.name)
 
 
     # TODO: this can be an abstract method
@@ -60,6 +64,7 @@ class ArancinoSerialDiscovery:
             if id not in ports:
                     del collection[id]
 
+        del ports
 
         return collection
 
@@ -138,16 +143,6 @@ class ArancinoSerialDiscovery:
 
         return None
 
-    """
-    def __retrieve_family_by_vid_pid_old(self, port):
-        families = CONF.get("port").get("serial").get("family")
-        vidpid = "{}:{}".format("0X{:04X}".format(port.vid), "0X{:04X}".format(port.pid))
-        for fam in families:
 
-            for item in families[fam]:
-                if item.upper() == vidpid:
-
-                    return fam
-
-        return None
-    """
+    def stop(self):
+        pass

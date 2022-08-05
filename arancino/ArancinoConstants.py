@@ -172,6 +172,12 @@ class ArancinoCommandIdentifiers:
     CMD_SYS_START = {"id": __CMD_SYS_START, "args": 2, "op": ArancinoOperators.EQUAL}
     "Start Commmand"
 
+
+    # sys response
+    __RSP_SYS_HEARTBEAT = 'HB'
+    RSP_SYS_HEARTBEAT = {"id": __RSP_SYS_HEARTBEAT, "args": 0, "op": ArancinoOperators.EQUAL}
+    "Haertbeat Response"
+
     # Simple Operation Commands
     __CMD_APP_GET = 'GET'
     CMD_APP_GET = {"id": __CMD_APP_GET, "args": 1, "op": ArancinoOperators.EQUAL}
@@ -299,6 +305,7 @@ class ArancinoCommandIdentifiers:
         __CMD_APP_STORETAGS: CMD_APP_STORETAGS,
         __CMD_APP_MSTORE: CMD_APP_MSTORE,
         __CMD_APP_INTEROCEP: CMD_APP_INTEROCEP,
+        __RSP_SYS_HEARTBEAT: RSP_SYS_HEARTBEAT
     }
     "Complete dictionary of all available commands: " \
     "{ 'SET': {'id': 'SET', 'args': 2} , ... }"
@@ -330,6 +337,7 @@ class ArancinoCommandIdentifiers:
                      __CMD_APP_STORETAGS,
                      __CMD_APP_MSTORE,
                      __CMD_APP_INTEROCEP,
+                     __RSP_SYS_HEARTBEAT
                      ]
     "Complete list of all available commands:" \
     "[ 'SET', 'GET', ... ]"
@@ -691,6 +699,13 @@ COMPATIBILITY_MATRIX_MOD_TEST = {
     "2.5.0": [">=1.0.0"],
 }
 
+COMPATIBILITY_MATRIX_MOD_MQTT = {
+    "2.4.0": [">=2.0.0"],
+}
+
+COMPATIBILITY_MATRIX_MOD_UART_BLE = {
+    "2.4.0": [">=2.0.0"],
+}
 
 SUFFIX_TMSTP = "TSTMP"
 SUFFIX_TAG = "TSTAG"
