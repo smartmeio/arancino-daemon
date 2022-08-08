@@ -29,8 +29,8 @@ import paho.mqtt.client as mqtt
 
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance()
-TRACE = CONF.get_log_print_stack_trace()
+CONF = ArancinoConfig.Instance().cfg
+TRACE = CONF.get("log").get("trace")
 
 class ArancinoMqttHandler():
 

@@ -2,7 +2,7 @@ general:
 
   # Polling cycle time (in seconds) to discover new ports.
   cycle_time: 10
-
+  
   #number of commands (store, mstore) to add in the pipeline before executing them min: 1 max: 1000
   pipeline_length: 1000
 
@@ -13,11 +13,11 @@ general:
 redis:
 
   # Redis Server host of volatile instance
-  host_volatile: localhost
+  host_volatile: "localhost"
 
 
   # Redis Server host of persistent instance
-  host_persistent: localhost
+  host_persistent: "localhost"
 
 
   # Redis Server port of volatile instance
@@ -60,7 +60,6 @@ redis:
   #
   #      Note: Time Series data are usually stored in the volatile instance. If the device
   #          power off, you lose your data in any case.
-  #retetion: 3600000
   retetion: 3600000
 
   volatile:
@@ -139,17 +138,22 @@ port:
 
 
   port_type_list:
-  - serial
-  - test
+    - serial
+    - test
+    - mqtt
+    - ble
 
 
   serial:
+    
+    # Enables discovery on serial port type
+    discovery: True
 
     mcu_type_list:
-    - samd21
-    - nrf52
-    - stm32
-    - rp20
+      - samd21
+      - nrf52
+      - stm32
+      - rp20
 
 
     # Automatically enables (and connect) a new discovered Port.
@@ -187,11 +191,11 @@ port:
     #   - 0x2E8A:0x000A - A4000 (aka Arancino Pico) (RP2040)
     #   - 0x0483:0x5740 - A6000-A7000-A8000 (aka Arancino V*) (STM32)
     filter_list:
-    - 0x04D8:0xECD9
-    - 0x04D8:0xECDA
-    - 0x1915:0x521F
-    - 0x2E8A:0x000A
-    - 0x0483 0x5740
+      - "0x04D8:0xECD9"
+      - "0x04D8:0xECDA"
+      - "0x1915:0x521F"
+      - "0x2E8A:0x000A"
+      - "0x0483 0x5740"
 
 
     # Timeout in seconds in serial connection Min: 1
@@ -201,7 +205,7 @@ port:
     # Command spawned when Upload function is called. The command
     #   could have one or more placeholders. Placeholders are all the
     #   attributes of the Port Class.
-    upload_command: /usr/bin/run-arancino-bossac {port._device} {firmware}
+    #upload_command: "/usr/bin/run-arancino-bossac {port._device} {firmware}"
 
 
     # Reset the port on connection, override the default configuration (can be overrided by the mcu family)
@@ -214,12 +218,21 @@ port:
     # Queue size for buffering commands
     queue_max_size: 1024
 
+    # time (in seconds) between each heartbeat check
+    heartbeat_rate: 5
+
+    # time threshold (in milliseconds) between to heartbeat #1 and #2 used to evaluate the healty of the system
+    heartbeat_time: 10
+
+    # number of heartbeat checks, when no heartbeat is detected, before send alert.
+    heartbeat_attempts: 5
+
 
     # Specific configurations for the SAMD21 microcontoller.
     samd21:
       list: #list of possible vid:pid
-      - "0x04D8:0xECDA"
-      - "0x04D8:0xECD9"
+        - "0x04D8:0xECDA"
+        - "0x04D8:0xECD9"
       upload_command: "/usr/bin/run-arancino-bossac {port._device} {firmware}"
       reset_on_connect: true
       reset_reconnection_delay: 5
@@ -229,7 +242,7 @@ port:
     # Specific configurations for the NRF52 microcontoller.
     nrf52:
       list: #list of possible vid:pid
-      - "0x1915:0x521F"
+        - "0x1915:0x521F"
       upload_command: "/usr/bin/adafruit-nrfutil dfu serial -pkg {firmware} -p {port._device} -b 115200 --singlebank"
       reset_on_connect: true
       reset_reconnection_delay: 40
@@ -239,8 +252,8 @@ port:
     # Specific configurations for the STM32 microcontoller.
     stm32:
       list: #list of possible vid:pid
-      - "0x0483:0x5740"
-      upload_command: /usr/bin/run-arancino-arduinoSTM32load {port._device} {firmware}
+        - "0x0483:0x5740"
+      upload_command: "/usr/bin/run-arancino-arduinoSTM32load {port._device} {firmware}"
       reset_on_connect: true
       reset_reconnection_delay: 5
       comm_baudrate: 256000
@@ -249,7 +262,7 @@ port:
     # Specific configurations for the RP20 microcontoller.
     rp20:
       list: #list of possible vid:pid
-      - "0x2E8A:0x000A"
+        - "0x2E8A:0x000A"
       upload_command: "/usr/bin/run-arancino-uf2conv {port._device} {firmware}"
       reset_on_connect: true
       reset_reconnection_delay: 5
@@ -257,6 +270,8 @@ port:
 
 
   test:
+
+    discovery: true
 
     auto_enable: true
 
@@ -274,13 +289,125 @@ port:
     # The number of Oort to create for test purpose
     num: 1
 
-
     # Delay between each command in seconds (accepts float)
-    delay: 0
+    delay: 5
 
 
     # prefix of the id generated for the test port
     id_template: TESTPORT
+
+    # time (in seconds) between each heartbeat check
+    heartbeat_rate: 5
+
+    # time threshold (in milliseconds) between to heartbeat #1 and #2 used to evaluate the healty of the system
+    heartbeat_time: 10
+
+    # number of heartbeat checks, when no heartbeat is detected, before send alert.
+    heartbeat_attempts: 5
+
+
+  mqtt:
+
+  
+    # Enables discovery on mqtt port type
+    discovery: false
+
+    # Automatically enables (and connect) a new discovered Port.
+    auto_enable: true
+
+
+    # It's a flag used by an UI, to make the Port showable or not
+    #   Sets to true to make it not visible
+    hide: false
+
+
+    # Reset port on connection
+    reset_on_connect: false
+
+    filter_type: ALL
+    filter_list: []
+
+    # Mqtt-Bus Broker Connection Parameters
+    connection:
+
+      host: localhost
+      port: 1883
+      username: arancino-daemon
+      password: 12345678
+      client_id: 87654321
+      # Topic that will be used for discovery process
+      discovery_topic: arancino/discovery/87654321
+      # Topic that will be used for both send and receive (in relative subtopics)
+      cortex_topic: arancino/cortex/87654321
+      # Topic that will be used for mcu reset process
+      service_topic: arancino/service/87654321
+
+    # time (in seconds) between each heartbeat check
+    heartbeat_rate: 5
+
+    # time threshold (in milliseconds) between to heartbeat #1 and #2 used to evaluate the healty of the system
+    heartbeat_time: 100
+
+    # number of heartbeat checks, when no heartbeat is detected, before send alert.
+    heartbeat_attempts: 5
+
+  ble:
+
+    # Enables discovery on mqtt port type
+    discovery: false
+
+    # Automatically enables (and connect) a new discovered Port.
+    auto_enable: true
+
+
+    # It's a flag used by an UI, to make the Port showable or not
+    #   Sets to true to make it not visible
+    hide: false
+
+
+    # Reset port on connection
+    reset_on_connect: true
+
+    filter_type: ALL
+    filter_list: []
+
+    # command to be spawn when upload api is called. The command could have one or more placeholders.
+    upload_command: ...
+
+    # time (in seconds) between each heartbeat check
+    heartbeat_rate: 5
+
+    # time threshold (in milliseconds) between to heartbeat #1 and #2 used to evaluate the healty of the system
+    heartbeat_time: 200
+
+    # number of heartbeat checks, when no heartbeat is detected, before send alert.
+    heartbeat_attempts: 5
+
+    # Timeout in seconds in connection. Min: 1
+    timeout: 10
+
+    # size for Tx and Rx UartBle buffers
+    buffer_size: 1024
+
+    services:
+
+      # name for service tx characteristic of device
+      vendor_communication_uuid: 6E400001-B5A3-F393-E0A9-E50E24DCCA9E
+
+      # name for tx characteristic of device
+      vendor_tx_uuid: 6E400003-B5A3-F393-E0A9-E50E24DCCA9E
+
+      # name for rx characteristic of device
+      vendor_rx_uuid: 6E400002-B5A3-F393-E0A9-E50E24DCCA9E
+
+      # name for service tx characteristic of device
+      vendor_service_uuid: 01010101-0101-0101-0101-010101010101
+
+      # name for service tx characteristic of device
+      vendor_service_tx_uuid: 01010003-B5A3-F393-E0A9-E50E24DCCA9E
+
+      # name for service rx characteristic of device
+      vendor_service_rx_uuid: 01010002-B5A3-F393-E0A9-E50E24DCCA9E
 
 
 log:
@@ -290,7 +417,7 @@ log:
   #   - WARNING
   #   - INFO
   #   - DEBUG
-  level: INFO
+  level: DEBUG
 
 
   # Name to print with the logger
@@ -303,7 +430,7 @@ log:
 
 
   # File Handler
-  handler_file: false
+  handler_file: true
 
 
   # Size in MBytes only for the handler_file. Min: 1, Max: 5, Default: 1

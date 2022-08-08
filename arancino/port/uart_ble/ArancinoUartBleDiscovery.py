@@ -34,7 +34,7 @@ from threading import Thread, Lock
 import time
 from arancino.port.ArancinoPort import PortTypes
 
-CONF = ArancinoConfig.Instance()
+CONF = ArancinoConfig.Instance().cfg
 LOG = ArancinoLogger.Instance().getLogger()
 
 
@@ -42,8 +42,8 @@ class ArancinoUartBleDiscovery:
 
     def __init__(self):
         self.__filter = ArancinoUartBlePortFilter()
-        self.__filter_type = CONF.get_port_serial_filter_type()
-        self.__filter_list = CONF.get_port_serial_filter_list()
+        self.__filter_type = CONF.get("port").get("ble").get("filter_type")
+        self.__filter_list = CONF.get("port").get("ble").get("filter_list")
 
         self.__real_list = {}
 

@@ -74,10 +74,10 @@ class Arancino(Thread):
             self.__ports_connected = {}
             self.__ports_discovered = {}
 
-            self.__serial_discovery = ArancinoSerialDiscovery() if CONF.get_port_serial_discovery() else None
-            self.__test_discovery = ArancinoTestDiscovery() if CONF.get_port_test_discovery() else None
-            self.__uart_ble_discovery = ArancinoUartBleDiscovery() if CONF.get_port_uart_ble_discovery() else None
-            self.__mqtt_discovery = ArancinoMqttDiscovery()  if CONF.get_port_mqtt_discovery() else None
+            self.__serial_discovery = ArancinoSerialDiscovery() if CONF.get("port").get("serial").get("discovery") else None
+            self.__test_discovery = ArancinoTestDiscovery() if CONF.get("port").get("test").get("discovery")  else None
+            self.__uart_ble_discovery = ArancinoUartBleDiscovery() if CONF.get("port").get("ble").get("discovery")  else None
+            self.__mqtt_discovery = ArancinoMqttDiscovery()  if CONF.get("port").get("mqtt").get("discovery")  else None
 
             self.__serial_ports = {}
             self.__test_ports = {}
@@ -116,13 +116,13 @@ class Arancino(Thread):
         LOG.info("Starting Exit procedure... ")
 
         LOG.info("Disabling Discovery...")
-        if CONF.get_port_serial_discovery():
+        if CONF.get("port").get("serial").get("discovery"):
             self.__serial_discovery.stop()
 
-        if CONF.get_port_test_discovery():
+        if CONF.get("port").get("test").get("discovery"):
             self.__test_discovery.stop()
 
-        if CONF.get_port_uart_ble_discovery():
+        if CONF.get("port").get("ble").get("discovery"):
             self.__uart_ble_discovery.stop()
 
         LOG.info("Disconnecting Ports... ")

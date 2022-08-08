@@ -31,8 +31,8 @@ import paho.mqtt.client as mqtt
 
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance()
-TRACE = CONF.get_log_print_stack_trace()
+CONF = ArancinoConfig.Instance().cfg
+TRACE = CONF.get("log").get("trace")
 
 
 class ArancinoMqttPort(ArancinoPort):
@@ -45,21 +45,21 @@ class ArancinoMqttPort(ArancinoPort):
         self.__mqtt_client = mqtt_client
         
         # Topic used by Arancino Daemon (Left Hemisphere) to receive Cortex Commands from Arancino MQTT Ports (Right Hemisphere)
-        self.__mqtt_topic_cmd_from_mcu = "{}/{}/cmd_from_mcu".format(CONF.get_port_mqtt_topic_cortex(), port_id)
+        self.__mqtt_topic_cmd_from_mcu = "{}/{}/cmd_from_mcu".format(CONF.get("port").get("mqtt").get("connection").get("cortex_topic"), port_id)
         # Topic used by Arancino Daemon (Left Hemisphere) to send back Cortex Responses to Arancino MQTT Ports (Right Hemisphere)
-        self.__mqtt_topic_rsp_to_mcu = "{}/{}/rsp_to_mcu".format(CONF.get_port_mqtt_topic_cortex(), port_id)
+        self.__mqtt_topic_rsp_to_mcu = "{}/{}/rsp_to_mcu".format(CONF.get("port").get("mqtt").get("connection").get("cortex_topic"), port_id)
         # Topic used by Arancino Daemon (Left Hemisphere) to send Cortex Commands to Arancino MQTT Ports (Right Hemisphere)
-        self.__mqtt_topic_cmd_to_mcu = "{}/{}/cmd_to_mcu".format(CONF.get_port_mqtt_topic_cortex(), port_id)
+        self.__mqtt_topic_cmd_to_mcu = "{}/{}/cmd_to_mcu".format(CONF.get("port").get("mqtt").get("connection").get("cortex_topic"), port_id)
         # Topic used by Arancino Daemon (Left Hemisphere) to receive back Cortex Responses from Arancino MQTT Ports (Right Hemisphere)
-        self.__mqtt_topic_rsp_from_mcu = "{}/{}/rsp_from_mcu".format(CONF.get_port_mqtt_topic_cortex(), port_id)
+        self.__mqtt_topic_rsp_from_mcu = "{}/{}/rsp_from_mcu".format(CONF.get("port").get("mqtt").get("connection").get("cortex_topic"), port_id)
         # Topic used by
-        self.__mqtt_topic_service = CONF.get_port_mqtt_topic_service()
+        #self.__mqtt_topic_service = CONF.get_port_mqtt_topic_service()
         
         # Command Executor
         self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
 
         # Misc
-        self._compatibility_array = COMPATIBILITY_MATRIX_MOD_MQTT[str(CONF.get_metadata_version().truncate())]
+        #self._compatibility_array = COMPATIBILITY_MATRIX_MOD_MQTT[str(CONF.get_metadata_version().truncate())]
         self._log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
 
     def __connectionLostHandler(self):

@@ -140,9 +140,14 @@ port:
   port_type_list:
     - serial
     - test
+    - mqtt
+    - ble
 
 
   serial:
+    
+    # Enables discovery on serial port type
+    discovery: True
 
     mcu_type_list:
       - samd21
@@ -280,6 +285,110 @@ port:
 
     # prefix of the id generated for the test port
     id_template: TESTPORT
+
+
+  mqtt:
+
+  
+    # Enables discovery on mqtt port type
+    discovery: true
+
+    # Automatically enables (and connect) a new discovered Port.
+    auto_enable: true
+
+
+    # It's a flag used by an UI, to make the Port showable or not
+    #   Sets to true to make it not visible
+    hide: false
+
+
+    # Reset port on connection
+    reset_on_connect: false
+
+    filter_type: ALL
+    filter_list: []
+
+    # Mqtt-Bus Broker Connection Parameters
+    connection:
+
+      host: localhost
+      port: 1883
+      username: arancino-daemon
+      password: 12345678
+      client_id: 87654321
+      # Topic that will be used for discovery process
+      discovery_topic: arancino/discovery/87654321
+      # Topic that will be used for both send and receive (in relative subtopics)
+      cortex_topic: arancino/cortex/87654321
+      # Topic that will be used for mcu reset process
+      service_topic: arancino/service/87654321
+
+    # time (in seconds) between each heartbeat check
+    heartbeat_rate: 5
+
+    # time threshold (in milliseconds) between to heartbeat #1 and #2 used to evaluate the healty of the system
+    heartbeat_time: 100
+
+    # number of heartbeat checks, when no heartbeat is detected, before send alert.
+    heartbeat_attempts: 5
+
+  ble:
+
+    # Enables discovery on mqtt port type
+    discovery: true
+
+    # Automatically enables (and connect) a new discovered Port.
+    auto_enable: true
+
+
+    # It's a flag used by an UI, to make the Port showable or not
+    #   Sets to true to make it not visible
+    hide: false
+
+
+    # Reset port on connection
+    reset_on_connect: true
+
+    filter_type: ALL
+    filter_list: []
+
+    # command to be spawn when upload api is called. The command could have one or more placeholders.
+    upload_command: nrfutil ...
+
+    # time (in seconds) between each heartbeat check
+    heartbeat_rate: 5
+
+    # time threshold (in milliseconds) between to heartbeat #1 and #2 used to evaluate the healty of the system
+    heartbeat_time: 200
+
+    # number of heartbeat checks, when no heartbeat is detected, before send alert.
+    heartbeat_attempts: 5
+
+    # Timeout in seconds in connection. Min: 1
+    timeout: 10
+
+    # size for Tx and Rx UartBle buffers
+    buffer_size: 1024
+
+    services:
+
+      # name for service tx characteristic of device
+      vendor_communication_uuid: 6E400001-B5A3-F393-E0A9-E50E24DCCA9E
+
+      # name for tx characteristic of device
+      vendor_tx_uuid: 6E400003-B5A3-F393-E0A9-E50E24DCCA9E
+
+      # name for rx characteristic of device
+      vendor_rx_uuid: 6E400002-B5A3-F393-E0A9-E50E24DCCA9E
+
+      # name for service tx characteristic of device
+      vendor_service_uuid: 01010101-0101-0101-0101-010101010101
+
+      # name for service tx characteristic of device
+      vendor_service_tx_uuid: 01010003-B5A3-F393-E0A9-E50E24DCCA9E
+
+      # name for service rx characteristic of device
+      vendor_service_rx_uuid: 01010002-B5A3-F393-E0A9-E50E24DCCA9E
 
 
 log:

@@ -704,17 +704,11 @@ class ArancinoHeartBeat(threading.Thread):
         threading.Thread.__init__(self, name=self.__name)
 
         port_type = port._port_type.name.lower() 
-
-        #reflection
-        # TODO da rivedere dopo il passaggio al nuovo sistema di configurazione
-        cfg_rate = getattr(CONF, "get_port_{}_heartbeat_rate".format(port_type))
-        cfg_time = getattr(CONF, "get_port_{}_heartbeat_time".format(port_type))
-        cfg_attempts = getattr(CONF, "get_port_{}_heartbeat_attempts".format(port_type))
         
         # heartbeat configuration
-        self.__heartbeatRate = cfg_rate()
-        self.__heartbeatTimeRange = cfg_time()
-        self.__heartbeatCountMax = cfg_attempts()
+        self.__heartbeatRate = CONF.get("port").get(port_type).get("heartbeat_rate")
+        self.__heartbeatTimeRange = CONF.get("port").get(port_type).get("heartbeat_time")
+        self.__heartbeatCountMax = CONF.get("port").get(port_type).get("heartbeat_attempts")    
         
         # heartbeat control variables
         self.__heartbeatCount = 1
@@ -774,7 +768,7 @@ class ArancinoHeartBeat(threading.Thread):
 
                                 # crea Arancino Event Message.
                                 aem = ArancinoEventMessage()
-                                aem.AES = CONF.get_serial_number()
+                                #aem.AES = CONF.get_serial_number()     #TODO what does it even mean???
                                 aem.MESSAGE = "{} Heartbeat detected but over the range: {}".format(self._log_prefix, ts)
                                 aem.SEVERITY = aem.Serverity.WARNING
                                 aem.SOURCE = "DAEMON"
@@ -803,7 +797,7 @@ class ArancinoHeartBeat(threading.Thread):
 
                     # Create Arancino Event Message.
                     aem = ArancinoEventMessage()
-                    aem.AES = CONF.get_serial_number()
+                    #aem.AES = CONF.get_serial_number()
                     aem.MESSAGE = "{} No Heartbeat detected for the port.".format(self._log_prefix)
                     aem.SEVERITY = aem.Serverity.ERROR
                     aem.SOURCE = "DAEMON"

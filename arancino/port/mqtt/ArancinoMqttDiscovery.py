@@ -31,27 +31,27 @@ import paho.mqtt.subscribe as subscribe
 import time
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance()
-TRACE = CONF.get_log_print_stack_trace()
+CONF = ArancinoConfig.Instance().cfg
+TRACE = CONF.get("log").get("trace")
 
 class ArancinoMqttDiscovery(object):
 
     def __init__(self):
         self.__filter = ArancinoMqttPortFilter()
-        self.__filter_type = CONF.get_port_mqtt_filter_type()
-        self.__filter_list = CONF.get_port_mqtt_filter_list()
+        self.__filter_type = CONF.get("port").get("mqtt").get("filter_type")
+        self.__filter_list = CONF.get("port").get("mqtt").get("filter_list")
 
         self.__list_discovered = []
         self._log_prefix = "[{} Discovery]".format(PortTypes.MQTT.name)
 
-        self.__mqtt_discovery_topic = CONF.get_port_mqtt_topic_discovery()
-        self.__mqtt_cortex_topic = CONF.get_port_mqtt_topic_cortex()
-        self.__mqtt_service_topic = CONF.get_port_mqtt_topic_service()
-        self.__mqtt_arancino_daemon_discovery_user = CONF.get_port_mqtt_username()
-        self.__mqtt_arancino_daemon_discovery_pass = CONF.get_port_mqtt_password()
-        self.__mqtt_arancino_daemon_broker_host = CONF.get_port_mqtt_host()
-        self.__mqtt_arancino_daemon_broker_port = CONF.get_port_mqtt_port()
-        self.__mqtt_arancino_daemon_client_id = CONF.get_port_mqtt_client_id()
+        self.__mqtt_discovery_topic = CONF.get("port").get("mqtt").get("connection").get("discovery_topic")
+        self.__mqtt_cortex_topic = CONF.get("port").get("mqtt").get("connection").get("cortex_topic")
+        self.__mqtt_service_topic = CONF.get("port").get("mqtt").get("connection").get("service_topic")
+        self.__mqtt_arancino_daemon_discovery_user = CONF.get("port").get("mqtt").get("connection").get("username")
+        self.__mqtt_arancino_daemon_discovery_pass = CONF.get("port").get("mqtt").get("connection").get("password")
+        self.__mqtt_arancino_daemon_broker_host = CONF.get("port").get("mqtt").get("connection").get("host")
+        self.__mqtt_arancino_daemon_broker_port = CONF.get("port").get("mqtt").get("connection").get("port")
+        self.__mqtt_arancino_daemon_client_id = CONF.get("port").get("mqtt").get("connection").get("client_id")
         
         try:
             self.__mqtt_client = mqtt.Client(client_id=self.__mqtt_arancino_daemon_client_id)
@@ -176,11 +176,11 @@ class ArancinoMqttDiscovery(object):
         for port in ports:
 
             p = ArancinoMqttPort(   port_id = port, #port is the id of the port sent via MQTT into discovery topic
-                                    device = CONF.get_port_mqtt_host(),
+                                    device = CONF.get("port").get("mqtt").get("connection").get("host"),
                                     mqtt_client = self.__mqtt_client,
                                     m_s_plugged=True, 
-                                    m_c_enabled=CONF.get_port_mqtt_enabled(), 
-                                    m_c_hide=CONF.get_port_mqtt_hide() )
+                                    m_c_enabled=CONF.get("port").get("mqtt").get("enabled"), 
+                                    m_c_hide=CONF.get("port").get("mqtt").get("hide") )
             
             new_ports_struct[p.getId()] = p
 
