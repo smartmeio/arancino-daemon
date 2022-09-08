@@ -219,7 +219,7 @@ def __get_arancinoapi_app():
 
         if file and allowed_file(file.filename):
             #filename = secure_filename(file.filename)
-            path = os.path.join(c.get_port_firmware_path(), port_id)
+            path = os.path.join(c.get("port").get("firmware_path"), port_id)
 
             if not os.path.isdir(path):
                 os.makedirs(path)
