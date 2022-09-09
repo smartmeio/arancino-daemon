@@ -1109,7 +1109,7 @@ class ArancinoCommandExecutor:
                     self.mstore_pipeline.execute()
                     stop2 = timeit.default_timer()
                     self.pipe_counter = 0
-                    LOG.debug(f"PIPELINE EXECUTION TIME: {stop2 - start2}")
+                    LOG.debug("PIPELINE EXECUTION TIME: {}".format(stop2 - start2))
 
                 return None
 
@@ -1182,7 +1182,7 @@ class ArancinoCommandExecutor:
                         self.mstore_pipeline.execute()
                         stop2 = timeit.default_timer()
                         self.pipe_counter = 0
-                        LOG.debug(f"PIPELINE EXECUTION TIME: {stop2 - start2}")
+                        LOG.debug("PIPELINE EXECUTION TIME: {}".format(stop2 - start2))
 
                     return None
                 else:
