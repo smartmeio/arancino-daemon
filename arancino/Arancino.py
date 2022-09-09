@@ -76,7 +76,7 @@ class Arancino(Thread):
 
             self.__serial_discovery = ArancinoSerialDiscovery() if CONF.get("port").get("serial").get("discovery") else None
             self.__test_discovery = ArancinoTestDiscovery() if CONF.get("port").get("test").get("discovery")  else None
-            self.__uart_ble_discovery = ArancinoUartBleDiscovery() if CONF.get("port").get("ble").get("discovery")  else None
+            self.__uart_ble_discovery = ArancinoUartBleDiscovery() if CONF.get("port").get("uart_ble").get("discovery")  else None
             self.__mqtt_discovery = ArancinoMqttDiscovery()  if CONF.get("port").get("mqtt").get("discovery")  else None
 
             self.__serial_ports = {}
@@ -122,7 +122,7 @@ class Arancino(Thread):
         if CONF.get("port").get("test").get("discovery"):
             self.__test_discovery.stop()
 
-        if CONF.get("port").get("ble").get("discovery"):
+        if CONF.get("port").get("uart_ble").get("discovery"):
             self.__uart_ble_discovery.stop()
 
         LOG.info("Disconnecting Ports... ")

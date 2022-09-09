@@ -147,7 +147,7 @@ port:
   serial:
     
     # Enables discovery on serial port type
-    discovery: True
+    discovery: false
 
     mcu_type_list:
       - samd21
@@ -190,12 +190,14 @@ port:
     #   - 0x1915:0x521F - A3000 (aka Arancino Volante) (NRF52)
     #   - 0x2E8A:0x000A - A4000 (aka Arancino Pico) (RP2040)
     #   - 0x0483:0x5740 - A6000-A7000-A8000 (aka Arancino V*) (STM32)
+    
+    # Xs need to be upper-case
     filter_list:
-      - "0x04D8:0xECD9"
-      - "0x04D8:0xECDA"
-      - "0x1915:0x521F"
-      - "0x2E8A:0x000A"
-      - "0x0483 0x5740"
+      - "0X04D8:0XECD9"
+      - "0X04D8:0XECDA"
+      - "0X1915:0X521F"
+      - "0X2E8A:0X000A"
+      - "0X0483:0X5740"
 
 
     # Timeout in seconds in serial connection Min: 1
@@ -231,8 +233,8 @@ port:
     # Specific configurations for the SAMD21 microcontoller.
     samd21:
       list: #list of possible vid:pid
-        - "0x04D8:0xECDA"
-        - "0x04D8:0xECD9"
+        - "0X04D8:0XECDA"
+        - "0X04D8:0XECD9"
       upload_command: "/usr/bin/run-arancino-bossac {port._device} {firmware}"
       reset_on_connect: true
       reset_reconnection_delay: 5
@@ -242,7 +244,7 @@ port:
     # Specific configurations for the NRF52 microcontoller.
     nrf52:
       list: #list of possible vid:pid
-        - "0x1915:0x521F"
+        - "0X1915:0X521F"
       upload_command: "/usr/bin/adafruit-nrfutil dfu serial -pkg {firmware} -p {port._device} -b 115200 --singlebank"
       reset_on_connect: true
       reset_reconnection_delay: 40
@@ -252,7 +254,7 @@ port:
     # Specific configurations for the STM32 microcontoller.
     stm32:
       list: #list of possible vid:pid
-        - "0x0483:0x5740"
+        - "0X0483:0X5740"
       upload_command: "/usr/bin/run-arancino-arduinoSTM32load {port._device} {firmware}"
       reset_on_connect: true
       reset_reconnection_delay: 5
@@ -262,7 +264,7 @@ port:
     # Specific configurations for the RP20 microcontoller.
     rp20:
       list: #list of possible vid:pid
-        - "0x2E8A:0x000A"
+        - "0X2E8A:0X000A"
       upload_command: "/usr/bin/run-arancino-uf2conv {port._device} {firmware}"
       reset_on_connect: true
       reset_reconnection_delay: 5
@@ -286,8 +288,8 @@ port:
     upload_command: null
 
 
-    # The number of Oort to create for test purpose
-    num: 1
+    # The number of Port to create for test purpose
+    num: 0
 
     # Delay between each command in seconds (accepts float)
     delay: 5
@@ -324,7 +326,7 @@ port:
     # Reset port on connection
     reset_on_connect: false
 
-    filter_type: ALL
+    filter_type: "ALL"
     filter_list: []
 
     # Mqtt-Bus Broker Connection Parameters
@@ -336,11 +338,11 @@ port:
       password: 12345678
       client_id: 87654321
       # Topic that will be used for discovery process
-      discovery_topic: arancino/discovery/87654321
+      discovery_topic: arancino/discovery
       # Topic that will be used for both send and receive (in relative subtopics)
-      cortex_topic: arancino/cortex/87654321
+      cortex_topic: arancino/cortex
       # Topic that will be used for mcu reset process
-      service_topic: arancino/service/87654321
+      service_topic: arancino/service
 
     # time (in seconds) between each heartbeat check
     heartbeat_rate: 5
@@ -351,10 +353,10 @@ port:
     # number of heartbeat checks, when no heartbeat is detected, before send alert.
     heartbeat_attempts: 5
 
-  ble:
+  uart_ble:
 
     # Enables discovery on mqtt port type
-    discovery: false
+    discovery: true
 
     # Automatically enables (and connect) a new discovered Port.
     auto_enable: true
@@ -372,8 +374,7 @@ port:
     filter_list: []
 
     # command to be spawn when upload api is called. The command could have one or more placeholders.
-    upload_command: ...
-
+    upload_command: nrfutil ...
     # time (in seconds) between each heartbeat check
     heartbeat_rate: 5
 

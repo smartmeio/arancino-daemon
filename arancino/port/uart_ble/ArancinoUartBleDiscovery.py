@@ -42,8 +42,8 @@ class ArancinoUartBleDiscovery:
 
     def __init__(self):
         self.__filter = ArancinoUartBlePortFilter()
-        self.__filter_type = CONF.get("port").get("ble").get("filter_type")
-        self.__filter_list = CONF.get("port").get("ble").get("filter_list")
+        self.__filter_type = CONF.get("port").get("uart_ble").get("filter_type")
+        self.__filter_list = CONF.get("port").get("uart_ble").get("filter_list")
 
         self.__real_list = {}
 
@@ -125,13 +125,13 @@ class ArancinoUartBleDiscovery:
 
     def __postFilterPorts(self, ports={}, filter_type=FilterTypes.ALL, filter_list=[]):
 
-        if filter_type == FilterTypes.ONLY:
+        if filter_type == FilterTypes.ONLY.name:
             return self.__filter.filterOnly(ports, filter_list)
 
-        elif filter_type == FilterTypes.EXCLUDE:
+        elif filter_type == FilterTypes.EXCLUDE.name:
             return self.__filter.filterExclude(ports, filter_list)
 
-        elif filter_type == FilterTypes.ALL:
+        elif filter_type == FilterTypes.ALL.name:
             return self.__filter.filterAll(ports, filter_list)
 
 
@@ -147,7 +147,7 @@ class ArancinoUartBleDiscovery:
         ports = self.__preFilterPorts(ports)
         ports = self.__transformInArancinoPorts(ports)
 
-        ports = self.__postFilterPorts(ports=ports, filter_type=self.__filter_type, filter_list=self.__filter_list)
+        ports = self.__postFilterPorts(ports=ports, filter_type=self.__filter_type, filter_list=self.__filter_list) if ports else {}
 
         for id, port in ports.items():
             if id not in collection:
@@ -186,8 +186,7 @@ class ArancinoUartBleDiscovery:
 
             name = adv.complete_name
             device = self.__ble.name
-            p = ArancinoUartBlePort(adv=adv, id=id, device=device, m_c_alias=name, m_s_plugged=True, timeout=CONF.get_port_uart_ble_timeout())
-            #p = ArancinoSerialPort(timeout=CONF.get_port_serial_timeout(), port_info=port, m_s_plugged=True, m_c_enabled=CONF.get_port_serial_enabled(), m_c_hide=CONF.get_port_serial_hide(), baudrate_comm=CONF.get_port_serial_comm_baudrate(), baudrate_reset=CONF.get_port_serial_reset_baudrate())
+            p = ArancinoUartBlePort(adv=adv, id=id, device=device, m_c_alias=name, m_s_plugged=True, timeout=CONF.get("port").get("uart_ble").get("timeout"))
             new_ports_struct[p.getId()] = p
 
         return new_ports_struct

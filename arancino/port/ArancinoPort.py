@@ -768,7 +768,7 @@ class ArancinoHeartBeat(threading.Thread):
 
                                 # crea Arancino Event Message.
                                 aem = ArancinoEventMessage()
-                                #aem.AES = CONF.get_serial_number()     #TODO what does it even mean???
+                                aem.AES = ENV.serial_number
                                 aem.MESSAGE = "{} Heartbeat detected but over the range: {}".format(self._log_prefix, ts)
                                 aem.SEVERITY = aem.Serverity.WARNING
                                 aem.SOURCE = "DAEMON"
@@ -797,7 +797,7 @@ class ArancinoHeartBeat(threading.Thread):
 
                     # Create Arancino Event Message.
                     aem = ArancinoEventMessage()
-                    #aem.AES = CONF.get_serial_number()
+                    aem.AES = ENV.serial_number
                     aem.MESSAGE = "{} No Heartbeat detected for the port.".format(self._log_prefix)
                     aem.SEVERITY = aem.Serverity.ERROR
                     aem.SOURCE = "DAEMON"

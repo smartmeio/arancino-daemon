@@ -25,7 +25,7 @@ from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.port.serial.ArancinoSerialHandler import ArancinoSerialHandler
 from arancino.ArancinoCortex import *
 from arancino.port.uart_ble.ArancinoUartBleHandler import ArancinoUartBleHandler
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
 from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 from adafruit_ble import BLERadio
 import time
@@ -35,6 +35,7 @@ from .ArancinoUartBleService import ArancinoUartBleService, ArancinoResetBleServ
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance().cfg
 TRACE = CONF.get("log").get("trace")
+ENV = ArancinoEnvironment.Instance()
 
 class ArancinoUartBlePort(ArancinoPort):
 
@@ -51,7 +52,7 @@ class ArancinoUartBlePort(ArancinoPort):
 
         self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
 
-        self._compatibility_array = COMPATIBILITY_MATRIX_MOD_UART_BLE[str(CONF.get_metadata_version().truncate())]
+        self._compatibility_array = COMPATIBILITY_MATRIX_MOD_SERIAL[str(ENV.version.truncate())]
 
         # # CALLBACK FUNCTIONS
         #self.setReceivedCommandHandler(receivedCommandHandler)  # this is the handler to be used to receive an ArancinoCommand and exec that command.
@@ -112,7 +113,7 @@ class ArancinoUartBlePort(ArancinoPort):
 
                         LOG.info("{} Connecting...".format(self._log_prefix))
 
-                        if CONF.get_port_uart_ble_reset_on_connect():
+                        if CONF.get("port").get("uart_ble").get("reset_on_connect"):
                             # first resetting
                             self.reset()
 

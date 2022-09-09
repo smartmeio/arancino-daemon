@@ -44,14 +44,14 @@ class ArancinoMqttDiscovery(object):
         self.__list_discovered = []
         self._log_prefix = "[{} Discovery]".format(PortTypes.MQTT.name)
 
-        self.__mqtt_discovery_topic = CONF.get("port").get("mqtt").get("connection").get("discovery_topic")
-        self.__mqtt_cortex_topic = CONF.get("port").get("mqtt").get("connection").get("cortex_topic")
-        self.__mqtt_service_topic = CONF.get("port").get("mqtt").get("connection").get("service_topic")
-        self.__mqtt_arancino_daemon_discovery_user = CONF.get("port").get("mqtt").get("connection").get("username")
-        self.__mqtt_arancino_daemon_discovery_pass = CONF.get("port").get("mqtt").get("connection").get("password")
-        self.__mqtt_arancino_daemon_broker_host = CONF.get("port").get("mqtt").get("connection").get("host")
+        self.__mqtt_discovery_topic = CONF.get("port").get("mqtt").get("connection").get("discovery_topic") + "/" + str(CONF.get("port").get("mqtt").get("connection").get("client_id"))
+        self.__mqtt_cortex_topic = CONF.get("port").get("mqtt").get("connection").get("cortex_topic") + "/" + str(CONF.get("port").get("mqtt").get("connection").get("client_id"))
+        self.__mqtt_service_topic = CONF.get("port").get("mqtt").get("connection").get("service_topic") + "/" + str(CONF.get("port").get("mqtt").get("connection").get("client_id"))
+        self.__mqtt_arancino_daemon_discovery_user = str(CONF.get("port").get("mqtt").get("connection").get("username"))
+        self.__mqtt_arancino_daemon_discovery_pass = str(CONF.get("port").get("mqtt").get("connection").get("password"))
+        self.__mqtt_arancino_daemon_broker_host = str(CONF.get("port").get("mqtt").get("connection").get("host"))
         self.__mqtt_arancino_daemon_broker_port = CONF.get("port").get("mqtt").get("connection").get("port")
-        self.__mqtt_arancino_daemon_client_id = CONF.get("port").get("mqtt").get("connection").get("client_id")
+        self.__mqtt_arancino_daemon_client_id = str(CONF.get("port").get("mqtt").get("connection").get("client_id"))
         
         try:
             self.__mqtt_client = mqtt.Client(client_id=self.__mqtt_arancino_daemon_client_id)
@@ -152,13 +152,13 @@ class ArancinoMqttDiscovery(object):
 
     def __postFilterPorts(self, ports={}, filter_type=FilterTypes.ALL, filter_list=[]):
 
-        if filter_type == FilterTypes.ONLY:
+        if filter_type == FilterTypes.ONLY.name:
             return self.__filter.filterOnly(ports, filter_list)
 
-        elif filter_type == FilterTypes.EXCLUDE:
+        elif filter_type == FilterTypes.EXCLUDE.name:
             return self.__filter.filterExclude(ports, filter_list)
 
-        elif filter_type == FilterTypes.ALL:
+        elif filter_type == FilterTypes.ALL.name:
             return self.__filter.filterAll(ports, filter_list)
 
 
