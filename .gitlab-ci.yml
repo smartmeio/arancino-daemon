@@ -11,7 +11,7 @@
 #                   REPO_BASE_URL:  url di base del repository: https://packages.smartme.io
 #
 
-image: digitalgenius/alpine-python3-pg
+image: smartmeio/python:3.9-alpine3.10
 
 stages:
   - start
@@ -144,10 +144,8 @@ upload:
     - PKG_NAME="$(cat tmp/pgk_name.txt)"                  # Recupero il nome del pacchetto
     - REPO_NAME="$(cat tmp/repo_name.txt)"                # Recupero il nome del repository su cui fare upload
 
-    - apk add curl                                        # Installo curl
-
                                                           # Eseguo upload sul repository specificato (Nexus 3)
-    - curl -X POST "${REPO_BASE_URL}/service/rest/v1/components?repository=${REPO_NAME}" -u $REPO_USR:$REPO_PWD -F pypi.asset1=@tmp/$PKG_NAME
+    - twine upload --verbose --repository-url ${REPO_BASE_URL}/repository/${REPO_NAME}/ -u $REPO_USR -p $REPO_PWD tmp/$PKG_NAME
 
   dependencies:
     - package
