@@ -1,6 +1,11 @@
 # Changelog
 
-#### v 2.X.Y 2022.XX.YY
+#### v 2.5.1 2022.09.16
+* Fix: fixed compatibilty issue when logging in python 3.5
+* Fix: fixed typo in version attribute.
+* Fix: fixed yaml configuration parameter.
+
+#### v 2.5.0 2022.07.28
 * Improve: Serial ports commands are read and queued, the execution is done in a separate thread. [#31egtz3](https://app.clickup.com/t/31egtz3)
 * Improve: Store and Mstore commands are executed in pipeline. [#31egugq](https://app.clickup.com/t/31egugq)
 * Delete: Arancino Transmitter moved to new service. [#31egqqg](https://app.clickup.com/t/31egqqg)
