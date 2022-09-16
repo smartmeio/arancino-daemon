@@ -107,7 +107,7 @@ class ArancinoApi():
                 "arancino": {
                     "arancino": {
                         "uptime": [ara_upt, secondsToHumanString(int(ara_upt))],
-                        "version": str(ENV.versio),
+                        "version": str(ENV.version),
                         "ports": {
                             "discovered": d,
                             "connected": c
