@@ -20,7 +20,9 @@ under the License
 """
 
 import threading
-from arancino.utils.ArancinoUtils import ArancinoConfig, ArancinoLogger
+
+from arancino.ArancinoDataStore import ArancinoDataStore
+from arancino.utils.ArancinoUtils import *
 from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoCortex import ArancinoCommandIdentifiers as cmdId
 from arancino.ArancinoConstants import ArancinoSpecialChars as specChars, ArancinoPortAttributes
@@ -31,15 +33,14 @@ import time
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance().cfg
-
-
+DATASTORE = ArancinoDataStore.Instance()
 
 class ArancinoTestHandler(threading.Thread):
 
-    def __init__(self, name, id, device, commandReceivedHandler, connectionLostHandler):
-        threading.Thread.__init__(self, name=name)
+    def __init__(self, id, device, commandReceivedHandler, connectionLostHandler):
 
-        self.__name = name          # the name, usually the arancino port id
+        self.__name = "{}-{}".format(self.__class__.__name__, id)
+        threading.Thread.__init__(self, name=self.__name)
         self.__id = id
         self.__device = device
         self.__log_prefix = "[{} - {} at {}]".format(PortTypes(PortTypes.TEST).name, self.__id, self.__device)
@@ -54,10 +55,15 @@ class ArancinoTestHandler(threading.Thread):
         self.__command_test_list = self.__getCommnandsList()
         self.__command_test_del_list = self.__getCommnandsDelList()
 
+        self.__th_service = threading.Thread(target=self.__service_task)
+        self.__serviceStop = threading.Event()
+
     def run(self):
         time.sleep(1.5) # do il tempo ad Arancino di inserire la porta in lista
         commands_test_num = len(self.__command_test_list)
         count = 0
+
+        self.__th_service.start()
 
         if commands_test_num > 0:
             while not self.__stop:
@@ -115,6 +121,7 @@ class ArancinoTestHandler(threading.Thread):
 
     def stop(self):
         self.__stop = True
+        self.__serviceStop.set()
 
     def __getCommnandsDelList(self):
 
@@ -366,21 +373,21 @@ class ArancinoTestHandler(threading.Thread):
 
             # 16.4 OK
 
-        keys = "TAG_1" + specChars.CHR_ARR_SEP + "TAG_2" + specChars.CHR_ARR_SEP + "TAG_3"
-        values = "VAL_1" + specChars.CHR_ARR_SEP + "VAL_2" + specChars.CHR_ARR_SEP + "VAL_3"
+        # keys = "TAG_1" + specChars.CHR_ARR_SEP + "TAG_2" + specChars.CHR_ARR_SEP + "TAG_3"
+        # values = "VAL_1" + specChars.CHR_ARR_SEP + "VAL_2" + specChars.CHR_ARR_SEP + "VAL_3"
 
         #list.append(cmdId.CMD_APP_STORETAGS["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
 
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
 
-            # 16.5 OK
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        #     # 16.5 OK
+        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
 
-            # 16.6 KO
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        #     # 16.6 KO
+        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
 
-            # 16.7 KO
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        #     # 16.7 KO
+        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
 
             # 16.8 KO
         list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
@@ -393,22 +400,36 @@ class ArancinoTestHandler(threading.Thread):
         #list.append(cmdId.CMD_APP_STORETAGS["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
 
 
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
 
-            # 16.5 OK
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        #     # 16.5 OK
+        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
 
-            # 16.6 KO
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        #     # 16.6 KO
+        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
 
-            # 16.7 KO
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        #     # 16.7 KO
+        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
 
-            # 16.8 KO
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        #     # 16.8 KO
+        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
         
         return list
 
+    def __service_task(self):
+        LOG.info("{} Start Service Task Emulation".format(self.__log_prefix))
+        datastore = DATASTORE.getDataStoreStd()
+        while not self.__serviceStop.is_set():
+
+            try:
+                datastore.publish("{}_HB{}".format(self.__id, "0"), str(int(datetime.now().timestamp() * 1000)))
+                time.sleep(0) #cambia il tempo per emulare casi diversi
+                datastore.publish("{}_HB{}".format(self.__id, "1"), str(int(datetime.now().timestamp() * 1000)))
+                time.sleep(100)
+            except Exception as ex:
+                print(ex)
+
+            #region HEARTBEAT

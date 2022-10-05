@@ -22,3 +22,5 @@ urllib3==1.25.11
 Werkzeug==2.0.3
 ruamel.yaml==0.17.21
 pyyaml==6.0
+adafruit-circuitpython-ble==8.3.8
+bleak~=0.14
