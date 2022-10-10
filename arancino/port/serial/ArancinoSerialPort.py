@@ -195,11 +195,13 @@ class ArancinoSerialPort(ArancinoPort):
                         self.__serial_port.port = self._device
                         self.__serial_port.open()
 
-                        self.__serial_handler = ArancinoSerialHandler("ArancinoSerialHandler-"+self._id, self.__serial_port, self._id, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
+                        self.__serial_handler = ArancinoSerialHandler(self.__serial_port, self._id, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
                         self._m_s_connected = True
                         self.__serial_handler.start()
                         LOG.info("{} Connected".format(self._log_prefix))
                         self._start_thread_time = time.time()
+
+                        super().connect()
 
                     except Exception as ex:
                         # TODO LOG SOMETHING OR NOT?
@@ -225,6 +227,7 @@ class ArancinoSerialPort(ArancinoPort):
                 #self._m_s_connected = False
 
                 self.__serial_handler.stop()
+                super().disconnect()
 
             else:
                 LOG.debug("{} Already Disconnected".format(self._log_prefix))

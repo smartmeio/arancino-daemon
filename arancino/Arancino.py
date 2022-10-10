@@ -19,12 +19,13 @@ License for the specific language governing permissions and limitations
 under the License
 """
 
-import threading
-from threading import Thread
+from threading import Thread, Lock
 from datetime import datetime
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment, secondsToHumanString
 from arancino.port.serial.ArancinoSerialDiscovery import ArancinoSerialDiscovery
 from arancino.port.test.ArancinoTestDiscovery import ArancinoTestDiscovery
+from arancino.port.mqtt.ArancinoMqttDiscovery import ArancinoMqttDiscovery
+from arancino.port.uart_ble.ArancinoUartBleDiscovery import ArancinoUartBleDiscovery
 from arancino.ArancinoPortSynchronizer import ArancinoPortSynch
 from arancino.port.ArancinoPort import PortTypes
 from arancino.ArancinoConstants import ArancinoApiResponseCode
@@ -37,12 +38,13 @@ LOG = ArancinoLogger.Instance().getLogger()
 API_CODE = ArancinoApiResponseCode()
 ENV = ArancinoEnvironment.Instance()
 CONF = ArancinoConfig.Instance().cfg
+DATASTORE = ArancinoDataStore.Instance()
 
 
 #@Singleton
 class Arancino(Thread):
     _instance = None
-    _lock = threading.Lock()
+    _lock = Lock()
     _init = None
 
 
@@ -72,13 +74,20 @@ class Arancino(Thread):
             self.__ports_connected = {}
             self.__ports_discovered = {}
 
-            self.__serial_discovery = ArancinoSerialDiscovery()
-            self.__test_discovery = ArancinoTestDiscovery()
+            self.__serial_discovery = ArancinoSerialDiscovery() if CONF.get("port").get("serial").get("discovery") else None
+            self.__test_discovery = ArancinoTestDiscovery() if CONF.get("port").get("test").get("discovery")  else None
+            self.__uart_ble_discovery = ArancinoUartBleDiscovery() if CONF.get("port").get("uart_ble").get("discovery")  else None
+            self.__mqtt_discovery = ArancinoMqttDiscovery()  if CONF.get("port").get("mqtt").get("discovery")  else None
+
+            self.__serial_ports = {}
+            self.__test_ports = {}
+            self.__uart_ble_ports = {}
+            self.__mqtt_ports = {}
 
             self.__synchronizer = ArancinoPortSynch()
-            self.__datastore = ArancinoDataStore.Instance()
+            self.__datastore = DATASTORE
 
-            # store in datastore: module version, module environment running mode
+            # store in datastore: daemon version, daemon environment running mode
             self.__datastore.getDataStoreRsvd().set(ArancinoReservedChars.RSVD_KEY_MODVERSION, str(self.__version))
             self.__datastore.getDataStoreRsvd().set(ArancinoReservedChars.RSVD_KEY_MODENVIRONMENT, ENV.env)
             self.__datastore.getDataStoreRsvd().set(ArancinoReservedChars.RSVD_KEY_MODLOGLEVEL, CONF.get("log").get("level"))
@@ -88,6 +97,8 @@ class Arancino(Thread):
 
             self.__uptime_str = ""
             self.__uptime_sec = 0
+
+            self.__mutex = Lock()
 
             Arancino._init = True
 
@@ -99,7 +110,21 @@ class Arancino(Thread):
 
     def __exit(self):
 
+
+
+
         LOG.info("Starting Exit procedure... ")
+
+        LOG.info("Disabling Discovery...")
+        if CONF.get("port").get("serial").get("discovery"):
+            self.__serial_discovery.stop()
+
+        if CONF.get("port").get("test").get("discovery"):
+            self.__test_discovery.stop()
+
+        if CONF.get("port").get("uart_ble").get("discovery"):
+            self.__uart_ble_discovery.stop()
+
         LOG.info("Disconnecting Ports... ")
         for id, port in self.__ports_connected.items():
             port.unplug()
@@ -107,7 +132,9 @@ class Arancino(Thread):
         for id, port in self.__ports_discovered.items():
             port.unplug()
 
+        time.sleep(2)
         LOG.info("Disconnecting Data Stores... ")
+        time.sleep(3)
         self.__datastore.closeAll()
 
         LOG.info("Bye!")
@@ -122,8 +149,26 @@ class Arancino(Thread):
         self.__thread_start = time.perf_counter()#time.time()
         # self.__thread_start_reset = time.time()
 
-        serial_ports = {}
-        test_ports = {}
+        if self.__serial_discovery:
+            LOG.info("Serial Discovery Enabled")
+        else:
+            LOG.warning("Serial Discovery Disabled")
+
+        if self.__test_discovery:
+            LOG.info("Test Discovery Enabled")
+        else:
+            LOG.warning("Test Discovery Disabled")
+
+        if self.__uart_ble_discovery:
+            LOG.info("UART BLE Discovery Enabled")
+        else:
+            LOG.warning("UART BLE Discovery Disabled")
+
+        if self.__mqtt_discovery:
+            LOG.info("MQTT Discovery Enabled")
+        else:
+            LOG.warning("MQTT Discovery Disabled")
+
 
         while not self.__stop:
             if not self.__pause:
@@ -135,15 +180,16 @@ class Arancino(Thread):
                     LOG.debug('Uptime :' + str(self.__uptime_sec))
                     LOG.info('Uptime :' + self.__uptime_str)
 
-                    serial_ports = self.__serial_discovery.getAvailablePorts(serial_ports)
-                    test_ports = self.__test_discovery.getAvailablePorts(test_ports)
+                    #####################self.__mutex.acquire()
+
+                    # chiama getAvailablePorts solo se il discovery é istanziato (da configurazione)
+                    self.__serial_ports = self.__serial_discovery.getAvailablePorts(self.__serial_ports) if self.__serial_discovery else {}
+                    self.__test_ports = self.__test_discovery.getAvailablePorts(self.__test_ports) if self.__test_discovery else {}
+                    self.__uart_ble_ports = self.__uart_ble_discovery.getAvailablePorts(self.__uart_ble_ports) if self.__uart_ble_discovery else {}
+                    self.__mqtt_ports = self.__mqtt_discovery.getAvailablePorts(self.__mqtt_ports) if self.__mqtt_discovery else {}
 
                     # works only in python 3.5 and above
-                    self.__ports_discovered = {**serial_ports, **test_ports}
-
-
-                    LOG.debug('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))
-                    LOG.debug('Connected Ports: ' + str(len(self.__ports_connected)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_connected.items()))
+                    self.__ports_discovered = {**self.__serial_ports, **self.__test_ports, **self.__uart_ble_ports, **self.__mqtt_ports}
 
                     # # log that every hour
                     # if (time.time() - self.__thread_start_reset) >= 3600:
@@ -200,7 +246,6 @@ class Arancino(Thread):
                                 except Exception as ex:
                                     pass
 
-
                                 # move Arancino Port to the self.__ports_connected
                                 self.__ports_connected[id] = port
                             else:
@@ -208,11 +253,36 @@ class Arancino(Thread):
 
                         self.__synchronizer.writePortChanges(port)
 
+                    #####################self.__mutex.release()
+
+                    # for id, port in self.__ports_connected.items():
+                    #
+                    #     p_conn = self.__ports_connected[id]
+                    #
+                    #     # Nel caso di uart-ble non c'é un handler di disconnessione
+                    #     # quindi si applica un controllo incrociato tra porte
+                    #     # connesse e porte discovered. Se la porta é connessa ma
+                    #     # non é presente tra le discovered, allora si forza la disconnessione
+                    #
+                    #     if id not in self.__ports_discovered:
+                    #         p_conn.disconnect()
+                    #         self.__synchronizer.writePortChanges(port)
+
+
+                    # elenco delle porte connesse e "started". solo per debug
+                    __ports_started = {id:port for (id, port) in self.__ports_connected.items() if port.isStarted()}
+
+                    LOG.debug('Discovered Ports: ' + str(len(self.__ports_discovered)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_discovered.items()))
+                    LOG.debug('Connected Ports: ' + str(len(self.__ports_connected)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in self.__ports_connected.items()))
+                    LOG.debug('Started Ports: ' + str(len(__ports_started)) + ' => ' + ' '.join('[' + PortTypes(port.getPortType().value).name + ' - ' + str(id) + ' at ' + str(port.getDevice()) + ']' for id, port in __ports_started.items()))
+
+
 
                 except Exception as ex:
                     LOG.exception(ex)
             else:
                 self.__isPaused = True
+
             time.sleep(self.__cycle_time)
 
 
@@ -226,6 +296,11 @@ class Arancino(Thread):
 
 
     def __disconnectedPortHandler(self, port_id):
+        self.__mutex.acquire()
+
+        # with self.acquire_timeout(self.__mutex, 12) as acquired:
+        #     if acquired:
+        #         LOG.debug("Lock Acquired")
         if port_id in self.__ports_connected:
             port = self.__ports_connected.pop(port_id, None)
             LOG.warning("[{} - {} at {}] Destroying Arancino Port".format(port.getPortType(), port.getId(), port.getDevice()))
@@ -235,6 +310,40 @@ class Arancino(Thread):
             #   handler ed infine inoca il DEL. ma nel frattempo tempo essere invocato il run bossa (che impiega diversi secondi)
             #   e poi tornare alla api il ritorno. Se viene fatto il DEL come si comporta?
             del port
+
+        if port_id in self.__ports_discovered:
+            port = self.__ports_discovered.pop(port_id, None)
+            del port
+
+        if port_id in self.__serial_ports:
+            port = self.__serial_ports.pop(port_id, None)
+            del port
+
+        if port_id in self.__test_ports:
+            port = self.__test_ports.pop(port_id, None)
+            del port
+
+        if port_id in self.__uart_ble_ports:
+            port = self.__uart_ble_ports.pop(port_id, None)
+            del port
+
+        if port_id in self.__mqtt_ports:
+                    port = self.__mqtt_ports.pop(port_id, None)
+                    self.__mqtt_discovery.remove_port(port)
+                    del port
+            # else:
+            #     LOG.debug("Can't Lock")
+            #     self.__mutex.release()
+
+        self.__mutex.release()
+
+    from contextlib import contextmanager
+    @contextmanager
+    def acquire_timeout(self, lock, timeout):
+        result = lock.acquire(timeout=timeout)
+        yield result
+        if result:
+            lock.release()
 
 
     ##### API UTILS ######

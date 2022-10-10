@@ -32,10 +32,11 @@ CONF = ArancinoConfig.Instance().cfg
 
 class ArancinoSerialHandler(threading.Thread):
 
-    def __init__(self, name, serial, id, device, commandReceivedHandler, connectionLostHandler):
-        threading.Thread.__init__(self, name=name)
+    def __init__(self, serial, id, device, commandReceivedHandler, connectionLostHandler):
+        self.__name = "{}-{}".format(self.__class__.__name__, id)
+        threading.Thread.__init__(self, name=self.__name)
         self.__serial_port = serial      # the serial port
-        self.__name = name          # the name, usually the arancino port id
+
         self.__id = id
         self.__device = device
         self.__log_prefix = "[{} - {} at {}]".format(PortTypes(PortTypes.SERIAL).name, self.__id, self.__device)
@@ -69,14 +70,10 @@ class ArancinoSerialHandler(threading.Thread):
                 except Exception as ex:
 
                     LOG.error("{}Error while appending data from serial port to queue: {}".format(self.__log_prefix, str(ex)))
-                
-
-
-
 
             except Exception as ex:
                 # probably some I/O problem such as disconnected USB serial
-                LOG.error("{}I/O Error while reading data from serial port: {}".format(self.__log_prefix, str(ex)))
+                LOG.error("{}I/O Error while reading data from {} port: {}".format(self.__log_prefix, PortTypes(PortTypes.SERIAL).name, str(ex)))
 
                 self.__stop = True
                 break

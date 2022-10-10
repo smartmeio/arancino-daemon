@@ -146,12 +146,13 @@ class ArancinoTestPort(ArancinoPort):
                             # first resetting
                             self.reset()
 
-                        self.__test_handler = ArancinoTestHandler("ArancinoTestHandler-"+self._id, self._id, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
+                        self.__test_handler = ArancinoTestHandler(self._id, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
                         self.__test_handler.start()
                         self._m_s_connected = True
                         LOG.info("{} Connected".format(self._log_prefix))
                         self._start_thread_time = time.time()
 
+                        super().connect()
 
                     except Exception as ex:
                         # TODO: lasciare il raise????
@@ -181,6 +182,8 @@ class ArancinoTestPort(ArancinoPort):
                 # self._m_s_connected = False
 
                 self.__test_handler.stop()
+                super().disconnect()
+
 
             else:
                 LOG.debug("{} Already Disconnected".format(self._log_prefix))

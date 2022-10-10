@@ -1,5 +1,11 @@
 # Changelog
 
+#### v 2.6.0 2022.10.10
+* Add: added heartbeat support [#1z0eqn4](https://app.clickup.com/t/1z0eqn4)
+* Add: added MQTT port type [#1nfe9zr](https://app.clickup.com/t/1nfe9zr)
+* Add: added BLE UART port type [#1n9pvyv](https://app.clickup.com/t/1n9pvyv)
+* Add: reset arancino port OTA [#30xfcgj](https://app.clickup.com/t/30xfcgj)
+
 #### v 2.5.1 2022.09.16
 * Fix: fixed compatibilty issue when logging in python 3.5
 * Fix: fixed typo in version attribute.

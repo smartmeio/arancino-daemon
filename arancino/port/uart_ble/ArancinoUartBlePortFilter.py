@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
+# coding=utf-8
 """
 SPDX-license-identifier: Apache-2.0
 
-Copyright (c) 2020 smartme.IO
+Copyright (c) 2021 SmartMe.IO
 
-Authors:  Arturo Rinaldi <arturo@smartme.io>
+Authors:  Sergio Tomasello <sergio@smartme.io>
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may
 not use this file except in compliance with the License. You may obtain
@@ -19,12 +19,25 @@ License for the specific language governing permissions and limitations
 under the License
 """
 
-"""
-    arancino.version
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+from arancino.port.ArancinoPortFilter import ArancinoPortFilter
 
-    :copyright: Copyright 2017-2020 by the SmartMe.IO team, see README.
-    SPDX-license-identifier: Apache-2.0, see LICENSE for details.
-"""
 
-__version__ = '2.6.0'
+class ArancinoUartBlePortFilter(ArancinoPortFilter):
+
+
+    def __init__(self):
+        pass
+
+
+    def filterAll(self, ports={}, list=[]):
+        return ports
+
+
+    def filterExclude(self, ports={}, list=[]):
+        # Do nothing
+        return ports
+
+
+    def filterOnly(self, ports={}, list=[]):
+        # Do nothing
+        return ports
