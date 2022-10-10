@@ -169,8 +169,8 @@ cycle_time = 10
 -->
 
 ### Arancino Ports
-Arancino Daemon scans serial ports for new devices to connect to. If a new device is plugged Arancino Daemon applies
-the configuration of the `[port]` section of the configuration file. From version `2.0.0` Arancino Daemon supports
+Arancino Daemon scans on all enabled port types for new devices to connect to. If a new device is plugged Arancino Daemon applies
+the configuration of the relative `[port]` section of the configuration file. From version `2.0.0` Arancino Daemon supports
 multiple port types, and configurations are now specific for each type in a dedicated section of configuration file.
 
 
@@ -232,6 +232,16 @@ multiple port types, and configurations are now specific for each type in a dedi
 > | Firmware | `firmware` |
 
 
+> News in `2.5.2`:
+> Along with new port types, this version introduces an heartbeat system. This mechanism allows to check whether microcontrollers are still online (useful for non-serial communications) and check the heath status based on the retrieved response speed.
+> After a certain amount of failed attempts in retrieving the heartbeat messages, the port will be destroyed.
+>
+> For each Port Type, the following parameters are configurable
+> - heartbeat_rate (time in seconds between each heartbeat check)
+> - heartbeat_time (time threshold between heartbeat #1 and #2 used to evaluate the health of the system)
+> - heartbeat_attempts (number of heartbeat checks before disconnecting the port)
+
+
 #### Arancino Serial Ports
 
 Configuration Section for Serial Port Type:
@@ -241,7 +251,7 @@ Configuration Section for Serial Port Type:
 [port.serial]
 
 # automatically connect a new discovered device
-enabled = True
+auto_enable = True
 
 # set to true to make it not visible in the main device view in the UI
 hide = False
@@ -273,7 +283,7 @@ This is new in version `2.0.0` and it's used to make tests of Cortex commands, s
 ```ini
 [port.test]
 # automatically enable (and connect) a new discovered port
-enabled = True
+auto_enable = True
 
 # set to true to make it not visible in the main device view in the UI
 hide = True
@@ -301,4 +311,69 @@ id_template = TESTPORT
 upload_command =
 ```
 
+#### Arancino MQTT Ports
+This type of port was introduced in version `2.5.2` and allows to communicate via MQTT protocol with the MCU
 
+```ini
+[port.mqtt]
+# automatically enable (and connect) a new discovered port
+enabled = True
+
+# set to true to make it not visible in the main device view in the UI
+hide = True
+
+# MQTT broker for connection
+host = localhost
+
+# MQTT port
+port = 1883
+
+# Authentication for the broker (if needed)
+username = ""
+password = ""
+
+# This topic will be used to discover new devices (as MCUs will advertise on this specific topic)
+discovery_topic = arancino/discovery
+
+# This topic will be used (rather subtopics of this) for regular cortex communication
+cortex_topic = arancino/cortex
+
+# This topic will be used to send reset commands to devices
+service_topic = arancino/service
+```
+
+#### Arancino BLE Ports
+This type of port was introduced in version `2.5.2` and allows to communicate via BLE UART protocol with the MCU
+
+```ini
+[port.uart_ble]
+# automatically enable (and connect) a new discovered port
+enabled = True
+
+# set to true to make it not visible in the main device view in the UI
+hide = True
+
+# Timeout in seconds in connection. Min: 1
+timeout = 10
+
+# size for Tx and Rx UartBle buffers
+buffer_size = 1024
+
+# name for service tx characteristic of device
+vendor_communication_uuid = 6E400001-B5A3-F393-E0A9-E50E24DCCA9E
+
+# name for tx characteristic of device
+vendor_tx_uuid = 6E400003-B5A3-F393-E0A9-E50E24DCCA9E
+
+# name for rx characteristic of device
+vendor_rx_uuid = 6E400002-B5A3-F393-E0A9-E50E24DCCA9E
+
+# name for service tx characteristic of device
+vendor_service_uuid = 01010101-0101-0101-0101-010101010101
+
+# name for service tx characteristic of device
+vendor_service_tx_uuid = 01010003-B5A3-F393-E0A9-E50E24DCCA9E
+
+# name for service rx characteristic of device
+vendor_service_rx_uuid = 01010002-B5A3-F393-E0A9-E50E24DCCA9E
+```
