@@ -22,10 +22,14 @@ under the License
 import threading
 
 from arancino.ArancinoDataStore import ArancinoDataStore
+#import random
+
+import msgpack
+
 from arancino.utils.ArancinoUtils import *
 from arancino.port.ArancinoPort import PortTypes
-from arancino.ArancinoCortex import ArancinoCommandIdentifiers as cmdId
-from arancino.ArancinoConstants import ArancinoSpecialChars as specChars, ArancinoPortAttributes
+from arancino.ArancinoConstants import ArancinoSpecialChars as specChars, ArancinoPortAttributes, \
+    ArancinoCommandResponseCodes
 from arancino.ArancinoConstants import ArancinoCommandResponseCodes as respCodes
 from arancino.ArancinoConstants import ArancinoCommandErrorCodes as errorCodes
 from arancino.ArancinoConstants import SUFFIX_TMSTP
@@ -60,7 +64,9 @@ class ArancinoTestHandler(threading.Thread):
 
     def run(self):
         time.sleep(1.5) # do il tempo ad Arancino di inserire la porta in lista
-        commands_test_num = len(self.__command_test_list)
+        cmd_test_list = self.__command_test_list[0]
+        rsp_test_list = self.__command_test_list[1]
+        commands_test_num = len(cmd_test_list)
         count = 0
 
         self.__th_service.start()
@@ -71,7 +77,8 @@ class ArancinoTestHandler(threading.Thread):
                 try:
 
 
-                    raw_cmd = self.__command_test_list[count]
+                    raw_cmd = cmd_test_list[count]
+                    #raw_rsp = rsp_test_list[count]
 
                     # send back the raw command
                     if self.__commandReceivedHandler is not None:
@@ -158,8 +165,8 @@ class ArancinoTestHandler(threading.Thread):
         # list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_MSET_KEY_PERS_3" + specChars.CHR_EOT)
 
         # DEL
-        list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_EOT)
-        list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2" + specChars.CHR_EOT)
+        #list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_EOT)
+        #list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2" + specChars.CHR_EOT)
 
         return list
 
@@ -170,153 +177,504 @@ class ArancinoTestHandler(threading.Thread):
         # <ID>_TEST_PERS_KEY
         # <ID>_TEST_HSET
 
-        list = []
+        cmd_list = []
+        rsp_list = []
 
-        # START
-            # firmware upload date time
+        # region 1. START
+        # firmware upload date time
         fw_date_str = "Oct 21 1985"
         fw_time_str = "09:00:00"
         fw_tz_str = "+0600"
         fw_datetime_str = fw_date_str + ' ' + fw_time_str + ' ' + fw_tz_str
-        #fw_datetime_str = ""
-            # firmware version
-        fw_version = "0.0.1"
-        #fw_version = ""
 
-            # firmware name
-        fw_name = "Arancino Test Port Firmware"
-        #fw_name = ""
-            # arancino library version
+        start_cmd = {
+            "cmd": "START",
+            "args": {
+                "port_id": "TEST_36663",#"TEST_{}".format(random.randint(10000, 99999)),
+                "fw_mcu_family": "Test Family",
+                "fw_lib_ver": "3.0.0",
+                "fw_name": "My Awesome Firmware",
+                "fw_ver": "1.0.0",
+                "fw_build_time": fw_datetime_str,
+                "fw_core_ver": "1.0.0",
+                "fw_crtx_ver": "1.0.0",
+                "CUSTOM_KEY_1": "CUSTOM_VALUE_1",
+                "CUSTOM_KEY_2": "CUSTOM_VALUE_2"
+            },
+            "cfg": {
+                "scr_mod": 0
+            }
+        }
 
-            # firmware that use free rtos (0: No, False; 1: Yes, True)
-        fw_use_freertos = "True"
+        start_rsp = {
+            "code": ArancinoCommandResponseCodes.RSP_OK,
+            "args": {
+                "dmn_ver" : str(CONF.get_metadata_version()),
+                "dmn_env": CONF.get_general_env()
+            },
+            "cfg": {
+                #"ts": "<timestamp>",
+                "log_lvl": CONF.get_log_level()
+            }
+        }
+        # endregion
 
-        lib_version = "1.2.0"
-        core_version = "1.0.0"
+        cmd_list.append(msgpack.packb(start_cmd, use_bin_type=True))
+        rsp_list.append(msgpack.packb(start_rsp, use_bin_type=True))
 
-            # micro controller family
-        micro_family = "Test Family"
 
-            # generic attributes
-        custom_attrib_key_1 = "CUSTOM1"
-        custom_attrib_val_1 = "foo"
 
-        custom_attrib_key_2 = "CUSTOM2"
-        custom_attrib_val_2 = "bar"
+        #region 2. SET
+        set_cmd_appl = {
+            "cmd": "SET",
+            "args": {
+                "items": [
+                    {"key": "key-1", "value": "value-1"},
+                    {"key": "key-2", "value": "value-2"}
+                ]
+            },
+            "cfg": {
+                "type": "appl"
+            }
+        }
 
-        start_args_keys_array = [ArancinoPortAttributes.FIRMWARE_LIBRARY_VERSION,
-                                 ArancinoPortAttributes.FIRMWARE_BUILD_TIME,
-                                 ArancinoPortAttributes.FIRMWARE_CORE_VERSION,
-                                 ArancinoPortAttributes.FIRMWARE_NAME,
-                                 ArancinoPortAttributes.MCU_FAMILY,
-                                 ArancinoPortAttributes.FIRMWARE_VERSION,
-                                 ArancinoPortAttributes.FIRMWARE_USE_FREERTOS,
-                                 custom_attrib_key_1,
-                                 custom_attrib_key_2
-                                 ]
+        set_cmd_appl_pers = {
+            "cmd": "SET",
+            "args": {
+                "items": [
+                    {"key": "key-p-1", "value": "value-1"},
+                    {"key": "key-p-2", "value": "value-2"}
+                ]
+            },
+            "cfg": {
+                "pers": 1,
+                "type": "appl"
+            }
+        }
 
-        start_args_vals_array = [lib_version,
-                                 fw_datetime_str,
-                                 core_version,
-                                 fw_name,
-                                 micro_family,
-                                 fw_version,
-                                 fw_use_freertos,
-                                 custom_attrib_val_1,
-                                 custom_attrib_val_2]
+        set_cmd_rsvd = {
+            "cmd": "SET",
+            "args": {
+                "items": [
+                    {"key": "key-r-1", "value": "value-1"},
+                    {"key": "key-r-2", "value": "value-2"}
+                ]
+            },
+            "cfg": {
+                "type": "rsvd"
+            }
+        }
 
-        start_args_keys = specChars.CHR_ARR_SEP.join(start_args_keys_array)
-        start_args_vals = specChars.CHR_ARR_SEP.join(start_args_vals_array)
+        set_cmd_stng = {
+            "cmd": "SET",
+            "args": {
+                "items": [
+                    {"key": "key-s-1", "value": "value-1"},
+                    {"key": "key-s-2", "value": "value-2"}
+                ]
+            },
+            "cfg": {
+                "type": "stng"
+            }
+        }
+        #endregion
+        #cmd_list.append(msgpack.packb(set_cmd_appl, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(set_cmd_appl_pers, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(set_cmd_rsvd, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(set_cmd_stng, use_bin_type=True))
 
-        # 1. START
-        # list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + lib_version + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + lib_version + specChars.CHR_SEP + fw_name + specChars.CHR_SEP + fw_version + specChars.CHR_SEP + fw_datetime_str + specChars.CHR_SEP + core_version + specChars.CHR_EOT)
-        list.append(cmdId.CMD_SYS_START["id"] + specChars.CHR_SEP + start_args_keys + specChars.CHR_SEP + start_args_vals + specChars.CHR_EOT)
-        
-        # # 2. SET
-        # list.append(cmdId.CMD_APP_SET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_KEY" + specChars.CHR_SEP + "TEST_VAL" + specChars.CHR_EOT)
-        #
-        # # 3. SET PERSISTENT
-        # list.append(cmdId.CMD_APP_SET_PERS["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_PERS_KEY" + specChars.CHR_SEP + "TEST_PERS_VAL" + specChars.CHR_EOT)
-        #
-        # # 4. GET
-        #     # 4.1 OK
-        # list.append(cmdId.CMD_APP_GET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_KEY" + specChars.CHR_EOT)
-        #
-        #     # 4.2 KO
-        # list.append(cmdId.CMD_APP_GET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_KEY_DOES_NOT_EXIST" + specChars.CHR_EOT)
-        #
-        #     # 4.3 GET of a persistent key
-        # list.append(cmdId.CMD_APP_GET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_PERS_KEY" + specChars.CHR_EOT)
-        #
-        # # 5. KEYS
-        #     # 5.1 w/ wildcard
-        # list.append(cmdId.CMD_APP_KEYS["id"] + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-        #
-        #     # 5.2 w/ specified name and wildcard
-        # list.append(cmdId.CMD_APP_KEYS["id"] + specChars.CHR_SEP + "TEST*" + specChars.CHR_EOT)
-        #
-        # # 6. DEL
-        # list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_KEY" + specChars.CHR_EOT)
-        #
-        # # 7. HSET
-        # list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_1" + specChars.CHR_SEP + "TEST_VAL_1" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_2" + specChars.CHR_SEP + "TEST_VAL_2" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_3" + specChars.CHR_SEP + "TEST_VAL_3" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_4" + specChars.CHR_SEP + "TEST_VAL_4" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_5" + specChars.CHR_SEP + "TEST_VAL_5" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_6" + specChars.CHR_SEP + "TEST_VAL_6" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_7" + specChars.CHR_SEP + "TEST_VAL_7" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_8" + specChars.CHR_SEP + "TEST_VAL_8" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_9" + specChars.CHR_SEP + "TEST_VAL_9" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HSET_STD["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_1" + specChars.CHR_SEP + "TEST_VAL_10" + specChars.CHR_EOT)
-        #
-        #     # 7.2 HSET PERS OK
-        # list.append(cmdId.CMD_APP_HSET_PERS["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET_PERS" + specChars.CHR_SEP + "TEST_FIELD_1" + specChars.CHR_SEP + "TEST_VAL_1" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HSET_PERS["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET_PERS" + specChars.CHR_SEP + "TEST_FIELD_2" + specChars.CHR_SEP + "TEST_VAL_2" + specChars.CHR_EOT)
-        #
-        #     # 7.3 HSET PERS KO -> keys exists in volatile dastatore
-        # list.append(cmdId.CMD_APP_HSET_PERS["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_1" + specChars.CHR_SEP + "TEST_VAL_1" + specChars.CHR_EOT)
-        #
-        # # HGET
-        #     # 8.1 HGET OK
-        # list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_1" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_2" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_3" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_4" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_5" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_6" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_7" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_8" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_9" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_10" + specChars.CHR_EOT)
-        #
-        #     # 8.2 HGET HGET OF a key/field that doesn't exist
-        # list.append(cmdId.CMD_APP_HGET["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET_DOES_NOT_EXIST" + specChars.CHR_SEP + "TEST_FIELD_DOES_NOT_EXIST" + specChars.CHR_EOT)
-        #
-        # # 9. HGETALL
-        # list.append(cmdId.CMD_APP_HGETALL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_EOT)
-        #
-        # # 10. HVALS
-        # list.append(cmdId.CMD_APP_HVALS["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_EOT)
-        #
-        # # 11. HKEYS
-        # list.append(cmdId.CMD_APP_HKEYS["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_EOT)
-        #
-        # # 12. HDEL
-        # list.append(cmdId.CMD_APP_HDEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_1" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HDEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_2" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HDEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_3" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HDEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_4" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HDEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_5" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HDEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_6" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HDEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_7" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HDEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_8" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HDEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_9" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_HDEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_SEP + "TEST_FIELD_10" + specChars.CHR_EOT)
-        # # DEL
-        # list.append(cmdId.CMD_APP_DEL["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_HSET" + specChars.CHR_EOT)
-        #
+        #region 3. GET
+
+        get_cmd = {
+            "cmd": "GET",
+            "args": {
+                "items": [
+                    "key-1", "key-2", "key-3" #l'ultima chiave non esiste, deve tornare None
+                ]
+            },
+            "cfg": {
+                "pers": 0,
+                "type": "appl"
+            }
+        }
+
+        get_cmd_pers = {
+            "cmd": "GET",
+            "args": {
+                "items": [
+                    "key-p-1", "key-p-2"
+                ]
+            },
+            "cfg": {
+                "pers": 1,
+                "type": "appl"
+            }
+        }
+
+        get_cmd_mix = {
+            "cmd": "GET",
+            "args": {
+                "items": [
+                    "key-1", "key-2", "key-p-1" # l'ultima chiave non verrà trovata perchè è su datastore persistent
+                ]
+            },
+            "cfg": {
+                "pers": 0,
+                "type": "appl",
+                "ack": 1
+            }
+        }
+
+        get_cmd_rsvd = {
+            "cmd": "GET",
+            "args": {
+                "items": [
+                    "key-r-1", "key-r-2"
+                ]
+            },
+            "cfg": {
+                "type": "rsvd",
+                "ack": 0 #metto ack 0, ma il demone forza e lo mette a 1, e manda la risposta.
+            }
+        }
+
+        get_cmd_stng = {
+            "cmd": "GET",
+            "args": {
+                "items": [
+                    "key-s-1", "key-s-2", "key-s-3"
+                ]
+            },
+            "cfg": {
+                "pers": 0,  #imposto la persistenza, ma deve essere scartata in quanto vale il type: stng che prevede pers: 1
+                "type": "stng",
+                "ack": 1
+            }
+        }
+        # endregion
+
+        #cmd_list.append(msgpack.packb(get_cmd, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(get_cmd_pers, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(get_cmd_mix, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(get_cmd_rsvd, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(get_cmd_pers, use_bin_type=True))
+
+
+        #region 4. DEL
+        del_cmd = {
+            "cmd": "DEL",
+            "args": {
+                "items": ["key-1", "key-2"]
+            },
+            "cfg": {
+                "type": "appl",
+                "pers": 0,
+                "ack": 1
+            }
+        }
+
+        del_cmd_pers = {
+            "cmd": "DEL",
+            "args": {
+                "items": ["key-p-1", "key-p-2"]
+            },
+            "cfg": {
+                #"type": "appl", #questa volta commento, perche lo mette in automatico
+                "pers": 0,
+                "ack": 1
+            }
+        }
+        #endregion
+        #cmd_list.append(msgpack.packb(del_cmd, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(del_cmd_pers, use_bin_type=True))
+
+
+        #region 5. HSET
+        hset_cmd_appl = {
+            "cmd": "HSET",
+            "args": {
+                "items": [
+                    {"key": "key-h-1", "field": "field-A", "value": "value-1"},
+                    {"key": "key-h-1", "field": "field-B", "value": "value-2"},
+                    {"key": "key-h-2", "field": "field-A", "value": "value-3"},
+                    {"key": "key-h-2", "field": "field-B", "value": "value-4"}
+                ]
+            },
+            "cfg": {
+                "type": "appl"
+            }
+        }
+
+        hset_cmd_appl_pers = {
+            "cmd": "HSET",
+            "args": {
+                "items": [
+                    {"key": "key-h-p-1", "field": "field-A", "value": "value-1"},
+                    {"key": "key-h-p-1", "field": "field-B", "value": "value-2"},
+                    {"key": "key-h-p-2", "field": "field-A", "value": "value-3"},
+                    {"key": "key-h-p-2", "field": "field-B", "value": "value-4"}
+                ]
+            },
+            "cfg": {
+                "pers": 1,
+                "type": "appl"
+            }
+        }
+
+        hset_cmd_rsvd = {
+            "cmd": "HSET",
+            "args": {
+                "items": [
+                    {"key": "key-h-r-1", "field": "field-A", "value": "value-1"},
+                    {"key": "key-h-r-1", "field": "field-B", "value": "value-2"},
+                    {"key": "key-h-r-2", "field": "field-A", "value": "value-3"},
+                    {"key": "key-h-r-2", "field": "field-B", "value": "value-4"}
+                ]
+            },
+            "cfg": {
+                "type": "rsvd"
+            }
+        }
+
+        hset_cmd_stng = {
+            "cmd": "HSET",
+            "args": {
+                "items": [
+                    {"key": "key-h-s-1", "field": "field-A", "value": "value-1"},
+                    {"key": "key-h-s-1", "field": "field-B", "value": "value-2"},
+                    {"key": "key-h-s-2", "field": "field-A", "value": "value-3"},
+                    {"key": "key-h-s-2", "field": "field-B", "value": "value-4"}
+                ]
+            },
+            "cfg": {
+                "type": "stng"
+            }
+        }
+        #endregion
+
+        #cmd_list.append(msgpack.packb(hset_cmd_appl, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hset_cmd_appl_pers, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hset_cmd_rsvd, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hset_cmd_stng, use_bin_type=True))
+
+
+        #region 6. HGET
+        hget_cmd = {
+            "cmd": "HGET",
+            "args": {
+                "items": [
+                    {"key": "key-h-1", "field": "field-A"},
+                    {"key": "key-h-1", "field": "field-B"},
+                    {"key": "key-h-2", "field": "field-A"},
+                    {"key": "key-h-2", "field": "field-B"},
+                ]
+            },
+            "cfg": {
+                "pers": 0,
+                "type": "appl"
+            }
+        }
+
+        hget_cmd_pers = {
+            "cmd": "HGET",
+            "args": {
+                "items": [
+                    {"key": "key-p-1", "field": "field-A"},
+                    {"key": "key-p-1", "field": "field-B"},
+                    {"key": "key-p-2", "field": "field-A"},
+                    {"key": "key-p-2", "field": "field-B"},
+                ]
+            },
+            "cfg": {
+                "pers": 1,
+                "type": "appl"
+            }
+        }
+
+        hget_cmd_mix = {
+            "cmd": "HGET",
+            "args": {
+                "items": [
+                    {"key": "key-h-1", "field": "field-A"},
+                    {"key": "key-h-1", "field": "field-B"},
+                    {"key": "key-h-2", "field": "field-C"},  # field-C non esiste
+                    {"key": "key-h-3", "field": "field-A"}  # key-h-3 non esiste
+                ]
+            },
+            "cfg": {
+                "pers": -1,
+                "type": "appl",
+                "ack": 1
+            }
+        }
+
+        hget_cmd_rsvd = {
+            "cmd": "HGET",
+            "args": {
+                "items": [
+                    {"key": "key-r-1", "field": "field-A"},
+                    {"key": "key-r-1", "field": "field-B"},
+                    {"key": "key-r-2", "field": "field-A"},
+                    {"key": "key-r-2", "field": "field-B"},
+                ]
+            },
+            "cfg": {
+                "type": "rsvd",
+                "ack": 0 #metto ack 0, ma il demone forza e lo mette a 1, e manda la risposta.
+            }
+        }
+
+        hget_cmd_stng = {
+            "cmd": "HGET",
+            "args": {
+                "items": [
+                    {"key": "key-s-1", "field": "field-A"},
+                    {"key": "key-s-1", "field": "field-B"},
+                    {"key": "key-s-2", "field": "field-A"},
+                    {"key": "key-s-2", "field": "field-B"},
+                ]
+            },
+            "cfg": {
+                "pers": 0,  #imposto la persistenza, ma deve essere scartata in quanto vale il type: stng che prevede pers: 1
+                "type": "stng",
+                "ack": 1
+            }
+        }
+        #endregion
+
+        #cmd_list.append(msgpack.packb(hget_cmd, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hget_cmd_pers, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hget_cmd_mix, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hget_cmd_rsvd, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hget_cmd_pers, use_bin_type=True))
+
+        #region 7. HDEL
+        hdel_cmd = {
+            "cmd": "HDEL",
+            "args": {
+                "items": [
+                    {"key": "key-h-1", "field": "field-A"},
+                    {"key": "key-h-1", "field": "field-B"},
+                    {"key": "key-h-2", "field": "field-A"},
+                    {"key": "key-h-2", "field": "field-B"},
+                    {"key": "key-h-1", "field": "field-C"}, # non esiste field-C
+                    {"key": "key-h-3", "field": "field-A"}, # non esiste key-h-3
+                ]
+            },
+            "cfg": {
+                "type": "appl",
+                "pers": 0,
+                "ack": 1
+            }
+        }
+
+        hdel_cmd_pers = {
+            "cmd": "HDEL",
+            "args": {
+                "items": [
+                    {"key": "key-h-p-1", "field": "field-A"},
+                    {"key": "key-h-p-1", "field": "field-B"},
+                    {"key": "key-h-p-2", "field": "field-A"},
+                    {"key": "key-h-p-2", "field": "field-B"}
+                ]
+            },
+            "cfg": {
+                #"type": "appl", #questa volta commento, perche lo mette in automatico
+                "pers": 1,
+                "ack": 0
+            }
+        }
+
+        #endregion
+        #cmd_list.append(msgpack.packb(hdel_cmd, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hdel_cmd_pers, use_bin_type=True))
+
+        #region 8. FLUSH
+        flush_cmd = {
+            "cmd": "FLUSH",
+            "args": {},
+            "cfg": {
+                "pers": 0,
+                "ack": 1,
+            }
+        }
+
+        flush_cmd_pers = {
+            "cmd": "FLUSH",
+            "args": {},
+            "cfg": {
+                "type": "appl",
+                "pers": 1,
+                "ack": 1,
+            }
+        }
+
+        #endregion
+        #cmd_list.append(msgpack.packb(flush_cmd, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(flush_cmd_pers, use_bin_type=True))
+
+
+        #region 9. PUB
+
+        #endregion
+
+
+        #region 10. STORE
+        cmd_store = {
+            "cmd": "STORE",
+            "args": {
+                "items": [
+                    {"key": "key-1", "value": 1, "ts": "*"},
+                    {"key": "key-2", "value": 2, "ts": "*"},
+                    {"key": "key-3", "value": 3.14},
+                ]
+            },
+            "cfg": {
+                "ack": 1
+            }
+        }
+        #endregion
+
+        #cmd_list.append(msgpack.packb(cmd_store, use_bin_type=True))
+
+        # region 11. STORETAGS
+        cmd_store_tag = {
+            "cmd": "STORETAGS",
+            "args": {
+                "key": "key-1",
+                "items": [
+                    {"tag": "tag-1", "value": "value-1"},
+                    {"tag": "tag-2", "value": "value-2>"}
+                ],
+                "ts": ""
+            },
+            "cfg": {
+                "ack": 1,
+
+            }
+        }
+        # endregion
+        #cmd_list.append(msgpack.packb(cmd_store_tag, use_bin_type=True))
+
+        #region 12. PUB
+
+        cmd_pub = {
+            "cmd": "PUB",
+            "args": {
+                "items": [
+                    {"channel": "channel-1", "message": "message-A"},
+                    {"channel": "channel-2", "message": "message-B"}
+                ]
+            },
+            "cfg": {
+                "ack": 1
+            }
+        }
+
+        #endregion
+
+        cmd_list.append(msgpack.packb(cmd_pub, use_bin_type=True))
+
         # # 13. PUB
         # list.append(cmdId.CMD_APP_PUB["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_PUB" + specChars.CHR_SEP + "TEST_PUB_VAL" + specChars.CHR_EOT)
         #
@@ -372,9 +730,9 @@ class ArancinoTestHandler(threading.Thread):
         #list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "1A" + specChars.CHR_EOT)
 
             # 16.4 OK
-
-        # keys = "TAG_1" + specChars.CHR_ARR_SEP + "TAG_2" + specChars.CHR_ARR_SEP + "TAG_3"
-        # values = "VAL_1" + specChars.CHR_ARR_SEP + "VAL_2" + specChars.CHR_ARR_SEP + "VAL_3"
+        """
+        keys = "TAG_1" + specChars.CHR_ARR_SEP + "TAG_2" + specChars.CHR_ARR_SEP + "TAG_3"
+        values = "VAL_1" + specChars.CHR_ARR_SEP + "VAL_2" + specChars.CHR_ARR_SEP + "VAL_3"
 
         #list.append(cmdId.CMD_APP_STORETAGS["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
 
@@ -411,13 +769,13 @@ class ArancinoTestHandler(threading.Thread):
         #     # 16.7 KO
         # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
 
-        #     # 16.8 KO
-        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-        
-        return list
+            # 16.8 KO
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
+        """
+        return cmd_list, rsp_list
 
     def __service_task(self):
         LOG.info("{} Start Service Task Emulation".format(self.__log_prefix))

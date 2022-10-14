@@ -28,3 +28,4 @@ under the License
 """
 
 __version__ = '2.6.0'
+__cortex__version__ = '1.0.0'

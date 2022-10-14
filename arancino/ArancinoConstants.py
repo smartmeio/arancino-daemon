@@ -122,6 +122,9 @@ class ArancinoCommandErrorCodes:
     ERR_VALUE = '211'
     "Invalid Value"
 
+    ERR_CMD_TYPE = '212'
+    "Command Not Received"
+
     ERRORS_CODE_LIST = [
                             ERR,
                             ERR_NULL,
@@ -134,7 +137,8 @@ class ArancinoCommandErrorCodes:
                             ERR_REDIS_KEY_EXISTS_IN_PERS,
                             ERR_NON_COMPATIBILITY,
                             ERR_INVALID_ARGUMENTS,
-                            ERR_VALUE
+                            ERR_VALUE,
+                            ERR_CMD_TYPE
                         ]
 
 
@@ -641,6 +645,18 @@ class ArancinoPortAttributes:
                           FIRMWARE_USE_FREERTOS]
 
 
+CortexCompatibilityLists = [
+    ["1.0.0"]
+]
+
+"""
+CortexCompatibilityLists = [
+    ["1.0.0", "1.0.1", "1.1.0", "1.2.0"],
+    ["2.0.1"]
+]
+"""
+
+
 class ArancinoPortInteroceptionAttributes:
     MEMORY_TOTAL = "MEM_TOT" #
     MEMORY_FREE = "MEM_FREE" # nel samd21 invia la free
@@ -648,68 +664,12 @@ class ArancinoPortInteroceptionAttributes:
     TEMPERATURE = "TEMP"
 
 
-COMPATIBILITY_MATRIX_MOD_SERIAL = {
-    #MODULE : #LIBRARY
-#    "0.0.1" : ["0.0.1"],
-#    "0.0.2" : ["0.0.1","0.0.2"],
-#    "0.1.0" : ["0.1.0"],
-#    "0.1.1" : ["0.1.0"],
-#    "0.1.2" : ["0.1.0"],
-#    "0.1.3" : ["0.1.0"],
-#    "0.1.4" : ["0.1.0"],
-#    "0.1.5" : ["0.1.0"],
-    "1.0.0": ["1.0.0.RC1", "1.0.0"],    # 1.0.0.RC1 non-standard sem ver 2.0.0
-    "1.0.1": [">=1.0.0-rc,<=1.*.*"],
-    "1.0.2": [">=1.0.0-rc,<=1.*.*"],
-    "1.0.3": [">=1.0.0-rc,<=1.*.*"],
-    "1.0.4": ["=0.2.0"],
-    "1.1.0": ["=0.2.0"],
-    "1.1.1": ["=0.2.0"],
-    "1.2.0": ["=0.2.0"],
-    "1.2.1": ["=0.2.0"],
-    "2.0.0": [">=0.3.0,<1.0.0", ">=1.2.0,<2.0.0"],
-    "2.1.0": [">=0.4.0,<1.0.0", ">=1.3.0,<2.0.0"],
-    "2.1.1": [">=0.4.0,<1.0.0", ">=1.3.0,<2.0.0"],
-    "2.1.2": [">=0.4.0,<1.0.0", ">=1.3.0,<2.0.0"],
-    "2.1.3": [">=0.4.0,<1.0.0", ">=1.3.0,<2.0.0"],
-    "2.1.4": [">=0.4.0,<1.0.0", ">=1.3.0,<2.0.0"],
-    "2.1.5": [">=0.4.0,<1.0.0", ">=1.3.0,<2.0.0"],
-    "2.2.0": [">=0.4.0,<1.0.0", ">=1.3.0"],
-    "2.3.0": [">=1.3.0", ">=1.3.0"],
-    "2.4.0": [">=2.0.0"],
-    "2.4.1": [">=2.0.0"],
-    "2.5.0": [">=2.0.0"],
-    "2.5.1": [">=2.0.0"],
-    "2.6.0": [">=2.0.0"],
-    #"2.0.0": ["<0.3.0", ">=1.2.0"], # for tests
-}
+class MicrocontrollerFamily:
+    SAMD21 =    "SAMD21"
+    NRF52 =     "NRF52"
+    RP20 =      "RP20"
+    STM32 =     "STM32"
 
-
-COMPATIBILITY_MATRIX_MOD_TEST = {
-    #MODULE : #LIBRARY
-    "2.0.0": [">=1.0.0"],
-    "2.1.0": [">=1.0.0"],
-    "2.1.1": [">=1.0.0"],
-    "2.1.2": [">=1.0.0"],
-    "2.1.3": [">=1.0.0"],
-    "2.1.4": [">=1.0.0"],
-    "2.1.5": [">=1.0.0"],
-    "2.2.0": [">=1.0.0"],
-    "2.3.0": [">=1.0.0"],
-    "2.4.0": [">=1.0.0"],
-    "2.4.1": [">=1.0.0"],
-    "2.5.0": [">=1.0.0"],
-    "2.5.1": [">=1.0.0"],
-    "2.6.0": [">=1.0.0"],
-}
-
-COMPATIBILITY_MATRIX_MOD_MQTT = {
-    "2.6.0": [">=3.0.0"],
-}
-
-COMPATIBILITY_MATRIX_MOD_UART_BLE = {
-    "2.6.0": [">=3.0.0"],
-}
 
 SUFFIX_TMSTP = "TSTMP"
 SUFFIX_TAG = "TSTAG"

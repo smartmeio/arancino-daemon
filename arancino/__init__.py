@@ -15,4 +15,5 @@ __import__('pkg_resources').declare_namespace(__name__)
 package_dir = path.abspath(path.dirname(__file__))
 
 from arancino import *
-from arancino.version import __version__ # NOQA
+from arancino.version import __version__
+from arancino.version import __cortex__version__

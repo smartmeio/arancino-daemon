@@ -20,6 +20,9 @@ under the License
 """
 
 import threading
+
+from msgpack import Unpacker
+
 from arancino.ArancinoConstants import *
 from arancino.utils.ArancinoUtils import *
 from arancino.port.ArancinoPort import PortTypes
@@ -57,19 +60,22 @@ class ArancinoSerialHandler(threading.Thread):
         time.sleep(1.5)  # do il tempo ad Arancino di inserire la porta in lista
         count = 0
         str_data = ""
+        unpacker = Unpacker()
         while not self.__stop:
             # Ricezione dati
             try:
-                
-                self.__partial_bytes_command = self.__serial_port.read(self.__serial_port.in_waiting or 1)
-                
-                try:
 
-                    self.__cmd_queue.put(self.__partial_bytes_command)
-                    #LOG.error("QUEUE LENGTH:  {}".format(self.__cmd_queue.qsize()))
-                except Exception as ex:
+                # Read the buffer
+                data_size = self.__serial_port.in_waiting
 
-                    LOG.error("{}Error while appending data from serial port to queue: {}".format(self.__log_prefix, str(ex)))
+                if data > 0:
+
+                    data = self.__serial_port.read(size=data_size)
+
+                    unpacker.feed(data)
+
+                    for raw_cmd in unpacker:
+                        self.__commandReceivedHandler(raw_cmd)
 
             except Exception as ex:
                 # probably some I/O problem such as disconnected USB serial
