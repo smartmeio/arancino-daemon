@@ -23,13 +23,14 @@ from arancino.ArancinoConstants import ArancinoCommandResponseCodes, ArancinoCom
 from arancino.ArancinoExceptions import ArancinoException
 from arancino.cortex.CortexCommandExectutor import CortexCommandExecutor
 from arancino.cortex.ArancinoPacket import ArancinoCommand, ArancinoResponse
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
 from arancino.cortex.ArancinoPacket import PACKET
 from datetime import datetime
 
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance()
+CONF = ArancinoConfig.Instance().cfg
+ENV = ArancinoEnvironment.Instance()
 
 class Start(CortexCommandExecutor):
 
@@ -69,10 +70,10 @@ class Start(CortexCommandExecutor):
             #region Creo la Response
 
             self.arancinoResponse.cfg[PACKET.RSP.CONFIGURATIONS.TIMESTAMP] = str(int(datetime.now().timestamp() * 1000))
-            self.arancinoResponse.cfg[PACKET.RSP.CONFIGURATIONS.LOG_LEVEL] = CONF.get_log_level()
+            self.arancinoResponse.cfg[PACKET.RSP.CONFIGURATIONS.LOG_LEVEL] = CONF.get("log").get("level")
 
-            self.arancinoResponse.args[PACKET.RSP.ARGUMENTS.DAEMON_VERSION] = str(CONF.get_metadata_version())
-            self.arancinoResponse.args[PACKET.RSP.ARGUMENTS.DAEMON_ENVIRONMENT] = CONF.get_general_env()
+            self.arancinoResponse.args[PACKET.RSP.ARGUMENTS.DAEMON_VERSION] = str(ENV.version)
+            self.arancinoResponse.args[PACKET.RSP.ARGUMENTS.DAEMON_ENVIRONMENT] = ENV.env
 
             self.arancinoResponse.code = ArancinoCommandResponseCodes.RSP_OK
 

@@ -172,7 +172,7 @@ class ArancinoSerialPort(ArancinoPort):
         """
 
         if self._m_s_connected:
-            self.__serial_port.write(raw_response.encode())
+            self.__serial_port.write(raw_response)
         else:  # not connected
             LOG.warning("{} Cannot Sent a Response: Port is not connected.".format(self._log_prefix))
 

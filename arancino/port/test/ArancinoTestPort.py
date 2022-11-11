@@ -22,7 +22,7 @@ under the License
 from arancino.port.test.ArancinoTestHandler import ArancinoTestHandler
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 #from arancino.ArancinoCortex import *
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
 #from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 import uuid
 import time

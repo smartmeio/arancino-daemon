@@ -118,7 +118,7 @@ class ArancinoResponse_(ArancinoPacket_):
         super().__init__(rawPacket=rawResponse)
         if rawResponse:
             self.raw = rawResponse
-            self.code = rawResponse["code"]
+            self.code = rawResponse["rsp_code"]
         else:
             self.raw = {}
             self.code = {}
@@ -135,7 +135,7 @@ class ArancinoResponse_(ArancinoPacket_):
     def raw(self):
         if not self.__raw:
             self.raw = {
-                "code": self.code,
+                "rsp_code": self.code,
                 "cfg": self.cfg,
                 "args": self.args
         }
@@ -310,7 +310,7 @@ class PACKET:
 
         COMMAND_ID = "cmd"
         CONFIGURATION = "cfg"
-        ARGUMENT = " args"
+        ARGUMENT = "args"
 
         class ARGUMENTS:
 
@@ -349,13 +349,15 @@ class PACKET:
                 APPLICATION = "appl"
                 SETTING = "stng"
                 RESERVED = "rsvd"
+                TIMESERIES = "tse"
+                TSTAGS = "tags"
 
 
     class RSP:
 
-        RESPONSE_CODE = "code"
+        RESPONSE_CODE = "rsp_code"
         CONFIGURATION = "cfg"
-        ARGUMENT = " args"
+        ARGUMENT = "args"
 
 
         class ARGUMENTS:

@@ -58,8 +58,6 @@ class ArancinoSerialHandler(threading.Thread):
 
     def run(self):
         time.sleep(1.5)  # do il tempo ad Arancino di inserire la porta in lista
-        count = 0
-        str_data = ""
         unpacker = Unpacker()
         while not self.__stop:
             # Ricezione dati
@@ -68,14 +66,14 @@ class ArancinoSerialHandler(threading.Thread):
                 # Read the buffer
                 data_size = self.__serial_port.in_waiting
 
-                if data > 0:
+                if data_size > 0:
 
                     data = self.__serial_port.read(size=data_size)
 
                     unpacker.feed(data)
 
-                    for raw_cmd in unpacker:
-                        self.__commandReceivedHandler(raw_cmd)
+                for raw_cmd in unpacker:
+                    self.__commandReceivedHandler(raw_cmd)
 
             except Exception as ex:
                 # probably some I/O problem such as disconnected USB serial

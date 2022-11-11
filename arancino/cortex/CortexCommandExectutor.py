@@ -136,6 +136,13 @@ class CortexCommandExecutor(ABC):
 
         elif self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.TYPE] == PACKET.CMD.CONFIGURATIONS.TYPES.SETTING:
             datastore = self._datastore_stng
+        
+        elif self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.TYPE] == PACKET.CMD.CONFIGURATIONS.TYPES.TIMESERIES:
+            datastore = self._datastore_tser
+
+        elif self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.TYPE] == PACKET.CMD.CONFIGURATIONS.TYPES.TSTAGS:
+            datastore = self._datastore_tag
+        
 
         return datastore
 

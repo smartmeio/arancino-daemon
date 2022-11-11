@@ -214,7 +214,7 @@ class ArancinoTestHandler(threading.Thread):
             },
             "cfg": {
                 #"ts": "<timestamp>",
-                "log_lvl": CONF.get_log_level()
+                "log_lvl": CONF.get("log").get("level")
             }
         }
         # endregion

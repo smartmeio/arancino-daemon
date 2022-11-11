@@ -169,9 +169,9 @@ class ArancinoPort(object):
 
         try:
             # create an Arancino Comamnd from the raw command (json or msgpack)
-            LOG.debug("{} Received: {}".format(self._log_prefix, packet))
+            #LOG.debug("{} Received: {}".format(self._log_prefix, packet))
             acmd = ArancinoCommand(packet=packet)
-            LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.id, str(acmd.getUnpackedPacket())))
+            #LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.id, str(acmd.getUnpackedPacket())))
 
             # inserisco il port id se non è presente
             if not PACKET.CMD.ARGUMENTS.PORT_ID in acmd.args:
@@ -303,7 +303,7 @@ class ArancinoPort(object):
         sono nella stessa major version number, allora sono compatibili.
         """
 
-        daemon_cv = CONF.get_metadata_cortex_version()
+        daemon_cv = ENV.cortex_version
         firmware_cv = self.getFirmwareCortexVersion()
 
         for ls in CortexCompatibilityLists:

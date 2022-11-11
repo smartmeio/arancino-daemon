@@ -23,9 +23,9 @@ under the License
 
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.port.mqtt.ArancinoMqttHandler import ArancinoMqttHandler
-from arancino.ArancinoCortex import *
+#from arancino.ArancinoCortex import *
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
-from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
+#from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 import time, datetime
 import paho.mqtt.client as mqtt 
 

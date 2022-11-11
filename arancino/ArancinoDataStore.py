@@ -74,7 +74,7 @@ class ArancinoDataStore:
         self.__redis_pool_tag = redis.Redis(host=host_per, port=port_per, db=db_tag, decode_responses=dcd_rsp)
 
         # settings store
-        self.__redis_pool_stng = redis.Redis(host=host_per, port=port_per, db=db_stng, decode_response=dcd_rsp)
+        self.__redis_pool_stng = redis.Redis(host=host_per, port=port_per, db=db_stng, decode_responses=dcd_rsp)
 
         self._redis_conn_dts = self.__redis_pool_dts#redis.Redis(connection_pool=self.__redis_pool_dts)
         self._redis_conn_dvs = self.__redis_pool_dvs#redis.Redis(connection_pool=self.__redis_pool_dvs)

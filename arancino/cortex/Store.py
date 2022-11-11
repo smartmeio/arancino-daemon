@@ -24,13 +24,14 @@ from arancino.ArancinoConstants import ArancinoCommandResponseCodes, ArancinoCom
 from arancino.ArancinoExceptions import ArancinoException, RedisGenericException
 from arancino.cortex.CortexCommandExectutor import CortexCommandExecutor
 from arancino.cortex.ArancinoPacket import ArancinoCommand, ArancinoResponse
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
 from arancino.cortex.ArancinoPacket import PACKET
 from arancino.ArancinoConstants import SUFFIX_TMSTP
 from redis.exceptions import RedisError
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance()
+CONF = ArancinoConfig.Instance().cfg
+ENV = ArancinoEnvironment.Instance()
 
 
 class Store(CortexCommandExecutor):
@@ -68,7 +69,7 @@ class Store(CortexCommandExecutor):
 
             # region Selezione del datastore
 
-            datastore = self._datastore_tser
+            datastore = self._retrieveDatastore()            
 
             items = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.ITEMS]
             port_id = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_ID]
@@ -132,8 +133,8 @@ class Store(CortexCommandExecutor):
                 "port_type": self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_TYPE],
             }
 
-            if not CONF.get_serial_number() == "0000000000000000" and not CONF.get_serial_number() == "ERROR000000000":
-                labels["device_id"] = CONF.get_serial_number()
+            if not ENV.serial_number == "0000000000000000" and not ENV.serial_number== "ERROR000000000":
+                labels["device_id"] = ENV.serial_number
 
-            datastore.ts().create(key, labels=labels, duplicate_policy='last', retention_msecs=CONF.get_redis_timeseries_retation())
+            datastore.ts().create(key, labels=labels, duplicate_policy='last', retention_msecs=CONF.get("redis").get("retetion"))
             datastore.set("{}:{}".format(key, SUFFIX_TMSTP), 0)  # Starting timestamp

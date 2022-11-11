@@ -143,13 +143,13 @@ class ArancinoCommandErrorCodes:
 
 
 class ArancinoCommandResponseCodes:
-    RSP_OK = '100'
+    RSP_OK = 100
     "OK Response"
 
-    RSP_HSET_NEW = '101'
+    RSP_HSET_NEW = 101
     "Set value into a new field"
 
-    RSP_HSET_UPD = '102'
+    RSP_HSET_UPD = 102
     "Set value into an existing field"
 
     RESPONSES_CODE_LIST = [RSP_OK,

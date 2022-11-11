@@ -23,10 +23,10 @@ import serial
 
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.port.serial.ArancinoSerialHandler import ArancinoSerialHandler
-from arancino.ArancinoCortex import *
+#from arancino.ArancinoCortex import *
 from arancino.port.uart_ble.ArancinoUartBleHandler import ArancinoUartBleHandler
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
-from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
+#from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 from adafruit_ble import BLERadio
 import time
 

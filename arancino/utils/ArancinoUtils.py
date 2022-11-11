@@ -64,6 +64,7 @@ class ArancinoEnvironment:
         self._tmplt_dir = os.path.join(self._home_dir, "templates")
 
         self._version = semantic_version.Version(arancino.__version__)
+        self._cortex_version = semantic_version.Version(arancino.__cortex__version__)
 
         # Recupero il serial number / uuid dalla variabile di ambiente (quando sarà disponibile) altrimenti lo recupero dal seriale
         #   del dispositivo come veniva fatto in precedenza
@@ -82,6 +83,11 @@ class ArancinoEnvironment:
     @property
     def version(self):
         return self._version
+
+
+    @property
+    def cortex_version(self):
+        return self._cortex_version
 
 
     @property
