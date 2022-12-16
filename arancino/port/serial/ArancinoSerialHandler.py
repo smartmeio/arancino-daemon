@@ -51,7 +51,7 @@ class ArancinoSerialHandler(threading.Thread):
 
     def run(self):
         time.sleep(1.5)  # do il tempo ad Arancino di inserire la porta in lista
-        unpacker = Unpacker(unicode_errors='ignore')
+        unpacker = Unpacker()
         while not self.__stop:
             # Ricezione dati
             try:
