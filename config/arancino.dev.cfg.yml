@@ -224,7 +224,7 @@ port:
     queue_max_size: 1024
 
     # time (in seconds) between each heartbeat check
-    heartbeat_rate: 555555555
+    heartbeat_rate: 5
 
     # time threshold (in milliseconds) between to heartbeat #1 and #2 used to evaluate the healty of the system
     heartbeat_time: 10

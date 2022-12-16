@@ -104,6 +104,7 @@ class ArancinoPort(object):
         #endregion
 
         self.__first_time = True
+        self.__HEARTBEAT = None
 
     def unplug(self):
         self.disconnect()
@@ -116,9 +117,6 @@ class ArancinoPort(object):
 
         :return:
         """
-        #####self.startHeartbeat()
-        self.__HEARTBEAT = ArancinoHeartBeat(self, self.sendArancinoEventsMessage)
-        self.__HEARTBEAT.start()
 
 
     @abstractmethod
@@ -128,7 +126,9 @@ class ArancinoPort(object):
         :return:
         """
         #####self.stopHeartbeat()
-        self.__HEARTBEAT.stop()
+        if self.__HEARTBEAT:
+            self.__HEARTBEAT.stop()
+            del self.__HEARTBEAT
         
 
     @abstractmethod
@@ -193,6 +193,9 @@ class ArancinoPort(object):
 
             if acmd.id == "START": #TODO ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
                 self._retrieveStartCmdArgs(acmd.args)
+                if (acmd.args["use_freertos"] == 1 and self.__HEARTBEAT == None):
+                    self.__HEARTBEAT = ArancinoHeartBeat(self, self.sendArancinoEventsMessage)
+                    self.__HEARTBEAT.start()
 
         except ArancinoException as ex:
             #if PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT in acmd.cfg and acmd.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] == 1:
