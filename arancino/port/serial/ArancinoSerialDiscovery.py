@@ -110,13 +110,19 @@ class ArancinoSerialDiscovery:
 
         for port in ports:
 
-            p_timeout = CONF.get("port").get("serial").get("timeout")
-            p_enabled = CONF.get("port").get("serial").get("auto_enable")
-            p_hide = CONF.get("port").get("serial").get("hide")
-            p_baudrate = CONF.get("port").get("serial").get("comm_baudrate")
-            p_baudrate_reset = CONF.get("port").get("serial").get("reset_baudrate")
-
             f = self.__retrieve_family_by_vid_pid(port)
+            if(f is not None):
+                p_timeout = CONF.get("port").get("serial").get(f.lower()).get("timeout") or CONF.get("port").get("serial").get("timeout")
+                p_enabled = CONF.get("port").get("serial").get(f.lower()).get("auto_enable") or CONF.get("port").get("serial").get("auto_enable") 
+                p_hide = CONF.get("port").get("serial").get(f.lower()).get("hide") or CONF.get("port").get("serial").get("hide") 
+                p_baudrate=CONF.get("port").get("serial").get(f.lower()).get("comm_baudrate") or CONF.get("port").get("serial").get("comm_baudrate")
+                p_baudrate_reset = CONF.get("port").get("serial").get(f.lower()).get("reset_baudrate") or CONF.get("port").get("serial").get("reset_baudrate")
+            else:
+                p_timeout = CONF.get("port").get("serial").get("timeout")
+                p_enabled = CONF.get("port").get("serial").get("auto_enable") 
+                p_hide = CONF.get("port").get("serial").get("hide") 
+                p_baudrate=CONF.get("port").get("serial").get("comm_baudrate")
+                p_baudrate_reset = CONF.get("port").get("serial").get("reset_baudrate")               
 
             p = ArancinoSerialPort(mcu_family=f, timeout=p_timeout, port_info=port, m_s_plugged=True, m_c_enabled=p_enabled, m_c_hide=p_hide, baudrate_comm=p_baudrate, baudrate_reset=p_baudrate_reset)
 
@@ -127,7 +133,7 @@ class ArancinoSerialDiscovery:
     def __retrieve_family_by_vid_pid(self, port):
 
         # recupero la coppia vid:pid della porta corrente
-        current_vidpid = "{}:{}".format("0x{:04X}".format(port.vid), "0x{:04X}".format(port.pid))
+        current_vidpid = "{}:{}".format("0x{:04X}".format(port.vid), "0x{:04X}".format(port.pid)).upper()
 
         # recupero da configurazione l'elenco dei tipi di mcu per il tipo di porta (seriale in questo caso)
         serial_mcu_list = CONF.get("port").get("serial").get("mcu_type_list")
