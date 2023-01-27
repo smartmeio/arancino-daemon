@@ -193,7 +193,12 @@ class ArancinoPort(object):
 
             if acmd.id == "START": #TODO ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
                 self._retrieveStartCmdArgs(acmd.args)
-                if (acmd.args["use_freertos"] == 1 and self.__HEARTBEAT == None):
+
+                # Set FreeRTOS
+                if (acmd.args["use_freertos"] == 1):
+                    self._setFirmwareUseFreeRTOS("1")
+
+                if (self.getFirmwareUseFreeRTOS() and self.__HEARTBEAT == None):
                     self.__HEARTBEAT = ArancinoHeartBeat(self, self.sendArancinoEventsMessage)
                     self.__HEARTBEAT.start()
 
