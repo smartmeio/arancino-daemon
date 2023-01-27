@@ -26,7 +26,7 @@ from arancino.ArancinoConstants import EnvType
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoEnvironment
 from arancino.Arancino import Arancino
 from arancino.utils.ArancinoUtils import ArancinoConfig
-#from arancino.utils.pam import pamAuthentication
+from arancino.utils.pam import pamAuthentication
 from threading import Thread
 
 from flask_httpauth import HTTPBasicAuth
