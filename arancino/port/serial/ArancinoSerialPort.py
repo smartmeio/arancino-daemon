@@ -223,15 +223,17 @@ class ArancinoSerialPort(ArancinoPort):
 
     def disconnect(self):
         try:
-            # check if the device is already
-            # if self._m_s_connected:
-            #     #self._m_s_connected = False
-
-            #     self.__serial_handler.stop()
             super().disconnect()
 
-            # else:
-            #     LOG.debug("{} Already Disconnected".format(self._log_prefix))
+            # check if the device is already
+            if self._m_s_connected:
+                self._m_s_connected = False
+
+                self.__serial_handler.stop()
+            
+
+            else:
+                LOG.debug("{} Already Disconnected".format(self._log_prefix))
 
 
         except Exception as ex:
