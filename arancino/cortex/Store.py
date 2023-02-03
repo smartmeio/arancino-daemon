@@ -73,6 +73,7 @@ class Store(CortexCommandExecutor):
 
             items = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.ITEMS]
             port_id = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_ID]
+            ts_items = []
 
             for i in items:
                 key = "{}:{}".format(port_id, i["key"])
@@ -83,12 +84,14 @@ class Store(CortexCommandExecutor):
                 ts = "*" if "ts" not in i or i["ts"].strip() == "" else i["ts"]
 
                 datastore.ts().add(key, ts, val)
+                ts_items.append(ts)
 
             #endregion
 
             #region Creo la Response
 
             self.arancinoResponse.code = ArancinoCommandResponseCodes.RSP_OK
+            self.arancinoResponse.args[PACKET.RSP.ARGUMENTS.ITEMS] = ts_items
             self._createChallenge()
 
             #endregion
