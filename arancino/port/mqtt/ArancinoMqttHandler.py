@@ -21,6 +21,8 @@ under the License
 """
 
 import threading
+
+import msgpack
 from arancino.ArancinoConstants import *
 from arancino.utils.ArancinoUtils import *
 from arancino.port.ArancinoPort import PortTypes
@@ -60,12 +62,10 @@ class ArancinoMqttHandler():
         # if message.retain==1:
         #     print("This is a retained message")
         try:
-            cmd = str(msg.payload.decode('utf-8', errors='strict'))
-        
-            if self.__commandReceivedHandler is not None:
-                self.__commandReceivedHandler(cmd)
-                
-        except UnicodeDecodeError as ex:
+
+            self.__commandReceivedHandler(msgpack.unpackb(msg.payload))
+    
+        except Exception as ex:
 
             LOG.warning("{} Decode Warning while reading data: {}".format(self.__log_prefix, str(ex)))
 
