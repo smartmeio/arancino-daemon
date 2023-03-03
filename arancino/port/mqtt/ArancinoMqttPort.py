@@ -105,7 +105,7 @@ class ArancinoMqttPort(ArancinoPort):
 
         if self._m_s_connected:
 
-            ret = self.__mqtt_client.publish(self.__mqtt_topic_rsp_to_mcu, raw_response, 0)
+            ret = self.__mqtt_client.publish(self.__mqtt_topic_rsp_to_mcu, raw_response, 2)
 
         else:  # not connected
             LOG.warning("{} Cannot Sent a Response: Port is not connected.".format(self._log_prefix))
@@ -171,7 +171,7 @@ class ArancinoMqttPort(ArancinoPort):
         :return:
         """
 
-        self.__mqtt_client.publish("{}".format(self.__mqtt_service_topic), "reset", 0)
+        self.__mqtt_client.publish("{}".format(self.__mqtt_service_topic), "reset", 2)
 
         #LOG.warning("{} Cannot Reset".format(self._log_prefix))
 
