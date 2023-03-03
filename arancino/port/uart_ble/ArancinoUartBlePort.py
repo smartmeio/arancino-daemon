@@ -50,9 +50,9 @@ class ArancinoUartBlePort(ArancinoPort):
         # UART BLE PORT
         self.__timeout = timeout
 
-        self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
+        #self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
 
-        self._compatibility_array = COMPATIBILITY_MATRIX_MOD_SERIAL[str(ENV.version.truncate())]
+        #self._compatibility_array = COMPATIBILITY_MATRIX_MOD_SERIAL[str(ENV.version.truncate())]
 
         # # CALLBACK FUNCTIONS
         #self.setReceivedCommandHandler(receivedCommandHandler)  # this is the handler to be used to receive an ArancinoCommand and exec that command.
@@ -100,7 +100,7 @@ class ArancinoUartBlePort(ArancinoPort):
         """
 
         if self._m_s_connected:
-            self.__ble_uart_service.write(raw_response.encode())
+            self.__ble_uart_service.write(raw_response)
         else:  # not connected
             LOG.warning("{} Cannot Sent a Response: Port is not connected.".format(self._log_prefix))
 
