@@ -79,7 +79,7 @@ class ArancinoMqttDiscovery(object):
             #client.subscribe(self.__mqtt_discovery_topic + "/+/rsp_from_mcu")   # for future use: when the daemon will send cmd to the port, it will response in this topic
             client.message_callback_add(self.__mqtt_discovery_topic, self.__on_discovery)
             #reset all mcu connected at the broker by sending a special cmd
-            client.publish("{}".format(self.__mqtt_service_topic), "reset", 0)
+            client.publish("{}".format(self.__mqtt_service_topic), "reset", 2)
         else:
             #self.__client.connected_flag = False
             LOG.warning("{}Failed to connect to {}:{} - {}".format(self._log_prefix, self.__mqtt_arancino_daemon_broker_host,str(self.__mqtt_arancino_daemon_broker_port), mqtt.connack_string(rc)))
