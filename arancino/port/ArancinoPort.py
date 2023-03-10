@@ -360,7 +360,7 @@ class ArancinoPort(object):
             raise NotImplemented("Identify Function is not available for port {}[{}] because firmware is running without FreeRTOS".format(self.getId(), self.getPortType().name), ArancinoApiResponseCode.ERR_NOT_IMPLEMENTED)
         
     def stopHeartbeat(self):
-        if hasattr(self, '__HEARTBEAT'):
+        if self._ArancinoPort__HEARTBEAT:
             self.__HEARTBEAT.stop()
             del self.__HEARTBEAT
 

@@ -80,6 +80,8 @@ class ArancinoUartBlePort(ArancinoPort):
         del self.__ble_uart_service
         del self.__adv
 
+        self.disconnect()
+
         LOG.warning("{} Uart-Ble Port closed.".format(self._log_prefix))
 
         # check if the disconnection handler callback function is defined
@@ -147,11 +149,13 @@ class ArancinoUartBlePort(ArancinoPort):
 
     def disconnect(self):
         try:
+            super().disconnect()
+
             # check if the device is already
             if self._m_s_connected:
+                self._m_s_connected = False
 
                 self.__uart_ble_handler.stop()
-                super().disconnect()
 
             else:
                 LOG.debug("{} Already Disconnected".format(self._log_prefix))
