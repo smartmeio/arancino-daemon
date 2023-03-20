@@ -157,6 +157,7 @@ class ArancinoMqttPort(ArancinoPort):
                 self.__mqtt_client.message_callback_remove(self.__mqtt_topic_cmd_to_mcu)
                 self.__mqtt_client.message_callback_remove(self.__mqtt_topic_rsp_from_mcu)
                 super().disconnect()
+                self.stopHeartbeat()
 
             else:
                 LOG.debug("{} Already Disconnected".format(self._log_prefix))

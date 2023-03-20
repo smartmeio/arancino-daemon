@@ -243,11 +243,11 @@ class Arancino(Thread):
                                     port.setDisconnectionHandler(self.__disconnectedPortHandler)
                                     port.setReceivedCommandHandler(self.__commandReceived)
                                     port.connect()
+                                    # move Arancino Port to the self.__ports_connected only if connection succeded
+                                    self.__ports_connected[id] = port
                                 except Exception as ex:
                                     pass
 
-                                # move Arancino Port to the self.__ports_connected
-                                self.__ports_connected[id] = port
                             else:
                                 LOG.warning("Port is not enabled, can not connect to: {} - {} at {}".format(port.getAlias(), port.getId(), port.getDevice()))
 
@@ -256,14 +256,14 @@ class Arancino(Thread):
                     #####################self.__mutex.release()
 
                     # for id, port in self.__ports_connected.items():
-                    #
+                    
                     #     p_conn = self.__ports_connected[id]
-                    #
+                    
                     #     # Nel caso di uart-ble non c'é un handler di disconnessione
                     #     # quindi si applica un controllo incrociato tra porte
                     #     # connesse e porte discovered. Se la porta é connessa ma
                     #     # non é presente tra le discovered, allora si forza la disconnessione
-                    #
+                    
                     #     if id not in self.__ports_discovered:
                     #         p_conn.disconnect()
                     #         self.__synchronizer.writePortChanges(port)

@@ -112,6 +112,7 @@ class ArancinoTestPort(ArancinoPort):
 
                 self.__test_handler.stop()
                 super().disconnect()
+                self.stopHeartbeat()
 
 
             else:

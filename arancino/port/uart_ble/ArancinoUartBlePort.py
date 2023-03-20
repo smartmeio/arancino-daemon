@@ -150,6 +150,7 @@ class ArancinoUartBlePort(ArancinoPort):
     def disconnect(self):
         try:
             super().disconnect()
+            self.stopHeartbeat()
 
             # check if the device is already
             if self._m_s_connected:

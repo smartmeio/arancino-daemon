@@ -98,13 +98,13 @@ class ArancinoSerialPort(ArancinoPort):
         # TODO se la disconnessione viene gestita al livello superiore facendo una del
         #  di questo oggetto non ha senso impostare connected = false e via dicendo
 
-        self._m_s_connected = False
+        # self._m_s_connected = False
         # self._m_s_plugged = False
 
         # free the handler and serial port
         self.__serial_port.close()
 
-        del self.__serial_handler
+        # del self.__serial_handler
         del self.__serial_port
 
         self.disconnect()
@@ -224,12 +224,13 @@ class ArancinoSerialPort(ArancinoPort):
     def disconnect(self):
         try:
             super().disconnect()
+            self.stopHeartbeat()
 
             # check if the device is already
             if self._m_s_connected:
                 self._m_s_connected = False
-
                 self.__serial_handler.stop()
+                del self.__serial_handler
             
 
             else:

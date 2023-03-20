@@ -28,7 +28,6 @@ from arancino.utils.ArancinoUtils import *
 from arancino.port.ArancinoPort import PortTypes
 from queue import Queue
 import time
-import timeit
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance().cfg

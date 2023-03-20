@@ -124,9 +124,7 @@ class ArancinoPort(object):
         """
 
         :return:
-        """
-        self.stopHeartbeat()
-        
+        """        
 
     @abstractmethod
     def sendResponse(self, response):
@@ -360,9 +358,12 @@ class ArancinoPort(object):
             raise NotImplemented("Identify Function is not available for port {}[{}] because firmware is running without FreeRTOS".format(self.getId(), self.getPortType().name), ArancinoApiResponseCode.ERR_NOT_IMPLEMENTED)
         
     def stopHeartbeat(self):
-        if self._ArancinoPort__HEARTBEAT:
+        try:
             self.__HEARTBEAT.stop()
             del self.__HEARTBEAT
+        except AttributeError:
+            # If heartbeat does not (yet) exist just exit
+            pass
 
     # region ID
     def getId(self):
