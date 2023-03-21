@@ -341,6 +341,7 @@ class PACKET:
 
             PERSISTENT = "pers"
             ACKNOLEDGEMENT = "ack"
+            PREFIX_ID = "prfx"
 
             TYPE = "type"
 
