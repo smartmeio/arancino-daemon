@@ -46,6 +46,7 @@ class HashDel(CortexCommandExecutor):
         },
         "cfg":{
             "ack": 1,
+            "prfx": 0,
             "sgntr": "<Signature>"
         }
     }
@@ -63,16 +64,23 @@ class HashDel(CortexCommandExecutor):
             datastore = self._retrieveDatastore()
 
             items = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.ITEMS]
+            prefix_id = self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID]
+            port_id = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_ID]
 
             pipeline = datastore.pipeline()
             for i in items:
                 k = i["key"]
                 f = i["field"]
+
+                if int(prefix_id) == 1:
+                    """
+                    il comando usa il prefix id, per cui a tutte le chiavi va agganciato l'id della porta. 
+                    """
+                    k = "{}_{}".format(port_id, k)
+
                 pipeline.hdel(k, f)
 
             res = pipeline.execute()
-
-
 
 
             # region Creo la Response
@@ -123,6 +131,15 @@ class HashDel(CortexCommandExecutor):
                 or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] > 1:
             self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] = 1
             LOG.debug("{} - {}".format(self.log_prexix, "CFG:ACK Missing or Incorret: set default value ack:1"))
+        # endregion
+
+        # region CFG:PRFX
+        # controllo se il paramentro prfx è presente e valido, altrimenti lo imposto di default
+        if not self._checkKeyAndValue(self.arancinoCommand.cfg, PACKET.CMD.CONFIGURATIONS.PREFIX_ID) \
+                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] < 0 \
+                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] > 1:
+            self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] = 0
+            LOG.debug("{} - {}".format(self.log_prexix, "CFG:PRFX Missing or Incorret: set default value prfx:0"))
         # endregion
 
         # region ARGS:ITEMS
