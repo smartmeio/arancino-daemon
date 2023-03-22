@@ -48,6 +48,7 @@ class HashSet(CortexCommandExecutor):
                 "type": "appl",
                 "pers": 1,
                 "ack": 1,
+                "prfx": 0,
                 "sgntr": "<Signature>"
             }
         }
@@ -68,6 +69,8 @@ class HashSet(CortexCommandExecutor):
             datastore = self._retrieveDatastore()
 
             items = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.ITEMS]
+            prefix_id = self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID]
+            port_id = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_ID]
 
             pipeline = datastore.pipeline()
 
@@ -76,6 +79,14 @@ class HashSet(CortexCommandExecutor):
                 k = i["key"]
                 f = i["field"]
                 v = i["value"]
+
+
+                if int(prefix_id) == 1:
+                    """
+                    il comando usa il prefix id, per cui a tutte le chiavi va agganciato l'id della porta. 
+                    """
+                    k = "{}_{}".format(port_id, k)
+
 
                 pipeline.hset(k, f, v)
 
