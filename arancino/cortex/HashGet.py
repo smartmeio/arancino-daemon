@@ -45,6 +45,7 @@ class HashGet(CortexCommandExecutor):
         },
         "cfg":{
             "type": "appl",
+            "prfx": 1,
             "sgntr": "<Signature>"
         }
     }

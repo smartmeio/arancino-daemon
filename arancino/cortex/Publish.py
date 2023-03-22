@@ -47,6 +47,7 @@ class Publish(CortexCommandExecutor):
         },
         "cfg":{
             "ack": 1,
+            "prfx": 0,
             "sgntr": "<Signature>"
         }
     }
@@ -66,12 +67,20 @@ class Publish(CortexCommandExecutor):
 
             datastore = self._datastore
             items = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.ITEMS]
+            prefix_id = self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID]
+            port_id = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_ID]
 
             pipeline = datastore.pipeline()
 
             for i in items:
                 ch = i["channel"]
                 msg = i["message"]
+
+                if int(prefix_id) == 1:
+                    """
+                    il comando usa il prefix id, per cui a tutte le chiavi va agganciato l'id della porta. 
+                    """
+                    ch = "{}_{}".format(port_id, ch)
 
                 pipeline.publish(ch, msg)
 
@@ -123,6 +132,15 @@ class Publish(CortexCommandExecutor):
             self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] = 1
             LOG.debug("{} - {}".format(self.log_prexix, "CFG:ACK Missing or Incorret: set default value ack:1"))
         #endregion
+
+        # region CFG:PRFX
+        # controllo se il paramentro prfx è presente e valido, altrimenti lo imposto di default
+        if not self._checkKeyAndValue(self.arancinoCommand.cfg, PACKET.CMD.CONFIGURATIONS.PREFIX_ID) \
+                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] < 0 \
+                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] > 1:
+            self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] = 0
+            LOG.debug("{} - {}".format(self.log_prexix, "CFG:PRFX Missing or Incorret: set default value prfx:0"))
+        # endregion
 
         #region ARGS:ITEMS
         if not self._checkKeyAndValue(self.arancinoCommand.args, PACKET.CMD.ARGUMENTS.ITEMS) \
