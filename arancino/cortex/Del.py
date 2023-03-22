@@ -45,6 +45,7 @@ class Del(CortexCommandExecutor):
                 "type": "appl",
                 "pers": 1,
                 "ack": 1,
+                "prfx": 0,
                 "sgntr": "<Signature>"
             }
         }
@@ -62,6 +63,9 @@ class Del(CortexCommandExecutor):
             datastore = self._retrieveDatastore()
 
             items = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.ITEMS]
+
+            # esegue un cambio di nome delle chiavi qualora il prefix id fosse abilitato
+            items = self._prefix(items)
 
             res = datastore.delete(*items)
 
@@ -82,6 +86,30 @@ class Del(CortexCommandExecutor):
         except Exception as ex:
             raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
 
+
+    def _prefix(self, keys):
+        prefix_id = self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID]
+        port_id = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_ID]
+
+        if int(prefix_id) == 1:
+            """
+            il comando usa il prefix id, per cui a tutte le chiavi va agganciato l'id della porta. 
+            """
+
+            # istanza di comodo da usare qualora il prefix_id fosse attivo.
+            keys_prfx = []
+
+            for k in keys:
+                k = "{}_{}".format(port_id, k)
+                keys_prfx.append(k)
+
+            return keys_prfx
+
+        else:
+            """
+            il comando non usa il prefix id 
+            """
+            return keys
 
     def _check(self):
         """
@@ -108,6 +136,15 @@ class Del(CortexCommandExecutor):
                 or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] > 1:
             self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] = 1
             LOG.debug("{} - {}".format(self.log_prexix, "CFG:ACK Missing or Incorret: set default value ack:1"))
+        # endregion
+
+        # region CFG:PRFX
+        # controllo se il paramentro prfx è presente e valido, altrimenti lo imposto di default
+        if not self._checkKeyAndValue(self.arancinoCommand.cfg, PACKET.CMD.CONFIGURATIONS.PREFIX_ID) \
+                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] < 0 \
+                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] > 1:
+            self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] = 0
+            LOG.debug("{} - {}".format(self.log_prexix, "CFG:PRFX Missing or Incorret: set default value prfx:0"))
         # endregion
 
         # region ARGS:ITEMS

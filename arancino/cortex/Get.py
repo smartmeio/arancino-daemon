@@ -23,6 +23,7 @@ class Get(CortexCommandExecutor):
             },
             "cfg":{
                 "type": "appl",
+                "prfx": 1,
                 "sgntr": "<Signature>"
             }
         }
@@ -39,6 +40,9 @@ class Get(CortexCommandExecutor):
             self._check()
 
             keys = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.ITEMS]
+            prefix_id = self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID]
+            port_id = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_ID]
+
             # region Selezione del datastore in base al paramentro "type"
             datastore = self._retrieveDatastore()
             """
@@ -49,7 +53,10 @@ class Get(CortexCommandExecutor):
             il datastatore in questo caso è obbligato dal tipo.
             """
 
-            values = datastore.mget(keys)
+            # esegue un cambio di nome delle chiavi qualora il prefix id fosse abilitato
+            keys_w_prefix = self._prefix(keys)
+
+            values = datastore.mget(keys_w_prefix)
 
             # endregion
 
@@ -76,6 +83,32 @@ class Get(CortexCommandExecutor):
         except Exception as ex:
             raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
 
+
+    def _prefix(self, keys):
+        prefix_id = self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID]
+        port_id = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_ID]
+
+        if int(prefix_id) == 1:
+            """
+            il comando usa il prefix id, per cui a tutte le chiavi va agganciato l'id della porta. 
+            """
+
+            # istanza di comodo da usare qualora il prefix_id fosse attivo.
+            keys_prfx = []
+
+            for k in keys:
+                k = "{}_{}".format(port_id, k)
+                keys_prfx.append(k)
+
+            return keys_prfx
+
+        else:
+            """
+            il comando non usa il prefix id 
+            """
+            return keys
+
+
     def _check(self):
         """
         esegui controlli sui parametri della comando GET.
@@ -94,6 +127,15 @@ class Get(CortexCommandExecutor):
         # im questo caso, qualsiasi sia il valore di ack lo imposto di default a 1, perche la funzioni tipo get
         # devono tornare sempre il dato.
         self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] = 1
+        # endregion
+
+        # region CFG:PRFX
+        # controllo se il paramentro prfx è presente e valido, altrimenti lo imposto di default
+        if not self._checkKeyAndValue(self.arancinoCommand.cfg, PACKET.CMD.CONFIGURATIONS.PREFIX_ID) \
+                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] < 0 \
+                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] > 1:
+            self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] = 0
+            LOG.debug("{} - {}".format(self.log_prexix, "CFG:PRFX Missing or Incorret: set default value prfx:0"))
         # endregion
 
         # region ARGS:ITEMS

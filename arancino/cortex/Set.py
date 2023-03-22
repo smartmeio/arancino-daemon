@@ -61,15 +61,13 @@ class Set(CortexCommandExecutor):
         try:
             self._check()
 
+            items = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.ITEMS]
+            prefix_id = self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID]
+            port_id = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_ID]
+
             # region Selezione del datastore in base al paramentro "type"
 
             datastore = self._retrieveDatastore()
-
-            items = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.ITEMS]
-
-            prefix_id = self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID]
-
-            port_id = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_ID]
 
             map = {}
 
@@ -77,6 +75,9 @@ class Set(CortexCommandExecutor):
                 key = i["key"]
 
                 if int(prefix_id) == 1:
+                    """
+                    il comando usa il prefix id, per cui a tutte le chiavi va agganciato l'id della porta. 
+                    """
                     key = "{}_{}".format(port_id, key)
 
                 val = i["value"]
