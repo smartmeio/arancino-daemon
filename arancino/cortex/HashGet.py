@@ -61,6 +61,9 @@ class HashGet(CortexCommandExecutor):
             self._check()
 
             items = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.ITEMS]
+            prefix_id = self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID]
+            port_id = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_ID]
+
             # region Selezione del datastore in base al paramentro "type"
             datastore = self._retrieveDatastore()
             """
@@ -75,7 +78,19 @@ class HashGet(CortexCommandExecutor):
                 k = i["key"]
                 f = i["field"]
 
-                v = datastore.hget(k, f)
+                if int(prefix_id) == 1:
+                    """
+                    il comando usa il prefix id, per cui a tutte le chiavi va agganciato l'id della porta. 
+                    """
+                    k_w_prfx = "{}_{}".format(port_id, k)
+
+                    v = datastore.hget(k_w_prfx, f)
+
+                else:
+                    """
+                    il comando non usa il prefix id 
+                    """
+                    v = datastore.hget(k, f)
 
                 i["value"] = v
 
@@ -115,6 +130,15 @@ class HashGet(CortexCommandExecutor):
         # im questo caso, qualsiasi sia il valore di ack lo imposto di default a 1, perche la funzioni tipo get
         # devono tornare sempre il dato.
         self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] = 1
+        # endregion
+
+        # region CFG:PRFX
+        # controllo se il paramentro prfx è presente e valido, altrimenti lo imposto di default
+        if not self._checkKeyAndValue(self.arancinoCommand.cfg, PACKET.CMD.CONFIGURATIONS.PREFIX_ID) \
+                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] < 0 \
+                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] > 1:
+            self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] = 0
+            LOG.debug("{} - {}".format(self.log_prexix, "CFG:PRFX Missing or Incorret: set default value prfx:0"))
         # endregion
 
         # region ARGS:ITEMS
