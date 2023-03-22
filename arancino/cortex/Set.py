@@ -77,7 +77,7 @@ class Set(CortexCommandExecutor):
                 key = i["key"]
 
                 if int(prefix_id) == 1:
-                    key = "".format(port_id, "_", key)
+                    key = "{}_{}".format(port_id, key)
 
                 val = i["value"]
                 map[key] = val
