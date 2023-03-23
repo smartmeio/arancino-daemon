@@ -785,7 +785,7 @@ class ArancinoTestHandler(threading.Thread):
         #endregion
 
         #cmd_list.append(msgpack.packb(cmd_store, use_bin_type=True))
-        cmd_list.append(msgpack.packb(cmd_store_prfx, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(cmd_store_prfx, use_bin_type=True))
 
         # region 11. STORETAGS
         cmd_store_tag = {
