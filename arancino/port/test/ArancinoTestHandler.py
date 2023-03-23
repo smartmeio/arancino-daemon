@@ -199,6 +199,7 @@ class ArancinoTestHandler(threading.Thread):
                 "fw_build_time": fw_datetime_str,
                 "fw_core_ver": "1.0.0",
                 "fw_crtx_ver": "1.0.0",
+                "fw_freertos": 0,
                 "CUSTOM_KEY_1": "CUSTOM_VALUE_1",
                 "CUSTOM_KEY_2": "CUSTOM_VALUE_2"
             },
@@ -298,7 +299,7 @@ class ArancinoTestHandler(threading.Thread):
         #cmd_list.append(msgpack.packb(set_cmd_appl_pers, use_bin_type=True))
         #cmd_list.append(msgpack.packb(set_cmd_rsvd, use_bin_type=True))
         #cmd_list.append(msgpack.packb(set_cmd_stng, use_bin_type=True))
-        cmd_list.append(msgpack.packb(set_cmd_appl_prfx, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(set_cmd_appl_prfx, use_bin_type=True))
 
         #region 3. GET
 
@@ -368,6 +369,21 @@ class ArancinoTestHandler(threading.Thread):
                 "ack": 1
             }
         }
+
+        get_cmd_prfx = {
+            "cmd": "GET",
+            "args": {
+                "items": [
+                    "key-1", "key-2"
+                ]
+            },
+            "cfg": {
+                "pers": 0,  #imposto la persistenza, ma deve essere scartata in quanto vale il type: stng che prevede pers: 1
+                "prfx": 1,
+                "type": "appl",
+                "ack": 1
+            }
+        }
         # endregion
 
         #cmd_list.append(msgpack.packb(get_cmd, use_bin_type=True))
@@ -375,6 +391,7 @@ class ArancinoTestHandler(threading.Thread):
         #cmd_list.append(msgpack.packb(get_cmd_mix, use_bin_type=True))
         #cmd_list.append(msgpack.packb(get_cmd_rsvd, use_bin_type=True))
         #cmd_list.append(msgpack.packb(get_cmd_pers, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(get_cmd_prfx, use_bin_type=True))
 
 
         #region 4. DEL
@@ -401,9 +418,23 @@ class ArancinoTestHandler(threading.Thread):
                 "ack": 1
             }
         }
+
+        del_cmd_prfx = {
+            "cmd": "DEL",
+            "args": {
+                "items": ["key-1", "key-2"]
+            },
+            "cfg": {
+                #"type": "appl", #questa volta commento, perche lo mette in automatico
+                "pers": 0,
+                "prfx": 1,
+                "ack": 1
+            }
+        }
         #endregion
         #cmd_list.append(msgpack.packb(del_cmd, use_bin_type=True))
         #cmd_list.append(msgpack.packb(del_cmd_pers, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(del_cmd_prfx, use_bin_type=True))
 
 
         #region 5. HSET
@@ -467,12 +498,29 @@ class ArancinoTestHandler(threading.Thread):
                 "type": "stng"
             }
         }
+
+        hset_cmd_prfx = {
+            "cmd": "HSET",
+            "args": {
+                "items": [
+                    {"key": "key-1", "field": "field-A", "value": "value-1"},
+                    {"key": "key-1", "field": "field-B", "value": "value-2"},
+                    {"key": "key-2", "field": "field-A", "value": "value-3"},
+                    {"key": "key-2", "field": "field-B", "value": "value-4"}
+                ]
+            },
+            "cfg": {
+                "type": "appl",
+                "prfx": 1
+            }
+        }
         #endregion
 
         #cmd_list.append(msgpack.packb(hset_cmd_appl, use_bin_type=True))
         #cmd_list.append(msgpack.packb(hset_cmd_appl_pers, use_bin_type=True))
         #cmd_list.append(msgpack.packb(hset_cmd_rsvd, use_bin_type=True))
         #cmd_list.append(msgpack.packb(hset_cmd_stng, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hset_cmd_prfx, use_bin_type=True))
 
 
         #region 6. HGET
@@ -557,6 +605,24 @@ class ArancinoTestHandler(threading.Thread):
                 "ack": 1
             }
         }
+
+        hget_cmd_prfx = {
+            "cmd": "HGET",
+            "args": {
+                "items": [
+                    {"key": "key-1", "field": "field-A"},
+                    {"key": "key-1", "field": "field-B"},
+                    {"key": "key-2", "field": "field-A"},
+                    {"key": "key-2", "field": "field-B"},
+                ]
+            },
+            "cfg": {
+                "pers": 0,  #imposto la persistenza, ma deve essere scartata in quanto vale il type: stng che prevede pers: 1
+                "type": "appl",
+                "prfx": 1,
+                "ack": 1
+            }
+        }
         #endregion
 
         #cmd_list.append(msgpack.packb(hget_cmd, use_bin_type=True))
@@ -564,6 +630,7 @@ class ArancinoTestHandler(threading.Thread):
         #cmd_list.append(msgpack.packb(hget_cmd_mix, use_bin_type=True))
         #cmd_list.append(msgpack.packb(hget_cmd_rsvd, use_bin_type=True))
         #cmd_list.append(msgpack.packb(hget_cmd_pers, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hget_cmd_prfx, use_bin_type=True))
 
         #region 7. HDEL
         hdel_cmd = {
@@ -602,9 +669,28 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
+        hdel_cmd_prfx = {
+            "cmd": "HDEL",
+            "args": {
+                "items": [
+                    {"key": "key-1", "field": "field-A"},
+                    {"key": "key-1", "field": "field-B"},
+                    {"key": "key-2", "field": "field-A"},
+                    {"key": "key-2", "field": "field-B"}
+                ]
+            },
+            "cfg": {
+                #"type": "appl", #questa volta commento, perche lo mette in automatico
+                "pers": 0,
+                "prfx": 1,
+                "ack": 0
+            }
+        }
+
         #endregion
         #cmd_list.append(msgpack.packb(hdel_cmd, use_bin_type=True))
         #cmd_list.append(msgpack.packb(hdel_cmd_pers, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hdel_cmd_prfx, use_bin_type=True))
 
         #region 8. FLUSH
         flush_cmd = {
@@ -646,9 +732,24 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
+        cmd_pub_prfx = {
+            "cmd": "PUB",
+            "args": {
+                "items": [
+                    {"channel": "channel-1", "message": "message-A"},
+                    {"channel": "channel-2", "message": "message-B"}
+                ]
+            },
+            "cfg": {
+                "ack": 1,
+                "prfx": 1
+            }
+        }
+
         #endregion
 
         #cmd_list.append(msgpack.packb(cmd_pub, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(cmd_pub_prfx, use_bin_type=True))
 
 
         #region 10. STORE
@@ -662,12 +763,29 @@ class ArancinoTestHandler(threading.Thread):
                 ]
             },
             "cfg": {
-                "ack": 1
+                "ack": 1,
+                "type": "tse",
+            }
+        }
+
+        cmd_store_prfx = {
+            "cmd": "STORE",
+            "args": {
+                "items": [
+                    {"key": "key-1", "value": 1, "ts": "*"},
+                    {"key": "key-2", "value": 2, "ts": "*"},
+                    {"key": "key-3", "value": 3.14},
+                ]
+            },
+            "cfg": {
+                "ack": 1,
+                "type": "tse"
             }
         }
         #endregion
 
         #cmd_list.append(msgpack.packb(cmd_store, use_bin_type=True))
+        cmd_list.append(msgpack.packb(cmd_store_prfx, use_bin_type=True))
 
         # region 11. STORETAGS
         cmd_store_tag = {
@@ -682,6 +800,7 @@ class ArancinoTestHandler(threading.Thread):
             },
             "cfg": {
                 "ack": 1,
+                "type": "tags",
 
             }
         }
