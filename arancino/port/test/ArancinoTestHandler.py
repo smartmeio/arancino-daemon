@@ -37,6 +37,7 @@ import time
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance().cfg
+ENV = ArancinoEnvironment.Instance()
 DATASTORE = ArancinoDataStore.Instance()
 
 class ArancinoTestHandler(threading.Thread):
@@ -209,8 +210,8 @@ class ArancinoTestHandler(threading.Thread):
         start_rsp = {
             "code": ArancinoCommandResponseCodes.RSP_OK,
             "args": {
-                "dmn_ver" : str(CONF.get_metadata_version()),
-                "dmn_env": CONF.get_general_env()
+                "dmn_ver": str(ENV.version),
+                "dmn_env": str(ENV.env)
             },
             "cfg": {
                 #"ts": "<timestamp>",
@@ -277,11 +278,27 @@ class ArancinoTestHandler(threading.Thread):
                 "type": "stng"
             }
         }
+
+        set_cmd_appl_prfx = {
+            "cmd": "SET",
+            "args": {
+                "items": [
+                    {"key": "key-1", "value": "value-1"},
+                    {"key": "key-2", "value": "value-2"}
+                ]
+            },
+            "cfg": {
+                "type": "appl",
+                "prfx": 1
+            }
+        }
+
         #endregion
         #cmd_list.append(msgpack.packb(set_cmd_appl, use_bin_type=True))
         #cmd_list.append(msgpack.packb(set_cmd_appl_pers, use_bin_type=True))
         #cmd_list.append(msgpack.packb(set_cmd_rsvd, use_bin_type=True))
         #cmd_list.append(msgpack.packb(set_cmd_stng, use_bin_type=True))
+        cmd_list.append(msgpack.packb(set_cmd_appl_prfx, use_bin_type=True))
 
         #region 3. GET
 
@@ -616,7 +633,22 @@ class ArancinoTestHandler(threading.Thread):
 
         #region 9. PUB
 
+        cmd_pub = {
+            "cmd": "PUB",
+            "args": {
+                "items": [
+                    {"channel": "channel-1", "message": "message-A"},
+                    {"channel": "channel-2", "message": "message-B"}
+                ]
+            },
+            "cfg": {
+                "ack": 1
+            }
+        }
+
         #endregion
+
+        #cmd_list.append(msgpack.packb(cmd_pub, use_bin_type=True))
 
 
         #region 10. STORE
@@ -654,127 +686,11 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
         # endregion
+
         #cmd_list.append(msgpack.packb(cmd_store_tag, use_bin_type=True))
 
-        #region 12. PUB
-
-        cmd_pub = {
-            "cmd": "PUB",
-            "args": {
-                "items": [
-                    {"channel": "channel-1", "message": "message-A"},
-                    {"channel": "channel-2", "message": "message-B"}
-                ]
-            },
-            "cfg": {
-                "ack": 1
-            }
-        }
-
-        #endregion
-
-        cmd_list.append(msgpack.packb(cmd_pub, use_bin_type=True))
-
-        # # 13. PUB
-        # list.append(cmdId.CMD_APP_PUB["id"] + specChars.CHR_SEP + str(self.__id) + "_TEST_PUB" + specChars.CHR_SEP + "TEST_PUB_VAL" + specChars.CHR_EOT)
-        #
-        # # 14. MSET
-        #     # 14.1 MSET STD OK
-        # keys = str(self.__id) + "_TEST_MSET_KEY_1" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MSET_KEY_2" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MSET_KEY_3"
-        # values = "TEST_MSET_VAL_1" + specChars.CHR_ARR_SEP + "TEST_MSET_VAL_2" + specChars.CHR_ARR_SEP + "TEST_MSET_VAL_3"
-        # list.append(cmdId.CMD_APP_MSET_STD["id"] + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
-        #
-        #     # 14.2 MSET STD KO
-        # keys = str(self.__id) + "_TEST_MSET_KEY_1" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MSET_KEY_2"
-        # list.append(cmdId.CMD_APP_MSET_STD["id"] + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
-        #
-        #     # 14.3 MSET PERS
-        # keys = str(self.__id) + "_TEST_MSET_KEY_PERS_1" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MSET_KEY_PERS_2" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MSET_KEY_PERS_3"
-        # values = "TEST_MSET_VAL_1" + specChars.CHR_ARR_SEP + "TEST_MSET_VAL_2" + specChars.CHR_ARR_SEP + "TEST_MSET_VAL_3"
-        # list.append(cmdId.CMD_APP_MSET_PERS["id"] + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
-        #
-        #     # 14.4 MSET PERS KO - keys exists in standard datastore
-        # keys = str(self.__id) + "_TEST_MSET_KEY_1" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MSET_KEY_2" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MSET_KEY_3"
-        # list.append(cmdId.CMD_APP_MSET_PERS["id"] + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
-        #
-        #
-        #
-        # # 15. MGET
-        #     # 15.1 OK
-        # list.append(cmdId.CMD_APP_MGET["id"] + specChars.CHR_SEP + keys + specChars.CHR_EOT)
-        #
-        #     # 15.2 KO -> key does not exist
-        # keys = str(self.__id) + "_TEST_MGET_1"
-        # list.append(cmdId.CMD_APP_MGET["id"] + specChars.CHR_SEP + keys + specChars.CHR_EOT)
-        #
-        #     # 15.3 KO -> keys don't exist
-        # keys = str(self.__id) + "_TEST_MGET_KEY_1" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MGET_KEY_2"
-        # list.append(cmdId.CMD_APP_MGET["id"] + specChars.CHR_SEP + keys + specChars.CHR_EOT)
-        #
-        #     # 15.4 KO -> one key does not exist
-        # keys = str(self.__id) + "_TEST_MSET_KEY_1" + specChars.CHR_ARR_SEP + str(self.__id) + "_TEST_MGET_KEY_2"
-        # list.append(cmdId.CMD_APP_MGET["id"] + specChars.CHR_SEP + keys + specChars.CHR_EOT)
-        #
-        #     # 15.5 KO -> empty list
-        # keys = ""
-        # list.append(cmdId.CMD_APP_MGET["id"] + specChars.CHR_SEP + keys + specChars.CHR_EOT)
-
-        # 16. STORE
-            # 16.1 OK
-        #list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "1" +specChars.CHR_EOT)
-
-            # 16.2 OK
-        #list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "1.1" + specChars.CHR_EOT)
-
-            # 16.3 KO
-        #list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1" + specChars.CHR_SEP + "1A" + specChars.CHR_EOT)
-
-            # 16.4 OK
-        """
-        keys = "TAG_1" + specChars.CHR_ARR_SEP + "TAG_2" + specChars.CHR_ARR_SEP + "TAG_3"
-        values = "VAL_1" + specChars.CHR_ARR_SEP + "VAL_2" + specChars.CHR_ARR_SEP + "VAL_3"
-
-        #list.append(cmdId.CMD_APP_STORETAGS["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
-
-        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-
-        #     # 16.5 OK
-        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-
-        #     # 16.6 KO
-        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-
-        #     # 16.7 KO
-        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-
-            # 16.8 KO
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-        keys = "TAG_1" + specChars.CHR_ARR_SEP + "TAG_2" + specChars.CHR_ARR_SEP + "TAG_3"
-        values = "VAL_1-1" + specChars.CHR_ARR_SEP + "VAL_2-1" + specChars.CHR_ARR_SEP + "VAL_3-1"
-
-        #list.append(cmdId.CMD_APP_STORETAGS["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + keys + specChars.CHR_SEP + values + specChars.CHR_EOT)
 
 
-        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-
-        #     # 16.5 OK
-        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-
-        #     # 16.6 KO
-        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-
-        #     # 16.7 KO
-        # list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_1/value/0" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-
-            # 16.8 KO
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "1" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "2" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "3" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-        list.append(cmdId.CMD_APP_STORE["id"] + specChars.CHR_SEP + str(self.__id) + "_TS_2/value/0" + specChars.CHR_SEP + "4" + specChars.CHR_SEP + "*" + specChars.CHR_EOT)
-        """
         return cmd_list, rsp_list
 
     def __service_task(self):
