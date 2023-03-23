@@ -18,6 +18,7 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 """
+import json
 import threading
 from abc import ABCMeta, abstractmethod
 from types import FunctionType, MethodType
@@ -184,13 +185,17 @@ class ArancinoPort(object):
             cmd = cxef.getCommandExecutor(cmd=acmd)
 
             arsp = cmd.execute()
-            LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.id, str(acmd.getUnpackedPacket())))
+
+            # pretty print
+            formatted_command_json = json.dumps(acmd.getUnpackedPacket(), indent=2)
+
+            LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.id, formatted_command_json))
 
             if acmd.id == "START": #TODO ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
                 self._retrieveStartCmdArgs(acmd.args)
 
                 # Set FreeRTOS
-                if (acmd.args["use_freertos"] == 1):
+                if (acmd.args["fw_freertos"] == 1):
                     self._setFirmwareUseFreeRTOS("1")
 
                 if (self.getFirmwareUseFreeRTOS() and self.__HEARTBEAT == None):
@@ -218,9 +223,16 @@ class ArancinoPort(object):
                 if PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT in acmd.cfg and acmd.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] == 1:
                     # send the response back.
                     self.sendResponse(arsp.getPackedPacket())
-                    LOG.debug("{} Sending: {}: {}".format(self._log_prefix, arsp.code, str(arsp.getUnpackedPacket())))
+
+                    # pretty print
+                    formatted_response_json = json.dumps(arsp.getUnpackedPacket(), indent=2)
+
+                    LOG.debug("{} Sending: {}: \n{}".format(self._log_prefix, arsp.code, formatted_response_json))
                 else:
-                    LOG.debug("{} Ack disabled, response is not sent back : {}: {}".format(self._log_prefix, arsp.code, str(arsp.getUnpackedPacket())))
+                    # pretty print
+                    formatted_response_json = json.dumps(arsp.getUnpackedPacket(), indent=2)
+
+                    LOG.debug("{} Ack disabled, response is not sent back : {}: \n{}".format(self._log_prefix, arsp.code, formatted_response_json))
 
             except Exception as ex:
                 LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex), exc_info=TRACE)
