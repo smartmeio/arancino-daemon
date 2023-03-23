@@ -112,6 +112,8 @@ class ArancinoDataStore:
 
                     self.__attempts += 1
                     time.sleep(3)
+                else:
+                    time.sleep(3)
 
         LOG.info("Redis Connection OK")
 
