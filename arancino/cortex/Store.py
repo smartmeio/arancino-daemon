@@ -51,6 +51,7 @@ class Store(CortexCommandExecutor):
         "cfg":{
             "ack": 1,
             "prfx": 0,
+            "appl": "tse"
             "sgntr": "<Signature>"
         }
     }
@@ -73,19 +74,12 @@ class Store(CortexCommandExecutor):
             datastore = self._retrieveDatastore()            
 
             items = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.ITEMS]
-            prefix_id = self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID]
+            #prefix_id = self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID]
             port_id = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_ID]
             ts_items = []
 
             for i in items:
                 key = "{}:{}".format(port_id, i["key"])
-
-                if int(prefix_id) == 1:
-                    """
-                    il comando usa il prefix id, per cui a tutte le chiavi va agganciato l'id della porta. 
-                    """
-                    key = "{}_{}".format(port_id, key)
-
 
                 self._check_ts_exist_and_create(datastore, key)
 
