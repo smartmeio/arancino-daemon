@@ -50,7 +50,6 @@ class Store(CortexCommandExecutor):
         },
         "cfg":{
             "ack": 1,
-            "prfx": 0,
             "appl": "tse"
             "sgntr": "<Signature>"
         }
@@ -121,14 +120,14 @@ class Store(CortexCommandExecutor):
             LOG.debug("{} - {}".format(self.log_prexix, "CFG:ACK Missing or Incorret: set default value ack:1"))
         #endregion
 
-        # region CFG:PRFX
-        # controllo se il paramentro prfx è presente e valido, altrimenti lo imposto di default
-        if not self._checkKeyAndValue(self.arancinoCommand.cfg, PACKET.CMD.CONFIGURATIONS.PREFIX_ID) \
-                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] < 0 \
-                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] > 1:
-            self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] = 0
-            LOG.debug("{} - {}".format(self.log_prexix, "CFG:PRFX Missing or Incorret: set default value prfx:0"))
-        # endregion
+        # # region CFG:PRFX
+        # # controllo se il paramentro prfx è presente e valido, altrimenti lo imposto di default
+        # if not self._checkKeyAndValue(self.arancinoCommand.cfg, PACKET.CMD.CONFIGURATIONS.PREFIX_ID) \
+        #         or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] < 0 \
+        #         or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] > 1:
+        #     self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] = 0
+        #     LOG.debug("{} - {}".format(self.log_prexix, "CFG:PRFX Missing or Incorret: set default value prfx:0"))
+        # # endregion
 
         #region ARGS:ITEMS
         if not self._checkKeyAndValue(self.arancinoCommand.args, PACKET.CMD.ARGUMENTS.ITEMS) \
