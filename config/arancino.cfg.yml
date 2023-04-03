@@ -337,6 +337,12 @@ port:
       username: arancino-daemon
       password: 12345678
       client_id: 87654321
+
+      use_tls: false
+      ca_path : ""
+      cert_path: ""
+      key_path: ""
+      
       # Topic that will be used for discovery process
       discovery_topic: arancino/discovery
       # Topic that will be used for both send and receive (in relative subtopics)

@@ -52,6 +52,11 @@ class ArancinoMqttDiscovery(object):
         self.__mqtt_arancino_daemon_broker_host = str(CONF.get("port").get("mqtt").get("connection").get("host"))
         self.__mqtt_arancino_daemon_broker_port = CONF.get("port").get("mqtt").get("connection").get("port")
         self.__mqtt_arancino_daemon_client_id = str(CONF.get("port").get("mqtt").get("connection").get("client_id"))
+        self.__mqtt_arancino_daemon_tls_set = CONF.get("port").get("mqtt").get("connection").get("use_tls")
+        self.__mqtt_arancino_daemon_ca_certs = CONF.get("port").get("mqtt").get("connection").get("ca_path")
+        self.__mqtt_arancino_daemon_certfile = CONF.get("port").get("mqtt").get("connection").get("cert_path")
+        self.__mqtt_arancino_daemon_keyfile = CONF.get("port").get("mqtt").get("connection").get("key_path")
+        
         
         try:
             self.__mqtt_client = mqtt.Client(client_id=self.__mqtt_arancino_daemon_client_id)
@@ -60,6 +65,14 @@ class ArancinoMqttDiscovery(object):
             #self.__mqtt_client.on_message = self.__on_discovery
 
             self.__mqtt_client.username_pw_set(self.__mqtt_arancino_daemon_discovery_user, self.__mqtt_arancino_daemon_discovery_pass)
+            
+            if (self.__mqtt_arancino_daemon_tls_set):
+                self.__mqtt_client.tls_set(
+                    ca_certs=self.__mqtt_arancino_daemon_ca_certs,
+                    certfile=self.__mqtt_arancino_daemon_certfile,
+                    keyfile=self.__mqtt_arancino_daemon_keyfile
+                )
+
             self.__mqtt_client.connect(self.__mqtt_arancino_daemon_broker_host, self.__mqtt_arancino_daemon_broker_port)
             self.__mqtt_client.loop_start()
         
