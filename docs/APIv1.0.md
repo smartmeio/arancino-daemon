@@ -723,6 +723,30 @@ Uploads firmware to the port specified by `{{PORT_ID}}`
 ```
 
 
+##### Identify
+Signals the port specified by `{{PORT_ID}}` to start blinking
+
+- API address: `/ports/{{PORT_ID}}/identify`
+- API method: `POST`
+- API result if Reset success:
+```json
+{
+	"arancino": {
+		"response": [
+			{
+				"internalMessage": [
+					"Start Port Identifying"
+				],
+				"isError": false,
+				"returnCode": 19,
+				"userMessage": "Start Port Identifying"
+			}
+		]
+	}
+}
+```
+
+
 #### Common result for not found port:
 
 ```json
