@@ -1,5 +1,11 @@
 # Changelog
 
+#### v 2.7.0 2023.04.07
+* Upd: Implemented new Cortex protocol [#258u64n](https://app.clickup.com/t/258u64n)
+* Add: Added mTLS support when using MQTT with a secure broker [#863geevcp](https://app.clickup.com/t/863geevcp)
+* Del: Commands are now deserialized and executed. Pipeline feature may come back in future releases [#31eyxpz](https://app.clickup.com/t/31eyxpz)
+* Upd: Response to commands is not sent if not required or requested by the command itself [#23fpzk6](https://app.clickup.com/t/23fpzk6)
+
 #### v 2.6.0 2022.10.10
 * Add: added heartbeat support [#1z0eqn4](https://app.clickup.com/t/1z0eqn4)
 * Add: added MQTT port type [#1nfe9zr](https://app.clickup.com/t/1nfe9zr)
