@@ -192,7 +192,7 @@ class ArancinoMqttDiscovery(object):
                                     device = CONF.get("port").get("mqtt").get("connection").get("host"),
                                     mqtt_client = self.__mqtt_client,
                                     m_s_plugged=True, 
-                                    m_c_enabled=CONF.get("port").get("mqtt").get("enabled"), 
+                                    m_c_enabled=CONF.get("port").get("mqtt").get("auto_enable"), 
                                     m_c_hide=CONF.get("port").get("mqtt").get("hide") )
             
             new_ports_struct[p.getId()] = p

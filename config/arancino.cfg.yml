@@ -69,6 +69,7 @@ redis:
     datastore_rsvd_db: 3
     datastore_tse_db: 4
     datastore_tag_db: 5
+    datastore_stng_db: 6
 
     host_volatile: "localhost"
     port_volatile: 6379
@@ -84,6 +85,7 @@ redis:
     datastore_rsvd_db: 3
     datastore_tse_db: 4
     datastore_tag_db: 5
+    datastore_stng_db: 6
     host_volatile: "localhost"
     port_volatile: 6380
     host_persistent: "localhost"
@@ -102,6 +104,7 @@ redis:
     datastore_dev_db: 0
     datastore_per_db: 1
     datastore_tag_db: 2
+    datastore_stng_db: 3
 
     host_persistent: "localhost"
     port_persistent: 6380
@@ -128,7 +131,7 @@ port:
   # Reconnection delay after a reset (in seconds)
   #   When call the Reset function of a Port, the Daemon waits to
   #   do a new connection
-  reset_reconnection_delay: 40
+  reset_reconnection_delay: 5
 
 
   # Command spawned when Upload function is called. The command
@@ -147,7 +150,7 @@ port:
   serial:
     
     # Enables discovery on serial port type
-    discovery: false
+    discovery: true
 
     mcu_type_list:
       - samd21
@@ -273,11 +276,11 @@ port:
 
   test:
 
-    discovery: true
+    discovery: false
 
     auto_enable: true
 
-    hide: true
+    hide: false
 
     filter_type: ALL
 
@@ -342,7 +345,7 @@ port:
       ca_path : ""
       cert_path: ""
       key_path: ""
-      
+
       # Topic that will be used for discovery process
       discovery_topic: arancino/discovery
       # Topic that will be used for both send and receive (in relative subtopics)
@@ -362,7 +365,7 @@ port:
   uart_ble:
 
     # Enables discovery on mqtt port type
-    discovery: true
+    discovery: false
 
     # Automatically enables (and connect) a new discovered Port.
     auto_enable: true

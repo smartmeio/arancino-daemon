@@ -150,7 +150,7 @@ port:
   serial:
     
     # Enables discovery on serial port type
-    discovery: false
+    discovery: true
 
     mcu_type_list:
       - samd21
@@ -280,7 +280,7 @@ port:
 
     auto_enable: true
 
-    hide: true
+    hide: false
 
     filter_type: ALL
 
@@ -315,7 +315,7 @@ port:
 
   
     # Enables discovery on mqtt port type
-    discovery: true
+    discovery: false
 
     # Automatically enables (and connect) a new discovered Port.
     auto_enable: true
