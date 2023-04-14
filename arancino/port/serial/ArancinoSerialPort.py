@@ -22,9 +22,9 @@ under the License
 import serial
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.port.serial.ArancinoSerialHandler import ArancinoSerialHandler
-from arancino.ArancinoCortex import *
+#from arancino.ArancinoCortex import *
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
-from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
+#from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 import time
 
 
@@ -77,9 +77,8 @@ class ArancinoSerialPort(ArancinoPort):
         # Command Executor
         # self.__executor = ArancinoCommandExecutor(self.__id, self.__device)
 
-        self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
+        #self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
 
-        self._compatibility_array = COMPATIBILITY_MATRIX_MOD_SERIAL[str(ENV.version.truncate())]
 
         # # CALLBACK FUNCTIONS
         #self.setReceivedCommandHandler(receivedCommandHandler)  # this is the handler to be used to receive an ArancinoCommand and exec that command.
@@ -99,14 +98,16 @@ class ArancinoSerialPort(ArancinoPort):
         # TODO se la disconnessione viene gestita al livello superiore facendo una del
         #  di questo oggetto non ha senso impostare connected = false e via dicendo
 
-        self._m_s_connected = False
+        # self._m_s_connected = False
         # self._m_s_plugged = False
 
         # free the handler and serial port
         self.__serial_port.close()
 
-        del self.__serial_handler
+        # del self.__serial_handler
         del self.__serial_port
+
+        self.disconnect()
 
         LOG.warning("{} Serial Port closed.".format(self._log_prefix))
 
@@ -173,7 +174,7 @@ class ArancinoSerialPort(ArancinoPort):
         """
 
         if self._m_s_connected:
-            self.__serial_port.write(raw_response.encode())
+            self.__serial_port.write(raw_response)
         else:  # not connected
             LOG.warning("{} Cannot Sent a Response: Port is not connected.".format(self._log_prefix))
 
@@ -222,12 +223,15 @@ class ArancinoSerialPort(ArancinoPort):
 
     def disconnect(self):
         try:
+            super().disconnect()
+            self.stopHeartbeat()
+
             # check if the device is already
             if self._m_s_connected:
-                #self._m_s_connected = False
-
+                self._m_s_connected = False
                 self.__serial_handler.stop()
-                super().disconnect()
+                del self.__serial_handler
+            
 
             else:
                 LOG.debug("{} Already Disconnected".format(self._log_prefix))

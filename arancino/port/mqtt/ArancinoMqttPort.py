@@ -23,9 +23,9 @@ under the License
 
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.port.mqtt.ArancinoMqttHandler import ArancinoMqttHandler
-from arancino.ArancinoCortex import *
+#from arancino.ArancinoCortex import *
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
-from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
+#from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 import time, datetime
 import paho.mqtt.client as mqtt 
 
@@ -57,13 +57,13 @@ class ArancinoMqttPort(ArancinoPort):
         #self.__mqtt_topic_service = CONF.get_port_mqtt_topic_service()
         
         # Command Executor
-        self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
+        #self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
 
         # Misc
         #self._compatibility_array = COMPATIBILITY_MATRIX_MOD_MQTT[str(CONF.get_metadata_version().truncate())]
         self._log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
 
-        self._compatibility_array = COMPATIBILITY_MATRIX_MOD_SERIAL[str(ENV.version.truncate())]
+        #self._compatibility_array = COMPATIBILITY_MATRIX_MOD_SERIAL[str(ENV.version.truncate())]
 
     def __connectionLostHandler(self):
         """
@@ -105,7 +105,7 @@ class ArancinoMqttPort(ArancinoPort):
 
         if self._m_s_connected:
 
-            ret = self.__mqtt_client.publish(self.__mqtt_topic_rsp_to_mcu, raw_response, 0)
+            ret = self.__mqtt_client.publish(self.__mqtt_topic_rsp_to_mcu, raw_response, 2)
 
         else:  # not connected
             LOG.warning("{} Cannot Sent a Response: Port is not connected.".format(self._log_prefix))
@@ -157,6 +157,7 @@ class ArancinoMqttPort(ArancinoPort):
                 self.__mqtt_client.message_callback_remove(self.__mqtt_topic_cmd_to_mcu)
                 self.__mqtt_client.message_callback_remove(self.__mqtt_topic_rsp_from_mcu)
                 super().disconnect()
+                self.stopHeartbeat()
 
             else:
                 LOG.debug("{} Already Disconnected".format(self._log_prefix))
@@ -171,7 +172,7 @@ class ArancinoMqttPort(ArancinoPort):
         :return:
         """
 
-        self.__mqtt_client.publish("{}".format(self.__mqtt_service_topic), "reset", 0)
+        self.__mqtt_client.publish("{}".format(self.__mqtt_service_topic), "reset", 2)
 
         #LOG.warning("{} Cannot Reset".format(self._log_prefix))
 

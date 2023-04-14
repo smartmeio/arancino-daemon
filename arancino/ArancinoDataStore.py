@@ -22,8 +22,8 @@ import sys
 import time
 
 from arancino.utils.ArancinoUtils import Singleton, ArancinoConfig, ArancinoLogger
-#import redis
-from redistimeseries.client import Client as redis
+import redis
+#from redistimeseries.client import Client as redis
 
 
 LOG = ArancinoLogger.Instance().getLogger()
@@ -45,6 +45,7 @@ class ArancinoDataStore:
         db_rsvd = CONF.get("redis").get(ist_type).get("datastore_rsvd_db")# Reserved Data Store
         db_tse = CONF.get("redis").get(ist_type).get("datastore_tse_db")# Time Series Data Store
         db_tag = CONF.get("redis").get(ist_type).get("datastore_tag_db")# Time Series Tags Data Store
+        db_stng = CONF.get("redis").get(ist_type).get("datastore_stng_db")# Setting and Configuration Data Store
 
         host_vol = CONF.get("redis").get(ist_type).get("host_volatile")
         host_per = CONF.get("redis").get(ist_type).get("host_persistent")
@@ -55,30 +56,33 @@ class ArancinoDataStore:
 
 
         # data store
-        self.__redis_pool_dts = redis(host=host_vol, port=port_vol, db=db_std, decode_responses=dcd_rsp)
+        self.__redis_pool_dts = redis.Redis(host=host_vol, port=port_vol, db=db_std, decode_responses=dcd_rsp)
 
         # data store (reserved keys)
-        self.__redis_pool_dts_rsvd = redis(host=host_vol, port=port_vol, db=db_rsvd, decode_responses=dcd_rsp)
+        self.__redis_pool_dts_rsvd = redis.Redis(host=host_vol, port=port_vol, db=db_rsvd, decode_responses=dcd_rsp)
 
         # device store
-        self.__redis_pool_dvs = redis(host=host_per, port=port_per, db=db_dev, decode_responses=dcd_rsp)
+        self.__redis_pool_dvs = redis.Redis(host=host_per, port=port_per, db=db_dev, decode_responses=dcd_rsp)
 
         # data store persistent
-        self.__redis_pool_dts_pers = redis(host=host_per, port=port_per, db=db_per, decode_responses=dcd_rsp)
+        self.__redis_pool_dts_pers = redis.Redis(host=host_per, port=port_per, db=db_per, decode_responses=dcd_rsp)
 
         # time series
-        self.__redis_pool_tse = redis(host=host_vol, port=port_vol, db=db_tse, decode_responses=dcd_rsp)
+        self.__redis_pool_tse = redis.Redis(host=host_vol, port=port_vol, db=db_tse, decode_responses=dcd_rsp)
 
         # time series tags
-        self.__redis_pool_tag = redis(host=host_per, port=port_per, db=db_tag, decode_responses=dcd_rsp)
+        self.__redis_pool_tag = redis.Redis(host=host_per, port=port_per, db=db_tag, decode_responses=dcd_rsp)
 
+        # settings store
+        self.__redis_pool_stng = redis.Redis(host=host_per, port=port_per, db=db_stng, decode_responses=dcd_rsp)
 
-        self._redis_conn_dts = self.__redis_pool_dts.redis#redis.Redis(connection_pool=self.__redis_pool_dts)
-        self._redis_conn_dvs = self.__redis_pool_dvs.redis#redis.Redis(connection_pool=self.__redis_pool_dvs)
-        self._redis_conn_dts_rsvd = self.__redis_pool_dts_rsvd.redis#redis.Redis(connection_pool=self.__redis_pool_dts_rsvd)
-        self._redis_conn_dts_pers = self.__redis_pool_dts_pers.redis#redis.Redis(connection_pool=self.__redis_pool_dts_pers)
+        self._redis_conn_dts = self.__redis_pool_dts#redis.Redis(connection_pool=self.__redis_pool_dts)
+        self._redis_conn_dvs = self.__redis_pool_dvs#redis.Redis(connection_pool=self.__redis_pool_dvs)
+        self._redis_conn_dts_rsvd = self.__redis_pool_dts_rsvd#.redis#redis.Redis(connection_pool=self.__redis_pool_dts_rsvd)
+        self._redis_conn_dts_pers = self.__redis_pool_dts_pers#.redis#redis.Redis(connection_pool=self.__redis_pool_dts_pers)
         self._redis_conn_tse = self.__redis_pool_tse#redis.Redis(connection_pool=self.__redis_pool_tse)
-        self._redis_conn_tag = self.__redis_pool_tag.redis
+        self._redis_conn_tag = self.__redis_pool_tag#.redis
+        self._redis_conn_stng = self.__redis_pool_stng#.redis
 
         self.__attempts = 1
         self.__attempts_tot = CONF.get("redis").get("connection_attempts")
@@ -95,7 +99,9 @@ class ArancinoDataStore:
                 self._redis_conn_dvs.ping()
                 self._redis_conn_dts_rsvd.ping()
                 self._redis_conn_dts_pers.ping()
-                self._redis_conn_tse.redis.ping()
+                self._redis_conn_tse.ping()
+                self._redis_conn_tag.ping()
+                self._redis_conn_stng.ping()
                 break
 
             except Exception as ex:
@@ -105,6 +111,8 @@ class ArancinoDataStore:
                         sys.exit(-1)
 
                     self.__attempts += 1
+                    time.sleep(3)
+                else:
                     time.sleep(3)
 
         LOG.info("Redis Connection OK")
@@ -166,6 +174,15 @@ class ArancinoDataStore:
 
         return self._redis_conn_tag
 
+    def getDataStoreStng(self):
+        """
+        Gets a redis client from a connection pool. This client is used to
+            manage yags of time series data.
+        :return:
+        """
+
+        return self._redis_conn_stng
+
 
     def closeAll(self):
         try:
@@ -174,5 +191,6 @@ class ArancinoDataStore:
             self.getDataStorePer().connection_pool.disconnect()
             self.getDataStoreRsvd().connection_pool.disconnect()
             self.getDataStoreTse().connection_pool.disconnect()
+            self.getDataStoreStng().connection_pool.disconnect()
         except Exception as ex:
             pass

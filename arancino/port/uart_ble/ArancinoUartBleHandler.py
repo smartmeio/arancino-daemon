@@ -28,6 +28,7 @@ from arancino.ArancinoConstants import *
 from arancino.utils.ArancinoUtils import *
 from arancino.port.ArancinoPort import PortTypes
 import time
+from msgpack import Unpacker
 
 LOG = ArancinoLogger.Instance().getLogger()
 
@@ -38,7 +39,6 @@ class ArancinoUartBleHandler(threading.Thread):
         self.__name = "{}-{}".format(self.__class__.__name__, id)
 
         threading.Thread.__init__(self, name=self.__name)
-
         self.__conn = conn  # the uart service of the uart-ble port        
         self.__service = self.__conn[ArancinoUartBleService]
         self.__id = id
@@ -48,14 +48,12 @@ class ArancinoUartBleHandler(threading.Thread):
         self.__commandReceivedHandler = commandReceivedHandler  # handler to be called when a raw command is complete and ready to be translated and executed.
         self.__connectionLostHandler = connectionLostHandler  # handler to be called when a connection is lost or stopped
 
-        self.__partial_command = ""
-        self.__partial_bytes_command = bytearray(b'')
         self.__stop = False
 
 
     def run(self):
         time.sleep(1.5)  # do il tempo ad Arancino di inserire la porta in lista
-
+        unpacker = Unpacker()
         #self.__service.reset_input_buffer()
         #self.__service.write(b'\n')
         while not self.__stop:
@@ -63,39 +61,24 @@ class ArancinoUartBleHandler(threading.Thread):
             try:
 
                 # Read bytes one by one
-                data = self.__service.read(1)
-                # if data:
-                #     print(data)
+                data_size = self.__service.in_waiting
 
-                if data and len(data) > 0:
-                    self.__partial_bytes_command.append(data[0])
+                if data_size > 0:
 
-                    # https://app.clickup.com/t/dk226t
-                    if (data == ArancinoSpecialChars.CHR_EOT.encode()) is True:
+                    data = self.__service.read(data_size)
 
-                        # now command is completed and can be used
-                        try:
-                            self.__partial_command = self.__partial_bytes_command.decode('utf-8', errors='strict')
-
-                        except UnicodeDecodeError as ex:
-
-                            LOG.warning("{}Decode Warning while reading data from port: {}".format(self.__log_prefix, str(ex)))
-                            self.__partial_command = self.__partial_bytes_command.decode('utf-8', errors='backslashreplace')
-
-                        if self.__commandReceivedHandler is not None:
-                            self.__commandReceivedHandler(self.__partial_command)
-
-                        # clear the handy variables and start again
-                        self.__partial_command = ""
-                        self.__partial_bytes_command = bytearray(b'')
+                    unpacker.feed(data)
+                
+                for raw_cmd in unpacker:
+                    self.__commandReceivedHandler(raw_cmd)
 
 
             except Exception as ex:
                 # probably some I/O problem such as disconnected port
                 LOG.error("{}I/O Error while reading data from {} port: {}".format(self.__log_prefix, PortTypes(PortTypes.UART_BLE).name, str(ex)))
 
-                # self.__stop = True
-                # break
+                self.__stop = True
+                break
 
         self.__connection_lost()
 

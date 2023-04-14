@@ -64,6 +64,7 @@ class ArancinoEnvironment:
         self._tmplt_dir = os.path.join(self._home_dir, "templates")
 
         self._version = semantic_version.Version(arancino.__version__)
+        self._cortex_version = semantic_version.Version(arancino.__cortex__version__)
 
         # Recupero il serial number / uuid dalla variabile di ambiente (quando sarà disponibile) altrimenti lo recupero dal seriale
         #   del dispositivo come veniva fatto in precedenza
@@ -85,6 +86,11 @@ class ArancinoEnvironment:
 
 
     @property
+    def cortex_version(self):
+        return self._cortex_version
+
+
+    @property
     def home_dir(self):
         return self._home_dir
 
@@ -103,6 +109,12 @@ class ArancinoEnvironment:
     def serial_number(self):
         return self._serial_number
         #return self.__retrieve_serial_number()
+    def get_metadata_cortex_version(self):
+        return self.__metadata_cortex_version
+
+    ######## GENERAL ########
+    def get_general_env(self):
+        return self.__general_env
 
 
     # TODO: rivedere questo metodo.
@@ -131,6 +143,254 @@ class ArancinoEnvironment:
     """
     def __getMachine_addr(self):
 
+    ######## REDIS ########
+    def get_redis_instances_conf(self):
+
+        # redis instance type
+        #if not RedisInstancesType.has_value(self.__redis_instance_type):
+        #    redis_instance = RedisInstancesType.DEFAULT.value
+
+        if self.__redis_instance_type not in RedisInstancesType.__members__:
+            redis_instance = RedisInstancesType.DEFAULT.value
+        else:
+            redis_instance = RedisInstancesType[self.__redis_instance_type]
+
+        '''
+        redis_dts_std: standard datastore => contains application data (default volatile)
+        redis_dts_dev: device data store => contains data about connected device (default persistent)
+        redis_dts_per: persistent data store => contains application data which must be available after device reboot or application restart (default persistent)
+        '''
+        # DEFAULT -> VOLATILE PERSISTENT
+        #host = self.__redis_host
+        dec_rsp = self.__redis_decode_response
+
+        if redis_instance == RedisInstancesType.VOLATILE:
+            host_vol = self.__redis_host_volatile
+            host_per = self.__redis_host_volatile
+            port_vol = self.__redis_port_volatile
+            port_per = self.__redis_port_volatile
+            dts_std_db = self.__redis_volatile_datastore_std_db
+            dts_per_db = self.__redis_volatile_datastore_per_db
+            dts_dev_db = self.__redis_volatile_datastore_dev_db
+            dts_rsvd_db = self.__redis_volatile_datastore_rsvd_db
+            dts_tse_db = self.__redis_volatile_datastore_tse_db
+            dts_tag_db = self.__redis_volatile_datastore_tag_db
+            dts_stng_db = self.__redis_volatile_datastore_stng_db
+
+        elif redis_instance == RedisInstancesType.PERSISTENT:
+            host_vol = self.__redis_host_persistent
+            host_per = self.__redis_host_persistent
+            port_vol = self.__redis_port_persistent
+            port_per = self.__redis_port_persistent
+            dts_std_db = self.__redis_persistent_datastore_std_db
+            dts_per_db = self.__redis_persistent_datastore_per_db
+            dts_dev_db = self.__redis_persistent_datastore_dev_db
+            dts_rsvd_db = self.__redis_persistent_datastore_rsvd_db
+            dts_tse_db = self.__redis_persistent_datastore_tse_db
+            dts_tag_db = self.__redis_persistent_datastore_tag_db
+            dts_stng_db = self.__redis_persistent_datastore_stng_db
+
+        elif redis_instance == RedisInstancesType.VOLATILE_PERSISTENT:
+            host_vol = self.__redis_host_volatile
+            host_per = self.__redis_host_persistent
+            port_vol = self.__redis_port_volatile
+            port_per = self.__redis_port_persistent
+            dts_std_db = self.__redis_volatile_persistent_datastore_std_db
+            dts_per_db = self.__redis_volatile_persistent_datastore_per_db
+            dts_dev_db = self.__redis_volatile_persistent_datastore_dev_db
+            dts_rsvd_db = self.__redis_volatile_persistent_datastore_rsvd_db
+            dts_tse_db = self.__redis_volatile_persistent_datastore_tse_db
+            dts_tag_db = self.__redis_volatile_persistent_datastore_tag_db
+            dts_stng_db = self.__redis_volatile_persistent_datastore_stng_db
+
+        else:  # DEFAULT is VOLATILE_PERSISTENT
+            host_vol = self.__redis_host_volatile
+            host_per = self.__redis_host_persistent
+            port_vol = self.__redis_port_volatile
+            port_per = self.__redis_port_persistent
+            dts_std_db = self.__redis_volatile_persistent_datastore_std_db
+            dts_per_db = self.__redis_volatile_persistent_datastore_per_db
+            dts_dev_db = self.__redis_volatile_persistent_datastore_dev_db
+            dts_rsvd_db = self.__redis_volatile_persistent_datastore_rsvd_db
+            dts_tse_db = self.__redis_volatile_persistent_datastore_tse_db
+            dts_tag_db = self.__redis_volatile_persistent_datastore_tag_db
+            dts_stng_db = self.__redis_volatile_persistent_datastore_stng_db
+
+        redis_dts_std = {'host': host_vol, 'port': port_vol, 'dcd_resp': dec_rsp, 'db': dts_std_db}
+        redis_dts_dev = {'host': host_per, 'port': port_per, 'dcd_resp': dec_rsp, 'db': dts_dev_db}
+        redis_dts_per = {'host': host_per, 'port': port_per, 'dcd_resp': dec_rsp, 'db': dts_per_db}
+        redis_dts_rsvd = {'host': host_vol, 'port': port_vol, 'dcd_resp': dec_rsp, 'db': dts_rsvd_db}
+        redis_dts_tse = {'host': host_vol, 'port': port_vol, 'dcd_resp': dec_rsp, 'db': dts_tse_db}
+        redis_dts_tag = {'host': host_per, 'port': port_per, 'dcd_resp': dec_rsp, 'db': dts_tag_db}
+        redis_dts_stng = {'host': host_per, 'port': port_per, 'dcd_resp': dec_rsp, 'db': dts_stng_db}
+
+        return redis_dts_std, redis_dts_dev, redis_dts_per, redis_dts_rsvd, redis_dts_tse, redis_dts_tag, redis_dts_stng
+
+
+    def get_redis_connection_attempts(self):
+        return self.__redis_connection_attempts
+
+    def get_redis_timeseries_retation(self):
+        return self.__redis_timeseris_retention
+
+    ####### PORT #######
+    def get_port_firmware_path(self):
+        return self.__port_firmware_path
+
+    def get_port_firmware_file_types(self):
+        return json.loads(self.__port_firmware_file_types)
+
+    def get_port_reset_on_connect(self):
+        return self.__port_reset_on_connect
+
+    def get_port_reset_reconnection_delay(self):
+        return self.__port_reset_reconnection_delay
+
+    ######## SERIAL PORT ########
+    def get_port_serial_enabled(self):
+        return self.__port_serial_enabled
+
+    # def get_port_serial_auto_connect(self):
+    #     return self.__port_serial_auto_connect
+
+    def get_port_serial_hide(self):
+        return self.__port_serial_hide
+
+    def get_port_serial_comm_baudrate(self):
+        return self.__port_serial_comm_baudrate
+
+    def get_port_serial_reset_baudrate(self):
+        return self.__port_serial_reset_baudrate
+
+    def get_port_serial_reset_reconnection_delay(self):
+        return self.__port_serial_reset_reconnection_delay
+
+    def get_port_serial_filter_type(self):
+        if self.__port_serial_filter_type not in FilterTypes.__members__:
+            return FilterTypes.DEFAULT.value
+        else:
+            return FilterTypes[self.__port_serial_filter_type]
+
+    def get_port_serial_filter_list(self):
+        return json.loads(self.__port_serial_filter_list.upper())
+
+    def get_port_serial_timeout(self):
+        return self.__port_serial_timeout
+
+    def get_port_serial_reset_on_connect(self):
+        return self.__port_serial_reset_on_connect
+
+    def get_port_serial_upload_command(self):
+        return self.__port_serial_upload_command
+
+    ## RP20
+    def get_port_serial_rp20_upload_command(self):
+        return self.__port_serial_rp20_upload_command
+
+    def get_port_serial_rp20_reset_reconnection_delay(self):
+        return self.__port_serial_rp20_reset_reconnection_delay
+
+    def get_port_serial_rp20_comm_baudrate(self):
+        return self.__port_serial_rp20_comm_baudrate
+
+    ## STM32
+    def get_port_serial_stm32_upload_command(self):
+        return self.__port_serial_stm32_upload_command
+
+    def get_port_serial_stm32_reset_reconnection_delay(self):
+        return self.__port_serial_stm32_reset_reconnection_delay
+
+    def get_port_serial_stm32_comm_baudrate(self):
+        return self.__port_serial_stm32_comm_baudrate
+
+    ## NRF52
+    def get_port_serial_nrf52_upload_command(self):
+        return self.__port_serial_nrf52_upload_command
+
+    def get_port_serial_nrf52_reset_reconnection_delay(self):
+        return self.__port_serial_nrf52_reset_reconnection_delay
+
+    def get_port_serial_nrf52_comm_baudrate(self):
+        return self.__port_serial_nrf52_comm_baudrate
+
+    ## SAMD21
+    def get_port_serial_samd21_upload_command(self):
+        return self.__port_serial_samd21_upload_command
+
+    def get_port_serial_samd21_reset_reconnection_delay(self):
+        return self.__port_serial_samd21_reset_reconnection_delay
+    
+    def get_port_serial_samd21_comm_baudrate(self):
+        return self.__port_serial_samd21_comm_baudrate
+
+    ######## TEST PORT ########
+    def get_port_test_enabled(self):
+        return self.__port_test_enabled
+
+    def get_port_test_hide(self):
+        return self.__port_test_hide
+
+    def get_port_test_filter_type(self):
+        if self.__port_test_filter_type not in FilterTypes.__members__:
+            return FilterTypes.DEFAULT.value
+        else:
+            return FilterTypes[self.__port_test_filter_type]
+
+    def get_port_test_filter_list(self):
+        return json.loads(self.__port_test_filter_list.upper())
+
+    def get_port_test_num(self):
+        return self.__port_test_num
+
+    def get_port_test_delay(self):
+        return self.__port_test_delay
+
+    def get_port_test_id_template(self):
+        return self.__port_test_id_template
+
+    def get_port_test_upload_command(self):
+        return self.__port_test_upload_command
+
+    def get_port_test_reset_on_connect(self):
+        return self.__port_test_reset_on_connect
+
+
+    ######## LOG ########
+    def get_log_level(self):
+        return self.__log_level
+
+    def get_log_name(self):
+        return self.__log_name
+
+    def get_log_size(self):
+        return self.__log_size
+
+    def get_log_rotate(self):
+        return self.__log_rotate
+
+    def get_log_handler_console(self):
+        return self.__log_handler_console
+
+    def get_log_handler_file(self):
+        return self.__log_handler_file
+
+    def get_log_file_log(self):
+        return self.__log_file_log
+
+    def get_log_file_error(self):
+        return self.__log_file_error
+
+    # def get_log_file_stats(self):
+    #     return self.__log_file_stats
+    #
+    # def get_stats_file_path(self):
+    #     return os.path.join(self.__dirlog, self.__log_file_stats)
+
+    def get_log_print_stack_trace(self):
+        return self.__log_print_stack_trace
+
+
+    def get_config_by_name(self, section, option):
         try:
 
             os_type = sys.platform.lower()

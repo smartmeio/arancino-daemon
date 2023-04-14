@@ -20,12 +20,14 @@ under the License
 """
 
 import threading
+
+from msgpack import Unpacker
+
 from arancino.ArancinoConstants import *
 from arancino.utils.ArancinoUtils import *
 from arancino.port.ArancinoPort import PortTypes
 from queue import Queue
 import time
-import timeit
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance().cfg
@@ -44,32 +46,26 @@ class ArancinoSerialHandler(threading.Thread):
         self.__commandReceivedHandler = commandReceivedHandler  # handler to be called when a raw command is complete and ready to be translated and executed.
         self.__connectionLostHandler = connectionLostHandler    # handler to be called when a connection is lost or stopped
 
-        self.__partial_command = ""
-        self.__partial_bytes_command = bytearray(b'')
         self.__stop = False
-
-        self.__cmd_queue = Queue(maxsize = CONF.get('port').get('serial').get('queue_max_size'))
-        self.__th_cmd_executor = threading.Thread(target = self.__exec_cmd)
-        self.__th_cmd_executor.start()
-
 
     def run(self):
         time.sleep(1.5)  # do il tempo ad Arancino di inserire la porta in lista
-        count = 0
-        str_data = ""
+        unpacker = Unpacker()
         while not self.__stop:
             # Ricezione dati
             try:
-                
-                self.__partial_bytes_command = self.__serial_port.read(self.__serial_port.in_waiting or 1)
-                
-                try:
 
-                    self.__cmd_queue.put(self.__partial_bytes_command)
-                    #LOG.error("QUEUE LENGTH:  {}".format(self.__cmd_queue.qsize()))
-                except Exception as ex:
+                # Read the buffer
+                data_size = self.__serial_port.in_waiting
 
-                    LOG.error("{}Error while appending data from serial port to queue: {}".format(self.__log_prefix, str(ex)))
+                if data_size > 0:
+
+                    data = self.__serial_port.read(size=data_size)
+
+                    unpacker.feed(data)
+
+                for raw_cmd in unpacker:
+                    self.__commandReceivedHandler(raw_cmd)
 
             except Exception as ex:
                 # probably some I/O problem such as disconnected USB serial
@@ -95,37 +91,6 @@ class ArancinoSerialHandler(threading.Thread):
 
         except Exception as ex:
             LOG.exception("{}Error on connection lost: {}".format(self.__log_prefix, str(ex)))
-
-    def __exec_cmd(self):
-        line = b''
-        try:
-            while not self.__stop:
-                try:
-                    if not self.__cmd_queue.empty():
-                        line += self.__cmd_queue.get()
-                        while b'\x04' in line:
-                            var, line = line.split(b'\x04', 1)
-                        
-                            try:
-                                var = var.decode('utf-8', errors='strict')
-
-                            except UnicodeDecodeError as ex:
-                                LOG.warning("{}Decode Warning while reading data from serial port: {}".format(self.__log_prefix, str(ex)))
-                                #line = line.decode('utf-8', errors='backslashreplace')
-
-                            if self.__commandReceivedHandler is not None:
-                                start3 = timeit.default_timer()
-                                self.__commandReceivedHandler(var)
-                                stop3 = timeit.default_timer()
-                                #LOG.warning(f"TOTAL TIME EXECUTION: {stop3 - start3}")
-                                #time.sleep(.1)
-
-                        #LOG.warning(f"QUEUE LENGHT OUT WHILE: {self.__cmd_queue.qsize()}")
-                except Exception as ex:
-                    LOG.error("{}CMD execution failed: {}".format(self.__log_prefix, str(ex)))
-                
-        except Exception as ex:
-            LOG.error("{}Dequeue thread failed: {}".format(self.__log_prefix, str(ex)))
 
 
     def stop(self):

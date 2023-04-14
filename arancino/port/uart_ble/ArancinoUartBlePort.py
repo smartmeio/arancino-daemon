@@ -23,10 +23,10 @@ import serial
 
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.port.serial.ArancinoSerialHandler import ArancinoSerialHandler
-from arancino.ArancinoCortex import *
+#from arancino.ArancinoCortex import *
 from arancino.port.uart_ble.ArancinoUartBleHandler import ArancinoUartBleHandler
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
-from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
+#from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 from adafruit_ble import BLERadio
 import time
 
@@ -50,9 +50,9 @@ class ArancinoUartBlePort(ArancinoPort):
         # UART BLE PORT
         self.__timeout = timeout
 
-        self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
+        #self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
 
-        self._compatibility_array = COMPATIBILITY_MATRIX_MOD_SERIAL[str(ENV.version.truncate())]
+        #self._compatibility_array = COMPATIBILITY_MATRIX_MOD_SERIAL[str(ENV.version.truncate())]
 
         # # CALLBACK FUNCTIONS
         #self.setReceivedCommandHandler(receivedCommandHandler)  # this is the handler to be used to receive an ArancinoCommand and exec that command.
@@ -80,6 +80,8 @@ class ArancinoUartBlePort(ArancinoPort):
         del self.__ble_uart_service
         del self.__adv
 
+        self.disconnect()
+
         LOG.warning("{} Uart-Ble Port closed.".format(self._log_prefix))
 
         # check if the disconnection handler callback function is defined
@@ -100,7 +102,7 @@ class ArancinoUartBlePort(ArancinoPort):
         """
 
         if self._m_s_connected:
-            self.__ble_uart_service.write(raw_response.encode())
+            self.__ble_uart_service.write(raw_response)
         else:  # not connected
             LOG.warning("{} Cannot Sent a Response: Port is not connected.".format(self._log_prefix))
 
@@ -147,11 +149,14 @@ class ArancinoUartBlePort(ArancinoPort):
 
     def disconnect(self):
         try:
+            super().disconnect()
+            self.stopHeartbeat()
+
             # check if the device is already
             if self._m_s_connected:
+                self._m_s_connected = False
 
                 self.__uart_ble_handler.stop()
-                super().disconnect()
 
             else:
                 LOG.debug("{} Already Disconnected".format(self._log_prefix))
