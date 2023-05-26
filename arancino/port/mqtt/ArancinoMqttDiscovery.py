@@ -119,7 +119,7 @@ class ArancinoMqttDiscovery(object):
             LOG.debug("Reconnecting to mqtt broker...")
             
             try:    
-                rc = self.__client.connect(self.__mqtt_arancino_daemon_broker_host, self.__mqtt_arancino_daemon_broker_port, 60)
+                rc = client.connect(self.__mqtt_arancino_daemon_broker_host, self.__mqtt_arancino_daemon_broker_port, 60)
             
             except Exception as ex:
                 LOG.error("{}Error during re-connecting to {}:{}: {}".format(self._log_prefix, str(ex), self.__mqtt_arancino_daemon_broker_host, str(self.__mqtt_arancino_daemon_broker_port)), exc_info=TRACE)
