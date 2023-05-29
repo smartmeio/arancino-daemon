@@ -21,7 +21,7 @@ under the License
 
 
 
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
 from arancino.port.ArancinoPortFilter import FilterTypes
 from arancino.port.mqtt.ArancinoMqttPortFilter import ArancinoMqttPortFilter
 from arancino.port.mqtt.ArancinoMqttPort import ArancinoMqttPort
@@ -32,6 +32,7 @@ import time
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance().cfg
+ENV = ArancinoEnvironment.Instance()
 TRACE = CONF.get("log").get("trace")
 
 class ArancinoMqttDiscovery(object):
@@ -42,6 +43,7 @@ class ArancinoMqttDiscovery(object):
         self.__filter_list = CONF.get("port").get("mqtt").get("filter_list")
 
         self.__list_discovered = []
+        self.__list_discovered_handy = []
         self._log_prefix = "[{} Discovery]".format(PortTypes.MQTT.name)
 
         self.__mqtt_discovery_topic = CONF.get("port").get("mqtt").get("connection").get("discovery_topic") + "/" + str(CONF.get("port").get("mqtt").get("connection").get("client_id"))
@@ -59,7 +61,7 @@ class ArancinoMqttDiscovery(object):
         
         
         try:
-            self.__mqtt_client = mqtt.Client(client_id=self.__mqtt_arancino_daemon_client_id)
+            self.__mqtt_client = mqtt.Client(client_id="{}-{}".format(self.__mqtt_arancino_daemon_client_id, ENV.get_serial_number()))
             self.__mqtt_client.on_connect = self.__on_connect
             self.__mqtt_client.on_disconnect = self.__on_disconnect
             #self.__mqtt_client.on_message = self.__on_discovery
@@ -93,6 +95,10 @@ class ArancinoMqttDiscovery(object):
             client.message_callback_add(self.__mqtt_discovery_topic, self.__on_discovery)
             #reset all mcu connected at the broker by sending a special cmd
             client.publish("{}".format(self.__mqtt_service_topic), "reset", 2)
+
+            for pid in self.__list_discovered:
+                client.subscribe("{}/{}/cmd_from_mcu".format(self.__mqtt_cortex_topic, pid))  # used to send response to the mqtt port
+
         else:
             #self.__client.connected_flag = False
             LOG.warning("{}Failed to connect to {}:{} - {}".format(self._log_prefix, self.__mqtt_arancino_daemon_broker_host,str(self.__mqtt_arancino_daemon_broker_port), mqtt.connack_string(rc)))
@@ -120,7 +126,7 @@ class ArancinoMqttDiscovery(object):
             
             try:    
                 rc = client.connect(self.__mqtt_arancino_daemon_broker_host, self.__mqtt_arancino_daemon_broker_port, 60)
-            
+
             except Exception as ex:
                 LOG.error("{}Error during re-connecting to {}:{}: {}".format(self._log_prefix, str(ex), self.__mqtt_arancino_daemon_broker_host, str(self.__mqtt_arancino_daemon_broker_port)), exc_info=TRACE)
     # endregion
