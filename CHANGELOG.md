@@ -1,5 +1,8 @@
 # Changelog
 
+#### v 2.X.X 2023.MM.DD
+* Fix: fixed some issue on mqtt connection (reconnection and topic subscription) [#863guuhh8](https://app.clickup.com/t/863guuhh8) 
+
 #### v 2.7.0 2023.04.07
 * Upd: Implemented new Cortex protocol [#258u64n](https://app.clickup.com/t/258u64n)
 * Add: Added mTLS support when using MQTT with a secure broker [#863geevcp](https://app.clickup.com/t/863geevcp)
