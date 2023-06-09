@@ -54,7 +54,7 @@ class ArancinoMqttHandler():
         #self.__mqtt_client.message_callback_add(mqtt_topic_cmd_from_mcu, self.__on_cmd_received)
 
         self.__mqtt_client.message_callback_add(mqtt_topic_cmd_from_mcu, self.__on_cmd_received)
-        self.__mqtt_client.message_callback_add(mqtt_topic_conn_status, self.__on_connection_status())
+        self.__mqtt_client.message_callback_add(mqtt_topic_conn_status, self.__on_connection_status)
 
 
 
@@ -79,7 +79,7 @@ class ArancinoMqttHandler():
     '''
 
     def __on_connection_status(self, client, userdata, msg):
-        if msg.upper() == "OFFLINE":
+        if msg.payload.upper() == "OFFLINE":
             self.stop()
 
     #endregion

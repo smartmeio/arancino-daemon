@@ -62,7 +62,7 @@ class ArancinoMqttDiscovery(object):
 
         
         try:
-            self.__mqtt_client = mqtt.Client(client_id="{}-{}".format(self.__mqtt_arancino_daemon_client_id, ENV.serial_number()))
+            self.__mqtt_client = mqtt.Client(client_id="{}-{}".format(self.__mqtt_arancino_daemon_client_id, ENV.serial_number))
             self.__mqtt_client.on_connect = self.__on_connect
             self.__mqtt_client.on_disconnect = self.__on_disconnect
             #self.__mqtt_client.on_message = self.__on_discovery
