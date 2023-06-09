@@ -36,7 +36,7 @@ TRACE = CONF.get("log").get("trace")
 
 class ArancinoMqttHandler():
 
-    def __init__(self, handler_name, mqtt_client, id, mqtt_topic_cmd_from_mcu, device, commandReceivedHandler, connectionLostHandler):
+    def __init__(self, handler_name, mqtt_client, id, mqtt_topic_cmd_from_mcu, mqtt_topic_conn_status, device, commandReceivedHandler, connectionLostHandler):
         
         self.__mqtt_client = mqtt_client      # the mqtt client port
         self.__name = handler_name          # the name, usually the arancino port id
@@ -54,6 +54,7 @@ class ArancinoMqttHandler():
         #self.__mqtt_client.message_callback_add(mqtt_topic_cmd_from_mcu, self.__on_cmd_received)
 
         self.__mqtt_client.message_callback_add(mqtt_topic_cmd_from_mcu, self.__on_cmd_received)
+        self.__mqtt_client.message_callback_add(mqtt_topic_conn_status, self.__on_connection_status())
 
 
 
@@ -70,6 +71,18 @@ class ArancinoMqttHandler():
             LOG.warning("{} Decode Warning while reading data: {}".format(self.__log_prefix, str(ex)))
 
         #TODO GESTIRE ECCEZIONI
+
+
+    #region ON CONNECTION STATUS
+    '''
+    qui gestione in pratica il last will & testament delle porte connesse
+    '''
+
+    def __on_connection_status(self, client, userdata, msg):
+        if msg.upper() == "OFFLINE":
+            self.stop()
+
+    #endregion
 
     def stop(self):
         LOG.warning("{}Connection lost".format(self.__log_prefix))

@@ -55,6 +55,9 @@ class ArancinoMqttPort(ArancinoPort):
         self.__mqtt_topic_rsp_from_mcu = "{}/{}/rsp_from_mcu".format(CONF.get("port").get("mqtt").get("connection").get("cortex_topic") + "/" + str(CONF.get("port").get("mqtt").get("connection").get("client_id")), port_id)
         # Topic used by
         #self.__mqtt_topic_service = CONF.get_port_mqtt_topic_service()
+
+        # Topic used by Arancino Daemon (Left Hemisphere) to receive back Cortex Responses from Arancino MQTT Ports (Right Hemisphere)
+        self.__mqtt_topic_conn_status = "{}/{}/connection_status".format(CONF.get("port").get("mqtt").get("connection").get("cortex_topic") + "/" + str(CONF.get("port").get("mqtt").get("connection").get("client_id")), port_id)
         
         # Command Executor
         #self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
@@ -122,7 +125,7 @@ class ArancinoMqttPort(ArancinoPort):
                             # this must be setted to False. If True can be caused an infinite loop of connection and disconnection
                         #    self.reset()
                         
-                        self.__mqtt_handler = ArancinoMqttHandler("ArancinoMqttHandler-"+self._id, self.__mqtt_client, self._id, self.__mqtt_topic_cmd_from_mcu, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
+                        self.__mqtt_handler = ArancinoMqttHandler("ArancinoMqttHandler-"+self._id, self.__mqtt_client, self._id, self.__mqtt_topic_cmd_from_mcu, self.__mqtt_topic_conn_status, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
                         self._m_s_connected = True
                         
                         LOG.info("{} Connected".format(self._log_prefix))
