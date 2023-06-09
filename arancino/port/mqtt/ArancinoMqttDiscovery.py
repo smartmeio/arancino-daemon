@@ -144,7 +144,7 @@ class ArancinoMqttDiscovery(object):
 
         # used to send response to the mqtt port
         client.subscribe("{}/{}/cmd_from_mcu".format(self.__mqtt_cortex_topic, pid), qos=2)
-        client.subscribe("{}/{}/".format(self.__mqtt_conn_status_topic, pid), qos=2)
+        client.subscribe("{}/{}".format(self.__mqtt_conn_status_topic, pid), qos=2)
         return None
 
     #endregion
