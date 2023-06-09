@@ -49,6 +49,7 @@ class ArancinoMqttDiscovery(object):
         self.__mqtt_discovery_topic = CONF.get("port").get("mqtt").get("connection").get("discovery_topic") + "/" + str(CONF.get("port").get("mqtt").get("connection").get("client_id"))
         self.__mqtt_cortex_topic = CONF.get("port").get("mqtt").get("connection").get("cortex_topic") + "/" + str(CONF.get("port").get("mqtt").get("connection").get("client_id"))
         self.__mqtt_service_topic = CONF.get("port").get("mqtt").get("connection").get("service_topic") + "/" + str(CONF.get("port").get("mqtt").get("connection").get("client_id"))
+        self.__mqtt_conn_status_topic = CONF.get("port").get("mqtt").get("connection").get("service_topic") + "/connection_status/" + str(CONF.get("port").get("mqtt").get("connection").get("client_id"))
         self.__mqtt_arancino_daemon_discovery_user = str(CONF.get("port").get("mqtt").get("connection").get("username"))
         self.__mqtt_arancino_daemon_discovery_pass = str(CONF.get("port").get("mqtt").get("connection").get("password"))
         self.__mqtt_arancino_daemon_broker_host = str(CONF.get("port").get("mqtt").get("connection").get("host"))
@@ -143,8 +144,7 @@ class ArancinoMqttDiscovery(object):
 
         # used to send response to the mqtt port
         client.subscribe("{}/{}/cmd_from_mcu".format(self.__mqtt_cortex_topic, pid), qos=2)
-        client.subscribe("{}/{}/connection_status".format(self.__mqtt_cortex_topic, pid), qos=2)
-
+        client.subscribe("{}/{}/".format(self.__mqtt_conn_status_topic, pid), qos=2)
         return None
 
     #endregion
