@@ -58,6 +58,7 @@ class ArancinoMqttDiscovery(object):
         self.__mqtt_arancino_daemon_ca_certs = CONF.get("port").get("mqtt").get("connection").get("ca_path")
         self.__mqtt_arancino_daemon_certfile = CONF.get("port").get("mqtt").get("connection").get("cert_path")
         self.__mqtt_arancino_daemon_keyfile = CONF.get("port").get("mqtt").get("connection").get("key_path")
+        self.__mqtt_arancino_reset_on_connect = CONF.get("port").get("mqtt").get("connection").get("reset_on_connect")1
 
         
         try:
@@ -95,8 +96,9 @@ class ArancinoMqttDiscovery(object):
             #client.subscribe("{}/+/{}/cmd_from_mcu".format(self.__mqtt_cortex_topic, pid))   # used to send response to the mqtt port
             #client.subscribe(self.__mqtt_discovery_topic + "/+/rsp_from_mcu")   # for future use: when the daemon will send cmd to the port, it will response in this topic
 
-            #reset all mcu connected at the broker by sending a special cmd
-            client.publish("{}".format(self.__mqtt_service_topic), "reset", 2)
+            if self.__mqtt_arancino_reset_on_connect:
+                # reset all mcu connected at the broker by sending a special cmd
+                client.publish("{}".format(self.__mqtt_service_topic), "reset", 2)
 
             for pid in self.__list_discovered:
                 #client.subscribe("{}/{}/cmd_from_mcu".format(self.__mqtt_cortex_topic, pid), qos=2)  # used to send response to the mqtt port
