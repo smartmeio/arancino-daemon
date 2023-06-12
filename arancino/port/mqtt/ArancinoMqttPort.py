@@ -79,14 +79,14 @@ class ArancinoMqttPort(ArancinoPort):
         # TODO se la disconnessione viene gestita al livello superiore facendo una del
         #  di questo oggetto non ha senso impostare connected = false e via dicendo
 
-        self._m_s_connected = False
+        #self._m_s_connected = False
         # self._m_s_plugged = False
 
-        # free the handler and serial port
-        #self.__serial_port.close()
-
-        del self.__mqtt_handler
+        #del self.__mqtt_handler
         #del self.__serial_port
+
+        # free the handler
+        self.disconnect()
 
         LOG.warning("{} Mqtt Port closed.".format(self._log_prefix))
 
@@ -153,11 +153,14 @@ class ArancinoMqttPort(ArancinoPort):
             # check if the device is already
             if self._m_s_connected:
                 
-                self.__mqtt_handler.stop()
+                #self.__mqtt_handler.stop()
                 self.__mqtt_client.message_callback_remove(self.__mqtt_topic_cmd_from_mcu)
                 self.__mqtt_client.message_callback_remove(self.__mqtt_topic_rsp_to_mcu)
                 self.__mqtt_client.message_callback_remove(self.__mqtt_topic_cmd_to_mcu)
                 self.__mqtt_client.message_callback_remove(self.__mqtt_topic_rsp_from_mcu)
+                self.__mqtt_client.message_callback_remove(self.__mqtt_topic_conn_status)
+                self._m_s_connected = False
+                del self.__mqtt_handler
                 super().disconnect()
                 self.stopHeartbeat()
 
