@@ -79,7 +79,7 @@ class ArancinoMqttHandler():
     '''
 
     def __on_connection_status(self, client, userdata, msg):
-        if msg.payload.upper() == "OFFLINE":
+        if msg.payload.decode('utf-8').upper() == "OFFLINE":
             self.stop()
 
     #endregion
