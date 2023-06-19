@@ -39,7 +39,7 @@ redis:
   #          volatile: data, reserved key, time series;
   #          persistent: device, persistent data, time series tags, settings;
   #
-  instance_type: VOLATILE
+  instance_type: VOLATILE_PERSISTENT
 
 
   #  Number of connection attempts to Redis Server, one attempt every 3 second
