@@ -1,7 +1,10 @@
 # Changelog
 
-#### v 2.X.X 2023.MM.DD
-* Fix: fixed some issue on mqtt connection (reconnection and topic subscription) [#863guuhh8](https://app.clickup.com/t/863guuhh8) 
+#### v 2.7.1 2023.06.19
+* Fix: fixed some issue on MQTT connection (reconnection and topic subscription) in MQTT Port. [#863guuhh8](https://app.clickup.com/t/863guuhh8) 
+* Fix: fixed connection lost using last will & testament in MQTT Port. [#863gxzf68](https://app.clickup.com/t/863gxzf68)
+* Fix: set `qos=2` subsriptions in MQTT Port. [#863gxzb0c](https://app.clickup.com/t/863gxzb0c)
+* Fix: set missing `reset_on_connect` in MQTT Port. [#863gyfax1](https://app.clickup.com/t/863gyfax1)
 
 #### v 2.7.0 2023.04.07
 * Upd: Implemented new Cortex protocol [#258u64n](https://app.clickup.com/t/258u64n)
