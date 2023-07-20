@@ -850,8 +850,8 @@ class ArancinoApi():
             # BASE ARANCINO STATUS METADATA (S)Status
             response[DB_KEYS.S_CONNECTED] = port.isConnected()
             response[DB_KEYS.S_PLUGGED] = port.isPlugged()
-            response[DB_KEYS.B_CREATION_DATE] = int(port.getCreationDate().strftime("%s")) * 1000
-            response[DB_KEYS.S_LAST_USAGE_DATE] = int(port.getLastUsageDate().strftime("%s")) * 1000
+            response[DB_KEYS.B_CREATION_DATE] = None if port.getCreationDate() is None else int(port.getCreationDate().strftime("%s")) * 1000
+            response[DB_KEYS.S_LAST_USAGE_DATE] = None if port.getLastUsageDate() is None else int(port.getLastUsageDate().strftime("%s")) * 1000
             response[DB_KEYS.S_UPTIME] = None if port.getUptime() is None else [port.getUptime(), secondsToHumanString(port.getUptime())]
             response[DB_KEYS.S_COMPATIBILITY] = port.isCompatible()
             response[DB_KEYS.S_STARTED] = port.isStarted()
