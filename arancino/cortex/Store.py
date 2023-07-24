@@ -24,7 +24,7 @@ from arancino.ArancinoConstants import ArancinoCommandResponseCodes, ArancinoCom
 from arancino.ArancinoExceptions import ArancinoException, RedisGenericException
 from arancino.cortex.CortexCommandExectutor import CortexCommandExecutor
 from arancino.cortex.ArancinoPacket import ArancinoCommand, ArancinoResponse
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment, isNumber
 from arancino.cortex.ArancinoPacket import PACKET
 from arancino.ArancinoConstants import SUFFIX_TMSTP
 from redis.exceptions import RedisError
@@ -87,7 +87,7 @@ class Store(CortexCommandExecutor):
                     altrimenti darebbe errore e perderei tutte le entry, 
                     cosi perdo solo questa chiave il cui valore non è numerico
                 """
-                if isinstance(i["value"], numbers.Number):
+                if isNumber(i["value"]):
                     val = float(decimal.Decimal(i["value"]))
                     ts = "*" if "ts" not in i or i["ts"].strip() == "" else i["ts"]
 
