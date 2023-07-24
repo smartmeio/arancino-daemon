@@ -1,6 +1,6 @@
 # Changelog
 
-#### v 2.7.2 2023.07.XX
+#### v 2.7.2 2023.07.24
 * Fix: Prevent error on Ports Rest API: [#110](https://git.smartme.io/smartme.io/arancino/arancino-services/arancino-daemon/-/issues/110)
 * Fix: STORE Commands. Skip Keys with non Numeric values: [#111](https://git.smartme.io/smartme.io/arancino/arancino-services/arancino-daemon/-/issues/111)
 
