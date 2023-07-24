@@ -580,6 +580,12 @@ def stringToBool2(value):
         
     return __val
 
+def isNumber(value):
+    try:
+        float(value)
+    except ValueError:
+        return False
+    return True
 
 def stringToDatetime(dt_str):
     dt = datetime.strptime(dt_str, "%Y.%m.%d %H:%M:%S")

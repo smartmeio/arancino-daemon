@@ -18,13 +18,13 @@ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 License for the specific language governing permissions and limitations
 under the License
 """
-import decimal
+import decimal, numbers
 
 from arancino.ArancinoConstants import ArancinoCommandResponseCodes, ArancinoCommandErrorCodes
 from arancino.ArancinoExceptions import ArancinoException, RedisGenericException
 from arancino.cortex.CortexCommandExectutor import CortexCommandExecutor
 from arancino.cortex.ArancinoPacket import ArancinoCommand, ArancinoResponse
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment, isNumber
 from arancino.cortex.ArancinoPacket import PACKET
 from arancino.ArancinoConstants import SUFFIX_TMSTP
 from redis.exceptions import RedisError
@@ -82,11 +82,17 @@ class Store(CortexCommandExecutor):
 
                 self._check_ts_exist_and_create(datastore, key)
 
-                val = float(decimal.Decimal(i["value"]))
-                ts = "*" if "ts" not in i or i["ts"].strip() == "" else i["ts"]
+                """ ISSUE #111
+                    creo la entry solo se il valore è verificato. 
+                    altrimenti darebbe errore e perderei tutte le entry, 
+                    cosi perdo solo questa chiave il cui valore non è numerico
+                """
+                if isNumber(i["value"]):
+                    val = float(decimal.Decimal(i["value"]))
+                    ts = "*" if "ts" not in i or i["ts"].strip() == "" else i["ts"]
 
-                datastore.ts().add(key, ts, val)
-                ts_items.append(ts)
+                    datastore.ts().add(key, ts, val)
+                    ts_items.append(ts)
 
             #endregion
 
