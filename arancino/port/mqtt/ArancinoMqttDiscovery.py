@@ -59,7 +59,7 @@ class ArancinoMqttDiscovery(object):
         self.__mqtt_arancino_daemon_ca_certs = CONF.get("port").get("mqtt").get("connection").get("ca_path")
         self.__mqtt_arancino_daemon_certfile = CONF.get("port").get("mqtt").get("connection").get("cert_path")
         self.__mqtt_arancino_daemon_keyfile = CONF.get("port").get("mqtt").get("connection").get("key_path")
-        self.__mqtt_arancino_reset_on_connect = CONF.get("port").get("mqtt").get("connection").get("reset_on_connect")
+        self.__mqtt_arancino_reset_on_connect = CONF.get("port").get("mqtt").get("reset_on_connect")
 
         
         try:
