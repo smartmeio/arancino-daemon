@@ -69,7 +69,7 @@ redis:
     datastore_rsvd_db: 3
     datastore_tse_db: 4
     datastore_tag_db: 5
-    datastore_stng_db: 6
+    datastore_stng_db: 0
 
     host_volatile: "localhost"
     port_volatile: 6379
@@ -150,7 +150,7 @@ port:
   serial:
     
     # Enables discovery on serial port type
-    discovery: true
+    discovery: false
 
     mcu_type_list:
       - samd21
@@ -276,7 +276,7 @@ port:
 
   test:
 
-    discovery: false
+    discovery: true
 
     auto_enable: true
 
@@ -292,7 +292,7 @@ port:
 
 
     # The number of Port to create for test purpose
-    num: 0
+    num: 1
 
     # Delay between each command in seconds (accepts float)
     delay: 5
@@ -335,16 +335,16 @@ port:
     # Mqtt-Bus Broker Connection Parameters
     connection:
 
-      host: localhost
-      port: 1883
-      username: arancino-daemon
-      password: 12345678
+      host: vulcano.smartme.io
+      port: 8883
+      username: arancini
+      password: smartme
       client_id: 87654321
 
       use_tls: false
-      ca_path : ""
-      cert_path: ""
-      key_path: ""
+      ca_path : "/Users/sergio/Source/git.smartme.io/arancino/arancino-module/extras/cert/smartmeCA.pem"
+      cert_path: "/Users/sergio/Source/git.smartme.io/arancino/arancino-module/extras/cert/board.pem"
+      key_path: "/Users/sergio/Source/git.smartme.io/arancino/arancino-module/extras/cert/board.key"
 
       # Topic that will be used for discovery process
       discovery_topic: arancino/discovery

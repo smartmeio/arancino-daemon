@@ -760,6 +760,9 @@ class ArancinoTestHandler(threading.Thread):
                     {"key": "key-1", "value": 1, "ts": "*"},
                     {"key": "key-2", "value": 2, "ts": "*"},
                     {"key": "key-3", "value": 3.14},
+                    {"key": "new-key#01", "value": 13},
+                    {"key": "new-key#02", "value": 14},
+                    {"key": "new-key#03", "value": 15},
                 ]
             },
             "cfg": {
@@ -784,7 +787,7 @@ class ArancinoTestHandler(threading.Thread):
         }
         #endregion
 
-        #cmd_list.append(msgpack.packb(cmd_store, use_bin_type=True))
+        cmd_list.append(msgpack.packb(cmd_store, use_bin_type=True))
         #cmd_list.append(msgpack.packb(cmd_store_prfx, use_bin_type=True))
 
         # region 11. STORETAGS
@@ -794,7 +797,7 @@ class ArancinoTestHandler(threading.Thread):
                 "key": "key-1",
                 "items": [
                     {"tag": "tag-1", "value": "value-1"},
-                    {"tag": "tag-2", "value": "value-2>"}
+                    {"tag": "tag-2", "value": "value-2"}
                 ],
                 "ts": ""
             },
@@ -806,7 +809,7 @@ class ArancinoTestHandler(threading.Thread):
         }
         # endregion
 
-        #cmd_list.append(msgpack.packb(cmd_store_tag, use_bin_type=True))
+        cmd_list.append(msgpack.packb(cmd_store_tag, use_bin_type=True))
 
 
 
