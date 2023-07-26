@@ -2,6 +2,7 @@
 
 #### v 2.7.3 2023.07.XX
 * Fix: Reset on connect MQTT Port [#113](https://git.smartme.io/smartme.io/arancino/arancino-services/arancino-daemon/-/issues/113)
+* Fix: Client ID MQTT Port [#114](https://git.smartme.io/smartme.io/arancino/arancino-services/arancino-daemon/-/issues/114)
 
 #### v 2.7.2 2023.07.24
 * Fix: Prevent error on Ports Rest API: [#110](https://git.smartme.io/smartme.io/arancino/arancino-services/arancino-daemon/-/issues/110)
