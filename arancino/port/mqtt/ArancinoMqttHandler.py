@@ -80,11 +80,12 @@ class ArancinoMqttHandler():
 
     def __on_connection_status(self, client, userdata, msg):
         if msg.payload.decode('utf-8').upper() == "OFFLINE":
+            LOG.warning("{} MQTT Last Will - Client Disconnected: {}".format(self.__log_prefix, str(client)))
             self.stop()
 
     #endregion
 
     def stop(self):
-        LOG.warning("{}Connection lost".format(self.__log_prefix))
+        LOG.warning("{} Connection lost".format(self.__log_prefix))
         if self.__connectionLostHandler is not None:
             self.__connectionLostHandler()

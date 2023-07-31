@@ -123,6 +123,9 @@ class ArancinoMqttDiscovery(object):
     def __on_discovery(self, client, userdata, msg):
 
         pid = str(msg.payload.decode('utf-8', errors='strict'))
+
+        LOG.debug("{} Discovered MQTT Port: {}".format(self._log_prefix, pid))
+
         if pid not in self.__list_discovered:
             self.__list_discovered.append(pid)
             #client.subscribe("{}/{}/cmd_from_mcu".format(self.__mqtt_cortex_topic, pid), qos=2)  # used to send response to the mqtt port
@@ -138,7 +141,7 @@ class ArancinoMqttDiscovery(object):
         while rc != 0:
             
             time.sleep(5)
-            LOG.debug("Reconnecting to mqtt broker...")
+            LOG.debug("{} Reconnecting to mqtt broker...".format(self._log_prefix, self.__mqtt_arancino_daemon_broker_host, str(self.__mqtt_arancino_daemon_broker_port)))
             
             try:    
                 rc = client.connect(self.__mqtt_arancino_daemon_broker_host, self.__mqtt_arancino_daemon_broker_port, 60)
