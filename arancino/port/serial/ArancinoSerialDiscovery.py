@@ -25,7 +25,7 @@ from arancino.port.ArancinoPort import PortTypes
 from arancino.utils.ArancinoUtils import ArancinoConfig
 from arancino.port.ArancinoPortFilter import FilterTypes
 from arancino.port.serial.ArancinoSerialPortFilter import ArancinoSerialPortFilter
-from arancino.port.serial.ArancinoSerialPort import ArancinoSerialPort
+from arancino.port.serial.ArancinoSerialPortNew import ArancinoSerialPort
 
 CONF = ArancinoConfig.Instance().cfg
 

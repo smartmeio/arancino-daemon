@@ -57,6 +57,20 @@ def __kill():
     m.stop()
 
 def __runArancino():
+
+    """
+    from arancino.port.ArancinoPortNew import ArancinoPort
+
+    a = ArancinoPort()
+    a.last_usage_date ="b"
+    print(a.last_usage_date)
+    print(a.state)
+    a.disconnect()
+    print(a.state)
+    a.disconnect()
+    a.plug()
+    print(a.state)
+    """
     m.start()
 
 def __get_arancinoapi_app():

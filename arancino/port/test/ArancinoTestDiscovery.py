@@ -22,7 +22,7 @@ from arancino.port.ArancinoPort import PortTypes
 from arancino.utils.ArancinoUtils import ArancinoConfig
 # from arancino.filter import FilterTypes
 
-from arancino.port.test.ArancinoTestPort import ArancinoTestPort
+from arancino.port.test.ArancinoTestPortNew import ArancinoTestPort
 
 CONF = ArancinoConfig.Instance().cfg
 
@@ -59,7 +59,7 @@ class ArancinoTestDiscovery:
                 p_enabled = CONF.get("port").get("test").get("auto_enable")
                 p_hide = CONF.get("port").get("test").get("hide")
 
-                port = ArancinoTestPort(id=id, device="There", m_s_plugged=True, m_c_enabled=p_enabled, m_c_auto_connect=True, m_c_alias=id, m_c_hide=p_hide)
+                port = ArancinoTestPort(id=id, device="There", enabled=p_enabled, auto_connect=True, alias=id, hide=p_hide)
                 #ports[id] = port
                 collection[id] = port
             else:

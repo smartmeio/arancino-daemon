@@ -20,7 +20,7 @@ under the License
 """
 
 import serial
-from arancino.port.ArancinoPort import ArancinoPort, PortTypes
+from arancino.port.ArancinoPortNew import ArancinoPort, PortTypes
 from arancino.port.serial.ArancinoSerialHandler import ArancinoSerialHandler
 #from arancino.ArancinoCortex import *
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
@@ -35,9 +35,9 @@ ENV = ArancinoEnvironment.Instance()
 
 class ArancinoSerialPort(ArancinoPort):
 
-    def __init__(self, mcu_family=None, port_info=None, device=None, baudrate_comm=9600, baudrate_reset=300, m_s_plugged=False, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, reset_delay=CONF.get("port").get("serial").get("reset_reconnection_delay"), upload_cmd=CONF.get("port").get("serial").get("upload_command"), receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
+    def __init__(self, mcu_family=None, port_info=None, device=None, baudrate_comm=9600, baudrate_reset=300, enabled=True, auto_connect=True, alias="", hide=False, reset_delay=CONF.get("port").get("serial").get("reset_reconnection_delay"), upload_cmd=CONF.get("port").get("serial").get("upload_command"), receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
 
-        super().__init__(device=device, port_type=PortTypes.SERIAL, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=upload_cmd, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
+        super().__init__(device=device, port_type=PortTypes.SERIAL, enabled=enabled, alias=alias, hide=hide, upload_cmd=upload_cmd, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
         # self._port_type = PortTypes.Serial
 
@@ -84,10 +84,10 @@ class ArancinoSerialPort(ArancinoPort):
         #self.setReceivedCommandHandler(receivedCommandHandler)  # this is the handler to be used to receive an ArancinoCommand and exec that command.
         #self.setDisconnectionHandler(disconnectionHandler)  # this is the handler to be used whene a disconnection event is triggered
 
-        self._log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
+        self._log_prefix = "[{} - ({}) {} at {}]".format(PortTypes(self.type).name, self.alias, self.id, self.device)
 
 
-
+    # region HANDLERS
     def __connectionLostHandler(self):
         """
         This is an Asynchronous function, and represent "handler" to be used by ArancinoSerialHandeler.
@@ -117,6 +117,126 @@ class ArancinoSerialPort(ArancinoPort):
         else:  # do nothing
             pass
 
+    #endregion
+
+    # region STATES and TRANSITIONS CALLBACKS
+
+    def before_plug(self):
+        LOG.debug("{} Before Plug: {}...".format(self._log_prefix, self.state.upper()))
+
+
+    def on_enter_state_plugged(self):
+        LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper()))
+
+
+    def on_exit_state_plugged(self):
+        LOG.debug("{} Exiting State: {}...".format(self._log_prefix, self.state.upper()))
+
+
+    def after_plug(self):
+        LOG.debug("{} After Plug: {}...".format(self._log_prefix, self.state.upper()))
+
+
+    def before_connect(self):
+        LOG.debug("{} Before Connect: {}...".format(self._log_prefix, self.state.upper()))
+        try:
+            # check if the device is enabled and not already connected
+            if self.isEnabled():
+
+                try:
+
+                    LOG.info("{} Connecting...".format(self._log_prefix))
+
+                    if self.getResetOnConnect():
+                        # first resetting
+                        self.reset()
+
+                    self.__serial_port = serial.Serial(None, self.__comm_baudrate, timeout=self.__timeout)
+                    self.__serial_port.port = self._device
+                    self.__serial_port.open()
+
+                    self._handler = ArancinoSerialHandler(self.__serial_port, self.id, self.device,
+                                                                  self._commandReceivedHandlerAbs,
+                                                                  self.__connectionLostHandler)
+
+                    self._handler.start()
+                    LOG.info("{} Connected".format(self._log_prefix))
+                    self._start_thread_time = time.time()
+
+
+                except Exception as ex:
+                    # TODO LOG SOMETHING OR NOT?
+                    LOG.error("{} Error while connecting: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
+                    raise ex
+
+
+            else:  # not enabled
+                # TODO LOG or EXCEPTION
+                LOG.warning("{} Port not enabled".format(self._log_prefix))
+
+        except Exception as ex:
+            raise ex
+
+
+    def on_enter_state_connected(self):
+
+        LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper()))
+
+
+    def on_exit_state_connected(self):
+        LOG.debug("{} Exiting State: {}...".format(self._log_prefix, self.state.upper()))
+
+
+    def after_connect(self):
+        LOG.debug("{} After Connect: {}...".format(self._log_prefix, self.state.upper()))
+
+
+    def before_start(self):
+        LOG.debug("{} Before Start: {}...".format(self._log_prefix, self.state.upper()))
+
+
+    def on_enter_state_started(self):
+        LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper()))
+
+
+    def on_exit_state_started(self):
+        LOG.debug("{} Exiting State: {}...".format(self._log_prefix, self.state.upper()))
+
+
+    def after_start(self):
+        LOG.debug("{} After Start: {}...".format(self._log_prefix, self.state.upper()))
+
+
+    def before_disconnect(self):
+        LOG.debug("{} Before Disconnect: {}...".format(self._log_prefix, self.state.upper()))
+
+        try:
+
+            self.stopHeartbeat()
+
+            # check if the device is already
+            self._handler.stop()
+            del self._handler
+
+        except Exception as ex:
+            raise ex
+
+
+    def on_enter_state_disconnected(self):
+        LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper()))
+
+
+    def on_exit_state_disconnected(self):
+        LOG.debug("{} Exiting State: {}...".format(self._log_prefix, self.state.upper()))
+
+
+    def after_disconnect(self):
+        LOG.debug("{} After Disconnect: {}...".format(self._log_prefix, self.state.upper()))
+
+    #endregion
+
+
+    #region UTILITIES
 
     def __populatePortInfo(self, device=None, port_info=None):
         try:
@@ -161,8 +281,9 @@ class ArancinoSerialPort(ArancinoPort):
             if p.device == device:
                 return p
 
+    #endregion
 
-    # PORT APIs IMPLEMENTATION
+    # region OPERATIONS
 
     def sendResponse(self, raw_response):
         """
@@ -173,85 +294,22 @@ class ArancinoSerialPort(ArancinoPort):
         :return: void
         """
 
-        if self._m_s_connected:
+        if self.isStarted():
             self.__serial_port.write(raw_response)
         else:  # not connected
-            LOG.warning("{} Cannot Sent a Response: Port is not connected.".format(self._log_prefix))
+            LOG.warning("{} Cannot Sent a Response: Port is not Started.".format(self._log_prefix))
 
 
-    def connect(self):
-        try:
-            # check if the device is enabled and not already connected
-            if self._m_c_enabled:
-                if not self._m_s_connected:
-                    try:
 
-                        LOG.info("{} Connecting...".format(self._log_prefix))
-
-                        if self.getResetOnConnect():
-                            # first resetting
-                            self.reset()
-
-                        self.__serial_port = serial.Serial(None, self.__comm_baudrate, timeout=self.__timeout)
-                        self.__serial_port.port = self._device
-                        self.__serial_port.open()
-
-                        self.__serial_handler = ArancinoSerialHandler(self.__serial_port, self._id, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
-                        self._m_s_connected = True
-                        self.__serial_handler.start()
-                        LOG.info("{} Connected".format(self._log_prefix))
-                        self._start_thread_time = time.time()
-
-                        super().connect()
-
-                    except Exception as ex:
-                        # TODO LOG SOMETHING OR NOT?
-                        LOG.error("{} Error while connecting: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
-                        raise ex
-
-                else:
-                    # TODO LOG or EXCPETION
-                    LOG.warning("{} Port already connected".format(self._log_prefix))
-
-            else: # not enabled
-                #TODO LOG or EXCEPTION
-                LOG.warning("{} Port not enabled".format(self._log_prefix))
-
-        except Exception as ex:
-            raise ex
-
-
-    def disconnect(self):
-        try:
-            super().disconnect()
-            self.stopHeartbeat()
-
-            # check if the device is already
-            if self._m_s_connected:
-                self._m_s_connected = False
-                self.__serial_handler.stop()
-                del self.__serial_handler
-            
-
-            else:
-                LOG.debug("{} Already Disconnected".format(self._log_prefix))
-
-
-        except Exception as ex:
-            raise ex
-
-
+    #TODO PORT MOD da testare per intero
     def reset(self):
         try:
 
-            # if self.getMicrocontrollerFamily():
-            #     self._reset_delay = getattr(CONF, "get_port_serial_{}_reset_reconnection_delay()".format(self.getMicrocontrollerFamily().lower()))
-            # else:
-            #     self._reset_delay = CONF.get_port_serial_reset_reconnection_delay()
-
             LOG.info("{} Resetting...".format(self._log_prefix))
+
             self.disconnect()
             self.setEnabled(False)
+
             # touch to reset
             ser = serial.Serial()
             ser.baudrate = self.__reset_baudrate
@@ -259,16 +317,20 @@ class ArancinoSerialPort(ArancinoPort):
             ser.open()
             ser.close()
             del ser
+
             #time.sleep( CONF.get_port_serial_reset_reconnection_delay() )
             time.sleep( self.getResetReconnectionDelay())
             self.setEnabled(True)
+
             LOG.info("{} Reset".format(self._log_prefix))
+
             return True
         except Exception as ex:
             #LOG.info("{} Connected".format(self.__log_prefix))
             LOG.exception(self._log_prefix + str(ex))
 
 
+    # TODO PORT MOD da testare per intero
     def upload(self, firmware):
 
             LOG.info("{} Starting Upload Procedure".format(self._log_prefix))
@@ -308,6 +370,10 @@ class ArancinoSerialPort(ArancinoPort):
             finally:
                 self.setEnabled(True)
                 return rtcode, stdout, stderr
+
+    #endregion
+
+
 
     # SERIAL ARANCINO PORT METADATA
 
@@ -359,13 +425,6 @@ class ArancinoSerialPort(ArancinoPort):
 
         if reset_reconnection_delay:
             self._reset_reconnection_delay = int(reset_reconnection_delay)
-
-
-    def getResetOnConnect(self):
-        return self.__reset_on_connect
-
-    def setResetOnConnect(self, reset_on_connect):
-        self.__reset_on_connect = reset_on_connect
 
     def getCommBaudRate(self):
         return self.__comm_baudrate

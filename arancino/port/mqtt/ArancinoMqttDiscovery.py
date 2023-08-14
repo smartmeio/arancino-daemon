@@ -24,7 +24,8 @@ under the License
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
 from arancino.port.ArancinoPortFilter import FilterTypes
 from arancino.port.mqtt.ArancinoMqttPortFilter import ArancinoMqttPortFilter
-from arancino.port.mqtt.ArancinoMqttPort import ArancinoMqttPort
+#from arancino.port.mqtt.ArancinoMqttPort import ArancinoMqttPort
+from arancino.port.mqtt.ArancinoMqttPortNew import ArancinoMqttPort
 from arancino.port.ArancinoPort import PortTypes
 import paho.mqtt.client as mqtt
 import paho.mqtt.subscribe as subscribe
@@ -108,6 +109,7 @@ class ArancinoMqttDiscovery(object):
 
             if self.__mqtt_arancino_reset_on_connect:
                 # reset all mcu connected at the broker by sending a special cmd
+                LOG.debug("{} Sending Reset Command...".format(self._log_prefix))
                 client.publish("{}".format(self.__mqtt_service_topic), "reset", 2)
 
             for pid in self.__list_discovered:
@@ -116,7 +118,7 @@ class ArancinoMqttDiscovery(object):
 
         else:
             #self.__client.connected_flag = False
-            LOG.warning("{}Failed to connect to {}:{} - {}".format(self._log_prefix, self.__mqtt_arancino_daemon_broker_host,str(self.__mqtt_arancino_daemon_broker_port), mqtt.connack_string(rc)))
+            LOG.warning("{} Failed to connect to {}:{} - {}".format(self._log_prefix, self.__mqtt_arancino_daemon_broker_host,str(self.__mqtt_arancino_daemon_broker_port), mqtt.connack_string(rc)))
     # endregion
 
     # region ON DISCOVERY
@@ -237,13 +239,12 @@ class ArancinoMqttDiscovery(object):
 
         for port in ports:
 
-            p = ArancinoMqttPort(   port_id = port, #port is the id of the port sent via MQTT into discovery topic
-                                    device = CONF.get("port").get("mqtt").get("connection").get("host"),
-                                    mqtt_client = self.__mqtt_client,
-                                    m_s_plugged=True, 
-                                    m_c_enabled=CONF.get("port").get("mqtt").get("auto_enable"), 
-                                    m_c_hide=CONF.get("port").get("mqtt").get("hide") )
+            p = ArancinoMqttPort(id= port,  #port is the id of the port sent via MQTT into discovery topic
+                                 device = CONF.get("port").get("mqtt").get("connection").get("host"),
+                                 mqtt_client = self.__mqtt_client,
+                                 enabled=CONF.get("port").get("mqtt").get("auto_enable"),
+                                 hide=CONF.get("port").get("mqtt").get("hide"))
             
-            new_ports_struct[p.getId()] = p
+            new_ports_struct[p.id] = p
 
         return new_ports_struct

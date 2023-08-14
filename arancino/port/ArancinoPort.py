@@ -105,7 +105,6 @@ class ArancinoPort(object):
         #endregion
 
         self.__first_time = True
-        self.__HEARTBEAT = None
 
     def unplug(self):
         self.disconnect()
@@ -201,6 +200,11 @@ class ArancinoPort(object):
                 if (self.getFirmwareUseFreeRTOS() and self.__HEARTBEAT == None):
                     self.__HEARTBEAT = ArancinoHeartBeat(self, self.sendArancinoEventsMessage)
                     self.__HEARTBEAT.start()
+#            else:
+#                if not self.isStarted():
+#                    LOG.warning("{} Received {} but already not Started: Resetting...".format(self._log_prefix, acmd.id))
+#                    self.reset()
+#                    self.disconnect()
 
         except ArancinoException as ex:
             #if PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT in acmd.cfg and acmd.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] == 1:
@@ -235,7 +239,7 @@ class ArancinoPort(object):
                     LOG.debug("{} Ack disabled, response is not sent back : {}: \n{}".format(self._log_prefix, arsp.code, formatted_response_json))
 
             except Exception as ex:
-                LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex), exc_info=TRACE)
+                LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix, str(ex), exc_info=TRACE))
 
 
     def _retrieveStartCmdArgs(self, args):

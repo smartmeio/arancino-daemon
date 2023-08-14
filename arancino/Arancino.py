@@ -126,11 +126,15 @@ class Arancino(Thread):
             self.__uart_ble_discovery.stop()
 
         LOG.info("Disconnecting Ports... ")
-        for id, port in self.__ports_connected.items():
-            port.unplug()
+        try:
+            for id, port in self.__ports_connected.items():
+                port.disconnect()
 
-        for id, port in self.__ports_discovered.items():
-            port.unplug()
+            for id, port in self.__ports_discovered.items():
+                if not port.isDisconnected():
+                    port.disconnect()
+        except Exception as ex:
+            pass
 
         time.sleep(2)
         LOG.info("Disconnecting Data Stores... ")
@@ -249,7 +253,7 @@ class Arancino(Thread):
                                     pass
 
                             else:
-                                LOG.warning("Port is not enabled, can not connect to: {} - {} at {}".format(port.getAlias(), port.getId(), port.getDevice()))
+                                LOG.warning("Port is not enabled, can not connect to: {} - ({}) {} at {}".format(port.type.name, port.getAlias(), port.getId(), port.getDevice()))
 
                         self.__synchronizer.writePortChanges(port)
 
@@ -303,7 +307,7 @@ class Arancino(Thread):
         #         LOG.debug("Lock Acquired")
         if port_id in self.__ports_connected:
             port = self.__ports_connected.pop(port_id, None)
-            LOG.warning("[{} - {} at {}] Destroying Arancino Port".format(port.getPortType(), port.getId(), port.getDevice()))
+            LOG.warning("[{} - {} at {}] Destroying Arancino Port".format(port.getPortType().name, port.getId(), port.getDevice()))
             #self.__synchronizer.synchPort(port)
             ###self.__synchronizer.writePortStatus(port)
             # TODO pay attention to that DEL: nel caso dell'upload, viene invocato il disconnect che triggera questo
