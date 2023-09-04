@@ -35,29 +35,17 @@ ENV = ArancinoEnvironment.Instance()
 
 class ArancinoSerialPort(ArancinoPort):
 
-    def __init__(self, mcu_family=None, port_info=None, device=None, baudrate_comm=9600, baudrate_reset=300, enabled=True, auto_connect=True, alias="", hide=False, reset_delay=CONF.get("port").get("serial").get("reset_reconnection_delay"), upload_cmd=CONF.get("port").get("serial").get("upload_command"), receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
+    def __init__(self, mcu_family=None, port_info=None, device=None, baudrate_comm=9600, baudrate_reset=300, enabled=True, auto_connect=True, alias="", hide=False, reset_delay=CONF.get("port").get("serial").get("reset_reconnection_delay"), receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
 
-        super().__init__(device=device, port_type=PortTypes.SERIAL, enabled=enabled, alias=alias, hide=hide, upload_cmd=upload_cmd, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
+        super().__init__(device=device, port_type=PortTypes.SERIAL, enabled=enabled, alias=alias, hide=hide, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
-        # self._port_type = PortTypes.Serial
-
+        # SERIAL PORT PARAMETER
         self.__serial_port = None       # type: serial.Serial
         self.__port_info = port_info    # type: serial.tools.ListPortInfo
 
-
-
-        # SERIAL PORT PARAMETER
         self.__comm_baudrate = baudrate_comm
         self.__reset_baudrate = baudrate_reset
         self.__timeout = timeout
-        self.__reset_on_connect = True
-
-        # FAMILY PORT PARAMETER
-        if mcu_family:
-            self._setMicrocontrollerFamily(mcu_family.upper())
-
-        self._setMicrocontrollerProperties()
-
 
         # SERIAL PORT METADATA
         self.__m_p_vid = None
@@ -71,6 +59,9 @@ class ArancinoSerialPort(ArancinoPort):
         self.__m_p_product = None
         self.__m_p_interface = None
         self.__m_p_device = None
+
+
+        self._microcontroller_family = mcu_family
 
         self.__populatePortInfo(device=self._device, port_info=self.__port_info)
 
@@ -420,7 +411,6 @@ class ArancinoSerialPort(ArancinoPort):
     def getResetReconnectionDelay(self):
         return self._reset_reconnection_delay
 
-
     def setResetReconnectionDelay(self, reset_reconnection_delay):
 
         if reset_reconnection_delay:
@@ -438,15 +428,24 @@ class ArancinoSerialPort(ArancinoPort):
     def setResetBaudRate(self, reset_baudrate):
         self.__reset_baudrate = reset_baudrate
 
-    def setMicrocontrollerProperties(self):
+    @property
+    def timeout(self):
+        return self.__timeout
 
-        # recupero il tipo di mcu.
-        mcu = self.getMicrocontrollerFamily().lower() if self.getMicrocontrollerFamily() else None
+    def __setMicrocontrollerFamilyProperties(self):
+        """
+        Questo metodo viene chiamato solo dopo che la MCU FAMILY è stata
+        definita. Viene implementato diversamente da ogni Tipo di Porta
+        e Famiglia di MCU.
+        """
+        # Recupero il tipo di MCU
+        mcu = self.microcontroller_family.lower() if self.microcontroller_family else None
 
-        # verifico che l'mcu sia definita e presente in lista
-        #if mcu and mcu in CONF.get("port").get("serial").get("mcu_type_list"):
 
-        # region comm baud rate
+        # region COMMUNICATION BAUD RATE
+        """
+        la baud rate è impostata da costruttore in fase di discovery in base al vid e pid
+        """
         comm_baud_rate = None
         comm_baud_rate_mcu = CONF.get("port").get("serial").get(mcu).get("comm_baudrate")
         comm_baud_rate_serial = CONF.get("port").get("serial").get("comm_baudrate")
@@ -456,9 +455,14 @@ class ArancinoSerialPort(ArancinoPort):
         elif comm_baud_rate_serial:
             comm_baud_rate = comm_baud_rate_serial
 
+        self.setCommBaudRate(comm_baud_rate)
         #endregion
 
-        # region reset baud rate
+
+        # region RESET MCU BAUDRATE
+        """
+        la reset mcu baudrate è impostata da costruttore in fase di discovery in base al vid e pid
+        """
         reset_baud_rate = None
         reset_baud_rate_mcu = CONF.get("port").get("serial").get(mcu).get("reset_baudrate")
         reset_baud_rate_serial = CONF.get("port").get("serial").get("reset_baudrate")
@@ -468,9 +472,11 @@ class ArancinoSerialPort(ArancinoPort):
         elif reset_baud_rate_serial:
             reset_baud_rate = reset_baud_rate_serial
 
+        self.setResetBaudRate(reset_baud_rate)
         #endregion
 
-        # region upload command
+
+        # region UPLOAD COMMAND
         upload_command = None
         upload_command_mcu = CONF.get("port").get("serial").get(mcu).get("upload_command")
         upload_command_serial = CONF.get("port").get("serial").get("upload_command")
@@ -482,9 +488,12 @@ class ArancinoSerialPort(ArancinoPort):
             upload_command = upload_command_serial
         else:
             upload_command = upload_command_port
+
+        self._setUploadCommand(upload_command)
         #endregion
 
-        # region reset reconnection delay
+
+        # region RESET RECONNECTION DELAY
         reset_reconnection_delay = None
         reset_reconnection_delay_mcu = CONF.get("port").get("serial").get(mcu).get("reset_reconnection_delay")
         reset_reconnection_delay_serial = CONF.get("port").get("serial").get("reset_reconnection_delay")
@@ -496,9 +505,15 @@ class ArancinoSerialPort(ArancinoPort):
             reset_reconnection_delay = reset_reconnection_delay_serial
         else:
             reset_reconnection_delay = reset_reconnection_delay_port
+
+        self.setResetReconnectionDelay(reset_reconnection_delay)
         # endregion
 
-        # region reset on connect
+
+        # region RESET ON CONNECT ENABLING
+        """
+        la reset on connect è impostata da costruttore in fase di discovery in base al vid e pid
+        """
         reset_on_connect = None
         reset_on_connect_mcu = CONF.get("port").get("serial").get(mcu).get("reset_on_connect")
         reset_on_connect_serial = CONF.get("port").get("serial").get("reset_on_connect")
@@ -510,11 +525,7 @@ class ArancinoSerialPort(ArancinoPort):
             reset_on_connect = reset_on_connect_serial
         else:
             reset_on_connect = reset_on_connect_port
+
+        self._reset_on_connect = reset_on_connect
+
         # endregion
-
-        self._setUploadCommand(upload_command)
-        self.setResetReconnectionDelay(reset_reconnection_delay)
-        self.setResetOnConnect(reset_on_connect)
-        self.setCommBaudRate(comm_baud_rate)
-        self.setResetBaudRate(reset_baud_rate)
-

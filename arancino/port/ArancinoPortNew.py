@@ -42,7 +42,7 @@ ENV = ArancinoEnvironment.Instance()
 
 class ArancinoPort(ABC):
 
-    def __init__(self, id=None, device=None, enabled=True, alias="", hide=False, port_type=None, upload_cmd=None, receivedCommandHandler=None, disconnectionHandler=None):
+    def __init__(self, id=None, device=None, enabled=True, alias="", hide=False, port_type=None, receivedCommandHandler=None, disconnectionHandler=None):
 
 
         #region BASE METADATA attributes
@@ -118,7 +118,7 @@ class ArancinoPort(ABC):
     ]
     #endregion
 
-    # region CALLBACKS
+    # region STATE & TRANSITIONS CALLBACKS
 
     @abstractmethod
     def before_plug(self):
@@ -328,6 +328,7 @@ class ArancinoPort(ABC):
 
     #region BASE FIRMWARE METADATA Encapsulation
 
+    #region firmware library version
     @property
     def firmware_library_version(self):
         return self._firmware_library_version
@@ -341,7 +342,9 @@ class ArancinoPort(ABC):
     @firmware_library_version.setter
     def firmware_library_version(self, firmware_library_version):
         self._firmware_library_version = firmware_library_version
+    #endregion
 
+    #region firmware version
     @property
     def firmware_version(self):
         return self._firmware_version
@@ -355,8 +358,9 @@ class ArancinoPort(ABC):
 
     def _setFirmwareVersion(self, firmware_version):
         self.firmware_version = firmware_version
+    #endregion
 
-
+    #region firmware name
     @property
     def firmware_name(self):
         return self._firmware_name
@@ -371,6 +375,9 @@ class ArancinoPort(ABC):
     def _setFirmwareName(self, firmware_name):
         self.firmware_name = firmware_name
 
+    # endregion firmware name
+
+    #region firmware build datetime
     @property
     def firmware_build_datetime(self):
         return self._firmware_build_datetime
@@ -385,6 +392,9 @@ class ArancinoPort(ABC):
     def _setFirmwareBuildDate(self, firmware_build_datetime):
         self.firmware_build_datetime = firmware_build_datetime
 
+    # endregion firmware build datetime
+
+    # region firmware core version
     @property
     def firmware_core_version(self):
         return self._firmware_core_version
@@ -399,7 +409,9 @@ class ArancinoPort(ABC):
     def _setFirmwareCoreVersion(self, firmware_core_version):
         self.firmware_core_version = firmware_core_version
 
+    # endregion firmware core version
 
+    # region firmware cortex version
     @property
     def firmware_cortex_version(self):
         return self._firmware_cortex_version
@@ -414,7 +426,9 @@ class ArancinoPort(ABC):
     def _setFirmwareCortexVersion(self, firmware_cortex_version):
         self.firmware_cortex_version = firmware_cortex_version
 
+    # endregion firmware cortex version
 
+    # region firmware use freertos
     @property
     def firmware_use_freertos(self):
         return self._firmware_use_freertos
@@ -429,14 +443,20 @@ class ArancinoPort(ABC):
     def _setFirmwareUseFreeRTOS(self, firmware_use_freertos):
         self.firmware_use_freertos = stringToBool2(firmware_use_freertos)
 
+    # endregion firmware use freertos
 
     #endregion
 
     # region OTHER Encapsulation
 
+    # region upload command
     @property
     def upload_cmd(self):
         return self._upload_cmd
+
+    @upload_cmd.setter
+    def upload_cmd(self, upload_command):
+        self._upload_cmd = upload_command
 
     def _setUploadCmd(self, upload_cmd):
         if upload_cmd:
@@ -445,31 +465,23 @@ class ArancinoPort(ABC):
     def getUploadCmd(self):
         return self.__upload_cmd
 
+    def getUploadCommand(self):
+        return self._upload_cmd
+
+    def _setUploadCommand(self, upload_cmd):
+        self._upload_cmd = upload_cmd
+
+    # endregion upload command
+
+    # region reset on connect
     @property
     def reset_on_connect(self):
         return self._reset_on_connect
 
-    @property
-    def reset_reconnection_delay(self):
-        return self._reset_reconnection_delay
+    # endregion reset on connect
 
     # endregion
 
-    @property
-    def upload_command(self):
-        return self._upload_cmd
-
-    @upload_command.setter
-    def upload_command(self, upload_command):
-        self._upload_cmd = upload_command
-
-
-    def getUploadCommand(self):
-        return self._upload_cmd
-
-
-    def _setUploadCommand(self, upload_cmd):
-        self._upload_cmd = upload_cmd
 
 
     def isPlugged(self):
@@ -628,6 +640,7 @@ class ArancinoPort(ABC):
             # If heartbeat does not (yet) exist just exit
             pass
 
+    """
     def _setMicrocontrollerProperties(self):
 
         # Recupero il tipo di MCU
@@ -653,7 +666,16 @@ class ArancinoPort(ABC):
         else:
             self.setResetReconnectionDelay(CONF.get("port").get("reset_reconnection_delay"))
             self._setUploadCommand(CONF.get("port").get("upload_command"))
+    """
 
+    @abstractmethod
+    def __setMicrocontrollerFamilyProperties(self):
+        """
+        Questo metodo viene chiamato solo dopo che la MCU FAMILY è stata
+        definita. Viene implementato diversamente da ogni Tipo e Famiglia di Porta.
+        :return:
+        """
+        pass
 
 
     #endregion
@@ -829,7 +851,7 @@ class ArancinoPort(ABC):
 
             self._setGenericAttributes(args)
 
-            self._setMcuAttributes(self._microcontroller_family.upper())
+            self.__setMicrocontrollerFamilyProperties()
 
             # endregion
 

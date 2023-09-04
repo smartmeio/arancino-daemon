@@ -121,8 +121,10 @@ class ArancinoMqttPort(ArancinoPort):
                     LOG.info("{} Connecting...".format(self._log_prefix))
 
                     # if CONF.get_port_mqtt_reset_on_connect():
-                    # this must be setted to False. If True can be caused an infinite loop of connection and disconnection
-                    #    self.reset()
+                    """
+                        questo check "reset on connect" è implementato nel discovery
+                        perchè non può essere fatto qui.
+                    """
 
                     self._handler = ArancinoMqttHandler("ArancinoMqttHandler-" + self._id, self.__mqtt_client,
                                                         self._id, self.__mqtt_topic_cmd_from_mcu,
