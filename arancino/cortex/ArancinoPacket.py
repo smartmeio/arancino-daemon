@@ -224,6 +224,7 @@ class PACKET:
                 BUILD_TIME = "FBT"
                 CORE_VERSION = "FCV"
                 CORTEX_VERSION = "FXV"
+                USE_FREERTOS = "FFOS"
 
         class CONFIGURATIONS:
             SECURE_MODE = "SM"
@@ -251,6 +252,24 @@ class PACKET:
     class RSP:
 
         RESPONSE_CODE = "RC"
+
+        class RSPS:
+
+            _100: 100
+            _101: 101
+            _102: 102
+            _200: 200
+            _201: 201
+            _202: 202
+            _203: 203
+            _204: 204
+            _205: 205
+            _206: 206
+            _207: 207
+            _208: 208
+            _209: 209
+            _210: 210
+
 
         class ARGUMENTS:
 
@@ -317,6 +336,7 @@ class PACKET_100:
                 BUILD_TIME = "fw_build_time"
                 CORE_VERSION = "fw_core_ver"
                 CORTEX_VERSION = "fw_crtx_ver"
+                USE_FREERTOS = "fw_freertos"
 
         class CONFIGURATIONS:
             SECURE_MODE = "scr_mod"
@@ -343,6 +363,22 @@ class PACKET_100:
     class RSP:
 
         RESPONSE_CODE = "rsp_code"
+
+        class RSPS:
+            _100: 100
+            _101: 101
+            _102: 102
+            _200: 200
+            _201: 201
+            _202: 202
+            _203: 203
+            _204: 204
+            _205: 205
+            _206: 206
+            _207: 207
+            _208: 208
+            _209: 209
+            _210: 210
 
         class ARGUMENTS:
 

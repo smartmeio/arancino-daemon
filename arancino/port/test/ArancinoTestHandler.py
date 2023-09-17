@@ -33,6 +33,7 @@ from arancino.ArancinoConstants import ArancinoSpecialChars as specChars, Aranci
 from arancino.ArancinoConstants import ArancinoCommandResponseCodes as respCodes
 from arancino.ArancinoConstants import ArancinoCommandErrorCodes as errorCodes
 from arancino.ArancinoConstants import SUFFIX_TMSTP
+from arancino.cortex.ArancinoPacket import PACKET
 import time
 
 LOG = ArancinoLogger.Instance().getLogger()
@@ -189,22 +190,22 @@ class ArancinoTestHandler(threading.Thread):
         fw_datetime_str = fw_date_str + ' ' + fw_time_str + ' ' + fw_tz_str
 
         start_cmd = {
-            "cmd": "START",
-            "args": {
-                "port_id": "TEST_36663",#"TEST_{}".format(random.randint(10000, 99999)),
-                "fw_mcu_family": "Test Family",
-                "fw_lib_ver": "3.0.0",
-                "fw_name": "My Awesome Firmware",
-                "fw_ver": "1.0.0",
-                "fw_build_time": fw_datetime_str,
-                "fw_core_ver": "1.0.0",
-                "fw_crtx_ver": "1.0.0",
-                "fw_freertos": 0,
+            PACKET.CMD.COMMAND_ID: PACKET.CMD.CMDS.START,
+            PACKET.ARGUMENT: {
+                PACKET.CMD.ARGUMENTS.PORT_ID: "TEST_36663",#"TEST_{}".format(random.randint(10000, 99999)),
+                PACKET.CMD.ARGUMENTS.FIRMWARE.MCU_FAMILY: "Test Family",
+                PACKET.CMD.ARGUMENTS.FIRMWARE.LIBRARY_VERSION: "3.0.0",
+                PACKET.CMD.ARGUMENTS.FIRMWARE.NAME: "My Awesome Firmware",
+                PACKET.CMD.ARGUMENTS.FIRMWARE.VERSION: "1.0.0",
+                PACKET.CMD.ARGUMENTS.FIRMWARE.BUILD_TIME: fw_datetime_str,
+                PACKET.CMD.ARGUMENTS.FIRMWARE.CORE_VERSION: "1.0.0",
+                PACKET.CMD.ARGUMENTS.FIRMWARE.CORTEX_VERSION: "1.0.0",
+                PACKET.CMD.ARGUMENTS.FIRMWARE.USE_FREERTOS: 0,
                 "CUSTOM_KEY_1": "CUSTOM_VALUE_1",
                 "CUSTOM_KEY_2": "CUSTOM_VALUE_2"
             },
-            "cfg": {
-                "scr_mod": 0
+            PACKET.CONFIGURATION: {
+                PACKET.CMD.CONFIGURATIONS.SECURE_MODE: 0
             }
         }
 
