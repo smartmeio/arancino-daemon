@@ -179,6 +179,102 @@ class ArancinoResponse(ArancinoPacket):
 
 
 class PACKET:
+    """
+    Version 1.1.0 of Cortex Protocol keys
+    """
+
+
+    CONFIGURATION = "CF"
+    ARGUMENT = "A"
+
+    class CMD:
+
+        COMMAND_ID = "C"
+
+        class CMDS:
+            START = 0
+            SET = 1
+            GET = 2
+            DEL = 3
+            STORE = 4
+            STORETAGS = 5
+            HSET = 6
+            HGET = 7
+            HDEL = 8
+            PUB = 9
+            FLUSH = 10
+            SIGN = 11
+
+        class ARGUMENTS:
+
+            ITEMS = "I"
+            KEYS = "K"
+            PORT_ID = "P"
+            PORT_TYPE = "PT"
+
+            KEY = "K"
+            TIMESTAMP = "TS"
+
+            class FIRMWARE:
+
+                MCU_FAMILY = "FMF"
+                LIBRARY_VERSION = "FLV"
+                NAME = "FN"
+                VERSION = "FV"
+                BUILD_TIME = "FBT"
+                CORE_VERSION = "FCV"
+                CORTEX_VERSION = "FXV"
+
+        class CONFIGURATIONS:
+            SECURE_MODE = "SM"
+            SIGNER_CERTIFICATE = "CS"
+            DEVICE_CERTIFICATE = "DS"
+
+            SIGNATURE = "SGN"
+
+            PERSISTENT = "P"
+            ACKNOLEDGEMENT = "A"
+            PREFIX_ID = "PX"
+
+            TYPE = "T"
+
+            class TYPES:
+
+                APPLICATION = "A"
+                SETTING = "S"
+                RESERVED = "R"
+
+                TIMESERIES = "TS"
+                TSTAGS = "TT"
+
+
+    class RSP:
+
+        RESPONSE_CODE = "RC"
+
+        class ARGUMENTS:
+
+            DAEMON_VERSION = "DV"
+            DAEMON_ENVIRONMENT = "DE"
+
+            ITEMS = "I"
+            KEYS = "K"
+
+            CLIENTS = "C"
+
+
+        class CONFIGURATIONS:
+
+            CHALLENGE = "CLG"
+
+            TIMESTAMP = "TS"
+            LOG_LEVEL = "LL"
+
+class PACKET_100:
+    """
+    Version 1.0.0 of Cortex Protocol keys
+    """
+
 
     CONFIGURATION = "cfg"
     ARGUMENT = "args"
@@ -186,6 +282,21 @@ class PACKET:
     class CMD:
 
         COMMAND_ID = "cmd"
+
+        class CMDS:
+
+            START = "START"
+            SET = "SET"
+            GET = "GET"
+            DEL = "DEL"
+            STORE = "STORE"
+            STORETAGS = "STORETAGS"
+            HSET = "HSET"
+            HGET = "HGET"
+            HDEL = "HDEL"
+            PUB = "PUB"
+            FLUSH = "FLUSH"
+            SIGN = "SIGN"
 
         class ARGUMENTS:
 
