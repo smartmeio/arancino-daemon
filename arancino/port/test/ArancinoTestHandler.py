@@ -210,14 +210,14 @@ class ArancinoTestHandler(threading.Thread):
         }
 
         start_rsp = {
-            "code": ArancinoCommandResponseCodes.RSP_OK,
-            "args": {
-                "dmn_ver": str(ENV.version),
-                "dmn_env": str(ENV.env)
+            PACKET.RSP.RESPONSE_CODE: ArancinoCommandResponseCodes.RSP_OK,
+            PACKET.ARGUMENT: {
+                PACKET.RSP.ARGUMENTS.DAEMON_VERSION: str(ENV.version),
+                PACKET.RSP.ARGUMENTS.DAEMON_ENVIRONMENT: str(ENV.env)
             },
-            "cfg": {
+            PACKET.CONFIGURATION: {
                 #"ts": "<timestamp>",
-                "log_lvl": CONF.get("log").get("level")
+                PACKET.RSP.CONFIGURATIONS.LOG_LEVEL: CONF.get("log").get("level")
             }
         }
         # endregion
