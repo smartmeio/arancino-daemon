@@ -24,132 +24,6 @@ from arancino.ArancinoConstants import ArancinoCommandErrorCodes
 from arancino.ArancinoExceptions import InvalidCommandException
 import msgpack
 
-
-class ArancinoPacket_(ABC):
-    """
-    Usato per Arancino Command e Arancino Response, perche hanno la stessa struttura di base,
-        si differenziano solo per "cmd" (Arancino Command) e "rsp_code" (Arancino Response)
-    """
-
-    def __init__(self, rawPacket: dict):
-        if rawPacket:
-            self.args = rawPacket["args"]
-            self.cfg = rawPacket["cfg"]
-            #self.raw = rawPacket
-        else:
-            self.args = {}
-            self.cfg = {}
-            #self.raw = {}
-
-    """
-    @property
-    def raw(self):
-        return self.__raw
-
-    @raw.setter
-    def raw(self, rawPacket: dict):
-        self.__raw = rawPacket
-        #pass
-    """
-    @property
-    def cfg(self):
-        return self.__cfg
-
-    @cfg.setter
-    def cfg(self, cfg: dict):
-        self.__cfg = cfg
-
-    @property
-    def args(self):
-        return self.__args
-
-    @args.setter
-    def args(self, args: dict):
-        self.__args = args
-
-    @abstractmethod
-    def check_args(self):
-        pass
-
-
-class ArancinoCommand_(ArancinoPacket_):
-
-    def __init__(self, rawCommand: dict):
-        super().__init__(rawPacket=rawCommand)
-        if rawCommand:
-            self.id = rawCommand["cmd"]
-            self.raw = rawCommand
-        else:
-            self.id = {}
-            self.raw = {}
-
-    @property
-    def id(self):
-        return self.__id
-
-    @id.setter
-    def id(self, id: str):
-        self.__id = id
-
-#    """
-    @property
-    def raw(self):
-        if not self.__raw:
-            self.raw = {
-                "id": self.id,
-                "cfg": self.cfg,
-                "args": self.args
-        }
-        return self.__raw
-#    """
-
-    @raw.setter
-    def raw(self, rawPacket: dict):
-        self.__raw = rawPacket
-        #pass
-
-    def check_args(self):
-        pass
-
-
-class ArancinoResponse_(ArancinoPacket_):
-
-    def __init__(self, rawResponse: dict):
-        super().__init__(rawPacket=rawResponse)
-        if rawResponse:
-            self.raw = rawResponse
-            self.code = rawResponse["rsp_code"]
-        else:
-            self.raw = {}
-            self.code = {}
-
-    @property
-    def code(self):
-        return self.__code
-
-    @code.setter
-    def code(self, code: str):
-        self.__code = code
-
-    @property
-    def raw(self):
-        if not self.__raw:
-            self.raw = {
-                "rsp_code": self.code,
-                "cfg": self.cfg,
-                "args": self.args
-        }
-        return self.__raw
-
-    @raw.setter
-    def raw(self, rawPacket: dict):
-        self.__raw = rawPacket
-        #pass
-
-    def check_args(self):
-        pass
-
-
 class ArancinoPacket(ABC):
     """
     Usato per Arancino Command e Arancino Response, perche hanno la stessa struttura di base,
@@ -163,8 +37,8 @@ class ArancinoPacket(ABC):
 
         if packet:
 
-            self.args = packet["args"]
-            self.cfg = packet["cfg"]
+            self.args = packet[PACKET.ARGUMENT]
+            self.cfg = packet[PACKET.CONFIGURATION]
 
         else:
 
@@ -217,13 +91,13 @@ class ArancinoCommand(ArancinoPacket):
 
             if isinstance(packet, dict):
 
-                self.id = packet["cmd"]
+                self.id = packet[PACKET.CMD.COMMAND_ID]
 
             elif isinstance(packet, bytes):
 
                 # trasformo packet in dict
                 packet = msgpack.unpackb(packet, use_list=True, raw=False)
-                self.id = packet["cmd"]
+                self.id = packet[PACKET.CMD.COMMAND_ID]
 
             else:
 
@@ -240,19 +114,19 @@ class ArancinoCommand(ArancinoPacket):
 
     @property
     def id(self):
-        return self.__id
+        return self.__cmd_id
 
     @id.setter
-    def id(self, id: str):
-        self.__id = id
+    def id(self, cmd_id: str):
+        self.__cmd_id = cmd_id
 
 
     def _create_packet(self):
 
         pck = {}
         pck.update({PACKET.CMD.COMMAND_ID: self.id})
-        pck.update({PACKET.CMD.CONFIGURATION: self.cfg})
-        pck.update({PACKET.CMD.ARGUMENT: self.args})
+        pck.update({PACKET.CONFIGURATION: self.cfg})
+        pck.update({PACKET.ARGUMENT: self.args})
 
         return pck
 
@@ -265,13 +139,13 @@ class ArancinoResponse(ArancinoPacket):
 
             if isinstance(packet, dict):
 
-                self.code = packet["code"]
+                self.code = packet[PACKET.RSP.RESPONSE_CODE]
 
             elif isinstance(packet, bytes):
 
                 # trasformo packet in dict
                 packet = msgpack.unpackb(packet, use_list=True, raw=False)
-                self.code = packet["code"]
+                self.code = packet[PACKET.RSP.RESPONSE_CODE]
 
             else:
 
@@ -287,30 +161,31 @@ class ArancinoResponse(ArancinoPacket):
 
     @property
     def code(self):
-        return self.__code
+        return self.__response_code
 
     @code.setter
-    def code(self, code: int):
-        self.__code = code
+    def code(self, response_code: int):
+        self.__response_code = response_code
 
 
     def _create_packet(self):
 
         pck = {}
         pck.update({PACKET.RSP.RESPONSE_CODE: self.code})
-        pck.update({PACKET.RSP.CONFIGURATION: self.cfg})
-        pck.update({PACKET.RSP.ARGUMENT: self.args})
+        pck.update({PACKET.CONFIGURATION: self.cfg})
+        pck.update({PACKET.ARGUMENT: self.args})
 
         return pck
 
 
 class PACKET:
 
+    CONFIGURATION = "cfg"
+    ARGUMENT = "args"
+
     class CMD:
 
         COMMAND_ID = "cmd"
-        CONFIGURATION = "cfg"
-        ARGUMENT = "args"
 
         class ARGUMENTS:
 
@@ -357,9 +232,6 @@ class PACKET:
     class RSP:
 
         RESPONSE_CODE = "rsp_code"
-        CONFIGURATION = "cfg"
-        ARGUMENT = "args"
-
 
         class ARGUMENTS:
 
@@ -370,7 +242,6 @@ class PACKET:
             KEYS = "keys"
 
             CLIENTS = "clients"
-
 
         class CONFIGURATIONS:
 
