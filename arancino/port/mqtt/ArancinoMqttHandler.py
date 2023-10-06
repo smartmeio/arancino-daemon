@@ -28,7 +28,7 @@ from arancino.utils.ArancinoUtils import *
 from arancino.port.ArancinoPort import PortTypes
 import paho.mqtt.client as mqtt
 
-
+from arancino.utils.CheckableQueue import CheckableQueue
 
 LOG = ArancinoLogger.Instance().getLogger()
 CONF = ArancinoConfig.Instance().cfg
@@ -37,7 +37,8 @@ TRACE = CONF.get("log").get("trace")
 class ArancinoMqttHandler():
 
     def __init__(self, handler_name, mqtt_client, id, mqtt_topic_cmd_from_mcu, mqtt_topic_conn_status, device, commandReceivedHandler, connectionLostHandler):
-        
+        self.__queue = CheckableQueue(2)
+
         self.__mqtt_client = mqtt_client      # the mqtt client port
         self.__name = handler_name          # the name, usually the arancino port id
         self.__id = id
@@ -59,9 +60,15 @@ class ArancinoMqttHandler():
 
 
     def __on_cmd_received(self, client, userdata, msg):
-        # LOG.info("message received  ",str(message.payload.decode("utf-8")), "topic",message.topic," retained ",message.retain)
+        # LOG.info("message received  ",str(msg.payload.decode("utf-8")), "topic",msg.topic," retained ",msg.retain, " dati ", msg.mid)
         # if message.retain==1:
         #     print("This is a retained message")
+
+        if msg.mid in self.__queue: return
+
+        if self.__queue.full(): self.__queue.get()
+        self.__queue.put(msg.mid)
+
         try:
 
             self.__commandReceivedHandler(msgpack.unpackb(msg.payload))
