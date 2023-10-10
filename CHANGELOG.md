@@ -2,6 +2,7 @@
 
 #### v 2.7.4 2023.07.XX
 * Fix: MQTT discovery, missing list controls[#115](https://git.smartme.io/smartme.io/arancino/arancino-services/arancino-daemon/-/issues/115)
+* Fix: Introduce a simulated QoS2 in MQTT Port[#117](https://git.smartme.io/smartme.io/arancino/arancino-services/arancino-daemon/-/issues/117)
 
 #### v 2.7.3 2023.07.27
 * Fix: Reset on connect MQTT Port [#113](https://git.smartme.io/smartme.io/arancino/arancino-services/arancino-daemon/-/issues/113)
