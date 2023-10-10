@@ -185,7 +185,19 @@ class ArancinoMqttDiscovery(object):
         ports = self.__transformInArancinoPorts(ports)
         ports = self.__postFilterPorts(ports=ports, filter_type=self.__filter_type, filter_list=self.__filter_list)
 
-        return ports
+        for id, port in ports.items():
+            if id not in collection:
+                collection[id] = port
+            else:
+                pass  # del collection[id]
+
+        for id in list(collection):
+            if id not in ports:
+                del collection[id]
+
+        del ports
+
+        return collection
 
 
     def __preFilterPorts(self, ports):

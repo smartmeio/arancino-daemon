@@ -1,5 +1,8 @@
 # Changelog
 
+#### v 2.7.4 2023.07.XX
+* Fix: MQTT discovery, missing list controls[#115](https://git.smartme.io/smartme.io/arancino/arancino-services/arancino-daemon/-/issues/115)
+
 #### v 2.7.3 2023.07.27
 * Fix: Reset on connect MQTT Port [#113](https://git.smartme.io/smartme.io/arancino/arancino-services/arancino-daemon/-/issues/113)
 * Fix: Client ID MQTT Port [#114](https://git.smartme.io/smartme.io/arancino/arancino-services/arancino-daemon/-/issues/114)
