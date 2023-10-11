@@ -26,18 +26,17 @@ import msgpack
 from arancino.ArancinoConstants import *
 from arancino.utils.ArancinoUtils import *
 from arancino.port.ArancinoPort import PortTypes
-import paho.mqtt.client as mqtt
-
+from arancino.port.mqtt.ArancinoMqttConfig import ArancinoMqttConfig
 from arancino.utils.CheckableQueue import CheckableQueue
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance().cfg
-TRACE = CONF.get("log").get("trace")
+CONF = ArancinoMqttConfig.Instance()
+TRACE = CONF.get("trace")
 
 class ArancinoMqttHandler():
 
     def __init__(self, handler_name, mqtt_client, id, mqtt_topic_cmd_from_mcu, mqtt_topic_conn_status, device, commandReceivedHandler, connectionLostHandler):
-        self.__queue = CheckableQueue(2)
+        self.__queue = CheckableQueue(CONF.get("queue_size"))
 
         self.__mqtt_client = mqtt_client      # the mqtt client port
         self.__name = handler_name          # the name, usually the arancino port id
