@@ -9,6 +9,7 @@ class ArancinoMqttConfig:
 
         self.cnf = {
             "client_id" : self.__ENV.serial_number,
+            "queue_size" : "<port.mqtt.queue_size>"
         }
 
         self.cnf |= {

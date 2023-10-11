@@ -61,7 +61,7 @@ class Arancino(Thread):
 
     def __init__(self):
 
-        if ENV.serial_number or ENV.serial_number.startswith("ERR"):
+        if ENV.serial_number and ENV.serial_number.startswith("ERR"):
             raise ArancinoException("EDEGEUUID is not present in environment variables.", ArancinoGenericErrorCodes.ENV_VAR_NOT_SET)
 
         if Arancino._instance is not None and not Arancino._init:
