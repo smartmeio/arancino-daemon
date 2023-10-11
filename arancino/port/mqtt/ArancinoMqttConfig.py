@@ -11,10 +11,6 @@ class ArancinoMqttConfig:
             "client_id" : self.__ENV.serial_number,
         }
 
-        # Controllo se la variabile di ambiente EDGEUUID è presente ed è valida, altrimenti blocco l'esecuzione
-        if self.get("client_id") is None or not self.get("client_id").startswith("ERR"): 
-            raise Exception({"error" : "EDGEUUID non inserito."})
-
         self.cnf |= {
             # region MQTT TOPICS
             "discovery_topic"   : "<port.mqtt.connection.discovery_topic>/{}".format(self.cnf["client_id"]),
@@ -54,8 +50,6 @@ class ArancinoMqttConfig:
         }
 
         self.__load()
-        
-        print(self.cnf)
 
     def __load(self): 
         for key, value in self.cnf.items():
