@@ -94,6 +94,7 @@ Temporary Items
 # IDE
 .idea/
 venv/
+.venv
 .vscode/
 
 # Redis
