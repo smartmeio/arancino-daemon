@@ -119,12 +119,17 @@ class ArancinoMqttDiscovery(object):
 
     # region ON DISCOVERY
     def __on_discovery(self, client, userdata, msg):
+        try:
+            pid = str(msg.payload.decode('utf-8', errors='strict'))
+            if pid not in self.__list_discovered:
+                self.__list_discovered.append(pid)
+                #client.subscribe("{}/{}/cmd_from_mcu".format(self.__mqtt_cortex_topic, pid), qos=2)  # used to send response to the mqtt port
+                self.__topic_subcriptions(client, pid)
+        except UnicodeDecodeError as ex:
+            LOG.error("{}Failed to decode a message from {}, error code: {}".format(self._log_prefix, client,  str(ex)), exc_info=TRACE)
+        except Exception as e:
+            LOG.error("{}Error during discovery: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
 
-        pid = str(msg.payload.decode('utf-8', errors='strict'))
-        if pid not in self.__list_discovered:
-            self.__list_discovered.append(pid)
-            #client.subscribe("{}/{}/cmd_from_mcu".format(self.__mqtt_cortex_topic, pid), qos=2)  # used to send response to the mqtt port
-            self.__topic_subcriptions(client, pid)
     # endregion
 
     # region ON DICONNECT
