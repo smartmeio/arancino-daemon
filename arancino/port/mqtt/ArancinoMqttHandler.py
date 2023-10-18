@@ -36,7 +36,8 @@ TRACE = CONF.get("trace")
 class ArancinoMqttHandler():
 
     def __init__(self, handler_name, mqtt_client, id, mqtt_topic_cmd_from_mcu, mqtt_topic_conn_status, device, commandReceivedHandler, connectionLostHandler):
-        self.__queue = CheckableQueue(CONF.get("queue_size"))
+        # ! Issue : 123
+        # self.__queue = CheckableQueue(CONF.get("queue_size"))
 
         self.__mqtt_client = mqtt_client      # the mqtt client port
         self.__name = handler_name          # the name, usually the arancino port id
@@ -63,10 +64,10 @@ class ArancinoMqttHandler():
         # if message.retain==1:
         #     print("This is a retained message")
 
-        if msg.mid in self.__queue: return
-
-        if self.__queue.full(): self.__queue.get()
-        self.__queue.put(msg.mid)
+        # ! Issue : 123
+        # if msg.mid in self.__queue: return
+        # if self.__queue.full(): self.__queue.get()
+        # self.__queue.put(msg.mid)
 
         try:
 

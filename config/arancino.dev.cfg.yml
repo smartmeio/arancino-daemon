@@ -332,7 +332,8 @@ port:
     filter_type: "ALL"
     filter_list: []
 
-    queue_size : 8
+    # ! Issue : 123
+    # queue_size : 8
 
     # Mqtt-Bus Broker Connection Parameters
     connection:

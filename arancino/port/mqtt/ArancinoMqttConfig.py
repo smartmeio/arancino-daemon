@@ -9,7 +9,8 @@ class ArancinoMqttConfig:
 
         self.cnf = {
             "client_id" : self.__ENV.serial_number,
-            "queue_size" : "<port.mqtt.queue_size>"
+            # ! Issue : 123
+            # "queue_size" : "<port.mqtt.queue_size>"
         }
 
         self.cnf |= {
@@ -51,6 +52,10 @@ class ArancinoMqttConfig:
         }
 
         self.__load()
+
+        # ! Issue : 123
+        # if self.cnf["queue_size"] is None:
+        #     self.cnf["queue_size"] = 500
 
     def __load(self): 
         for key, value in self.cnf.items():
