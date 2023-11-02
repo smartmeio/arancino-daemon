@@ -25,16 +25,17 @@ from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.port.mqtt.ArancinoMqttHandler import ArancinoMqttHandler
 #from arancino.ArancinoCortex import *
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
+
+from arancino.port.mqtt.ArancinoMqttConfig import ArancinoMqttConfig
+
 #from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 import time, datetime
 import paho.mqtt.client as mqtt 
 
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance().cfg
-TRACE = CONF.get("log").get("trace")
-ENV = ArancinoEnvironment.Instance()
-
+CONF : ArancinoMqttConfig = ArancinoMqttConfig.Instance()
+TRACE = CONF.get("trace")
 
 class ArancinoMqttPort(ArancinoPort):
 
@@ -46,20 +47,26 @@ class ArancinoMqttPort(ArancinoPort):
         self.__mqtt_client = mqtt_client
         
         # Topic used by Arancino Daemon (Left Hemisphere) to receive Cortex Commands from Arancino MQTT Ports (Right Hemisphere)
-        self.__mqtt_topic_cmd_from_mcu = "{}/{}/cmd_from_mcu".format(CONF.get("port").get("mqtt").get("connection").get("cortex_topic") + "/" + str(CONF.get("port").get("mqtt").get("connection").get("client_id")), port_id)
+        self.__mqtt_topic_cmd_from_mcu = CONF.get("cmd_from_mcu").format(port_id)
+
         # Topic used by Arancino Daemon (Left Hemisphere) to send back Cortex Responses to Arancino MQTT Ports (Right Hemisphere)
-        self.__mqtt_topic_rsp_to_mcu = "{}/{}/rsp_to_mcu".format(CONF.get("port").get("mqtt").get("connection").get("cortex_topic") + "/" + str(CONF.get("port").get("mqtt").get("connection").get("client_id")), port_id)
+        self.__mqtt_topic_rsp_to_mcu = CONF.get("rsp_to_mcu").format(port_id) 
+
         # Topic used by Arancino Daemon (Left Hemisphere) to send Cortex Commands to Arancino MQTT Ports (Right Hemisphere)
-        self.__mqtt_topic_cmd_to_mcu = "{}/{}/cmd_to_mcu".format(CONF.get("port").get("mqtt").get("connection").get("cortex_topic") + "/" + str(CONF.get("port").get("mqtt").get("connection").get("client_id")), port_id)
+        self.__mqtt_topic_cmd_to_mcu = CONF.get("cmd_to_mcu").format(port_id) 
+       
         # Topic used by Arancino Daemon (Left Hemisphere) to receive back Cortex Responses from Arancino MQTT Ports (Right Hemisphere)
-        self.__mqtt_topic_rsp_from_mcu = "{}/{}/rsp_from_mcu".format(CONF.get("port").get("mqtt").get("connection").get("cortex_topic") + "/" + str(CONF.get("port").get("mqtt").get("connection").get("client_id")), port_id)
+        self.__mqtt_topic_rsp_from_mcu = CONF.get("rsp_from_mcu").format(port_id) 
+        
         # Topic used by
         #self.__mqtt_topic_service = CONF.get_port_mqtt_topic_service()
         # Topic used by Arancino Daemon to manage last will of the MQTT Port
-        self.__mqtt_topic_conn_status = "{}/{}".format(CONF.get("port").get("mqtt").get("connection").get("service_topic") + "/connection_status/" + str(CONF.get("port").get("mqtt").get("connection").get("client_id")), port_id)
+        # self.__mqtt_topic_conn_status = "{}/{}".format(CONF.get("port").get("mqtt").get("connection").get("service_topic") + "/connection_status/" + str(CONF.get("port").get("mqtt").get("connection").get("client_id")), port_id)
 
-        self.__mqtt_service_topic = "{}/{}/{}".format(CONF.get("port").get("mqtt").get("connection").get("service_topic"), str(CONF.get("port").get("mqtt").get("connection").get("client_id")), port_id)
+        self.__mqtt_service_topic = CONF.get("service_topic").format(port_id)
 
+        self.__mqtt_topic_conn_status = CONF.get("conn_status_topic") + "/{}".format(port_id)
+        
         # Command Executor
         #self._executor = ArancinoCommandExecutor(port_id=self._id, port_device=self._device, port_type=self._port_type)
 

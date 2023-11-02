@@ -32,6 +32,9 @@ from arancino.ArancinoConstants import ArancinoApiResponseCode
 from arancino.ArancinoDataStore import ArancinoDataStore
 from arancino.ArancinoConstants import ArancinoReservedChars
 
+from arancino.ArancinoExceptions import ArancinoException
+from arancino.ArancinoConstants import ArancinoGenericErrorCodes
+
 import time
 
 LOG = ArancinoLogger.Instance().getLogger()
@@ -57,6 +60,10 @@ class Arancino(Thread):
 
 
     def __init__(self):
+
+        if ENV.serial_number and ENV.serial_number.startswith("ERR"):
+            raise ArancinoException("EDEGEUUID is not present in environment variables.", ArancinoGenericErrorCodes.ENV_VAR_NOT_SET)
+
         if Arancino._instance is not None and not Arancino._init:
             Thread.__init__(self, name='Arancino')
 

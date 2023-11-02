@@ -332,6 +332,9 @@ port:
     filter_type: "ALL"
     filter_list: []
 
+    # ! Issue : 123
+    # queue_size : 8
+
     # Mqtt-Bus Broker Connection Parameters
     connection:
 
@@ -339,7 +342,6 @@ port:
       port: 1883
       username: arancino-daemon
       password: 12345678
-      client_id: 87654321
 
       use_tls: false
       ca_path : ""
