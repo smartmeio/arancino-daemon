@@ -64,22 +64,6 @@ class ArancinoTestPort(ArancinoPort):
 
     # region STATES and TRANSITIONS CALLBACKS
 
-    def before_plug(self):
-        LOG.debug("{} Before Plug: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def on_enter_state_plugged(self):
-        LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def on_exit_state_plugged(self):
-        LOG.debug("{} Exiting State: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def after_plug(self):
-        LOG.debug("{} After Plug: {}...".format(self._log_prefix, self.state.upper()))
-
-
     def before_connect(self):
         try:
             # check if the device is enabledzas
@@ -112,35 +96,6 @@ class ArancinoTestPort(ArancinoPort):
 
         except Exception as ex:
             raise ex
-
-
-    def on_enter_state_connected(self):
-
-        LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def on_exit_state_connected(self):
-        LOG.debug("{} Exiting State: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def after_connect(self):
-        LOG.debug("{} After Connect: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def before_start(self):
-        LOG.debug("{} Before Start: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def on_enter_state_started(self):
-        LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def on_exit_state_started(self):
-        LOG.debug("{} Exiting State: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def after_start(self):
-        LOG.debug("{} After Start: {}...".format(self._log_prefix, self.state.upper()))
 
 
     def before_disconnect(self):

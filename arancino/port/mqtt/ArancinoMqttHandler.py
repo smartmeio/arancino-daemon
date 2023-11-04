@@ -46,7 +46,7 @@ class ArancinoMqttHandler():
         self.__log_prefix = "[{} - {} at {}]".format(PortTypes(PortTypes.MQTT).name, self.__id, self.__device)
 
         self.__commandReceivedHandler = commandReceivedHandler  # handler to be called when a raw command is complete and ready to be translated and executed.
-        self.__connectionLostHandler = connectionLostHandler    # handler to be called when a connection is lost or stopped
+        self.__connectionLostHandler = connectionLostHandler    # handler to be called when a connection is vlost or stopped
 
         #self.__partial_command = ""
         #self.__partial_bytes_command = bytearray(b'')
@@ -71,7 +71,7 @@ class ArancinoMqttHandler():
 
         try:
 
-            self.__commandReceivedHandler(msgpack.unpackb(msg.payload))
+            self.__commandReceivedHandler(msg.payload)
     
         except Exception as ex:
 

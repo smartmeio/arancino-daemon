@@ -237,7 +237,7 @@ class ArancinoMqttDiscovery(object):
         new_ports_struct = {}
 
         for port in ports:
-            p = ArancinoMqttPort(   port_id = port, #port is the id of the port sent via MQTT into discovery topic
+            p = ArancinoMqttPort(   id = port, #port is the id of the port sent via MQTT into discovery topic
                                     device = CONF.get("host"),
                                     mqtt_client = self.__mqtt_client,
                                     m_s_plugged=True, 

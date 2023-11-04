@@ -74,6 +74,9 @@ class ArancinoMqttConfig:
                 path = path.replace(elem, str(self.__get(elem)))
     
         return path
+    
+    def format(self, path):
+        return self.__format(path)
 
     def __get(self, path : str):
         path = path.strip("<").strip(">").split(".")

@@ -35,16 +35,39 @@ ENV = ArancinoEnvironment.Instance()
 
 class ArancinoSerialPort(ArancinoPort):
 
-    def __init__(self, mcu_family=None, port_info=None, device=None, baudrate_comm=9600, baudrate_reset=300, enabled=True, auto_connect=True, alias="", hide=False, reset_delay=CONF.get("port").get("serial").get("reset_reconnection_delay"), receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
+    def __init__(
+            self, 
+            mcu_family=None, 
+            port_info=None, 
+            device=None, 
+            enabled=True, 
+            auto_connect=True, 
+            alias="", 
+            hide=False, 
+            reset_delay=CONF.get("port").get("serial").get("reset_reconnection_delay"), 
+            upload_cmd=CONF.get("port").get("serial").get("upload_command"),
+            receivedCommandHandler=None, 
+            disconnectionHandler=None, 
+            timeout=None
+        ):
 
-        super().__init__(device=device, port_type=PortTypes.SERIAL, enabled=enabled, alias=alias, hide=hide, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
+        super().__init__(
+            device=device, 
+            port_type=PortTypes.SERIAL, 
+            enabled=enabled, 
+            alias=alias, 
+            hide=hide, 
+            upload_cmd=upload_cmd, 
+            receivedCommandHandler=receivedCommandHandler, 
+            disconnectionHandler=disconnectionHandler
+        )
 
         # SERIAL PORT PARAMETER
         self.__serial_port = None       # type: serial.Serial
         self.__port_info = port_info    # type: serial.tools.ListPortInfo
 
-        self.__comm_baudrate = baudrate_comm
-        self.__reset_baudrate = baudrate_reset
+        self.__comm_baudrate = 9600 
+        self.__reset_baudrate = 300 
         self.__timeout = timeout
 
         # SERIAL PORT METADATA
@@ -58,11 +81,12 @@ class ArancinoSerialPort(ArancinoPort):
         self.__m_p_manufacturer = None
         self.__m_p_product = None
         self.__m_p_interface = None
+
+        # TODO: Da rimuovere?
         self.__m_p_device = None
 
 
         self._microcontroller_family = mcu_family
-
         self.__populatePortInfo(device=self._device, port_info=self.__port_info)
 
         # Command Executor
@@ -76,6 +100,10 @@ class ArancinoSerialPort(ArancinoPort):
         #self.setDisconnectionHandler(disconnectionHandler)  # this is the handler to be used whene a disconnection event is triggered
 
         self._log_prefix = "[{} - ({}) {} at {}]".format(PortTypes(self.type).name, self.alias, self.id, self.device)
+
+
+    def getResetOnConnect(self):
+        return self._reset_on_connect
 
 
     # region HANDLERS
@@ -111,22 +139,6 @@ class ArancinoSerialPort(ArancinoPort):
     #endregion
 
     # region STATES and TRANSITIONS CALLBACKS
-
-    def before_plug(self):
-        LOG.debug("{} Before Plug: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def on_enter_state_plugged(self):
-        LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def on_exit_state_plugged(self):
-        LOG.debug("{} Exiting State: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def after_plug(self):
-        LOG.debug("{} After Plug: {}...".format(self._log_prefix, self.state.upper()))
-
 
     def before_connect(self):
         LOG.debug("{} Before Connect: {}...".format(self._log_prefix, self.state.upper()))
@@ -168,36 +180,6 @@ class ArancinoSerialPort(ArancinoPort):
         except Exception as ex:
             raise ex
 
-
-    def on_enter_state_connected(self):
-
-        LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def on_exit_state_connected(self):
-        LOG.debug("{} Exiting State: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def after_connect(self):
-        LOG.debug("{} After Connect: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def before_start(self):
-        LOG.debug("{} Before Start: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def on_enter_state_started(self):
-        LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def on_exit_state_started(self):
-        LOG.debug("{} Exiting State: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def after_start(self):
-        LOG.debug("{} After Start: {}...".format(self._log_prefix, self.state.upper()))
-
-
     def before_disconnect(self):
         LOG.debug("{} Before Disconnect: {}...".format(self._log_prefix, self.state.upper()))
 
@@ -212,17 +194,6 @@ class ArancinoSerialPort(ArancinoPort):
         except Exception as ex:
             raise ex
 
-
-    def on_enter_state_disconnected(self):
-        LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def on_exit_state_disconnected(self):
-        LOG.debug("{} Exiting State: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def after_disconnect(self):
-        LOG.debug("{} After Disconnect: {}...".format(self._log_prefix, self.state.upper()))
 
     #endregion
 
@@ -239,12 +210,6 @@ class ArancinoSerialPort(ArancinoPort):
                 #TODO To be tested
                 raise Exception("Cannot create Arancino Serial Port: Device and Port Info are None, please fill one of them")
 
-
-            # from serial.tools import list_ports
-            # ports = list_ports.comports()
-            # for p in ports:
-            #     if p.device == device:
-                    # sets Port Metadata
             self.__m_p_vid = "0x{:04X}".format(p.vid)   #str(hex(p.vid))
             self.__m_p_pid = "0x{:04X}".format(p.pid)
             self.__m_p_name = p.name
@@ -432,7 +397,7 @@ class ArancinoSerialPort(ArancinoPort):
     def timeout(self):
         return self.__timeout
 
-    def __setMicrocontrollerFamilyProperties(self):
+    def _setMicrocontrollerFamilyProperties(self):
         """
         Questo metodo viene chiamato solo dopo che la MCU FAMILY è stata
         definita. Viene implementato diversamente da ogni Tipo di Porta

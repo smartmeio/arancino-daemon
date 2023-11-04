@@ -35,11 +35,24 @@ ENV = ArancinoEnvironment.Instance()
 
 class ArancinoSerialPort(ArancinoPort):
 
-    def __init__(self, mcu_family=None, port_info=None, device=None, baudrate_comm=9600, baudrate_reset=300,
-                 m_s_plugged=False, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False,
-                 reset_delay=CONF.get("port").get("serial").get("reset_reconnection_delay"),
-                 upload_cmd=CONF.get("port").get("serial").get("upload_command"), receivedCommandHandler=None,
-                 disconnectionHandler=None, timeout=None):
+    def __init__(
+            self, 
+            mcu_family=None, 
+            port_info=None, 
+            device=None, 
+            baudrate_comm=9600, 
+            baudrate_reset=300,
+            m_s_plugged=False, 
+            m_c_enabled=True, 
+            m_c_auto_connect=True, 
+            m_c_alias="", 
+            m_c_hide=False,
+            reset_delay=CONF.get("port").get("serial").get("reset_reconnection_delay"),
+            upload_cmd=CONF.get("port").get("serial").get("upload_command"), 
+            receivedCommandHandler=None,
+            disconnectionHandler=None, 
+            timeout=None
+        ):
 
         super().__init__(device=device, port_type=PortTypes.SERIAL, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled,
                          m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=upload_cmd,

@@ -24,7 +24,9 @@ under the License
 from arancino.port.ArancinoPort import ArancinoPort, PortTypes
 from arancino.port.mqtt.ArancinoMqttHandler import ArancinoMqttHandler
 #from arancino.ArancinoCortex import *
-from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
+from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoEnvironment
+from arancino.port.mqtt.ArancinoMqttConfig import ArancinoMqttConfig
+
 #from arancino.ArancinoCommandExecutor import ArancinoCommandExecutor
 import time, datetime
 import paho.mqtt.client as mqtt 
@@ -32,42 +34,45 @@ from arancino.port.ArancinoPortNew import ArancinoPort, PortTypes
 from arancino.ArancinoConstants import ArancinoApiResponseCode
 
 LOG = ArancinoLogger.Instance().getLogger()
-CONF = ArancinoConfig.Instance().cfg
-TRACE = CONF.get("log").get("trace")
+CONF = ArancinoMqttConfig.Instance()
+TRACE = CONF.get("trace")
 ENV = ArancinoEnvironment.Instance()
 
 
 class ArancinoMqttPort(ArancinoPort):
 
-    def __init__(self, id=None, device=None, mqtt_client=None, enabled=True, auto_connect=True, alias="", hide=False, receivedCommandHandler=None, disconnectionHandler=None, timeout=None):
+    def __init__(self, id=None, device=None, mqtt_client=None, enabled=True, auto_connect=True, alias="", hide=False, receivedCommandHandler=None, disconnectionHandler=None, timeout=None, upload_cmd=None, **kwargs):
 
         super().__init__(id=id, device=device, port_type=PortTypes.MQTT, enabled=enabled, alias=alias, hide=hide, upload_cmd=None, receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
 
         self.__mqtt_client = mqtt_client
 
         #region MQTT PORT TOPICS
+ 
         # Topic used by Arancino Daemon (Left Hemisphere) to receive Cortex Commands from Arancino MQTT Ports (Right Hemisphere)
-        self.__mqtt_topic_cmd_from_mcu = "{}/{}/cmd_from_mcu".format(CONF.get("port").get("mqtt").get("connection").get("cortex_topic") + "/" + str(CONF.get("port").get("mqtt").get("connection").get("client_id")), self.id)
+        self.__mqtt_topic_cmd_from_mcu = CONF.get("cmd_from_mcu").format(id)
 
         # Topic used by Arancino Daemon (Left Hemisphere) to send back Cortex Responses to Arancino MQTT Ports (Right Hemisphere)
-        self.__mqtt_topic_rsp_to_mcu = "{}/{}/rsp_to_mcu".format(CONF.get("port").get("mqtt").get("connection").get("cortex_topic") + "/" + str(CONF.get("port").get("mqtt").get("connection").get("client_id")), self.id)
+        self.__mqtt_topic_rsp_to_mcu = CONF.get("rsp_to_mcu").format(id) 
 
         # Topic used by Arancino Daemon (Left Hemisphere) to send Cortex Commands to Arancino MQTT Ports (Right Hemisphere)
-        self.__mqtt_topic_cmd_to_mcu = "{}/{}/cmd_to_mcu".format(CONF.get("port").get("mqtt").get("connection").get("cortex_topic") + "/" + str(CONF.get("port").get("mqtt").get("connection").get("client_id")), self.id)
-
+        self.__mqtt_topic_cmd_to_mcu = CONF.get("cmd_to_mcu").format(id) 
+       
         # Topic used by Arancino Daemon (Left Hemisphere) to receive back Cortex Responses from Arancino MQTT Ports (Right Hemisphere)
-        self.__mqtt_topic_rsp_from_mcu = "{}/{}/rsp_from_mcu".format(CONF.get("port").get("mqtt").get("connection").get("cortex_topic") + "/" + str(CONF.get("port").get("mqtt").get("connection").get("client_id")), self.id)
+        self.__mqtt_topic_rsp_from_mcu = CONF.get("rsp_from_mcu").format(id) 
 
         # Connection Status: Topic used by Arancino Daemon to manage last will of the MQTT Port
-        self.__mqtt_topic_conn_status = "{}/{}".format(CONF.get("port").get("mqtt").get("connection").get("service_topic") + "/connection_status/" + str(CONF.get("port").get("mqtt").get("connection").get("client_id")), self.id)
+        self.__mqtt_topic_conn_status = CONF.get("conn_status_topic") + "/{}".format(id)
 
         # Service Topic: Generic Service Topic
-        self.__mqtt_service_topic = "{}/{}/{}".format(CONF.get("port").get("mqtt").get("connection").get("service_topic"), str(CONF.get("port").get("mqtt").get("connection").get("client_id")), self.id)
+        self.__mqtt_service_topic = CONF.get("service_topic").format(id)
 
         #endregion
 
         # Misc
         self._log_prefix = "[{} - ({}) {} at {}]".format(PortTypes(self.type).name, self.alias, self.id, self.device)
+
+
 
     #region HANDLERS
     def __connectionLostHandler(self):
@@ -95,22 +100,6 @@ class ArancinoMqttPort(ArancinoPort):
 
     # region STATES and TRANSITIONS CALLBACKS
 
-    def before_plug(self):
-        LOG.debug("{} Before Plug: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def on_enter_state_plugged(self):
-        LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def on_exit_state_plugged(self):
-        LOG.debug("{} Exiting State: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def after_plug(self):
-        LOG.debug("{} After Plug: {}...".format(self._log_prefix, self.state.upper()))
-
-
     def before_connect(self):
         LOG.debug("{} Before Connect: {}...".format(self._log_prefix, self.state.upper()))
         try:
@@ -133,8 +122,8 @@ class ArancinoMqttPort(ArancinoPort):
                                                         self.__connectionLostHandler)
 
                     LOG.info("{} Connected".format(self._log_prefix))
-                    self._start_thread_time = time.time()
 
+                    self._start_thread_time = time.time()
                 except Exception as ex:
                     # TODO LOG SOMETHING OR NOT?
                     LOG.error("{} Error while connecting: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
@@ -150,36 +139,6 @@ class ArancinoMqttPort(ArancinoPort):
 
         except Exception as ex:
             raise ex
-
-
-    def on_enter_state_connected(self):
-
-        LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def on_exit_state_connected(self):
-        LOG.debug("{} Exiting State: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def after_connect(self):
-        LOG.debug("{} After Connect: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def before_start(self):
-        LOG.debug("{} Before Start: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def on_enter_state_started(self):
-        LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def on_exit_state_started(self):
-        LOG.debug("{} Exiting State: {}...".format(self._log_prefix, self.state.upper()))
-
-
-    def after_start(self):
-        LOG.debug("{} After Start: {}...".format(self._log_prefix, self.state.upper()))
-
 
     def before_disconnect(self):
         LOG.debug("{} Before Disconnect: {}...".format(self._log_prefix, self.state.upper()))
@@ -203,7 +162,6 @@ class ArancinoMqttPort(ArancinoPort):
 
         except Exception as ex:
             raise ex
-
 
     def on_enter_state_disconnected(self):
         LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper()))
@@ -260,3 +218,16 @@ class ArancinoMqttPort(ArancinoPort):
         raise NotImplemented("Upload Function is not available for port {}[{}]".format(self.getId(), self.getPortType().name), ArancinoApiResponseCode.ERR_NOT_IMPLEMENTED)
 
     #endregion
+
+    #region UTILITIES
+
+    def _setMicrocontrollerFamilyProperties(self): 
+        # if self.microcontroller_family is not None:
+        # Non ha senso mettere la cond. sopra, prenderò sempre quello di default come nel codice mostrato sopra 
+
+        self._setUploadCommand(CONF.get("port.upload_command"))
+
+
+
+        
+    #endregion+

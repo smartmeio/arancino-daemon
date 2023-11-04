@@ -212,9 +212,10 @@ class ArancinoPacket(ABC):
 class ArancinoCommand(ArancinoPacket):
 
     def __init__(self, packet):
-
+        from json import loads
         if packet:
-
+            # ? TO REMOVE
+            # packet = loads(packet.decode("utf-8"))
             if isinstance(packet, dict):
 
                 self.id = packet["cmd"]

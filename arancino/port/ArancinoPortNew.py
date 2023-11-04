@@ -42,7 +42,7 @@ ENV = ArancinoEnvironment.Instance()
 
 class ArancinoPort(ABC):
 
-    def __init__(self, id=None, device=None, enabled=True, alias="", hide=False, port_type=None, receivedCommandHandler=None, disconnectionHandler=None):
+    def __init__(self, id=None, device=None, enabled=True, alias="", hide=False, port_type=None, receivedCommandHandler=None, disconnectionHandler=None, upload_cmd=None):
 
 
         #region BASE METADATA attributes
@@ -88,10 +88,16 @@ class ArancinoPort(ABC):
         self._handler = None                # è l'handler dei comandi, ogni sotto classe implementa il suo.
         self._log_prefix = ""
 
+        # self.
+
         self.__machine = Machine(model=self,
                                  states=ArancinoPort.states,
                                  transitions=ArancinoPort.transitions,
                                  initial='plugged')
+        
+        # region TIMING IDLE STATE
+        self._idle_time = None
+        # endregion
 
         # region CALLBACK FUNCTIONS
         self._received_command_handler = None
@@ -106,83 +112,124 @@ class ArancinoPort(ABC):
     states = [
         State(name="plugged", on_enter=['on_enter_state_plugged'], on_exit=['on_exit_state_plugged']),
         State(name="connected", on_enter=['on_enter_state_connected'], on_exit=['on_exit_state_connected']),
-        State(name="started", on_enter=['on_enter_state_started'], on_exit=['on_exit_state_started']),
+        # State(name="started", on_enter=['on_enter_state_started'], on_exit=['on_exit_state_started']),
+        State(name="idle", on_enter=['on_enter_state_idle'], on_exit=['on_exit_state_idle']),
+        State(name="execute", on_enter=['on_enter_state_execution'], on_exit=['on_exit_state_execution']),
         State(name="disconnected", on_enter=['on_enter_state_disconnected'], on_exit=['on_exit_state_disconnected'])
     ]
 
     transitions = [
         {'trigger': 'plug', 'source': None, 'dest': 'plugged', 'after': 'after_plug', 'before': 'before_plug'},
         {'trigger': 'connect', 'source': 'plugged', 'dest': 'connected', 'after': 'after_connect', 'before': 'before_connect'},
-        {'trigger': 'start', 'source': 'connected', 'dest': 'started', 'after': 'after_start', 'before': 'before_start'},
-        {'trigger': 'disconnect', 'source': ['plugged', 'connected', 'started'], 'dest': 'disconnected', 'after': 'after_disconnect', 'before': 'before_disconnect'}
+        {'trigger': 'idle', 'source': ['execute', 'connected'], 'dest': 'idle', 'after' : "after_idle"},
+        {'trigger': 'execution', 'source': 'idle', 'dest': 'execute'},
+        {'trigger': 'disconnect', 'source': ['plugged', 'connected', 'idle'], 'dest': 'disconnected', 'after': 'after_disconnect', 'before': 'before_disconnect'}
     ]
     #endregion
 
     # region STATE & TRANSITIONS CALLBACKS
 
-    @abstractmethod
+
+    # region STATE: PLUGGED    
+
     def before_plug(self):
-        pass
+        LOG.debug("{} Before Plug: {}...".format(self._log_prefix, self.state.upper()))
 
-    @abstractmethod
     def after_plug(self):
-        pass
+        LOG.debug("{} After Plug: {}...".format(self._log_prefix, self.state.upper()))
 
-    @abstractmethod
     def on_enter_state_plugged(self):
-        pass
+        LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper()))
 
-    @abstractmethod
     def on_exit_state_plugged(self):
-        pass
+        LOG.debug("{} Exiting State: {}...".format(self._log_prefix, self.state.upper()))
 
-    @abstractmethod
+    #endregion
+
+    # region STATE: CONNECTED
+
     def before_connect(self):
-        pass
+        LOG.debug("{} Before Connect: {}...".format(self._log_prefix, self.state.upper()))
 
-    @abstractmethod
     def after_connect(self):
-        pass
+        self.idle()
+        LOG.debug("{} After Connect: {}...".format(self._log_prefix, self.state.upper()))
 
-    @abstractmethod
     def on_enter_state_connected(self):
-        pass
+        LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper()))
 
-    @abstractmethod
     def on_exit_state_connected(self):
-        pass
+        LOG.debug("{} Exiting State: {}...".format(self._log_prefix, self.state.upper()))
 
-    @abstractmethod
+    #endregion
+
+    # region STATE: STARTED
+
     def before_start(self):
-        pass
+        LOG.debug("{} Before Start: {}...".format(self._log_prefix, self.state.upper()))
 
-    @abstractmethod
     def after_start(self):
-        pass
+        LOG.debug("{} After Start: {}...".format(self._log_prefix, self.state.upper()))
 
-    @abstractmethod
     def on_enter_state_started(self):
-        pass
+        LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper()))
 
-    @abstractmethod
     def on_exit_state_started(self):
-        pass
+        LOG.debug("{} Exiting State: {}...".format(self._log_prefix, self.state.upper()))
 
-    @abstractmethod
-    def before_disconnect(self):
-        pass
+    #endregion
 
-    @abstractmethod
-    def after_disconnect(self):
-        pass
+    # region STATE: IDLE
 
-    @abstractmethod
+    def after_idle(self):
+        LOG.debug("{} On State: {}...".format(self._log_prefix, self.state.upper()))
+
+    def on_enter_state_idle(self):
+        self.__setIdleTime(time.time())
+        LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper(), self.idle_time))
+
+    def on_exit_state_idle(self):
+        _time = time.time() - self.idle_time
+        self.__setIdleTime(int(_time * 1000))
+    
+        LOG.debug("{} Exiting State: {}".format(self._log_prefix, self.state.upper(), self.idle_time))
+        LOG.debug("{} Time in {} State: {}ms".format(self._log_prefix, self.state.upper(), self.idle_time))
+
+    #endregion
+
+    # region STATE: Execution
+
+    def on_enter_state_execution(self):
+        LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper()))
+
+    def on_exit_state_execution(self):
+        LOG.debug("{} Exiting State: {}...".format(self._log_prefix, self.state.upper()))
+
     def on_enter_state_disconnected(self):
-        pass
+        LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper()))
 
-    @abstractmethod
     def on_exit_state_disconnected(self):
-        pass
+        LOG.debug("{} Exiting State: {}...".format(self._log_prefix, self.state.upper()))
+    
+    #endregion
+
+    # region STATE: Disconnected
+
+    def before_disconnect(self):
+        LOG.debug("{} Before Disconnect: {}...".format(self._log_prefix, self.state.upper()))
+
+    def after_disconnect(self):
+        LOG.debug("{} After Disconnect: {}...".format(self._log_prefix, self.state.upper()))
+
+
+    def on_enter_state_connected(self):
+        LOG.debug("{} Entering State: {}...".format(self._log_prefix, self.state.upper()))
+
+
+    def on_exit_state_connected(self):
+        LOG.debug("{} Exiting State: {}...".format(self._log_prefix, self.state.upper()))
+    
+    # endregion STATE Disconnected
 
     # endregion
 
@@ -229,7 +276,8 @@ class ArancinoPort(ABC):
     def microcontroller_family(self):
         return self._microcontroller_family
 
-
+    
+    # TODO: Replace all getters with property
     def getMicrocontrollerFamily(self):
         return self._microcontroller_family
 
@@ -447,6 +495,17 @@ class ArancinoPort(ABC):
 
     #endregion
 
+    # region IDLE TIME
+
+    @property
+    def idle_time(self):
+        return self._idle_time
+
+    def __setIdleTime(self, time):
+        self._idle_time = time
+
+    # endregion IDLE TIME
+
     # region OTHER Encapsulation
 
     # region upload command
@@ -484,6 +543,7 @@ class ArancinoPort(ABC):
 
 
 
+
     def isPlugged(self):
         return self.is_plugged()
 
@@ -502,7 +562,7 @@ class ArancinoPort(ABC):
 
 
     def isStarted(self):
-        return self.is_started()
+        return self.is_idle()
 
 
     def isEnabled(self):
@@ -668,13 +728,17 @@ class ArancinoPort(ABC):
             self._setUploadCommand(CONF.get("port").get("upload_command"))
     """
 
-    @abstractmethod
-    def __setMicrocontrollerFamilyProperties(self):
+    def _setMicrocontrollerFamilyProperties(self):
         """
         Questo metodo viene chiamato solo dopo che la MCU FAMILY è stata
         definita. Viene implementato diversamente da ogni Tipo e Famiglia di Porta.
         :return:
         """
+
+        if self.microcontroller_family is None: 
+            self.setResetReconnectionDelay(CONF.get("port").get("reset_reconnection_delay"))
+            self._setUploadCommand(CONF.get("port").get("upload_command"))
+
         pass
 
 
@@ -693,11 +757,14 @@ class ArancinoPort(ABC):
         :return: void.
         """
 
+
         try:
             # create an Arancino Comamnd from the raw command (json or msgpack)
             # LOG.debug("{} Received: {}".format(self._log_prefix, packet))
             acmd = ArancinoCommand(packet=packet)
             # LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.id, str(acmd.getUnpackedPacket())))
+
+            self.execution()
 
             # inserisco il port id se non è presente
             if not PACKET.CMD.ARGUMENTS.PORT_ID in acmd.args:
@@ -777,6 +844,8 @@ class ArancinoPort(ABC):
             except Exception as ex:
                 LOG.error(
                     "{} Error while transmitting a Response: {}".format(self._log_prefix, str(ex), exc_info=TRACE))
+            
+            self.idle()
 
 
     def __retrieveStartCmdArgs(self, args):
@@ -851,7 +920,7 @@ class ArancinoPort(ABC):
 
             self._setGenericAttributes(args)
 
-            self.__setMicrocontrollerFamilyProperties()
+            self._setMicrocontrollerFamilyProperties()
 
             # endregion
 
@@ -880,8 +949,11 @@ class ArancinoPort(ABC):
                         self.firmware_library_version), ArancinoCommandErrorCodes.ERR_NON_COMPATIBILITY)
 
             else:
-                self.start()
+                self.idle()
 
+            #endregion
+
+            
     #endregion
 
 class ArancinoHeartBeat(threading.Thread):

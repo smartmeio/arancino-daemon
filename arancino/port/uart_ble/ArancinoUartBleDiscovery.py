@@ -28,7 +28,7 @@ from bleak import BleakError
 from arancino.port.ArancinoPortFilter import FilterTypes
 from arancino.port.uart_ble.ArancinoUartBleService import ArancinoUartBleService
 from arancino.utils.ArancinoUtils import ArancinoConfig, ArancinoLogger
-from arancino.port.uart_ble.ArancinoUartBlePort import ArancinoUartBlePort
+from arancino.port.uart_ble.ArancinoUartBlePortNew import ArancinoUartBlePort
 from arancino.port.uart_ble.ArancinoUartBlePortFilter import ArancinoUartBlePortFilter
 from threading import Thread, Lock
 import time

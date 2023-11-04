@@ -249,7 +249,7 @@ class ArancinoPort(object):
         old_id = self._id
         self._id = args[PACKET.CMD.ARGUMENTS.PORT_ID]
         DATASTORE.getDataStoreDev().rename(old_id, self._id)
-        self._log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
+        self._log_prefix = "[{} NonCompatibilityException- {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
         del args[PACKET.CMD.ARGUMENTS.PORT_ID]
         #endregion
 
