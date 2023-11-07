@@ -111,35 +111,34 @@ class ArancinoSerialDiscovery:
         for port in ports:
 
             f = self.__retrieve_family_by_vid_pid(port)
-            if(f is not None):
-                p_timeout = CONF.get("port").get("serial").get(f.lower()).get("timeout") or CONF.get("port").get("serial").get("timeout")
-                p_enabled = CONF.get("port").get("serial").get(f.lower()).get("auto_enable") or CONF.get("port").get("serial").get("auto_enable")
-                p_hide = CONF.get("port").get("serial").get(f.lower()).get("hide") or CONF.get("port").get("serial").get("hide")
-                p_upload_command = CONF.get("port").get("serial").get(f.lower()).get("upload_command")
+            
+            # if(f is not None):
+            #     p_timeout = CONF.get("port").get("serial").get(f.lower()).get("timeout") or CONF.get("port").get("serial").get("timeout")
+            #     p_enabled = CONF.get("port").get("serial").get(f.lower()).get("auto_enable") or CONF.get("port").get("serial").get("auto_enable")
+            #     p_hide = CONF.get("port").get("serial").get(f.lower()).get("hide") or CONF.get("port").get("serial").get("hide")
+            #     p_upload_command = CONF.get("port").get("serial").get(f.lower()).get("upload_command")
                 
-                # p_baudrate=CONF.get("port").get("serial").get(f.lower()).get("comm_baudrate") or CONF.get("port").get("serial").get("comm_baudrate")
-                # p_baudrate_reset = CONF.get("port").get("serial").get(f.lower()).get("reset_baudrate") or CONF.get("port").get("serial").get("reset_baudrate")
-                # p_reset_on_connect = CONF.get("port").get("serial").get(f.lower()).get("reset_on_connect")
-            else:
-                p_timeout = CONF.get("port").get("serial").get("timeout")
-                p_enabled = CONF.get("port").get("serial").get("auto_enable")
-                p_hide = CONF.get("port").get("serial").get("hide")
-                p_upload_command = None
+            #     # p_baudrate=CONF.get("port").get("serial").get(f.lower()).get("comm_baudrate") or CONF.get("port").get("serial").get("comm_baudrate")
+            #     # p_baudrate_reset = CONF.get("port").get("serial").get(f.lower()).get("reset_baudrate") or CONF.get("port").get("serial").get("reset_baudrate")
+            # else:
+            #     p_timeout = CONF.get("port").get("serial").get("timeout")
+            #     p_enabled = CONF.get("port").get("serial").get("auto_enable")
+            #     p_hide = CONF.get("port").get("serial").get("hide")
+            #     p_upload_command = None
 
-                # p_baudrate=CONF.get("port").get("serial").get("comm_baudrate")
-                # p_baudrate_reset = CONF.get("port").get("serial").get("reset_baudrate")
-                # p_reset_on_connect = CONF.get("port").get("serial").get("reset_on_connect")
+            #     # p_baudrate=CONF.get("port").get("serial").get("comm_baudrate")
+            #     # p_baudrate_reset = CONF.get("port").get("serial").get("reset_baudrate")
 
             p = ArancinoSerialPort(
                 mcu_family=f, 
-                timeout=p_timeout, 
+                # timeout=p_timeout, 
                 port_info=port, 
-                enabled=p_enabled, 
-                hide=p_hide, 
+                # enabled=p_enabled, 
+                # hide=p_hide, 
                 # baudrate_comm=p_baudrate, 
                 # baudrate_reset=p_baudrate_reset
             )
-            p.upload_cmd = p_upload_command
+            # p.upload_cmd = p_upload_command
 
             new_ports_struct[p.getId()] = p
 

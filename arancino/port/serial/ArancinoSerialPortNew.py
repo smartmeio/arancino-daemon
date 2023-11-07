@@ -40,12 +40,8 @@ class ArancinoSerialPort(ArancinoPort):
             mcu_family=None, 
             port_info=None, 
             device=None, 
-            enabled=True, 
-            auto_connect=True, 
+            # auto_connect=True, 
             alias="", 
-            hide=False, 
-            reset_delay=CONF.get("port").get("serial").get("reset_reconnection_delay"), 
-            upload_cmd=CONF.get("port").get("serial").get("upload_command"),
             receivedCommandHandler=None, 
             disconnectionHandler=None, 
             timeout=None
@@ -54,10 +50,7 @@ class ArancinoSerialPort(ArancinoPort):
         super().__init__(
             device=device, 
             port_type=PortTypes.SERIAL, 
-            enabled=enabled, 
             alias=alias, 
-            hide=hide, 
-            upload_cmd=upload_cmd, 
             receivedCommandHandler=receivedCommandHandler, 
             disconnectionHandler=disconnectionHandler
         )
@@ -83,10 +76,12 @@ class ArancinoSerialPort(ArancinoPort):
         self.__m_p_interface = None
 
         # TODO: Da rimuovere?
-        self.__m_p_device = None
+        # self.__m_p_device = None
 
 
         self._microcontroller_family = mcu_family
+        self._setMicrocontrollerFamilyProperties()
+
         self.__populatePortInfo(device=self._device, port_info=self.__port_info)
 
         # Command Executor
@@ -396,6 +391,17 @@ class ArancinoSerialPort(ArancinoPort):
     @property
     def timeout(self):
         return self.__timeout
+    
+    def __getprop(self, mcu, property):
+        serial_prop = CONF.get("port").get("serial")
+        mcu_family_prop = CONF.get("port").get("serial").get(mcu)
+        port_prop = CONF.get("port").get(property)
+
+        if mcu_family_prop is not None and mcu_family_prop.get(property) is not None:
+            return mcu_family_prop.get(property)
+        elif serial_prop is not None:
+            return serial_prop
+        return port_prop
 
     def _setMicrocontrollerFamilyProperties(self):
         """
@@ -406,91 +412,33 @@ class ArancinoSerialPort(ArancinoPort):
         # Recupero il tipo di MCU
         mcu = self.microcontroller_family.lower() if self.microcontroller_family else None
 
-
-        # region COMMUNICATION BAUD RATE
-        """
-        la baud rate è impostata da costruttore in fase di discovery in base al vid e pid
-        """
-        comm_baud_rate = None
-        comm_baud_rate_mcu = CONF.get("port").get("serial").get(mcu).get("comm_baudrate")
-        comm_baud_rate_serial = CONF.get("port").get("serial").get("comm_baudrate")
-
-        if comm_baud_rate_mcu:
-            comm_baud_rate = comm_baud_rate_mcu
-        elif comm_baud_rate_serial:
-            comm_baud_rate = comm_baud_rate_serial
-
+        comm_baud_rate = self.__getprop(mcu, "comm_baudrate")
         self.setCommBaudRate(comm_baud_rate)
-        #endregion
 
-
-        # region RESET MCU BAUDRATE
-        """
-        la reset mcu baudrate è impostata da costruttore in fase di discovery in base al vid e pid
-        """
-        reset_baud_rate = None
-        reset_baud_rate_mcu = CONF.get("port").get("serial").get(mcu).get("reset_baudrate")
-        reset_baud_rate_serial = CONF.get("port").get("serial").get("reset_baudrate")
-
-        if reset_baud_rate_mcu:
-            reset_baud_rate = reset_baud_rate_mcu
-        elif reset_baud_rate_serial:
-            reset_baud_rate = reset_baud_rate_serial
+        reset_baud_rate = self.__getprop(mcu, "reset_baudrate")
 
         self.setResetBaudRate(reset_baud_rate)
-        #endregion
-
-
-        # region UPLOAD COMMAND
-        upload_command = None
-        upload_command_mcu = CONF.get("port").get("serial").get(mcu).get("upload_command")
-        upload_command_serial = CONF.get("port").get("serial").get("upload_command")
-        upload_command_port = CONF.get("port").get("upload_command")
-
-        if upload_command_mcu:
-            upload_command = upload_command_mcu
-        elif upload_command_serial:
-            upload_command = upload_command_serial
-        else:
-            upload_command = upload_command_port
+    
+        upload_command = self.__getprop("upload_command")
 
         self._setUploadCommand(upload_command)
-        #endregion
 
-
-        # region RESET RECONNECTION DELAY
-        reset_reconnection_delay = None
-        reset_reconnection_delay_mcu = CONF.get("port").get("serial").get(mcu).get("reset_reconnection_delay")
-        reset_reconnection_delay_serial = CONF.get("port").get("serial").get("reset_reconnection_delay")
-        reset_reconnection_delay_port = CONF.get("port").get("reset_reconnection_delay")
-
-        if reset_reconnection_delay_mcu:
-            reset_reconnection_delay = reset_reconnection_delay_mcu
-        elif reset_reconnection_delay_serial:
-            reset_reconnection_delay = reset_reconnection_delay_serial
-        else:
-            reset_reconnection_delay = reset_reconnection_delay_port
+        reset_reconnection_delay = self.__getprop("reset_reconnection_delay")
 
         self.setResetReconnectionDelay(reset_reconnection_delay)
-        # endregion
 
-
-        # region RESET ON CONNECT ENABLING
-        """
-        la reset on connect è impostata da costruttore in fase di discovery in base al vid e pid
-        """
-        reset_on_connect = None
-        reset_on_connect_mcu = CONF.get("port").get("serial").get(mcu).get("reset_on_connect")
-        reset_on_connect_serial = CONF.get("port").get("serial").get("reset_on_connect")
-        reset_on_connect_port = CONF.get("port").get("reset_on_connect")
-
-        if reset_on_connect_mcu:
-            reset_on_connect = reset_on_connect_mcu
-        elif reset_on_connect_serial:
-            reset_on_connect = reset_on_connect_serial
-        else:
-            reset_on_connect = reset_on_connect_port
+        reset_on_connect = self.__getprop("reset_on_connect")
 
         self._reset_on_connect = reset_on_connect
 
-        # endregion
+        timeout = self.__getprop(mcu, "timeout")
+
+        self.__timeout = timeout
+
+        enabled = self.__getprop(mcu, "auto_enable")
+
+        self._enabled = enabled
+
+        hide = self.__getprop(mcu, "hide")
+
+        self._hide = hide
