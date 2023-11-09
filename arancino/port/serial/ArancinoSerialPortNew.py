@@ -153,11 +153,6 @@ class ArancinoSerialPort(ArancinoPort):
                     self.__serial_port.port = self._device
                     self.__serial_port.open()
 
-                    self._handler = ArancinoSerialHandler(self.__serial_port, self.id, self.device,
-                                                                  self._commandReceivedHandlerAbs,
-                                                                  self.__connectionLostHandler)
-
-                    self._handler.start()
                     LOG.info("{} Connected".format(self._log_prefix))
                     self._start_thread_time = time.time()
 
@@ -175,6 +170,15 @@ class ArancinoSerialPort(ArancinoPort):
         except Exception as ex:
             raise ex
 
+    def on_exit_state_connected(self):
+        LOG.debug("STARTING SERIAL HANDLER")
+        self._handler = ArancinoSerialHandler(self.__serial_port, self.id, self.device,
+                                                        self._commandReceivedHandlerAbs,
+                                                        self.__connectionLostHandler)
+
+        self._handler.start()
+        
+
     def before_disconnect(self):
         LOG.debug("{} Before Disconnect: {}...".format(self._log_prefix, self.state.upper()))
 
@@ -183,8 +187,9 @@ class ArancinoSerialPort(ArancinoPort):
             self.stopHeartbeat()
 
             # check if the device is already
-            self._handler.stop()
-            del self._handler
+            if self.isConnected():
+                self._handler.stop()
+                del self._handler
 
         except Exception as ex:
             raise ex
@@ -245,10 +250,7 @@ class ArancinoSerialPort(ArancinoPort):
         :return: void
         """
 
-        if self.isStarted():
-            self.__serial_port.write(raw_response)
-        else:  # not connected
-            LOG.warning("{} Cannot Sent a Response: Port is not Started.".format(self._log_prefix))
+        self.__serial_port.write(raw_response)
 
 
 
@@ -392,8 +394,10 @@ class ArancinoSerialPort(ArancinoPort):
     def timeout(self):
         return self.__timeout
     
-    def __getprop(self, mcu, property):
-        serial_prop = CONF.get("port").get("serial")
+    def __getprop(self, property):
+        mcu = self.microcontroller_family.lower() if self.microcontroller_family else None
+
+        serial_prop = CONF.get("port").get("serial").get(property)
         mcu_family_prop = CONF.get("port").get("serial").get(mcu)
         port_prop = CONF.get("port").get(property)
 
@@ -410,12 +414,11 @@ class ArancinoSerialPort(ArancinoPort):
         e Famiglia di MCU.
         """
         # Recupero il tipo di MCU
-        mcu = self.microcontroller_family.lower() if self.microcontroller_family else None
 
-        comm_baud_rate = self.__getprop(mcu, "comm_baudrate")
+        comm_baud_rate = self.__getprop("comm_baudrate")
         self.setCommBaudRate(comm_baud_rate)
 
-        reset_baud_rate = self.__getprop(mcu, "reset_baudrate")
+        reset_baud_rate = self.__getprop("reset_baudrate")
 
         self.setResetBaudRate(reset_baud_rate)
     
@@ -431,14 +434,14 @@ class ArancinoSerialPort(ArancinoPort):
 
         self._reset_on_connect = reset_on_connect
 
-        timeout = self.__getprop(mcu, "timeout")
+        timeout = self.__getprop("timeout")
 
         self.__timeout = timeout
 
-        enabled = self.__getprop(mcu, "auto_enable")
+        enabled = self.__getprop("auto_enable")
 
         self._enabled = enabled
 
-        hide = self.__getprop(mcu, "hide")
+        hide = self.__getprop("hide")
 
         self._hide = hide

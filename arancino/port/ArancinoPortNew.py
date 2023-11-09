@@ -119,7 +119,7 @@ class ArancinoPort(ABC):
     ]
 
     transitions = [
-        {'trigger': 'plug', 'source': None, 'dest': 'plugged', 'after': 'after_plug', 'before': 'before_plug'},
+        {'trigger': 'plug', 'source': ["disconnected"], 'dest': 'plugged', 'after': 'after_plug', 'before': 'before_plug'},
         {'trigger': 'connect', 'source': 'plugged', 'dest': 'connected', 'after': 'after_connect', 'before': 'before_connect'},
         {'trigger': 'idle', 'source': ['execute', 'connected'], 'dest': 'idle', 'after' : "after_idle"},
         {'trigger': 'execution', 'source': 'idle', 'dest': 'execute'},
@@ -845,7 +845,7 @@ class ArancinoPort(ABC):
                 LOG.error(
                     "{} Error while transmitting a Response: {}".format(self._log_prefix, str(ex), exc_info=TRACE))
             
-            self.idle()
+            if not self.is_idle(): self.idle()
 
 
     def __retrieveStartCmdArgs(self, args):
