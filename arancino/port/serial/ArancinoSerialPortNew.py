@@ -277,6 +277,7 @@ class ArancinoSerialPort(ArancinoPort):
 
             LOG.info("{} Reset".format(self._log_prefix))
 
+
             return True
         except Exception as ex:
             #LOG.info("{} Connected".format(self.__log_prefix))

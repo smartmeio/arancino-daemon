@@ -187,7 +187,7 @@ class ArancinoMqttPort(ArancinoPort):
         :return: void
         """
 
-        if self.isStarted():
+        if self.is_execute():
 
             ret = self.__mqtt_client.publish(self.__mqtt_topic_rsp_to_mcu, raw_response, 2)
             return True
