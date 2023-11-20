@@ -111,35 +111,28 @@ class ArancinoUartBlePort(ArancinoPort):
     def before_connect(self):
         try:
             # check if the device is enabled and not already connected
-            if self.isEnabled():
-                if not self.is_connected():
-                    try:
+            if not self.isEnabled():
+                LOG.warning("{} Port already connected".format(self._log_prefix))
+                return
+        
+            if not self.is_connected():
+                LOG.error("{} Error while connecting: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
+                raise ex
+            
+            LOG.info("{} Connecting...".format(self._log_prefix))
 
-                        LOG.info("{} Connecting...".format(self._log_prefix))
+            if CONF.get("port").get("uart_ble").get("reset_on_connect"):
+                # first resetting
+                self.reset()
 
-                        if CONF.get("port").get("uart_ble").get("reset_on_connect"):
-                            # first resetting
-                            self.reset()
+            self.__ble_connection = BLERadio().connect(self.__adv, timeout=self.__timeout)
+            self.__ble_uart_service = self.__ble_connection[ArancinoUartBleService]
+            #self.__ble_reset_service = self.__ble_connection[ArancinoResetBleService]
 
-                        self.__ble_connection = BLERadio().connect(self.__adv, timeout=self.__timeout)
-                        self.__ble_uart_service = self.__ble_connection[ArancinoUartBleService]
-                        #self.__ble_reset_service = self.__ble_connection[ArancinoResetBleService]
-
-                        self.__uart_ble_handler = ArancinoUartBleHandler(self.__ble_connection, self._id, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
-                        self.__uart_ble_handler.start()
-                        LOG.info("{} Connected".format(self._log_prefix))
-                        self._start_thread_time = time.time()
-
-                    except Exception as ex:
-                        LOG.error("{} Error while connecting: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
-                        raise ex
-
-                else:
-                    LOG.warning("{} Port already connected".format(self._log_prefix))
-
-            else: # not enabled
-                LOG.warning("{} Port not enabled".format(self._log_prefix))
-
+            self.__uart_ble_handler = ArancinoUartBleHandler(self.__ble_connection, self._id, self._device, self._commandReceivedHandlerAbs, self.__connectionLostHandler)
+            self.__uart_ble_handler.start()
+            LOG.info("{} Connected".format(self._log_prefix))
+            self._start_thread_time = time.time()
         except Exception as ex:
             raise ex
 

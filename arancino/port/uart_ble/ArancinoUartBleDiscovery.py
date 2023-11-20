@@ -187,7 +187,8 @@ class ArancinoUartBleDiscovery:
             name = adv.complete_name
             device = self.__ble.name
             p = ArancinoUartBlePort(adv=adv, id=id, device=device, m_c_alias=name, m_s_plugged=True, 
-                                    timeout=CONF.get("port").get("uart_ble").get("timeout"), m_c_enabled=CONF.get("port").get("uart_ble").get("auto_enable"),
+                                    timeout=CONF.get("port").get("uart_ble").get("timeout"), 
+                                    m_c_enabled=CONF.get("port").get("uart_ble").get("auto_enable"),
                                     m_c_hide=CONF.get("port").get("uart_ble").get("hide"))
             new_ports_struct[p.getId()] = p
 
