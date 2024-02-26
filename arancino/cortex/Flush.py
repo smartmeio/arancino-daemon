@@ -35,12 +35,12 @@ class Flush(CortexCommandExecutor):
     # region HashDel Example
     '''
     {
-        "cmd": "FLUSH",
-        "args":{},
-        "cfg":{
-            "pers": 0,
-            "ack": 1,
-            "sgntr": "<Signature>"
+        "C": "10",
+        "A":{},
+        "CF":{
+            "P": 0,
+            "A": 1,
+            "SGN": "<Signature>"
         }
     }
     '''

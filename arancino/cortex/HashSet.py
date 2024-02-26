@@ -35,21 +35,21 @@ class HashSet(CortexCommandExecutor):
     # region HashSet Example
     '''
         {
-            "cmd": "HSET",
-            "args":{
-                "items":[
-                    {"key":"<key-1>", "field":"<field-A>", "value":"<value-1>"},
-                    {"key":"<key-1>", "field":"<field-B>", "value":"<value-2>"},
-                    {"key":"<key-2>", "field":"<field-A>", "value":"<value-3>"},
-                    {"key":"<key-2>", "field":"<field-B>", "value":"<value-4>"}
+            "C": "6",
+            "A":{
+                "I":[
+                    {"K":"<key-1>", "F":"<field-A>", "V":"<value-1>"},
+                    {"K":"<key-1>", "F":"<field-B>", "V":"<value-2>"},
+                    {"K":"<key-2>", "F":"<field-A>", "V":"<value-3>"},
+                    {"K":"<key-2>", "F":"<field-B>", "V":"<value-4>"}
                 ]
             },
-            "cfg":{
-                "type": "appl",
-                "pers": 1,
-                "ack": 1,
-                "prfx": 0,
-                "sgntr": "<Signature>"
+            "CF":{
+                "T": "A",
+                "P": 1,
+                "A": 1,
+                "PX": 0,
+                "SGN": "<Signature>"
             }
         }
     '''
@@ -76,9 +76,9 @@ class HashSet(CortexCommandExecutor):
 
             for i in items:
 
-                k = i["key"]
-                f = i["field"]
-                v = i["value"]
+                k = i["K"]
+                f = i["F"]
+                v = i["V"]
 
 
                 if int(prefix_id) == 1:

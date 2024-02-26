@@ -35,18 +35,18 @@ class Set(CortexCommandExecutor):
     # region Set Example
     '''
         {
-            "cmd": "SET",
-            "args": {
-                "items":[
-                    {"key": "<key>", "value": "<value>"}
+            "C": "1",
+            "A": {
+                "I":[
+                    {"K": "<key>", "V": "<value>"}
                 ]
             },
-            "cfg":{
-                "type": "appl",
-                "pers": 1,
-                "ack": 1,
-                "prfx": 0,
-                "sgntr": "<Signature>"
+            "CF":{
+                "T": "A",
+                "P": 0,
+                "A": 1,
+                "PX": 0,
+                "SGN": "<Signature>"
             }
         }
     '''
@@ -72,7 +72,7 @@ class Set(CortexCommandExecutor):
             map = {}
 
             for i in items:
-                key = i["key"]
+                key = i["K"]
 
                 if int(prefix_id) == 1:
                     """
@@ -80,7 +80,7 @@ class Set(CortexCommandExecutor):
                     """
                     key = "{}_{}".format(port_id, key)
 
-                val = i["value"]
+                val = i["V"]
                 map[key] = val
 
             dts_rsp = datastore.mset(map)
