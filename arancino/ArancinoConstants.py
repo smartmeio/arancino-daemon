@@ -83,6 +83,13 @@ class ArancinoReservedChars:
                         RSVD_KEY_BLINK_ID
                         ]
 
+class ArancinoGenericErrorCodes:
+    ENV_VAR_NOT_SET = '300'
+    "Variable not setted on Environment"
+
+    ERRORS_CODES = [
+        ENV_VAR_NOT_SET
+    ]
 
 class ArancinoCommandErrorCodes:
     # Error codes

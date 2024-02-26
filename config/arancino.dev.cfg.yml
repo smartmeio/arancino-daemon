@@ -13,19 +13,19 @@ general:
 redis:
 
   # Redis Server host of volatile instance
-  host_volatile: "localhost"
+  host_volatile: ${REDIS_HOST_VOLATILE:localhost}
 
 
   # Redis Server host of persistent instance
-  host_persistent: "localhost"
+  host_persistent: ${REDIS_HOST_PERSISTENT:localhost}
 
 
   # Redis Server port of volatile instance
-  port_volatile: 6379
+  port_volatile: ${REDIS_PORT_VOLATILE:6379}
 
 
   # Redis Server port of persistent instance
-  port_persistent: 6380
+  port_persistent: ${REDIS_PORT_PERSISTENT:6380}
 
 
   # Decode the response in Redis client response.
@@ -71,11 +71,11 @@ redis:
     datastore_tag_db: 5
     datastore_stng_db: 6
 
-    host_volatile: "localhost"
-    port_volatile: 6379
+    host_volatile: ${REDIS_HOST_VOLATILE:localhost}
+    port_volatile: ${REDIS_PORT_VOLATILE:6379}
 
-    host_persistent: "localhost"
-    port_persistent: 6379
+    host_persistent: ${REDIS_HOST_PERSISTENT:localhost}
+    port_persistent: ${REDIS_PORT_VOLATILE:6379}
 
 
   persistent:
@@ -86,10 +86,10 @@ redis:
     datastore_tse_db: 4
     datastore_tag_db: 5
     datastore_stng_db: 6
-    host_volatile: "localhost"
-    port_volatile: 6380
-    host_persistent: "localhost"
-    port_persistent: 6380
+    host_volatile: ${REDIS_HOST_VOLATILE:localhost}
+    port_volatile: ${REDIS_PORT_PERSISTENT:6380}
+    host_persistent: ${REDIS_HOST_PERSISTENT:localhost}
+    port_persistent: ${REDIS_PORT_PERSISTENT:6380}
 
   volatile_persistent:
     #volatile
@@ -97,8 +97,8 @@ redis:
     datastore_rsvd_db: 1
     datastore_tse_db: 2
 
-    host_volatile: "localhost"
-    port_volatile: 6379
+    host_volatile: ${REDIS_HOST_VOLATILE:localhost}
+    port_volatile: ${REDIS_PORT_VOLATILE:6379}
 
     #persistent
     datastore_dev_db: 0
@@ -106,8 +106,8 @@ redis:
     datastore_tag_db: 2
     datastore_stng_db: 3
 
-    host_persistent: "localhost"
-    port_persistent: 6380
+    host_persistent: ${REDIS_HOST_PERSISTENT:localhost}
+    port_persistent: ${REDIS_PORT_PERSISTENT:6380}
 
 
 port:
@@ -332,6 +332,9 @@ port:
     filter_type: "ALL"
     filter_list: []
 
+    # ! Issue : 123
+    # queue_size : 8
+
     # Mqtt-Bus Broker Connection Parameters
     connection:
 
@@ -339,7 +342,6 @@ port:
       port: 1883
       username: arancino-daemon
       password: 12345678
-      client_id: 87654321
 
       use_tls: false
       ca_path : ""
