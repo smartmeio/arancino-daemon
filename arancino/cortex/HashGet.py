@@ -35,18 +35,19 @@ class HashGet(CortexCommandExecutor):
     # region HashGet Example
     '''
     {
-        "cmd": "HGET",
-        "args":{
-            "items":[
-                {"key": "<key-1>", "field": "<field-A>"},
-                {"key": "<key-1>", "field": "<field-B>"},
-                {"key": "<key-2>", "field": "<field-C>"}
+        "C": "7",
+        "A":{
+            "I":[
+                {"K": "<key-1>", "F": "<field-A>"},
+                {"K": "<key-1>", "F": "<field-B>"},
+                {"K": "<key-2>", "F": "<field-C>"}
             ]
         },
-        "cfg":{
-            "type": "appl",
-            "prfx": 1,
-            "sgntr": "<Signature>"
+        "CF":{
+            "P": 0,
+            "T": "A",
+            "PX": 1,
+            "SGN": "<Signature>"
         }
     }
     '''
@@ -76,8 +77,8 @@ class HashGet(CortexCommandExecutor):
             """
 
             for i in items:
-                k = i["key"]
-                f = i["field"]
+                k = i["K"]
+                f = i["F"]
 
                 if int(prefix_id) == 1:
                     """

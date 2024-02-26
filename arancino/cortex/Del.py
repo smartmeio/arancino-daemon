@@ -35,18 +35,17 @@ class Del(CortexCommandExecutor):
     # region Del Example
     '''
         {
-            "cmd": "DEL",
-            "args": {
-                "items":[
+            "C": "3",
+            "A": {
+                "I":[
                     "<key-1>", "<key-2>", "<key-n>"
                 ]
             },
-            "cfg":{
-                "type": "appl",
-                "pers": 1,
-                "ack": 1,
-                "prfx": 0,
-                "sgntr": "<Signature>"
+            "CF":{
+                "A": 0,
+                "P": 1,
+                "PX": 1,
+                "SGN": "<Signature>"
             }
         }
     '''

@@ -35,19 +35,19 @@ class HashDel(CortexCommandExecutor):
     # region HashDel Example
     '''
     {
-        "cmd": "HDEL",
-        "args":{
-            "items":[
-                {"key": "<key-1>", "field": "<field-A>"},
-                {"key": "<key-1>", "field": "<field-B>"}
-                {"key": "<key-2>", "field": "<field-A>"}
-                {"key": "<key-2>", "field": "<field-B>"}
+        "C": "8",
+        "A":{
+            "I":[
+                {"K": "<key-1>", "F": "<field-A>"},
+                {"K": "<key-1>", "F": "<field-B>"}
+                {"K": "<key-2>", "F": "<field-A>"}
+                {"K": "<key-2>", "F": "<field-B>"}
             ],
         },
-        "cfg":{
-            "ack": 1,
-            "prfx": 0,
-            "sgntr": "<Signature>"
+        "CF":{
+            "A": 1,
+            "PX": 0,
+            "SGN": "<Signature>"
         }
     }
     '''
@@ -69,8 +69,8 @@ class HashDel(CortexCommandExecutor):
 
             pipeline = datastore.pipeline()
             for i in items:
-                k = i["key"]
-                f = i["field"]
+                k = i["K"]
+                f = i["F"]
 
                 if int(prefix_id) == 1:
                     """

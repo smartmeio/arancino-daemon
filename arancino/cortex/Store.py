@@ -19,7 +19,6 @@ License for the specific language governing permissions and limitations
 under the License
 """
 import decimal, numbers
-
 from arancino.ArancinoConstants import ArancinoCommandResponseCodes, ArancinoCommandErrorCodes
 from arancino.ArancinoExceptions import ArancinoException, RedisGenericException
 from arancino.cortex.CortexCommandExectutor import CortexCommandExecutor
@@ -39,19 +38,18 @@ class Store(CortexCommandExecutor):
 
     # region Store Example
     '''
-        "cmd": "STORE",
-        "args":{
-            "items":[
-                {"key": "key-1", "value": "value-1", "ts": "timestamp-1"},
-                {"key": "key-2", "value": "value-2", "ts": "timestamp-2"},
-                {"key": "key-3", "value": "value-3", "ts": "timestamp-3"},
-                {"key": "...", "value": "...", "ts": "..."}
+        "C": "4",
+        "A":{
+            "I":[
+                {"K": "key-1", "V": "value-1", "TS": "timestamp-1"},
+                {"K": "key-2", "V": "value-2", "TS": "timestamp-2"},
+                {"K": "key-3", "V": "value-3", "TS": "timestamp-3"},
+                {"K": "...", "V": "...", "TS": "..."}
             ]
         },
-        "cfg":{
-            "ack": 1,
-            "appl": "tse"
-            "sgntr": "<Signature>"
+        "CF":{
+            "A": 1,
+            "SGN": "<Signature>"
         }
     }
     '''
@@ -89,7 +87,7 @@ class Store(CortexCommandExecutor):
                 """
                 if isNumber(i["value"]):
                     val = float(decimal.Decimal(i["value"]))
-                    ts = "*" if "ts" not in i or i["ts"].strip() == "" else i["ts"]
+                    ts = "*" if "TS" not in i or i["TS"].strip() == "" else i["TS"]
 
                     datastore.ts().add(key, ts, val)
                     ts_items.append(ts)

@@ -15,16 +15,17 @@ class Get(CortexCommandExecutor):
     # region Get Example
     '''
         {
-            "cmd": "GET",
-            "args":{
-                "items":[
+            "C": "2",
+            "A":{
+                "I":[
                     "<key-1>", "<key-2>", "<key-n>"
                 ]
             },
-            "cfg":{
-                "type": "appl",
-                "prfx": 1,
-                "sgntr": "<Signature>"
+            "CF":{
+                "P": 1,
+                "T": "A",
+                "PX": 0,
+                "SGN": "<Signature>"
             }
         }
     '''

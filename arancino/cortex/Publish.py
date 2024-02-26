@@ -38,17 +38,17 @@ class Publish(CortexCommandExecutor):
     # region Publish Example
     '''
     {
-        "cmd": "PUB",
-        "args":{
-            "items":[
-                {"channel": "<channel-1>", "message": "<message-A>"}
-                {"channel": "<channel-2>", "message": "<message-B>"}
+        "C": "9",
+        "A":{
+            "I":[
+                {"C": "<channel-1>", "M": "<message-A>"}
+                {"C": "<channel-2>", "M": "<message-B>"}
             ]
         },
-        "cfg":{
-            "ack": 1,
-            "prfx": 0,
-            "sgntr": "<Signature>"
+        "CF":{
+            "A": 1,
+            "PX": 0,
+            "SGN": "<Signature>"
         }
     }
     '''
@@ -73,8 +73,8 @@ class Publish(CortexCommandExecutor):
             pipeline = datastore.pipeline()
 
             for i in items:
-                ch = i["channel"]
-                msg = i["message"]
+                ch = i["C"]
+                msg = i["M"]
 
                 if int(prefix_id) == 1:
                     """

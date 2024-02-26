@@ -37,18 +37,18 @@ class StoreTags(CortexCommandExecutor):
     # region Store Example
     '''
     {
-        "cmd": "STORETAGS",
-        "args":{
-            "key": "<key-1>",
-            "items": [
-                {"tag": "<tag-1>", "value": "<value-1>"},
-                {"tag": "<tag-2>", "value": "<value-2>"}
+        "C": "5",
+        "A":{
+            "K": "<key-1>",
+            "I": [
+                {"N": "<tag-1>", "V": "<value-1>"},
+                {"N": "<tag-2>", "V": "<value-2>"}
             ],
-            "ts": "<UNIX timestamp>"
+            "TS": "<UNIX timestamp>"
         },
-        "cfg":{
-            "ack": 1,
-            "sgntr": "<Signature>"
+        "CF":{
+            "A": 1,
+            "SGN": "<Signature>"
         }
     }
     '''
@@ -73,8 +73,8 @@ class StoreTags(CortexCommandExecutor):
             key = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.KEY]
 
             for i in items:
-                tag = i["tag"]
-                val = i["value"]
+                tag = i["N"]
+                val = i["V"]
 
                 saved_tags =[]
                 d_key = "{}:{}:{}:{}".format(port_id, key, SUFFIX_TAG, tag)

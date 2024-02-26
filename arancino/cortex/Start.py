@@ -37,22 +37,23 @@ class Start(CortexCommandExecutor):
     #region Start Example
     '''
         {
-        "cmd": "START",
-        "args":{
-            "port_id": "<port unique identified>",
-            "fw_mcu_family": "<mcu family>",
-            "fw_lib_ver": "<firmware library version>",
-            "fw_name": "<firmware name>",
-            "fw_ver": "<firmware version>",
-            "fw_build_time": "<firmware build time>",
-            "fw_core_ver": "<firmware core version>",
-            "fw_crtx_ver": "<firmware cortex version>",
+        "C": "0",
+        "A":{
+            "P": "<port unique identified>",
+            "FMF": "<mcu family>",
+            "FLV": "<firmware library version>",
+            "FN": "<firmware name>",
+            "FW": "<firmware version>",
+            "FBT": "<firmware build time>",
+            "FCV": "<firmware core version>",
+            "FXV": "<firmware cortex version>",
             "CUSTOM_KEY_1": "CUSTOM_VALUE_1",
             "CUSTOM_KEY_2": "CUSTOM_VALUE_2"
         },
-        "cfg":{
-            "crt_sig": "<Signer Certificate>",
-            "crt_dev": "<Device Certificate>"
+        "CF":{
+            "SM": "<secure mode>",
+            "CS": "<Signer Certificate>",
+            "CD": "<Device Certificate>"
         }
     }
     '''
