@@ -153,8 +153,8 @@ docker_alpine_build:
   image: docker:23
   before_script:
     - echo -n "$DCK_TOKEN" | docker login --username "$DCK_USER" --password-stdin
-    - pip3 -v install semantic-version wheel    # Installo le dipendenze semantic-version e wheel
-    - eval `python3 check-version.py ${CI_COMMIT_TAG}`
+#    - pip3 -v install semantic-version wheel    # Installo le dipendenze semantic-version e wheel
+#    - eval `python3 check-version.py ${CI_COMMIT_TAG}`
 
   script:
     - DCK_TAG=${CI_COMMIT_TAG}-alpine
