@@ -145,17 +145,31 @@ package:
     - tags
 
 
-#################### Docker Build #############
-####################              #############
+#################################
+######## DOCKER BUILD ###########
+#################################
 docker_alpine_build:
   stage: docker
   image: docker:23
   before_script:
     - echo -n "$DCK_TOKEN" | docker login --username "$DCK_USER" --password-stdin
+#    - pip3 -v install semantic-version wheel    # Installo le dipendenze semantic-version e wheel
+#    - eval `python3 check-version.py ${CI_COMMIT_TAG}`
+
   script:
     - DCK_TAG=${CI_COMMIT_TAG}-alpine
     - docker buildx create --use
     - docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -f Dockerfile-alpine-arancino.dockerfile -t $DCK_IMAGE_NAME:$DCK_TAG --push .
+    - > 
+      if [[ ${PRE_RELEASE} == "test"  ]] || [[ ${PRE_RELEASE} == "rc"  ]] || [[ ${PRE_RELEASE} == "beta"  ]] || [[ ${PRE_RELEASE} == "alpha"  ]]; then
+        echo "not performing TAG latest";
+      else
+        DCK_TAG=latest
+        docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -f Dockerfile-alpine-arancino.dockerfile -t $DCK_IMAGE_NAME:$DCK_TAG --push .
+        
+        DCK_TAG=${CI_COMMIT_TAG}
+        docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -f Dockerfile-alpine-arancino.dockerfile -t $DCK_IMAGE_NAME:$DCK_TAG --push .
+      fi
 
   only:
     - tags
