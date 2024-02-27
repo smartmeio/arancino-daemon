@@ -24,7 +24,7 @@ from arancino.ArancinoExceptions import ArancinoException, RedisGenericException
 from arancino.cortex.CortexCommandExectutor import CortexCommandExecutor
 from arancino.cortex.ArancinoPacket import ArancinoCommand, ArancinoResponse
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
-from arancino.cortex.ArancinoPacket import PACKET
+from arancino.cortex.ArancinoPacket import PCK
 from redis.exceptions import RedisError
 
 LOG = ArancinoLogger.Instance().getLogger()
@@ -48,7 +48,9 @@ class Flush(CortexCommandExecutor):
 
     def __init__(self, arancinoCommand: ArancinoCommand):
         self.arancinoCommand = arancinoCommand
-        self.arancinoResponse = ArancinoResponse(packet=None)
+        self.PACKET = PCK.PACKET[arancinoCommand.cortex_version]
+        self.arancinoResponse = ArancinoResponse(packet=None, cortex_version=arancinoCommand.cortex_version)
+
 
     def execute(self):
         try:
@@ -87,23 +89,23 @@ class Flush(CortexCommandExecutor):
         """
         # region CFG:TYPE
         # forzo il tipo applicativo
-        self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.TYPE] = PACKET.CMD.CONFIGURATIONS.TYPES.APPLICATION
+        self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.TYPE] = self.PACKET.CMD.CONFIGURATIONS.TYPES.APPLICATION
         # endregion
 
         # region CFG:PERSISTENT
         # controllo se il paramentro di persistenza è presente, altrimenti lo imposto di default
-        if not self._checkKeyAndValue(self.arancinoCommand.cfg, PACKET.CMD.CONFIGURATIONS.PERSISTENT) \
-                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PERSISTENT] < 0 \
-                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PERSISTENT] > 1:
-            self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PERSISTENT] = 0
+        if not self._checkKeyAndValue(self.arancinoCommand.cfg, self.PACKET.CMD.CONFIGURATIONS.PERSISTENT) \
+                or self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.PERSISTENT] < 0 \
+                or self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.PERSISTENT] > 1:
+            self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.PERSISTENT] = 0
             LOG.debug("{} - {}".format(self.log_prexix, "CFG:PERS Missing or Incorret: set default value pers:0"))
         # endregion
 
         # region CFG:ACK
         # controllo se il paramentro ack è presente e valido, altrimenti lo imposto di default
-        if not self._checkKeyAndValue(self.arancinoCommand.cfg, PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT) \
-                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] < 0 \
-                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] > 1:
-            self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] = 1
+        if not self._checkKeyAndValue(self.arancinoCommand.cfg, self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT) \
+                or self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] < 0 \
+                or self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] > 1:
+            self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] = 1
             LOG.debug("{} - {}".format(self.log_prexix, "CFG:ACK Missing or Incorret: set default value ack:1"))
         # endregion

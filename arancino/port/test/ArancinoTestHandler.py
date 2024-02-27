@@ -33,7 +33,7 @@ from arancino.ArancinoConstants import ArancinoSpecialChars as specChars, Aranci
 from arancino.ArancinoConstants import ArancinoCommandResponseCodes as respCodes
 from arancino.ArancinoConstants import ArancinoCommandErrorCodes as errorCodes
 from arancino.ArancinoConstants import SUFFIX_TMSTP
-from arancino.cortex.ArancinoPacket import PACKET
+from arancino.cortex.ArancinoPacket import PCK
 import time
 
 LOG = ArancinoLogger.Instance().getLogger()
@@ -174,6 +174,9 @@ class ArancinoTestHandler(threading.Thread):
 
     def __getCommnandsList(self):
 
+        cortex_version = "1.1.0"
+        PACKET = PCK.PACKET[cortex_version]
+
         ### keys used:
         # <ID>_TEST_KEY
         # <ID>_TEST_PERS_KEY
@@ -199,7 +202,7 @@ class ArancinoTestHandler(threading.Thread):
                 PACKET.CMD.ARGUMENTS.FIRMWARE.VERSION: "1.0.0",
                 PACKET.CMD.ARGUMENTS.FIRMWARE.BUILD_TIME: fw_datetime_str,
                 PACKET.CMD.ARGUMENTS.FIRMWARE.CORE_VERSION: "1.0.0",
-                PACKET.CMD.ARGUMENTS.FIRMWARE.CORTEX_VERSION: "1.0.0",
+                PACKET.CMD.ARGUMENTS.FIRMWARE.CORTEX_VERSION: cortex_version,
                 PACKET.CMD.ARGUMENTS.FIRMWARE.USE_FREERTOS: 0,
                 "CUSTOM_KEY_1": "CUSTOM_VALUE_1",
                 "CUSTOM_KEY_2": "CUSTOM_VALUE_2"
@@ -228,7 +231,7 @@ class ArancinoTestHandler(threading.Thread):
 
 
         #region 2. SET
-        set_cmd_appl = {
+        set_cmd_appl_100 = {
             "cmd": "SET",
             "args": {
                 "items": [
@@ -241,7 +244,20 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        set_cmd_appl_pers = {
+        set_cmd_appl_110 = {
+            "C": 1,
+            "A": {
+                "I": [
+                    {"K": "key-1", "V": "value-1"},
+                    {"K": "key-2", "V": "value-2"}
+                ]
+            },
+            "CF": {
+                "T": "A"
+            }
+        }
+
+        set_cmd_appl_pers_100 = {
             "cmd": "SET",
             "args": {
                 "items": [
@@ -255,7 +271,22 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        set_cmd_rsvd = {
+        set_cmd_appl_pers_110 = {
+            "C": 1,
+            "A": {
+                "I": [
+                    {"K": "key-p-1", "V": "value-1"},
+                    {"K": "key-p-2", "V": "value-2"}
+                ]
+            },
+            "CF": {
+                "P": 1,
+                "T": "A"
+            }
+        }
+
+
+        set_cmd_rsvd_100 = {
             "cmd": "SET",
             "args": {
                 "items": [
@@ -268,7 +299,21 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        set_cmd_stng = {
+        set_cmd_rsvd_110 = {
+            "C": 1,
+            "A": {
+                "I": [
+                    {"K": "key-r-1", "V": "value-1"},
+                    {"K": "key-r-2", "V": "value-2"}
+                ]
+            },
+            "CF": {
+                "T": "R"
+            }
+        }
+
+
+        set_cmd_stng_100 = {
             "cmd": "SET",
             "args": {
                 "items": [
@@ -281,7 +326,20 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        set_cmd_appl_prfx = {
+        set_cmd_stng_110 = {
+            "C": 1,
+            "A": {
+                "I": [
+                    {"K": "key-s-1", "V": "value-1"},
+                    {"K": "key-s-2", "V": "value-2"}
+                ]
+            },
+            "CF": {
+                "T": "TS"
+            }
+        }
+
+        set_cmd_appl_prfx_100 = {
             "cmd": "SET",
             "args": {
                 "items": [
@@ -295,12 +353,26 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
+        set_cmd_appl_prfx_110 = {
+            "C": 1,
+            "A": {
+                "I": [
+                    {"K": "key-1", "V": "value-1"},
+                    {"K": "key-2", "V": "value-2"}
+                ]
+            },
+            "CF": {
+                "T": "A",
+                "PX": 1
+            }
+        }
+
         #endregion
-        #cmd_list.append(msgpack.packb(set_cmd_appl, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(set_cmd_appl_pers, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(set_cmd_rsvd, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(set_cmd_stng, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(set_cmd_appl_prfx, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(set_cmd_appl_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(set_cmd_appl_pers_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(set_cmd_rsvd_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(set_cmd_stng_110, use_bin_type=True))
+        cmd_list.append(msgpack.packb(set_cmd_appl_prfx_110, use_bin_type=True))
 
         #region 3. GET
 

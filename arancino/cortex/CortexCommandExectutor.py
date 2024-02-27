@@ -22,7 +22,7 @@ under the License
 
 from arancino.ArancinoDataStore import ArancinoDataStore
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
-from arancino.cortex.ArancinoPacket import PACKET, ArancinoCommand, ArancinoResponse
+from arancino.cortex.ArancinoPacket import PCK, ArancinoCommand, ArancinoResponse
 from abc import ABC, abstractmethod
 
 LOG = ArancinoLogger.Instance().getLogger()
@@ -45,6 +45,16 @@ class CortexCommandExecutor(ABC):
     @property
     def log_prexix(self):
         return ""
+
+
+    @property
+    def PACKET(self):
+        return self.__packet
+
+
+    @PACKET.setter
+    def PACKET(self, PACKET: str):
+        self.__packet = PACKET
 
 
     @property
@@ -93,10 +103,10 @@ class CortexCommandExecutor(ABC):
         :return:
         """
 
-        if PACKET.CMD.CONFIGURATIONS.SIGNATURE in self.arancinoCommand.cfg:
-            sign = self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.SIGNATURE]
+        if self.PACKET.CMD.CONFIGURATIONS.SIGNATURE in self.arancinoCommand.cfg:
+            sign = self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.SIGNATURE]
             chlng = ""  # TODO
-            self.arancinoResponse.cfg[PACKET.RSP.CONFIGURATIONS.CHALLENGE] = chlng
+            self.arancinoResponse.cfg[self.PACKET.RSP.CONFIGURATIONS.CHALLENGE] = chlng
 
 
     def _checkKeyAndValue(self, dict: dict, key: str) -> bool:
@@ -124,23 +134,23 @@ class CortexCommandExecutor(ABC):
         # datastore standard di default
         datastore = self._datastore
 
-        if self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.TYPE] == PACKET.CMD.CONFIGURATIONS.TYPES.APPLICATION:
+        if self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.TYPE] == self.PACKET.CMD.CONFIGURATIONS.TYPES.APPLICATION:
 
-            if self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PERSISTENT] == 1:
+            if self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.PERSISTENT] == 1:
                 datastore = self._datastore_pers
             else:
                 datastore = self._datastore
 
-        elif self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.TYPE] == PACKET.CMD.CONFIGURATIONS.TYPES.RESERVED:
+        elif self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.TYPE] == self.PACKET.CMD.CONFIGURATIONS.TYPES.RESERVED:
             datastore = self._datastore_rsvd
 
-        elif self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.TYPE] == PACKET.CMD.CONFIGURATIONS.TYPES.SETTING:
+        elif self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.TYPE] == self.PACKET.CMD.CONFIGURATIONS.TYPES.SETTING:
             datastore = self._datastore_stng
         
-        elif self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.TYPE] == PACKET.CMD.CONFIGURATIONS.TYPES.TIMESERIES:
+        elif self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.TYPE] == self.PACKET.CMD.CONFIGURATIONS.TYPES.TIMESERIES:
             datastore = self._datastore_tser
 
-        elif self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.TYPE] == PACKET.CMD.CONFIGURATIONS.TYPES.TSTAGS:
+        elif self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.TYPE] == self.PACKET.CMD.CONFIGURATIONS.TYPES.TSTAGS:
             datastore = self._datastore_tag
         
 

@@ -24,7 +24,7 @@ from arancino.ArancinoExceptions import ArancinoException, RedisGenericException
 from arancino.cortex.CortexCommandExectutor import CortexCommandExecutor
 from arancino.cortex.ArancinoPacket import ArancinoCommand, ArancinoResponse
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment, isNumber
-from arancino.cortex.ArancinoPacket import PACKET
+from arancino.cortex.ArancinoPacket import PCK
 from arancino.ArancinoConstants import SUFFIX_TMSTP
 from redis.exceptions import RedisError
 
@@ -58,7 +58,9 @@ class Store(CortexCommandExecutor):
 
     def __init__(self, arancinoCommand: ArancinoCommand):
         self.arancinoCommand = arancinoCommand
-        self.arancinoResponse = ArancinoResponse(packet=None)
+        self.PACKET = PCK.PACKET[arancinoCommand.cortex_version]
+        self.arancinoResponse = ArancinoResponse(packet=None, cortex_version=arancinoCommand.cortex_version)
+
 
 
     def execute(self):
@@ -70,9 +72,9 @@ class Store(CortexCommandExecutor):
 
             datastore = self._retrieveDatastore()            
 
-            items = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.ITEMS]
+            items = self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.ITEMS]
             #prefix_id = self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID]
-            port_id = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_ID]
+            port_id = self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.PORT_ID]
             ts_items = []
 
             for i in items:
@@ -97,7 +99,7 @@ class Store(CortexCommandExecutor):
             #region Creo la Response
 
             self.arancinoResponse.code = ArancinoCommandResponseCodes.RSP_OK
-            self.arancinoResponse.args[PACKET.RSP.ARGUMENTS.ITEMS] = ts_items
+            self.arancinoResponse.args[self.PACKET.RSP.ARGUMENTS.ITEMS] = ts_items
             self._createChallenge()
 
             #endregion
@@ -117,10 +119,10 @@ class Store(CortexCommandExecutor):
         """
         #region CFG:ACK
         # controllo se il paramentro ack è presente e valido, altrimenti lo imposto di default
-        if not self._checkKeyAndValue(self.arancinoCommand.cfg, PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT) \
-                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] < 0 \
-                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] > 1:
-            self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] = 1
+        if not self._checkKeyAndValue(self.arancinoCommand.cfg, self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT) \
+                or self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] < 0 \
+                or self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] > 1:
+            self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] = 1
             LOG.debug("{} - {}".format(self.log_prexix, "CFG:ACK Missing or Incorret: set default value ack:1"))
         #endregion
 
@@ -134,8 +136,8 @@ class Store(CortexCommandExecutor):
         # # endregion
 
         #region ARGS:ITEMS
-        if not self._checkKeyAndValue(self.arancinoCommand.args, PACKET.CMD.ARGUMENTS.ITEMS) \
-                or len(self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.ITEMS]) == 0:
+        if not self._checkKeyAndValue(self.arancinoCommand.args, self.PACKET.CMD.ARGUMENTS.ITEMS) \
+                or len(self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.ITEMS]) == 0:
             raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
         #endregion
 
@@ -147,8 +149,8 @@ class Store(CortexCommandExecutor):
         if not exist:
             labels = {
                 # "device_id": self.__conf.get_serial_number(),
-                "port_id": self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_ID],
-                "port_type": self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_TYPE],
+                "port_id": self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.PORT_ID],
+                "port_type": self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.PORT_TYPE],
             }
 
             if not ENV.serial_number == "0000000000000000" and not ENV.serial_number== "ERROR000000000":

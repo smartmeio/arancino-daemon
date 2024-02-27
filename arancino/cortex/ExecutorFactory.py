@@ -72,7 +72,14 @@ class CortexCommandExecutorFactory:
             "11": Sign
         }
 
-        self.commands = self.commands_110
+        self.cmds = {
+            "1.1.0": self.commands_110,
+            "1.0.0": self.commands_100
+        }
+
+        self.commands = None
+
+
 
     def getCommandExecutor(self, cmd: ArancinoCommand) -> CortexCommandExecutor:
 
@@ -80,10 +87,8 @@ class CortexCommandExecutorFactory:
 
             if isinstance(cmd, ArancinoCommand):
 
-                if str(cmd.id) in self.commands_110:
-                    self.commands = self.commands_110
-                elif str(cmd.id) in self.commands_100:
-                    self.commands = self.commands_100
+                if cmd.cortex_version in self.cmds:
+                    self.commands = self.cmds[cmd.cortex_version]
                 else:
                     raise InvalidCommandException("Command does not exist: [{}] - Skipped".format(cmd.id), ArancinoCommandErrorCodes.ERR_CMD_NOT_FND)
 

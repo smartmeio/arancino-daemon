@@ -27,7 +27,7 @@ import time
 import semantic_version
 from arancino.ArancinoExceptions import ArancinoException, NonCompatibilityException
 from arancino.cortex.ExecutorFactory import CortexCommandExecutorFactory
-from arancino.cortex.ArancinoPacket import ArancinoCommand, PACKET, ArancinoResponse
+from arancino.cortex.ArancinoPacket import ArancinoCommand, PCK, ArancinoResponse
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, stringToBool2, ArancinoEnvironment
 from arancino.ArancinoConstants import ArancinoCommandErrorCodes, ArancinoReservedChars, CortexCompatibilityLists, ArancinoApiResponseCode
 from arancino.ArancinoDataStore import ArancinoDataStore
@@ -170,11 +170,12 @@ class ArancinoPort(object):
             #LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.id, str(acmd.getUnpackedPacket())))
 
             # inserisco il port id se non è presente
-            if not PACKET.CMD.ARGUMENTS.PORT_ID in acmd.args:
-                acmd.args[PACKET.CMD.ARGUMENTS.PORT_ID] = self.getId()
+
+            if not PCK.PACKET[acmd.cortex_version].CMD.ARGUMENTS.PORT_ID in acmd.args:
+                acmd.args[PCK.PACKET[acmd.cortex_version].CMD.ARGUMENTS.PORT_ID] = self.getId()
 
             #aggiungo il port type
-            acmd.args[PACKET.CMD.ARGUMENTS.PORT_TYPE] = self.getPortType().name
+            acmd.args[PCK.PACKET[acmd.cortex_version].CMD.ARGUMENTS.PORT_TYPE] = self.getPortType().name
 
             # check if the received command handler callback function is defined
             if self._received_command_handler is not None:
@@ -191,11 +192,12 @@ class ArancinoPort(object):
 
             LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.id, formatted_command_json))
 
-            if acmd.id == "START": #TODO ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
-                self._retrieveStartCmdArgs(acmd.args)
+            if acmd.id == PCK.PACKET[acmd.cortex_version].CMD.CMDS.START:
+            #if acmd.id == "START": #TODO ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
+                self._retrieveStartCmdArgs(acmd)
 
                 # Set FreeRTOS
-                if (acmd.args["fw_freertos"] == 1):
+                if (acmd.args[ PCK.PACKET[acmd.cortex_version].CMD.ARGUMENTS.FIRMWARE.USE_FREERTOS ] == 1):
                     self._setFirmwareUseFreeRTOS("1")
 
                 if (self.getFirmwareUseFreeRTOS() and self.__HEARTBEAT == None):
@@ -204,7 +206,7 @@ class ArancinoPort(object):
 
         except ArancinoException as ex:
             #if PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT in acmd.cfg and acmd.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] == 1:
-            arsp = ArancinoResponse(packet=None)
+            arsp = ArancinoResponse(packet=None, cortex_version=acmd.cortex_version)
             arsp.code = ex.error_code
 
             LOG.error("{} {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
@@ -212,7 +214,7 @@ class ArancinoPort(object):
         # Generic Exception uses a generic Error Code
         except Exception as ex:
             #if PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT in acmd.cfg and acmd.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] == 1:
-            arsp = ArancinoResponse(packet=None)
+            arsp = ArancinoResponse(packet=None, cortex_version=acmd.cortex_version)
             arsp.code = ArancinoCommandErrorCodes.ERR
 
             LOG.error("{} {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
@@ -220,7 +222,7 @@ class ArancinoPort(object):
         finally:
 
             try:
-                if PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT in acmd.cfg and acmd.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] == 1:
+                if PCK.PACKET[acmd.cortex_version].CMD.CONFIGURATIONS.ACKNOLEDGEMENT in acmd.cfg and acmd.cfg[PCK.PACKET[acmd.cortex_version].CMD.CONFIGURATIONS.ACKNOLEDGEMENT] == 1:
                     # send the response back.
                     self.sendResponse(arsp.getPackedPacket())
 
@@ -238,8 +240,10 @@ class ArancinoPort(object):
                 LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex), exc_info=TRACE)
 
 
-    def _retrieveStartCmdArgs(self, args):
+    def _retrieveStartCmdArgs(self, acmd: ArancinoCommand):
 
+        args = acmd.args
+        PACKET = PCK.PACKET[acmd.cortex_version]
 
         #region port id
         old_id = self._id

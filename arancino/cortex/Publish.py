@@ -24,7 +24,7 @@ from arancino.ArancinoExceptions import ArancinoException, RedisGenericException
 from arancino.cortex.CortexCommandExectutor import CortexCommandExecutor
 from arancino.cortex.ArancinoPacket import ArancinoCommand, ArancinoResponse
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
-from arancino.cortex.ArancinoPacket import PACKET
+from arancino.cortex.ArancinoPacket import PCK
 from datetime import datetime
 from redis.exceptions import RedisError
 
@@ -56,7 +56,9 @@ class Publish(CortexCommandExecutor):
 
     def __init__(self, arancinoCommand: ArancinoCommand):
         self.arancinoCommand = arancinoCommand
-        self.arancinoResponse = ArancinoResponse(packet=None)
+        self.PACKET = PCK.PACKET[arancinoCommand.cortex_version]
+        self.arancinoResponse = ArancinoResponse(packet=None, cortex_version=arancinoCommand.cortex_version)
+
 
     def execute(self):
 
@@ -66,9 +68,9 @@ class Publish(CortexCommandExecutor):
             # region Selezione del datastore in base al paramentro "type"
 
             datastore = self._datastore
-            items = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.ITEMS]
-            prefix_id = self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID]
-            port_id = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_ID]
+            items = self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.ITEMS]
+            prefix_id = self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.PREFIX_ID]
+            port_id = self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.PORT_ID]
 
             pipeline = datastore.pipeline()
 
@@ -94,7 +96,7 @@ class Publish(CortexCommandExecutor):
                 num = sum(res)
 
                 self.arancinoResponse.code = ArancinoCommandResponseCodes.RSP_OK
-                self.arancinoResponse.args[PACKET.RSP.ARGUMENTS.CLIENTS] = num
+                self.arancinoResponse.args[self.PACKET.RSP.ARGUMENTS.CLIENTS] = num
             else:
                 raise RedisError
 
@@ -117,33 +119,33 @@ class Publish(CortexCommandExecutor):
 
         #region CFG:PERSISTENT
         # controllo se il paramentro di persistenza è presente, altrimenti lo imposto di default
-        if not self._checkKeyAndValue(self.arancinoCommand.cfg, PACKET.CMD.CONFIGURATIONS.PERSISTENT) \
-                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PERSISTENT] < 0 \
-                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PERSISTENT] > 1:
-            self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PERSISTENT] = 0
+        if not self._checkKeyAndValue(self.arancinoCommand.cfg, self.PACKET.CMD.CONFIGURATIONS.PERSISTENT) \
+                or self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.PERSISTENT] < 0 \
+                or self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.PERSISTENT] > 1:
+            self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.PERSISTENT] = 0
             LOG.debug("{} - {}".format(self.log_prexix, "CFG:PERS Missing or Incorret: set default value pers:0"))
         #endregion
 
         #region CFG:ACK
         # controllo se il paramentro ack è presente e valido, altrimenti lo imposto di default
-        if not self._checkKeyAndValue(self.arancinoCommand.cfg, PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT) \
-                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] < 0 \
-                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] > 1:
-            self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] = 1
+        if not self._checkKeyAndValue(self.arancinoCommand.cfg, self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT) \
+                or self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] < 0 \
+                or self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] > 1:
+            self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] = 1
             LOG.debug("{} - {}".format(self.log_prexix, "CFG:ACK Missing or Incorret: set default value ack:1"))
         #endregion
 
         # region CFG:PRFX
         # controllo se il paramentro prfx è presente e valido, altrimenti lo imposto di default
-        if not self._checkKeyAndValue(self.arancinoCommand.cfg, PACKET.CMD.CONFIGURATIONS.PREFIX_ID) \
-                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] < 0 \
-                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] > 1:
-            self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] = 0
+        if not self._checkKeyAndValue(self.arancinoCommand.cfg, self.PACKET.CMD.CONFIGURATIONS.PREFIX_ID) \
+                or self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.PREFIX_ID] < 0 \
+                or self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.PREFIX_ID] > 1:
+            self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.PREFIX_ID] = 0
             LOG.debug("{} - {}".format(self.log_prexix, "CFG:PRFX Missing or Incorret: set default value prfx:0"))
         # endregion
 
         #region ARGS:ITEMS
-        if not self._checkKeyAndValue(self.arancinoCommand.args, PACKET.CMD.ARGUMENTS.ITEMS) \
-                or len(self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.ITEMS]) == 0:
+        if not self._checkKeyAndValue(self.arancinoCommand.args, self.PACKET.CMD.ARGUMENTS.ITEMS) \
+                or len(self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.ITEMS]) == 0:
             raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
         #endregion

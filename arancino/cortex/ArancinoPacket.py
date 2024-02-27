@@ -24,6 +24,7 @@ from arancino.ArancinoConstants import ArancinoCommandErrorCodes
 from arancino.ArancinoExceptions import InvalidCommandException
 import msgpack
 
+
 class ArancinoPacket(ABC):
     """
     Usato per Arancino Command e Arancino Response, perche hanno la stessa struttura di base,
@@ -37,8 +38,8 @@ class ArancinoPacket(ABC):
 
         if packet:
 
-            self.args = packet[PACKET.ARGUMENT]
-            self.cfg = packet[PACKET.CONFIGURATION]
+            self.args = packet[PCK.PACKET[self.cortex_version].ARGUMENT]
+            self.cfg = packet[PCK.PACKET[self.cortex_version].CONFIGURATION]
 
         else:
 
@@ -76,11 +77,21 @@ class ArancinoPacket(ABC):
         pck = self._create_packet()
         return pck
 
+
     def getPackedPacket(self):
 
         pck = self._create_packet()
         packed_pck = msgpack.packb(pck, use_bin_type=True)
         return packed_pck
+
+
+    @property
+    def cortex_version(self):
+        return self.__cortex_version
+
+    @cortex_version.setter
+    def cortex_version(self, cortex_version: str):
+        self.__cortex_version = cortex_version
 
 
 class ArancinoCommand(ArancinoPacket):
@@ -91,13 +102,15 @@ class ArancinoCommand(ArancinoPacket):
 
             if isinstance(packet, dict):
 
-                self.id = packet[PACKET.CMD.COMMAND_ID]
+                self.__set_cortex_version_by_packet(packet)
+                self.id = packet[PCK.PACKET[self.cortex_version].CMD.COMMAND_ID]
 
             elif isinstance(packet, bytes):
 
                 # trasformo packet in dict
                 packet = msgpack.unpackb(packet, use_list=True, raw=False)
-                self.id = packet[PACKET.CMD.COMMAND_ID]
+                self.__set_cortex_version_by_packet(packet)
+                self.id = packet[PCK.PACKET[self.cortex_version].CMD.COMMAND_ID]
 
             else:
 
@@ -124,28 +137,43 @@ class ArancinoCommand(ArancinoPacket):
     def _create_packet(self):
 
         pck = {}
-        pck.update({PACKET.CMD.COMMAND_ID: self.id})
-        pck.update({PACKET.CONFIGURATION: self.cfg})
-        pck.update({PACKET.ARGUMENT: self.args})
+        pck.update({PCK.PACKET[self.cortex_version].CMD.COMMAND_ID: self.id})
+        pck.update({PCK.PACKET[self.cortex_version].CONFIGURATION: self.cfg})
+        pck.update({PCK.PACKET[self.cortex_version].ARGUMENT: self.args})
 
         return pck
+
+    def __set_cortex_version_by_packet(self, packet):
+        # Versione 1.0.0: CMD : "cmd"
+        if "cmd" in packet:
+            self.cortex_version = "1.0.0"
+        # Versione 1.1.0: CMD : "C"
+        elif "C" in packet:
+            self.cortex_version = "1.1.0"
+        else:
+            # Tipo non riconosciuto/accettato
+            raise InvalidCommandException("Invalid Cortex Version - Skipped", ArancinoCommandErrorCodes.ERR_CMD_TYPE)
 
 
 class ArancinoResponse(ArancinoPacket):
 
-    def __init__(self, packet):
+    def __init__(self, packet, cortex_version):
+
+        self.cortex_version = cortex_version
 
         if packet:
 
             if isinstance(packet, dict):
 
-                self.code = packet[PACKET.RSP.RESPONSE_CODE]
+                #self.code = packet[PACKET.RSP.RESPONSE_CODE]
+                self.code = packet[PCK.PACKET[self.cortex_version].RSP.RESPONSE_CODE]
 
             elif isinstance(packet, bytes):
 
                 # trasformo packet in dict
                 packet = msgpack.unpackb(packet, use_list=True, raw=False)
-                self.code = packet[PACKET.RSP.RESPONSE_CODE]
+                #self.code = packet[PACKET.RSP.RESPONSE_CODE]
+                self.code = packet[PCK.PACKET[self.cortex_version].RSP.RESPONSE_CODE]
 
             else:
 
@@ -171,14 +199,19 @@ class ArancinoResponse(ArancinoPacket):
     def _create_packet(self):
 
         pck = {}
+        """
         pck.update({PACKET.RSP.RESPONSE_CODE: self.code})
         pck.update({PACKET.CONFIGURATION: self.cfg})
         pck.update({PACKET.ARGUMENT: self.args})
+        """
+        pck.update({PCK.PACKET[self.cortex_version].RSP.RESPONSE_CODE: self.code})
+        pck.update({PCK.PACKET[self.cortex_version].CONFIGURATION: self.cfg})
+        pck.update({PCK.PACKET[self.cortex_version].ARGUMENT: self.args})
 
         return pck
 
 
-class PACKET:
+class PACKET_110:
     """
     Version 1.1.0 of Cortex Protocol keys
     """
@@ -214,6 +247,11 @@ class PACKET:
 
             KEY = "K"
             TIMESTAMP = "TS"
+
+            class ITEM:
+                KEY = "K"
+                VALUE = "V"
+                FIELD = "F"
 
             class FIRMWARE:
 
@@ -289,6 +327,7 @@ class PACKET:
             TIMESTAMP = "TS"
             LOG_LEVEL = "LL"
 
+
 class PACKET_100:
     """
     Version 1.0.0 of Cortex Protocol keys
@@ -320,12 +359,18 @@ class PACKET_100:
         class ARGUMENTS:
 
             ITEMS = "items"
+
             KEYS = "keys"
             PORT_ID = "port_id"
             PORT_TYPE = "port_type"
 
             KEY = "key"
             TIMESTAMP = "ts"
+
+            class ITEM:
+                KEY = "key"
+                VALUE = "value"
+                FIELD = "field"
 
             class FIRMWARE:
 
@@ -396,3 +441,11 @@ class PACKET_100:
 
             TIMESTAMP = "ts"
             LOG_LEVEL = "log_lvl"
+
+
+class PCK:
+#    PACKET_110 = PACKET
+    PACKET = {
+        "1.1.0": PACKET_110,
+        "1.0.0": PACKET_100
+    }

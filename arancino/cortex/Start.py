@@ -24,7 +24,7 @@ from arancino.ArancinoExceptions import ArancinoException
 from arancino.cortex.CortexCommandExectutor import CortexCommandExecutor
 from arancino.cortex.ArancinoPacket import ArancinoCommand, ArancinoResponse
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, ArancinoEnvironment
-from arancino.cortex.ArancinoPacket import PACKET
+from arancino.cortex.ArancinoPacket import PCK
 from datetime import datetime
 
 
@@ -61,7 +61,9 @@ class Start(CortexCommandExecutor):
 
     def __init__(self, arancinoCommand: ArancinoCommand):
         self.arancinoCommand = arancinoCommand
-        self.arancinoResponse = ArancinoResponse(packet=None)
+        self.PACKET = PCK.PACKET[arancinoCommand.cortex_version]
+        self.arancinoResponse = ArancinoResponse(packet=None, cortex_version=arancinoCommand.cortex_version)
+
 
 
     def execute(self):
@@ -70,11 +72,11 @@ class Start(CortexCommandExecutor):
 
             #region Creo la Response
 
-            self.arancinoResponse.cfg[PACKET.RSP.CONFIGURATIONS.TIMESTAMP] = str(int(datetime.now().timestamp() * 1000))
-            self.arancinoResponse.cfg[PACKET.RSP.CONFIGURATIONS.LOG_LEVEL] = CONF.get("log").get("level")
+            self.arancinoResponse.cfg[self.PACKET.RSP.CONFIGURATIONS.TIMESTAMP] = str(int(datetime.now().timestamp() * 1000))
+            self.arancinoResponse.cfg[self.PACKET.RSP.CONFIGURATIONS.LOG_LEVEL] = CONF.get("log").get("level")
 
-            self.arancinoResponse.args[PACKET.RSP.ARGUMENTS.DAEMON_VERSION] = str(ENV.version)
-            self.arancinoResponse.args[PACKET.RSP.ARGUMENTS.DAEMON_ENVIRONMENT] = ENV.env
+            self.arancinoResponse.args[self.PACKET.RSP.ARGUMENTS.DAEMON_VERSION] = str(ENV.version)
+            self.arancinoResponse.args[self.PACKET.RSP.ARGUMENTS.DAEMON_ENVIRONMENT] = ENV.env
 
             self.arancinoResponse.code = ArancinoCommandResponseCodes.RSP_OK
 
@@ -100,14 +102,14 @@ class Start(CortexCommandExecutor):
         imposto di default il parametro ack ad 1 perche nella start ci si 
         deve sempre aspettare qualcosa indietro.
         """
-        self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] = 1
+        self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] = 1
         #endregion
 
         #region CFG:SCR_MOD
         """
         imposto di default il parametro secure mode ad 0
         """
-        self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.SECURE_MODE] = 0
+        self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.SECURE_MODE] = 0
         #endregion
 
         #region ARGS:
@@ -116,14 +118,14 @@ class Start(CortexCommandExecutor):
         anche solo uno, sollevo eccezione.
         """
 
-        if not self._checkKeyAndValue(self.arancinoCommand.args, PACKET.CMD.ARGUMENTS.FIRMWARE.NAME) \
-                or not self._checkKeyAndValue(self.arancinoCommand.args, PACKET.CMD.ARGUMENTS.FIRMWARE.VERSION) \
-                or not self._checkKeyAndValue(self.arancinoCommand.args, PACKET.CMD.ARGUMENTS.FIRMWARE.MCU_FAMILY) \
-                or not self._checkKeyAndValue(self.arancinoCommand.args, PACKET.CMD.ARGUMENTS.FIRMWARE.LIBRARY_VERSION) \
-                or not self._checkKeyAndValue(self.arancinoCommand.args, PACKET.CMD.ARGUMENTS.FIRMWARE.CORE_VERSION) \
-                or not self._checkKeyAndValue(self.arancinoCommand.args, PACKET.CMD.ARGUMENTS.FIRMWARE.BUILD_TIME) \
-                or not self._checkKeyAndValue(self.arancinoCommand.args, PACKET.CMD.ARGUMENTS.FIRMWARE.CORTEX_VERSION) \
-                or not self._checkKeyAndValue(self.arancinoCommand.args, PACKET.CMD.ARGUMENTS.PORT_ID):
+        if not self._checkKeyAndValue(self.arancinoCommand.args, self.PACKET.CMD.ARGUMENTS.FIRMWARE.NAME) \
+                or not self._checkKeyAndValue(self.arancinoCommand.args, self.PACKET.CMD.ARGUMENTS.FIRMWARE.VERSION) \
+                or not self._checkKeyAndValue(self.arancinoCommand.args, self.PACKET.CMD.ARGUMENTS.FIRMWARE.MCU_FAMILY) \
+                or not self._checkKeyAndValue(self.arancinoCommand.args, self.PACKET.CMD.ARGUMENTS.FIRMWARE.LIBRARY_VERSION) \
+                or not self._checkKeyAndValue(self.arancinoCommand.args, self.PACKET.CMD.ARGUMENTS.FIRMWARE.CORE_VERSION) \
+                or not self._checkKeyAndValue(self.arancinoCommand.args, self.PACKET.CMD.ARGUMENTS.FIRMWARE.BUILD_TIME) \
+                or not self._checkKeyAndValue(self.arancinoCommand.args, self.PACKET.CMD.ARGUMENTS.FIRMWARE.CORTEX_VERSION) \
+                or not self._checkKeyAndValue(self.arancinoCommand.args, self.PACKET.CMD.ARGUMENTS.PORT_ID):
 
             raise ArancinoException("Arguments Error: One or more mandatory arguments are missing or empty. Please check.", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
         else:
