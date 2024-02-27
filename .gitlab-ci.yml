@@ -155,7 +155,7 @@ docker_alpine_build:
   script:
     - DCK_TAG=${CI_COMMIT_TAG}-alpine
     - docker buildx create --use
-    - docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -f Dockerfile-alpine-arancino.dockerfile -t $DCK_IMAGE_NAME:$DCK_TAG --push .
+    - docker buildx build --network=host --platform linux/amd64,linux/arm64,linux/arm/v7 -f Dockerfile-alpine-arancino.dockerfile -t $DCK_IMAGE_NAME:$DCK_TAG --push .
 
   only:
     - tags
@@ -168,7 +168,7 @@ docker_debian_build:
   script:
     - DCK_TAG=${CI_COMMIT_TAG}-debian
     - docker buildx create --use
-    - docker buildx build --network=host --platform linux/amd64,linux/arm64,linux/arm/v7 -f Dockerfile-debian-arancino.dockerfile -t $DCK_IMAGE_NAME:$DCK_TAG --push .
+    - docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -f Dockerfile-debian-arancino.dockerfile -t $DCK_IMAGE_NAME:$DCK_TAG --push .
   
   only:
     - tags
