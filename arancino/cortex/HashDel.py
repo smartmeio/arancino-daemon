@@ -71,8 +71,8 @@ class HashDel(CortexCommandExecutor):
 
             pipeline = datastore.pipeline()
             for i in items:
-                k = i["K"]
-                f = i["F"]
+                k = i[self.PACKET.CMD.ARGUMENTS.ITEM.KEY]
+                f = i[self.PACKET.CMD.ARGUMENTS.ITEM.FIELD]
 
                 if int(prefix_id) == 1:
                     """

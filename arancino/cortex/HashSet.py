@@ -78,9 +78,9 @@ class HashSet(CortexCommandExecutor):
 
             for i in items:
 
-                k = i["K"]
-                f = i["F"]
-                v = i["V"]
+                k = i[self.PACKET.CMD.ARGUMENTS.ITEM.KEY]
+                f = i[self.PACKET.CMD.ARGUMENTS.ITEM.FIELD]
+                v = i[self.PACKET.CMD.ARGUMENTS.ITEM.VALUE]
 
 
                 if int(prefix_id) == 1:

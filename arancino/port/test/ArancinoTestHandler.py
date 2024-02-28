@@ -185,7 +185,7 @@ class ArancinoTestHandler(threading.Thread):
         cmd_list = []
         rsp_list = []
 
-        # region 1. START
+        # region 0. START
         # firmware upload date time
         fw_date_str = "Oct 21 1985"
         fw_time_str = "09:00:00"
@@ -229,8 +229,7 @@ class ArancinoTestHandler(threading.Thread):
         rsp_list.append(msgpack.packb(start_rsp, use_bin_type=True))
 
 
-
-        #region 2. SET
+        #region 1. SET
         set_cmd_appl_100 = {
             "cmd": "SET",
             "args": {
@@ -256,6 +255,7 @@ class ArancinoTestHandler(threading.Thread):
                 "T": "A"
             }
         }
+
 
         set_cmd_appl_pers_100 = {
             "cmd": "SET",
@@ -339,6 +339,7 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
+
         set_cmd_appl_prfx_100 = {
             "cmd": "SET",
             "args": {
@@ -368,15 +369,21 @@ class ArancinoTestHandler(threading.Thread):
         }
 
         #endregion
+        #cmd_list.append(msgpack.packb(set_cmd_appl_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(set_cmd_appl_pers_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(set_cmd_rsvd_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(set_cmd_stng_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(set_cmd_appl_prfx_100, use_bin_type=True))
+
         #cmd_list.append(msgpack.packb(set_cmd_appl_110, use_bin_type=True))
         #cmd_list.append(msgpack.packb(set_cmd_appl_pers_110, use_bin_type=True))
         #cmd_list.append(msgpack.packb(set_cmd_rsvd_110, use_bin_type=True))
         #cmd_list.append(msgpack.packb(set_cmd_stng_110, use_bin_type=True))
-        cmd_list.append(msgpack.packb(set_cmd_appl_prfx_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(set_cmd_appl_prfx_110, use_bin_type=True))
 
-        #region 3. GET
+        #region 2. GET
 
-        get_cmd = {
+        get_cmd_100 = {
             "cmd": "GET",
             "args": {
                 "items": [
@@ -389,7 +396,20 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        get_cmd_pers = {
+        get_cmd_110 = {
+            "C": 2,
+            "A": {
+                "I": [
+                    "key-1", "key-2", "key-3" #l'ultima chiave non esiste, deve tornare None
+                ]
+            },
+            "CF": {
+                "P": 0,
+                "T": "A"
+            }
+        }
+
+        get_cmd_pers_100 = {
             "cmd": "GET",
             "args": {
                 "items": [
@@ -402,7 +422,20 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        get_cmd_mix = {
+        get_cmd_pers_110 = {
+            "C": 2,
+            "A": {
+                "I": [
+                    "key-p-1", "key-p-2"
+                ]
+            },
+            "CF": {
+                "P": 1,
+                "T": "A"
+            }
+        }
+
+        get_cmd_mix_100 = {
             "cmd": "GET",
             "args": {
                 "items": [
@@ -416,7 +449,21 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        get_cmd_rsvd = {
+        get_cmd_mix_110 = {
+            "C": 2,
+            "A": {
+                "I": [
+                    "key-1", "key-2", "key-p-1" # l'ultima chiave non verrà trovata perchè è su datastore persistent
+                ]
+            },
+            "CF": {
+                "P": 0,
+                "T": "A",
+                "A": 1
+            }
+        }
+
+        get_cmd_rsvd_100 = {
             "cmd": "GET",
             "args": {
                 "items": [
@@ -429,7 +476,20 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        get_cmd_stng = {
+        get_cmd_rsvd_110 = {
+            "C": 2,
+            "A": {
+                "I": [
+                    "key-r-1", "key-r-2"
+                ]
+            },
+            "CF": {
+                "T": "R",
+                "A": 0 #metto ack 0, ma il demone forza e lo mette a 1, e manda la risposta.
+            }
+        }
+
+        get_cmd_stng_100 = {
             "cmd": "GET",
             "args": {
                 "items": [
@@ -443,7 +503,21 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        get_cmd_prfx = {
+        get_cmd_stng_110 = {
+            "C": 2,
+            "A": {
+                "I": [
+                    "key-s-1", "key-s-2", "key-s-3"
+                ]
+            },
+            "CF": {
+                "P": 0,  #imposto la persistenza, ma deve essere scartata in quanto vale il type: stng che prevede pers: 1
+                "T": "S",
+                "A": 1
+            }
+        }
+
+        get_cmd_prfx_100 = {
             "cmd": "GET",
             "args": {
                 "items": [
@@ -457,18 +531,41 @@ class ArancinoTestHandler(threading.Thread):
                 "ack": 1
             }
         }
+
+        get_cmd_prfx_110 = {
+            "C": 2,
+            "A": {
+                "I": [
+                    "key-1", "key-2"
+                ]
+            },
+            "CF": {
+                "P": 0,  #imposto la persistenza, ma deve essere scartata in quanto vale il type: stng che prevede pers: 1
+                "PX": 1,
+                "T": "A",
+                "A": 1
+            }
+        }
+
         # endregion
 
-        #cmd_list.append(msgpack.packb(get_cmd, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(get_cmd_pers, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(get_cmd_mix, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(get_cmd_rsvd, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(get_cmd_pers, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(get_cmd_prfx, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(get_cmd_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(get_cmd_pers_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(get_cmd_mix_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(get_cmd_rsvd_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(get_cmd_pers_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(get_cmd_prfx_100, use_bin_type=True))
+
+        #cmd_list.append(msgpack.packb(get_cmd_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(get_cmd_pers_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(get_cmd_mix_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(get_cmd_rsvd_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(get_cmd_pers_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(get_cmd_prfx_110, use_bin_type=True))
 
 
-        #region 4. DEL
-        del_cmd = {
+        #region 3. DEL
+        del_cmd_100 = {
             "cmd": "DEL",
             "args": {
                 "items": ["key-1", "key-2"]
@@ -480,7 +577,19 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        del_cmd_pers = {
+        del_cmd_110 = {
+            "C": 3,
+            "A": {
+                "I": ["key-1", "key-2"]
+            },
+            "CF": {
+                "T": "A",
+                "P": 0,
+                "A": 1
+            }
+        }
+
+        del_cmd_pers_100 = {
             "cmd": "DEL",
             "args": {
                 "items": ["key-p-1", "key-p-2"]
@@ -492,7 +601,19 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        del_cmd_prfx = {
+        del_cmd_pers_110 = {
+            "C": 3,
+            "A": {
+                "I": ["key-p-1", "key-p-2"]
+            },
+            "CF": {
+                #"type": "appl", #questa volta commento, perche lo mette in automatico
+                "P": 0,
+                "A": 1
+            }
+        }
+
+        del_cmd_prfx_100 = {
             "cmd": "DEL",
             "args": {
                 "items": ["key-1", "key-2"]
@@ -504,14 +625,139 @@ class ArancinoTestHandler(threading.Thread):
                 "ack": 1
             }
         }
+
+        del_cmd_prfx_110 = {
+            "C": 3,
+            "A": {
+                "I": ["key-1", "key-2"]
+            },
+            "CF": {
+                #"type": "appl", #questa volta commento, perche lo mette in automatico
+                "P": 0,
+                "PX": 1,
+                "A": 1
+            }
+        }
         #endregion
-        #cmd_list.append(msgpack.packb(del_cmd, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(del_cmd_pers, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(del_cmd_prfx, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(del_cmd_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(del_cmd_pers_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(del_cmd_prfx_100, use_bin_type=True))
+
+        #cmd_list.append(msgpack.packb(del_cmd_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(del_cmd_pers_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(del_cmd_prfx_110, use_bin_type=True))
 
 
-        #region 5. HSET
-        hset_cmd_appl = {
+        #region 4. STORE
+        cmd_store_100 = {
+            "cmd": "STORE",
+            "args": {
+                "items": [
+                    {"key": "key-1", "value": 1, "ts": "*"},
+                    {"key": "key-2", "value": 2, "ts": "*"},
+                    {"key": "key-3", "value": 3.14},
+                ]
+            },
+            "cfg": {
+                "ack": 1,
+                "type": "tse",
+            }
+        }
+
+        cmd_store_110 = {
+            "C": 4,
+            "A": {
+                "I": [
+                    {"K": "key-1", "V": 1, "TS": "*"},
+                    {"K": "key-2", "V": 2, "TS": "*"},
+                    {"K": "key-3", "V": 3.14},
+                ]
+            },
+            "CF": {
+                "A": 1,
+                "T": "TS",
+            }
+        }
+
+        cmd_store_prfx_100 = {
+            "cmd": "STORE",
+            "args": {
+                "items": [
+                    {"key": "key-1", "value": 1, "ts": "*"},
+                    {"key": "key-2", "value": 2, "ts": "*"},
+                    {"key": "key-3", "value": 3.14},
+                ]
+            },
+            "cfg": {
+                "ack": 1,
+                "type": "tse"
+            }
+        }
+
+        cmd_store_prfx_110 = {
+            "C": 4,
+            "A": {
+                "I": [
+                    {"K": "key-1", "V": 1, "TS": "*"},
+                    {"K": "key-2", "V": 2, "TS": "*"},
+                    {"K": "key-3", "V": 3.14},
+                ]
+            },
+            "CF": {
+                "A": 1,
+                "T": "TS"
+            }
+        }
+        #endregion
+
+        #cmd_list.append(msgpack.packb(cmd_store_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(cmd_store_prfx_100, use_bin_type=True))
+
+        #cmd_list.append(msgpack.packb(cmd_store_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(cmd_store_prfx_110, use_bin_type=True))
+
+        # region 5. STORETAGS
+        cmd_store_tag_100 = {
+            "cmd": "STORETAGS",
+            "args": {
+                "key": "key-1",
+                "items": [
+                    {"tag": "tag-1", "value": "value-1"},
+                    {"tag": "tag-2", "value": "value-2>"}
+                ],
+                "ts": ""
+            },
+            "cfg": {
+                "ack": 1,
+                "type": "tags",
+
+            }
+        }
+
+        cmd_store_tag_110 = {
+            "C": 5,
+            "A": {
+                "K": "key-1",
+                "I": [
+                    {"N": "tag-1", "V": "value-1"},
+                    {"N": "tag-2", "V": "value-2>"}
+                ],
+                "TS": ""
+            },
+            "CF": {
+                "A": 1,
+                "T": "TT",
+
+            }
+        }
+        # endregion
+
+        #cmd_list.append(msgpack.packb(cmd_store_tag_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(cmd_store_tag_110, use_bin_type=True))
+
+
+        #region 6. HSET
+        hset_cmd_appl_100 = {
             "cmd": "HSET",
             "args": {
                 "items": [
@@ -526,7 +772,23 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        hset_cmd_appl_pers = {
+        hset_cmd_appl_110 = {
+            "C": 6,
+            "A": {
+                "I": [
+                    {"K": "key-h-1", "F": "field-A", "V": "value-1"},
+                    {"K": "key-h-1", "F": "field-B", "V": "value-2"},
+                    {"K": "key-h-2", "F": "field-A", "V": "value-3"},
+                    {"K": "key-h-2", "F": "field-B", "V": "value-4"}
+                ]
+            },
+            "CF": {
+                "T": "A"
+            }
+        }
+
+
+        hset_cmd_appl_pers_100 = {
             "cmd": "HSET",
             "args": {
                 "items": [
@@ -542,7 +804,23 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        hset_cmd_rsvd = {
+        hset_cmd_appl_pers_110 = {
+            "C": 6,
+            "A": {
+                "I": [
+                    {"K": "key-h-p-1", "F": "field-A", "V": "value-1"},
+                    {"K": "key-h-p-1", "F": "field-B", "V": "value-2"},
+                    {"K": "key-h-p-2", "F": "field-A", "V": "value-3"},
+                    {"K": "key-h-p-2", "F": "field-B", "V": "value-4"}
+                ]
+            },
+            "CF": {
+                "P": 1,
+                "T": "A"
+            }
+        }
+
+        hset_cmd_rsvd_100 = {
             "cmd": "HSET",
             "args": {
                 "items": [
@@ -557,7 +835,22 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        hset_cmd_stng = {
+        hset_cmd_rsvd_110 = {
+            "C": 6,
+            "A": {
+                "I": [
+                    {"K": "key-h-r-1", "F": "field-A", "V": "value-1"},
+                    {"K": "key-h-r-1", "F": "field-B", "V": "value-2"},
+                    {"K": "key-h-r-2", "F": "field-A", "V": "value-3"},
+                    {"K": "key-h-r-2", "F": "field-B", "V": "value-4"}
+                ]
+            },
+            "CF": {
+                "T": "R"
+            }
+        }
+
+        hset_cmd_stng_100 = {
             "cmd": "HSET",
             "args": {
                 "items": [
@@ -572,7 +865,22 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        hset_cmd_prfx = {
+        hset_cmd_stng_110 = {
+            "C": 6,
+            "A": {
+                "I": [
+                    {"K": "key-h-s-1", "F": "field-A", "V": "value-1"},
+                    {"K": "key-h-s-1", "F": "field-B", "V": "value-2"},
+                    {"K": "key-h-s-2", "F": "field-A", "V": "value-3"},
+                    {"K": "key-h-s-2", "F": "field-B", "V": "value-4"}
+                ]
+            },
+            "CF": {
+                "T": "S"
+            }
+        }
+
+        hset_cmd_prfx_100 = {
             "cmd": "HSET",
             "args": {
                 "items": [
@@ -587,17 +895,39 @@ class ArancinoTestHandler(threading.Thread):
                 "prfx": 1
             }
         }
+
+        hset_cmd_prfx_110 = {
+            "C": 6,
+            "A": {
+                "I": [
+                    {"K": "key-1", "F": "field-A", "V": "value-1"},
+                    {"K": "key-1", "F": "field-B", "V": "value-2"},
+                    {"K": "key-2", "F": "field-A", "V": "value-3"},
+                    {"K": "key-2", "F": "field-B", "V": "value-4"}
+                ]
+            },
+            "CF": {
+                "T": "A",
+                "PX": 1
+            }
+        }
         #endregion
 
-        #cmd_list.append(msgpack.packb(hset_cmd_appl, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(hset_cmd_appl_pers, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(hset_cmd_rsvd, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(hset_cmd_stng, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(hset_cmd_prfx, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hset_cmd_appl_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hset_cmd_appl_pers_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hset_cmd_rsvd_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hset_cmd_stng_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hset_cmd_prfx_100, use_bin_type=True))
+
+        #cmd_list.append(msgpack.packb(hset_cmd_appl_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hset_cmd_appl_pers_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hset_cmd_rsvd_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hset_cmd_stng_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hset_cmd_prfx_110, use_bin_type=True))
 
 
-        #region 6. HGET
-        hget_cmd = {
+        #region 7. HGET
+        hget_cmd_100 = {
             "cmd": "HGET",
             "args": {
                 "items": [
@@ -825,61 +1155,7 @@ class ArancinoTestHandler(threading.Thread):
         #cmd_list.append(msgpack.packb(cmd_pub_prfx, use_bin_type=True))
 
 
-        #region 10. STORE
-        cmd_store = {
-            "cmd": "STORE",
-            "args": {
-                "items": [
-                    {"key": "key-1", "value": 1, "ts": "*"},
-                    {"key": "key-2", "value": 2, "ts": "*"},
-                    {"key": "key-3", "value": 3.14},
-                ]
-            },
-            "cfg": {
-                "ack": 1,
-                "type": "tse",
-            }
-        }
 
-        cmd_store_prfx = {
-            "cmd": "STORE",
-            "args": {
-                "items": [
-                    {"key": "key-1", "value": 1, "ts": "*"},
-                    {"key": "key-2", "value": 2, "ts": "*"},
-                    {"key": "key-3", "value": 3.14},
-                ]
-            },
-            "cfg": {
-                "ack": 1,
-                "type": "tse"
-            }
-        }
-        #endregion
-
-        #cmd_list.append(msgpack.packb(cmd_store, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(cmd_store_prfx, use_bin_type=True))
-
-        # region 11. STORETAGS
-        cmd_store_tag = {
-            "cmd": "STORETAGS",
-            "args": {
-                "key": "key-1",
-                "items": [
-                    {"tag": "tag-1", "value": "value-1"},
-                    {"tag": "tag-2", "value": "value-2>"}
-                ],
-                "ts": ""
-            },
-            "cfg": {
-                "ack": 1,
-                "type": "tags",
-
-            }
-        }
-        # endregion
-
-        #cmd_list.append(msgpack.packb(cmd_store_tag, use_bin_type=True))
 
 
 

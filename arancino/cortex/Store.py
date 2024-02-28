@@ -78,7 +78,7 @@ class Store(CortexCommandExecutor):
             ts_items = []
 
             for i in items:
-                key = "{}:{}".format(port_id, i["key"])
+                key = "{}:{}".format(port_id, i[self.PACKET.CMD.ARGUMENTS.ITEM.KEY])
 
                 self._check_ts_exist_and_create(datastore, key)
 
@@ -87,9 +87,11 @@ class Store(CortexCommandExecutor):
                     altrimenti darebbe errore e perderei tutte le entry, 
                     cosi perdo solo questa chiave il cui valore non è numerico
                 """
-                if isNumber(i["value"]):
-                    val = float(decimal.Decimal(i["value"]))
-                    ts = "*" if "TS" not in i or i["TS"].strip() == "" else i["TS"]
+                if isNumber(i[self.PACKET.CMD.ARGUMENTS.ITEM.VALUE]):
+                    val = float(decimal.Decimal(i[self.PACKET.CMD.ARGUMENTS.ITEM.VALUE]))
+                    ts = "*" if self.PACKET.CMD.ARGUMENTS.ITEM.TIMESTAMP not in i \
+                                or i[self.PACKET.CMD.ARGUMENTS.ITEM.TIMESTAMP].strip() == "" \
+                        else i[self.PACKET.CMD.ARGUMENTS.ITEM.TIMESTAMP]
 
                     datastore.ts().add(key, ts, val)
                     ts_items.append(ts)

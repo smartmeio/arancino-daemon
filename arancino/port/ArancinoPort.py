@@ -163,6 +163,8 @@ class ArancinoPort(object):
         :return: void.
         """
 
+        #acmd = None
+
         try:
             # create an Arancino Comamnd from the raw command (json or msgpack)
             #LOG.debug("{} Received: {}".format(self._log_prefix, packet))
@@ -193,7 +195,6 @@ class ArancinoPort(object):
             LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.id, formatted_command_json))
 
             if acmd.id == PCK.PACKET[acmd.cortex_version].CMD.CMDS.START:
-            #if acmd.id == "START": #TODO ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
                 self._retrieveStartCmdArgs(acmd)
 
                 # Set FreeRTOS
@@ -222,6 +223,7 @@ class ArancinoPort(object):
         finally:
 
             try:
+
                 if PCK.PACKET[acmd.cortex_version].CMD.CONFIGURATIONS.ACKNOLEDGEMENT in acmd.cfg and acmd.cfg[PCK.PACKET[acmd.cortex_version].CMD.CONFIGURATIONS.ACKNOLEDGEMENT] == 1:
                     # send the response back.
                     self.sendResponse(arsp.getPackedPacket())
@@ -237,7 +239,7 @@ class ArancinoPort(object):
                     LOG.debug("{} Ack disabled, response is not sent back : {}: \n{}".format(self._log_prefix, arsp.code, formatted_response_json))
 
             except Exception as ex:
-                LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex), exc_info=TRACE)
+                LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
 
 
     def _retrieveStartCmdArgs(self, acmd: ArancinoCommand):

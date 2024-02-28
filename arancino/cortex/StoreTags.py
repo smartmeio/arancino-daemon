@@ -71,12 +71,12 @@ class StoreTags(CortexCommandExecutor):
 
             items = self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.ITEMS]
             port_id = self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.PORT_ID]
-            ts = self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.TIMESTAMP]
-            key = self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.KEY]
+            ts = self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.ITEM.TIMESTAMP]
+            key = self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.ITEM.KEY]
 
             for i in items:
-                tag = i["N"]
-                val = i["V"]
+                tag = i[self.PACKET.CMD.ARGUMENTS.ITEM.TAG]
+                val = i[self.PACKET.CMD.ARGUMENTS.ITEM.VALUE]
 
                 saved_tags =[]
                 d_key = "{}:{}:{}:{}".format(port_id, key, SUFFIX_TAG, tag)

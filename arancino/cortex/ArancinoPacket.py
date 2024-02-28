@@ -245,13 +245,14 @@ class PACKET_110:
             PORT_ID = "P"
             PORT_TYPE = "PT"
 
-            KEY = "K"
             TIMESTAMP = "TS"
 
             class ITEM:
                 KEY = "K"
                 VALUE = "V"
                 FIELD = "F"
+                TIMESTAMP = "TS"
+                TAG = "N"
 
             class FIRMWARE:
 
@@ -359,18 +360,18 @@ class PACKET_100:
         class ARGUMENTS:
 
             ITEMS = "items"
-
             KEYS = "keys"
             PORT_ID = "port_id"
             PORT_TYPE = "port_type"
 
-            KEY = "key"
             TIMESTAMP = "ts"
 
             class ITEM:
                 KEY = "key"
                 VALUE = "value"
                 FIELD = "field"
+                TIMESTAMP = "ts"
+                TAG = "tag"
 
             class FIRMWARE:
 
@@ -401,6 +402,7 @@ class PACKET_100:
                 APPLICATION = "appl"
                 SETTING = "stng"
                 RESERVED = "rsvd"
+
                 TIMESERIES = "tse"
                 TSTAGS = "tags"
 
