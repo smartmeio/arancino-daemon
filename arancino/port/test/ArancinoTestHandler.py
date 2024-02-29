@@ -943,14 +943,30 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        hget_cmd_pers = {
+        hget_cmd_110 = {
+            "C": 7,
+            "A": {
+                "I": [
+                    {"K": "key-h-1", "F": "field-A"},
+                    {"K": "key-h-1", "F": "field-B"},
+                    {"K": "key-h-2", "F": "field-A"},
+                    {"K": "key-h-2", "F": "field-B"},
+                ]
+            },
+            "CF": {
+                "P": 0,
+                "T": "A"
+            }
+        }
+
+        hget_cmd_pers_100 = {
             "cmd": "HGET",
             "args": {
                 "items": [
-                    {"key": "key-p-1", "field": "field-A"},
-                    {"key": "key-p-1", "field": "field-B"},
-                    {"key": "key-p-2", "field": "field-A"},
-                    {"key": "key-p-2", "field": "field-B"},
+                    {"key": "key-h-p-1", "field": "field-A"},
+                    {"key": "key-h-p-1", "field": "field-B"},
+                    {"key": "key-h-p-2", "field": "field-A"},
+                    {"key": "key-h-p-2", "field": "field-B"},
                 ]
             },
             "cfg": {
@@ -959,7 +975,24 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        hget_cmd_mix = {
+        hget_cmd_pers_110 = {
+            "C": 7,
+            "A": {
+                "I": [
+                    {"K": "key-h-p-1", "F": "field-A"},
+                    {"K": "key-h-p-1", "F": "field-B"},
+                    {"K": "key-h-p-2", "F": "field-A"},
+                    {"K": "key-h-p-2", "F": "field-B"},
+                ]
+            },
+            "CF": {
+                "P": 1,
+                "T": "A"
+            }
+        }
+
+
+        hget_cmd_mix_100 = {
             "cmd": "HGET",
             "args": {
                 "items": [
@@ -976,14 +1009,31 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        hget_cmd_rsvd = {
+        hget_cmd_mix_110 = {
+            "C": 7,
+            "A": {
+                "I": [
+                    {"K": "key-h-1", "F": "field-A"},
+                    {"K": "key-h-1", "F": "field-B"},
+                    {"K": "key-h-2", "F": "field-C"},  # field-C non esiste
+                    {"K": "key-h-3", "F": "field-A"}  # key-h-3 non esiste
+                ]
+            },
+            "CF": {
+                "P": -1,
+                "T": "A",
+                "A": 1
+            }
+        }
+
+        hget_cmd_rsvd_100 = {
             "cmd": "HGET",
             "args": {
                 "items": [
-                    {"key": "key-r-1", "field": "field-A"},
-                    {"key": "key-r-1", "field": "field-B"},
-                    {"key": "key-r-2", "field": "field-A"},
-                    {"key": "key-r-2", "field": "field-B"},
+                    {"key": "key-h-r-1", "field": "field-A"},
+                    {"key": "key-h-r-1", "field": "field-B"},
+                    {"key": "key-h-r-2", "field": "field-A"},
+                    {"key": "key-h-r-2", "field": "field-B"},
                 ]
             },
             "cfg": {
@@ -992,14 +1042,30 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        hget_cmd_stng = {
+        hget_cmd_rsvd_110 = {
+            "C": 7,
+            "A": {
+                "I": [
+                    {"K": "key-h-r-1", "F": "field-A"},
+                    {"K": "key-h-r-1", "F": "field-B"},
+                    {"K": "key-h-r-2", "F": "field-A"},
+                    {"K": "key-h-r-2", "F": "field-B"},
+                ]
+            },
+            "CF": {
+                "T": "R",
+                "A": 0 #metto ack 0, ma il demone forza e lo mette a 1, e manda la risposta.
+            }
+        }
+
+        hget_cmd_stng_100 = {
             "cmd": "HGET",
             "args": {
                 "items": [
-                    {"key": "key-s-1", "field": "field-A"},
-                    {"key": "key-s-1", "field": "field-B"},
-                    {"key": "key-s-2", "field": "field-A"},
-                    {"key": "key-s-2", "field": "field-B"},
+                    {"key": "key-h-s-1", "field": "field-A"},
+                    {"key": "key-h-s-1", "field": "field-B"},
+                    {"key": "key-h-s-2", "field": "field-A"},
+                    {"key": "key-h-s-2", "field": "field-B"},
                 ]
             },
             "cfg": {
@@ -1009,7 +1075,25 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        hget_cmd_prfx = {
+
+        hget_cmd_stng_110 = {
+            "C": 7,
+            "A": {
+                "I": [
+                    {"K": "key-h-s-1", "F": "field-A"},
+                    {"K": "key-h-s-1", "F": "field-B"},
+                    {"K": "key-h-s-2", "F": "field-A"},
+                    {"K": "key-h-s-2", "F": "field-B"},
+                ]
+            },
+            "CF": {
+                "P": 0,  #imposto la persistenza, ma deve essere scartata in quanto vale il type: stng che prevede pers: 1
+                "T": "S",
+                "A": 1
+            }
+        }
+
+        hget_cmd_prfx_100 = {
             "cmd": "HGET",
             "args": {
                 "items": [
@@ -1020,23 +1104,49 @@ class ArancinoTestHandler(threading.Thread):
                 ]
             },
             "cfg": {
-                "pers": 0,  #imposto la persistenza, ma deve essere scartata in quanto vale il type: stng che prevede pers: 1
+                "pers": 0,
                 "type": "appl",
                 "prfx": 1,
                 "ack": 1
             }
         }
+
+        hget_cmd_prfx_110 = {
+            "C": 7,
+            "A": {
+                "I": [
+                    {"K": "key-1", "F": "field-A"},
+                    {"K": "key-1", "F": "field-B"},
+                    {"K": "key-2", "F": "field-A"},
+                    {"K": "key-2", "F": "field-B"},
+                ]
+            },
+            "CF": {
+                "P": 0,
+                "T": "A",
+                "PX": 1,
+                "A": 1
+            }
+        }
         #endregion
 
-        #cmd_list.append(msgpack.packb(hget_cmd, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(hget_cmd_pers, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(hget_cmd_mix, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(hget_cmd_rsvd, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(hget_cmd_pers, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(hget_cmd_prfx, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hget_cmd_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hget_cmd_pers_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hget_cmd_mix_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hget_cmd_rsvd_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hget_cmd_pers_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hget_cmd_prfx_100, use_bin_type=True))
 
-        #region 7. HDEL
-        hdel_cmd = {
+
+        #cmd_list.append(msgpack.packb(hget_cmd_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hget_cmd_pers_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hget_cmd_mix_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hget_cmd_rsvd_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hget_cmd_pers_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hget_cmd_prfx_110, use_bin_type=True))
+
+        #region 8. HDEL
+        hdel_cmd_100 = {
             "cmd": "HDEL",
             "args": {
                 "items": [
@@ -1055,7 +1165,26 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        hdel_cmd_pers = {
+        hdel_cmd_110 = {
+            "C": 8,
+            "A": {
+                "I": [
+                    {"K": "key-h-1", "F": "field-A"},
+                    {"K": "key-h-1", "F": "field-B"},
+                    {"K": "key-h-2", "F": "field-A"},
+                    {"K": "key-h-2", "F": "field-B"},
+                    {"K": "key-h-1", "F": "field-C"}, # non esiste field-C
+                    {"K": "key-h-3", "F": "field-A"}, # non esiste key-h-3
+                ]
+            },
+            "CF": {
+                "T": "A",
+                "P": 0,
+                "A": 1
+            }
+        }
+
+        hdel_cmd_pers_100 = {
             "cmd": "HDEL",
             "args": {
                 "items": [
@@ -1072,7 +1201,24 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        hdel_cmd_prfx = {
+        hdel_cmd_pers_110 = {
+            "C": 8,
+            "A": {
+                "I": [
+                    {"K": "key-h-p-1", "F": "field-A"},
+                    {"K": "key-h-p-1", "F": "field-B"},
+                    {"K": "key-h-p-2", "F": "field-A"},
+                    {"K": "key-h-p-2", "F": "field-B"}
+                ]
+            },
+            "CF": {
+                #"type": "appl", #questa volta commento, perche lo mette in automatico
+                "P": 1,
+                "A": 0
+            }
+        }
+
+        hdel_cmd_prfx_100 = {
             "cmd": "HDEL",
             "args": {
                 "items": [
@@ -1090,39 +1236,37 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        #endregion
-        #cmd_list.append(msgpack.packb(hdel_cmd, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(hdel_cmd_pers, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(hdel_cmd_prfx, use_bin_type=True))
 
-        #region 8. FLUSH
-        flush_cmd = {
-            "cmd": "FLUSH",
-            "args": {},
-            "cfg": {
-                "pers": 0,
-                "ack": 1,
+        hdel_cmd_prfx_110 = {
+            "C": 8,
+            "A": {
+                "I": [
+                    {"K": "key-1", "F": "field-A"},
+                    {"K": "key-1", "F": "field-B"},
+                    {"K": "key-2", "F": "field-A"},
+                    {"K": "key-2", "F": "field-B"}
+                ]
+            },
+            "CF": {
+                #"type": "appl", #questa volta commento, perche lo mette in automatico
+                "P": 0,
+                "PX": 1,
+                "A": 0
             }
         }
-
-        flush_cmd_pers = {
-            "cmd": "FLUSH",
-            "args": {},
-            "cfg": {
-                "type": "appl",
-                "pers": 1,
-                "ack": 1,
-            }
-        }
-
         #endregion
-        #cmd_list.append(msgpack.packb(flush_cmd, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(flush_cmd_pers, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hdel_cmd_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hdel_cmd_pers_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hdel_cmd_prfx_100, use_bin_type=True))
+
+        #cmd_list.append(msgpack.packb(hdel_cmd_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hdel_cmd_pers_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(hdel_cmd_prfx_110, use_bin_type=True))
 
 
         #region 9. PUB
 
-        cmd_pub = {
+        cmd_pub_100 = {
             "cmd": "PUB",
             "args": {
                 "items": [
@@ -1135,7 +1279,20 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
-        cmd_pub_prfx = {
+        cmd_pub_110 = {
+            "C": 9,
+            "A": {
+                "I": [
+                    {"C": "channel-1", "M": "message-A"},
+                    {"C": "channel-2", "M": "message-B"}
+                ]
+            },
+            "CF": {
+                "A": 1
+            }
+        }
+
+        cmd_pub_prfx_100 = {
             "cmd": "PUB",
             "args": {
                 "items": [
@@ -1149,15 +1306,72 @@ class ArancinoTestHandler(threading.Thread):
             }
         }
 
+        cmd_pub_prfx_110 = {
+            "C": 9,
+            "A": {
+                "I": [
+                    {"C": "channel-1", "M": "message-A"},
+                    {"C": "channel-2", "M": "message-B"}
+                ]
+            },
+            "CF": {
+                "A": 1,
+                "PX": 1
+            }
+        }
         #endregion
 
-        #cmd_list.append(msgpack.packb(cmd_pub, use_bin_type=True))
-        #cmd_list.append(msgpack.packb(cmd_pub_prfx, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(cmd_pub_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(cmd_pub_prfx_100, use_bin_type=True))
 
+        #cmd_list.append(msgpack.packb(cmd_pub_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(cmd_pub_prfx_110, use_bin_type=True))
 
+        #region 10. FLUSH
+        flush_cmd_100 = {
+            "cmd": "FLUSH",
+            "args": {},
+            "cfg": {
+                "pers": 0,
+                "ack": 1,
+            }
+        }
 
+        flush_cmd_110 = {
+            "C": 10,
+            "A": {},
+            "CF": {
+                "P": 0,
+                "A": 1,
+            }
+        }
 
+        flush_cmd_pers_100 = {
+            "cmd": "FLUSH",
+            "args": {},
+            "cfg": {
+                "type": "appl",
+                "pers": 1,
+                "ack": 1,
+            }
+        }
 
+        flush_cmd_pers_110 = {
+            "C": 10,
+            "A": {},
+            "CF": {
+                "T": "A",
+                "P": 1,
+                "A": 1,
+            }
+        }
+
+        #endregion
+        #cmd_list.append(msgpack.packb(flush_cmd_100, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(flush_cmd_pers_100, use_bin_type=True))
+
+        #cmd_list.append(msgpack.packb(flush_cmd_110, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(flush_cmd_pers_110, use_bin_type=True))
 
         return cmd_list, rsp_list
 

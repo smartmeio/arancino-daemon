@@ -179,6 +179,11 @@ class ArancinoPort(object):
             #aggiungo il port type
             acmd.args[PCK.PACKET[acmd.cortex_version].CMD.ARGUMENTS.PORT_TYPE] = self.getPortType().name
 
+            # pretty print
+            formatted_command_json = json.dumps(acmd.getUnpackedPacket(), indent=2)
+
+            LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.id, formatted_command_json))
+
             # check if the received command handler callback function is defined
             if self._received_command_handler is not None:
                 self._received_command_handler(self._id, acmd)
@@ -188,11 +193,6 @@ class ArancinoPort(object):
             cmd = cxef.getCommandExecutor(cmd=acmd)
 
             arsp = cmd.execute()
-
-            # pretty print
-            formatted_command_json = json.dumps(acmd.getUnpackedPacket(), indent=2)
-
-            LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.id, formatted_command_json))
 
             if acmd.id == PCK.PACKET[acmd.cortex_version].CMD.CMDS.START:
                 self._retrieveStartCmdArgs(acmd)

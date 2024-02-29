@@ -75,8 +75,8 @@ class Publish(CortexCommandExecutor):
             pipeline = datastore.pipeline()
 
             for i in items:
-                ch = i["C"]
-                msg = i["M"]
+                ch = i[self.PACKET.CMD.ARGUMENTS.ITEM.CHANNEL]
+                msg = i[self.PACKET.CMD.ARGUMENTS.ITEM.MESSAGE]
 
                 if int(prefix_id) == 1:
                     """

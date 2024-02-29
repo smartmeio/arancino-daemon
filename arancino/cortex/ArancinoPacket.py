@@ -253,6 +253,8 @@ class PACKET_110:
                 FIELD = "F"
                 TIMESTAMP = "TS"
                 TAG = "N"
+                CHANNEL = "C"
+                MESSAGE = "M"
 
             class FIRMWARE:
 
@@ -372,6 +374,8 @@ class PACKET_100:
                 FIELD = "field"
                 TIMESTAMP = "ts"
                 TAG = "tag"
+                CHANNEL = "channel"
+                MESSAGE = "message"
 
             class FIRMWARE:
 
