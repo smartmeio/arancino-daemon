@@ -33,6 +33,7 @@ from arancino.cortex.Flush import Flush
 from arancino.cortex.Store import Store
 from arancino.cortex.StoreTags import StoreTags
 from arancino.cortex.Publish import Publish
+from arancino.cortex.Subscribe import Subscribe
 
 from arancino.cortex.CortexCommandExectutor import CortexCommandExecutor
 from arancino.cortex.ArancinoPacket import ArancinoCommand
@@ -52,7 +53,8 @@ class CortexCommandExecutorFactory:
             "FLUSH": Flush,
             "STORE": Store,
             "STORETAGS": StoreTags,
-            "PUB": Publish
+            "PUB": Publish,
+            "SUB": Subscribe
         }
 
     def getCommandExecutor(self, cmd: ArancinoCommand) -> CortexCommandExecutor:

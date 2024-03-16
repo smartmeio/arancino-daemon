@@ -130,9 +130,10 @@ class Subscribe(CortexCommandExecutor):
 
     def _check(self):
         """
-        esegui controlli sui parametri della comando SET.
+        esegui controlli sui parametri della comando SUB.
         """
 
+        """
         #region CFG:PERSISTENT
         # controllo se il paramentro di persistenza è presente, altrimenti lo imposto di default
         if not self._checkKeyAndValue(self.arancinoCommand.cfg, PACKET.CMD.CONFIGURATIONS.PERSISTENT) \
@@ -141,6 +142,7 @@ class Subscribe(CortexCommandExecutor):
             self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PERSISTENT] = 0
             LOG.debug("{} - {}".format(self.log_prexix, "CFG:PERS Missing or Incorret: set default value pers:0"))
         #endregion
+        """
 
         #region CFG:ACK
         # controllo se il paramentro ack è presente e valido, altrimenti lo imposto di default
