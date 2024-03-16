@@ -22,7 +22,9 @@ under the License
 from abc import ABC, abstractmethod
 from arancino.ArancinoConstants import ArancinoCommandErrorCodes
 from arancino.ArancinoExceptions import InvalidCommandException
+from typing import Callable
 import msgpack
+
 
 
 class ArancinoPacket_(ABC):
@@ -235,6 +237,8 @@ class ArancinoCommand(ArancinoPacket):
 
             self.id = None
 
+        self.sub_handler = None
+
         super().__init__(packet=packet)
 
 
@@ -246,6 +250,13 @@ class ArancinoCommand(ArancinoPacket):
     def id(self, id: str):
         self.__id = id
 
+    @property
+    def sub_handler(self):
+        return self.__sub_handler
+
+    @sub_handler.setter
+    def sub_handler(self, sub_handler: Callable):
+        self.__sub_handler = sub_handler
 
     def _create_packet(self):
 
@@ -283,6 +294,8 @@ class ArancinoResponse(ArancinoPacket):
 
             self.code = None
 
+        self.sub_thread = None
+
         super().__init__(packet=packet)
 
     @property
@@ -293,6 +306,13 @@ class ArancinoResponse(ArancinoPacket):
     def code(self, code: int):
         self.__code = code
 
+    @property
+    def sub_thread(self):
+        return self.__sub_thread
+
+    @sub_thread.setter
+    def sub_thread(self, thread):
+        self.__sub_thread = thread
 
     def _create_packet(self):
 

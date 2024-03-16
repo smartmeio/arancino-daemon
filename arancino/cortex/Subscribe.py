@@ -2,7 +2,7 @@
 """
 SPDX-license-identifier: Apache-2.0
 
-Copyright (c) 2022 SmartMe.IO
+Copyright (c) 2024 SmartMe.IO
 
 Authors:  Sergio Tomasello <sergio@smartme.io>
 
@@ -33,16 +33,15 @@ CONF = ArancinoConfig.Instance()
 
 
 
-class Publish(CortexCommandExecutor):
+class Subscribe(CortexCommandExecutor):
 
-    # region Publish Example
+    # region Subscribe Example
     '''
     {
-        "cmd": "PUB",
+        "cmd": "SUB",
         "args":{
             "items":[
-                {"channel": "<channel-1>", "message": "<message-A>"}
-                {"channel": "<channel-2>", "message": "<message-B>"}
+                "<channel-1>", "<channel-2>", "<channel-n>"
             ]
         },
         "cfg":{
@@ -66,36 +65,29 @@ class Publish(CortexCommandExecutor):
             # region Selezione del datastore in base al paramentro "type"
 
             datastore = self._datastore
-            items = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.ITEMS]
+            channels = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.ITEMS]
             prefix_id = self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID]
             port_id = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_ID]
 
-            pipeline = datastore.pipeline()
+            # esegue un cambio di nome dei canali qualora il prefix id fosse abilitato
+            channels_w_prefix = self._prefix(channels)
 
-            for i in items:
-                ch = i["channel"]
-                msg = i["message"]
+            pbsb = datastore.pubsub(ignore_subscribe_messages=True)
 
-                if int(prefix_id) == 1:
-                    """
-                    il comando usa il prefix id, per cui a tutte le chiavi va agganciato l'id della porta. 
-                    """
-                    ch = "{}_{}".format(port_id, ch)
+            for ch in channels_w_prefix:
 
-                pipeline.publish(ch, msg)
+                pbsb.subscribe(**{ch: self.arancinoCommand.sub_handler})
 
-            res = pipeline.execute()
 
             #endregion
 
             #region Creo la Response
-            if res is not None:
-                num = sum(res)
+            self.arancinoResponse.code = ArancinoCommandResponseCodes.RSP_OK
 
-                self.arancinoResponse.code = ArancinoCommandResponseCodes.RSP_OK
-                self.arancinoResponse.args[PACKET.RSP.ARGUMENTS.CLIENTS] = num
-            else:
-                raise RedisError
+            #Attacco il thread che gestisce la subscription su redis ad una proprietà dell'Arancino Response
+            # in quanto questa torna su fino alla Arancino Port. Una volta tornata su, la stacco dalla ARSP e la
+            # collego alla Arancino Port, dove risiede anche l'handler che viene usato per gestire il canale/messaggio
+            self.arancinoResponse.sub_thread = pbsb.run_in_thread(sleep_time=0.001)
 
             self._createChallenge()
 
@@ -108,6 +100,33 @@ class Publish(CortexCommandExecutor):
 
         except Exception as ex:
             raise ArancinoException("Generic Error: " + str(ex), ArancinoCommandErrorCodes.ERR)
+
+
+    def _prefix(self, keys):
+        prefix_id = self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID]
+        port_id = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_ID]
+
+        if int(prefix_id) == 1:
+            """
+            il comando usa il prefix id, per cui a tutte le chiavi va agganciato l'id della porta. 
+            """
+
+            # istanza di comodo da usare qualora il prefix_id fosse attivo.
+            keys_prfx = []
+
+            for k in keys:
+                k = "{}_{}".format(port_id, k)
+                keys_prfx.append(k)
+
+            return keys_prfx
+
+        else:
+            """
+            il comando non usa il prefix id 
+            """
+            return keys
+
+
 
     def _check(self):
         """

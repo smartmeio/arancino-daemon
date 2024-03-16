@@ -107,6 +107,12 @@ class ArancinoPort(object):
         self.__first_time = True
         self.__HEARTBEAT = None
 
+        """
+         Serve solo nel caso di MQTT PORT e solo se arriva un comando SUB. in questo qui viene attaccato
+         il thread di gestione della subscription su REDIS e che triggera il metodo sub_handler
+        """
+        self._sub_thread = None
+
     def unplug(self):
         self.disconnect()
         self._m_s_plugged = False
@@ -153,6 +159,27 @@ class ArancinoPort(object):
         pass
 
 
+    def _sub_handler(self, message):
+        """
+        E' il metodo handler che viene passato al comando SUB dalle port
+        che a sua volta lo usa per effettua la subscription su REDIS.
+
+        message: un dict formato cosi:
+        {'type': 'message', 'pattern': None, 'channel': b'canale-3', 'data': b'aaaa1'}
+
+        """
+        print(message)
+
+        if str(message.type) == 'message':
+            channel = message.channel.decode("utf-8") if message.channel.decode("utf-8") else None
+            message = message.data.decode("utf-8") if message.data.decode("utf-8") else None
+
+            #TODO adesso devo rispondere alla porta, magari posso sfruttare la sendResponse.
+
+            #self.sendResponse()
+
+
+
     def _commandReceivedHandlerAbs(self, packet):
         """
         This is an Asynchronous function, and represent the "handler" to be used by an ArancinoHandler implementation to receive data.
@@ -176,6 +203,24 @@ class ArancinoPort(object):
             #aggiungo il port type
             acmd.args[PACKET.CMD.ARGUMENTS.PORT_TYPE] = self.getPortType().name
 
+            if self.getPortType().name == PortTypes(PortTypes.MQTT).name:
+                """
+                Aggiungo il subscription handler solo per MQTT. Sfrutto una proprietà dell'oggetto
+                Arancino Command per trasportare il metodo handler fino al Command Executor (nello specifico comando
+                subscribe). Quando verrà eseguita la Subscription su un canale Redis, verrà agganciato l'handler che è 
+                stato trasportato, ma che è comunque parte dell'oggetto ArancinoPort. In questo modo, quando verrà 
+                pubblicato un messaggio nel canale sottoscritto, risponderà direttamente la sub_handler.
+                
+                Eseguito il comando dal Command Executor (SUB) questo generà un thread per la gestione della subscription
+                Redis, che come l'handler sarà trasportato verso l'Arancino Port, ma questa volta dall'Arancino Response.
+                
+                La sub_handler non dovrà fare altro che ritornare alla Aracino Port il messaggio, sfruttando la 
+                sendResponse, o analogo.
+                """
+
+                acmd.sub_handler = self._sub_handler
+
+
             # check if the received command handler callback function is defined
             if self._received_command_handler is not None:
                 self._received_command_handler(self._id, acmd)
@@ -185,6 +230,9 @@ class ArancinoPort(object):
             cmd = cxef.getCommandExecutor(cmd=acmd)
 
             arsp = cmd.execute()
+
+            #Aggancio il thread di gestione della subscribe redis.
+            self._sub_thread = arsp.sub_thread
 
             # pretty print
             formatted_command_json = json.dumps(acmd.getUnpackedPacket(), indent=2)
