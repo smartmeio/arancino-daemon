@@ -211,7 +211,7 @@ class ArancinoResponse(ArancinoPacket):
         return pck
 
 
-class PACKET_110:
+class PACKET_200:
     """
     Version 1.1.0 of Cortex Protocol keys
     """
@@ -235,8 +235,9 @@ class PACKET_110:
             HGET = 7
             HDEL = 8
             PUB = 9
-            FLUSH = 10
-            SIGN = 11
+            SUB = 10
+            FLUSH = 11
+            SIGN = 12
 
         class ARGUMENTS:
 
@@ -452,6 +453,6 @@ class PACKET_100:
 class PCK:
 #    PACKET_110 = PACKET
     PACKET = {
-        "1.1.0": PACKET_110,
+        "2.0.0": PACKET_200,
         "1.0.0": PACKET_100
     }
