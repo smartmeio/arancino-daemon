@@ -22,7 +22,7 @@ under the License
 from abc import ABC, abstractmethod
 from arancino.ArancinoConstants import ArancinoCommandErrorCodes
 from arancino.ArancinoExceptions import InvalidCommandException
-from typing import Callable
+from typing import Callable, List
 import msgpack
 
 
@@ -238,6 +238,7 @@ class ArancinoCommand(ArancinoPacket):
             self.id = None
 
         self.sub_handler = None
+        self.sub_channels: List = []
 
         super().__init__(packet=packet)
 
@@ -257,6 +258,14 @@ class ArancinoCommand(ArancinoPacket):
     @sub_handler.setter
     def sub_handler(self, sub_handler: Callable):
         self.__sub_handler = sub_handler
+
+    @property
+    def sub_channels(self):
+        return self.__sub_channels
+
+    @sub_channels.setter
+    def sub_channels(self, sub_channels: List):
+        self.__sub_channels = sub_channels
 
     def _create_packet(self):
 
@@ -295,6 +304,7 @@ class ArancinoResponse(ArancinoPacket):
             self.code = None
 
         self.sub_thread = None
+        self.sub_channels: List = []
 
         super().__init__(packet=packet)
 
@@ -313,6 +323,14 @@ class ArancinoResponse(ArancinoPacket):
     @sub_thread.setter
     def sub_thread(self, thread):
         self.__sub_thread = thread
+
+    @property
+    def sub_channels(self):
+        return self.__sub_channels
+
+    @sub_channels.setter
+    def sub_channels(self, sub_channels: List):
+        self.__sub_channels = sub_channels
 
     def _create_packet(self):
 
@@ -390,6 +408,9 @@ class PACKET:
             KEYS = "keys"
 
             CLIENTS = "clients"
+
+            CHANNEL = "channel"
+            MESSAGE = "message"
 
 
         class CONFIGURATIONS:

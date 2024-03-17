@@ -133,7 +133,7 @@ class ArancinoTestPort(ArancinoPort):
 
     def sendResponse(self, raw_response):
         # Do nothing
-        pass
+        print("raw_response")
 
 
     # region MICRO CONTROLLER FAMILY

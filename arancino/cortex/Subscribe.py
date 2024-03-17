@@ -75,8 +75,15 @@ class Subscribe(CortexCommandExecutor):
             pbsb = datastore.pubsub(ignore_subscribe_messages=True)
 
             for ch in channels_w_prefix:
+                """ 
+                inizio a sottoscrivermi ai canali desidarti ma prima controllo 
+                che il channel a cui si ci vuole sottoscrivere non sia già nella
+                lista dei canali sottoscritti
+                """
+                if ch not in self.arancinoCommand.sub_channels:
 
-                pbsb.subscribe(**{ch: self.arancinoCommand.sub_handler})
+                    pbsb.subscribe(**{ch: self.arancinoCommand.sub_handler})
+                    self.arancinoCommand.sub_channels.append(ch)
 
 
             #endregion
@@ -88,6 +95,7 @@ class Subscribe(CortexCommandExecutor):
             # in quanto questa torna su fino alla Arancino Port. Una volta tornata su, la stacco dalla ARSP e la
             # collego alla Arancino Port, dove risiede anche l'handler che viene usato per gestire il canale/messaggio
             self.arancinoResponse.sub_thread = pbsb.run_in_thread(sleep_time=0.001)
+            self.arancinoResponse.sub_channels = self.arancinoCommand.sub_channels
 
             self._createChallenge()
 

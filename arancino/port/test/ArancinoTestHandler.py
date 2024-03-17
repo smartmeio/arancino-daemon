@@ -221,8 +221,8 @@ class ArancinoTestHandler(threading.Thread):
         }
         # endregion
 
-        cmd_list.append(msgpack.packb(start_cmd, use_bin_type=True))
-        rsp_list.append(msgpack.packb(start_rsp, use_bin_type=True))
+        #cmd_list.append(msgpack.packb(start_cmd, use_bin_type=True))
+        #rsp_list.append(msgpack.packb(start_rsp, use_bin_type=True))
 
 
 
@@ -808,6 +808,20 @@ class ArancinoTestHandler(threading.Thread):
 
         #cmd_list.append(msgpack.packb(cmd_store_tag, use_bin_type=True))
 
+        # region 12. SUBSCRIBE
+        cmd_sub = {
+            "cmd": "SUB",
+            "args": {
+                "items": [
+                    "channel-1", "channel-2"
+                ]
+            },
+            "cfg": {
+            }
+        }
+        # endregion
+
+        cmd_list.append(msgpack.packb(cmd_sub, use_bin_type=True))
 
 
         return cmd_list, rsp_list
