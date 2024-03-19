@@ -29,7 +29,7 @@ import time
 import semantic_version
 from arancino.ArancinoExceptions import ArancinoException, NonCompatibilityException
 from arancino.cortex.ExecutorFactory import CortexCommandExecutorFactory
-from arancino.cortex.ArancinoPacket import ArancinoCommand, PACKET, ArancinoResponse
+from arancino.cortex.ArancinoPacket import ArancinoCommand, PACKET, ArancinoResponse, ArancinoPacket
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, stringToBool2, ArancinoEnvironment
 from arancino.ArancinoConstants import ArancinoCommandErrorCodes, ArancinoReservedChars, CortexCompatibilityLists, ArancinoApiResponseCode
 from arancino.ArancinoDataStore import ArancinoDataStore
@@ -229,8 +229,6 @@ class ArancinoPort(object):
 
             LOG.debug("{} Triggered Redis Subscription: Channel: {} - Message: {}".format(self._log_prefix, channel, message))
 
-            #TODO adesso devo rispondere alla porta, magari posso sfruttare la sendResponse.
-
             items = {
                 PACKET.RSP.ARGUMENTS.CHANNEL: channel,
                 PACKET.RSP.ARGUMENTS.MESSAGE: message
@@ -241,9 +239,21 @@ class ArancinoPort(object):
             arsp.args[PACKET.RSP.ARGUMENTS.ITEMS] = items
             arsp.cfg = {}
 
-            self.sendResponse(arsp.getPackedPacket())
+            self.sendCommand(arsp.getPackedPacket())
 
 
+
+    def sendCommand(self, command: ArancinoPacket):
+        """
+        Send a Command to a "Port". A Command is bind to a "Port". The Command is sent only if the
+            "Port" is Connected.
+
+        :param command: {ArancinoCommand} The Command to send back to the "Port".
+        :return: void
+        """
+
+        LOG.debug("{} Sending: {}".format(self._log_prefix, command.getPackedPacket()))
+        self.sendResponse(command.getPackedPacket())
 
     def _commandReceivedHandlerAbs(self, packet):
         """
