@@ -115,7 +115,6 @@ class ArancinoPort(object):
         """
         self._sub_thread = None
         self._sub_channels: List = []
-        self._sub_restoration()
 
 
     def _sub_restoration(self):
@@ -134,7 +133,7 @@ class ArancinoPort(object):
         devds = DATASTORE.getDataStoreDev()
 
         # recupero tutti i canali sottoscritti nell'hashset di Redis, ma sono serializzati
-        chs_srlz = devds.hget(self.getId(), "sub_channels")
+        chs_srlz = devds.hget(self.getId(), "C_SUB_CHANNELS")
         chs = []
 
         if chs_srlz:
@@ -183,7 +182,7 @@ class ArancinoPort(object):
 
         :return:
         """
-
+        self._sub_restoration()
 
     @abstractmethod
     def disconnect(self):
@@ -302,8 +301,9 @@ class ArancinoPort(object):
             La sub_handler non dovrà fare altro che ritornare alla Aracino Port il messaggio, sfruttando la 
             sendResponse, o analogo.
             """
-            acmd.sub_handler = self._sub_handler
-            acmd.sub_channels = self._sub_channels
+            if acmd.id == "SUB":  # TODO ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
+                acmd.sub_handler = self._sub_handler
+                acmd.sub_channels = self._sub_channels
 
 
             # check if the received command handler callback function is defined
@@ -321,10 +321,12 @@ class ArancinoPort(object):
             i Subscription Channels dalla Arancino Response per inserirli nella Arancino Port
             Infine serializzo i Sub. Channels e li memorizzo su Device Datastore
             """
-            self._sub_thread = arsp.sub_thread
-            self._sub_channels = arsp.sub_channels
-            chs_srlz = json.dumps(arsp.sub_channels)
-            DATASTORE.getDataStoreDev().hset(self.getId(), "sub_channels", chs_srlz)
+            if acmd.id == "SUB":
+                self._sub_thread = arsp.sub_thread
+                self._sub_channels = arsp.sub_channels
+                if self._sub_channels:
+                    chs_srlz = json.dumps(self._sub_channels)
+                    DATASTORE.getDataStoreDev().hset(self.getId(), "C_SUB_CHANNELS", chs_srlz)
 
 
 
