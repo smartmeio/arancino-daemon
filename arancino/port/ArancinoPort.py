@@ -115,7 +115,7 @@ class ArancinoPort(object):
         """
         self._sub_thread = None
         self._sub_channels: List = []
-        #self._sub_restoration()
+        self._sub_restoration()
 
 
     def _sub_restoration(self):
@@ -130,17 +130,16 @@ class ArancinoPort(object):
 
         """
 
-        #prendo il Device Datastore
+        # prendo il Device Datastore
         devds = DATASTORE.getDataStoreDev()
 
-        #recupero tutti i canali sottoscritti nell'hashset, serializzati
+        # recupero tutti i canali sottoscritti nell'hashset di Redis, ma sono serializzati
         chs_srlz = devds.hget(self.getId(), "sub_channels")
         chs = []
 
         if chs_srlz:
-            # li deserializzo
+            # deserializzo i canali e creo una la lista con i canali stessi
             chs = json.loads(chs_srlz)
-
 
 
         if len(chs) > 0:
@@ -152,18 +151,25 @@ class ArancinoPort(object):
             pck[PACKET.CMD.ARGUMENT] = {}
             pck[PACKET.CMD.ARGUMENT][PACKET.CMD.ARGUMENTS.ITEMS] = chs
             pck[PACKET.CMD.CONFIGURATION] = {}
+            pck[PACKET.CMD.CONFIGURATION][PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] = 0
             pck[PACKET.CMD.ARGUMENT][PACKET.CMD.ARGUMENTS.PORT_ID] = self.getId()
             pck[PACKET.CMD.ARGUMENT][PACKET.CMD.ARGUMENTS.PORT_TYPE] = self.getPortType().name
 
+            """
             acmd = ArancinoCommand(packet=pck)
             acmd.sub_handler = self._sub_handler
+            """
+            LOG.info("{} Subscribption Restorarion: {}".format(self._log_prefix, str(chs)))
+            self._commandReceivedHandlerAbs(pck)
 
+            """
             # adesso devo eseguire l'Arancino Command, invocando il Command Executor
             cxef = CortexCommandExecutorFactory()
             cmd = cxef.getCommandExecutor(cmd=acmd)
 
             # ottengo la risposta, ma la scarto in quando è un comando eseguito internamente.
             arsp = cmd.execute()
+            """
 
 
     def unplug(self):
@@ -239,7 +245,7 @@ class ArancinoPort(object):
             arsp.args[PACKET.RSP.ARGUMENTS.ITEMS] = items
             arsp.cfg = {}
 
-            self.sendCommand(arsp.getPackedPacket())
+            self.sendCommand(arsp)
 
 
 
