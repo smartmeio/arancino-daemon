@@ -159,16 +159,16 @@ docker_alpine_build:
   script:
     - DCK_TAG=${CI_COMMIT_TAG}-alpine
     - docker buildx create --use
-    - docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -f Dockerfile-alpine-arancino.dockerfile -t $DCK_IMAGE_NAME:$DCK_TAG --push .
+    - docker buildx build --platform linux/amd64,linux/arm64 -f  docker/alpine/Dockerfile -t $DCK_IMAGE_NAME:$DCK_TAG --push .
     - > 
       if [[ $CI_COMMIT_TAG == *"test"* || $CI_COMMIT_TAG == *"rc"* || $CI_COMMIT_TAG == *"beta"* || $CI_COMMIT_TAG == *"alpha"* ]]; then
         echo "not performing TAG latest";
       else
         DCK_TAG=latest
-        docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -f Dockerfile-alpine-arancino.dockerfile -t $DCK_IMAGE_NAME:$DCK_TAG --push .
+        docker buildx build --platform linux/amd64,linux/arm64 -f  docker/alpine/Dockerfile -t $DCK_IMAGE_NAME:$DCK_TAG --push .
         
         DCK_TAG=${CI_COMMIT_TAG}
-        docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -f Dockerfile-alpine-arancino.dockerfile -t $DCK_IMAGE_NAME:$DCK_TAG --push .
+        docker buildx build --platform linux/amd64,linux/arm64 -f  docker/alpine/Dockerfile -t $DCK_IMAGE_NAME:$DCK_TAG --push .
       fi
 
   only:
@@ -182,7 +182,7 @@ docker_debian_build:
   script:
     - DCK_TAG=${CI_COMMIT_TAG}-debian
     - docker buildx create --use
-    - docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -f Dockerfile-debian-arancino.dockerfile -t $DCK_IMAGE_NAME:$DCK_TAG --push .
+    - docker buildx build --platform linux/amd64,linux/arm64 -f  docker/debian/Dockerfile -t $DCK_IMAGE_NAME:$DCK_TAG --push .
   
   only:
     - tags
