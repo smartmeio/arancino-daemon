@@ -161,7 +161,7 @@ docker_alpine_build:
     - docker buildx create --use
     - docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -f Dockerfile-alpine-arancino.dockerfile -t $DCK_IMAGE_NAME:$DCK_TAG --push .
     - > 
-      if [[ ${PRE_RELEASE} == "test"  ]] || [[ ${PRE_RELEASE} == "rc"  ]] || [[ ${PRE_RELEASE} == "beta"  ]] || [[ ${PRE_RELEASE} == "alpha"  ]]; then
+      if [[ $CI_COMMIT_TAG == *"test"* || $CI_COMMIT_TAG == *"rc"* || $CI_COMMIT_TAG == *"beta"* || $CI_COMMIT_TAG == *"alpha"* ]]; then
         echo "not performing TAG latest";
       else
         DCK_TAG=latest
