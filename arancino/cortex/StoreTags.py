@@ -23,7 +23,7 @@ from arancino.ArancinoExceptions import ArancinoException, RedisGenericException
 from arancino.cortex.CortexCommandExectutor import CortexCommandExecutor
 from arancino.cortex.ArancinoPacket import ArancinoCommand, ArancinoResponse
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
-from arancino.cortex.ArancinoPacket import PACKET
+from arancino.cortex.ArancinoPacket import PCK
 from arancino.ArancinoConstants import SUFFIX_TMSTP, SUFFIX_TAG, SUFFIX_LBL
 from redis.exceptions import RedisError
 from datetime import datetime
@@ -37,18 +37,18 @@ class StoreTags(CortexCommandExecutor):
     # region Store Example
     '''
     {
-        "cmd": "STORETAGS",
-        "args":{
-            "key": "<key-1>",
-            "items": [
-                {"tag": "<tag-1>", "value": "<value-1>"},
-                {"tag": "<tag-2>", "value": "<value-2>"}
+        "C": "5",
+        "A":{
+            "K": "<key-1>",
+            "I": [
+                {"N": "<tag-1>", "V": "<value-1>"},
+                {"N": "<tag-2>", "V": "<value-2>"}
             ],
-            "ts": "<UNIX timestamp>"
+            "TS": "<UNIX timestamp>"
         },
-        "cfg":{
-            "ack": 1,
-            "sgntr": "<Signature>"
+        "CF":{
+            "A": 1,
+            "SGN": "<Signature>"
         }
     }
     '''
@@ -56,7 +56,9 @@ class StoreTags(CortexCommandExecutor):
 
     def __init__(self, arancinoCommand: ArancinoCommand):
         self.arancinoCommand = arancinoCommand
-        self.arancinoResponse = ArancinoResponse(packet=None)
+        self.PACKET = PCK.PACKET[arancinoCommand.cortex_version]
+        self.arancinoResponse = ArancinoResponse(packet=None, cortex_version=arancinoCommand.cortex_version)
+
 
     def execute(self):
 
@@ -67,14 +69,14 @@ class StoreTags(CortexCommandExecutor):
 
             datastore = self._datastore_tag
 
-            items = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.ITEMS]
-            port_id = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_ID]
-            ts = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.TIMESTAMP]
-            key = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.KEY]
+            items = self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.ITEMS]
+            port_id = self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.PORT_ID]
+            ts = self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.ITEM.TIMESTAMP]
+            key = self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.ITEM.KEY]
 
             for i in items:
-                tag = i["tag"]
-                val = i["value"]
+                tag = i[self.PACKET.CMD.ARGUMENTS.ITEM.TAG]
+                val = i[self.PACKET.CMD.ARGUMENTS.ITEM.VALUE]
 
                 saved_tags =[]
                 d_key = "{}:{}:{}:{}".format(port_id, key, SUFFIX_TAG, tag)
@@ -108,21 +110,21 @@ class StoreTags(CortexCommandExecutor):
         """
         #region CFG:ACK
         # controllo se il paramentro ack è presente e valido, altrimenti lo imposto di default
-        if not self._checkKeyAndValue(self.arancinoCommand.cfg, PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT) \
-                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] < 0 \
-                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] > 1:
-            self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] = 1
+        if not self._checkKeyAndValue(self.arancinoCommand.cfg, self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT) \
+                or self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] < 0 \
+                or self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] > 1:
+            self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] = 1
             LOG.debug("{} - {}".format(self.log_prexix, "CFG:ACK Missing or Incorret: set default value ack:1"))
         #endregion
 
         #region ARGS:TS
-        if not self._checkKeyAndValue(self.arancinoCommand.args, PACKET.CMD.ARGUMENTS.TIMESTAMP) \
-                or self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.TIMESTAMP].strip() == "":
-            self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.TIMESTAMP] = str(int(datetime.now().timestamp() * 1000))
+        if not self._checkKeyAndValue(self.arancinoCommand.args, self.PACKET.CMD.ARGUMENTS.TIMESTAMP) \
+                or self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.TIMESTAMP].strip() == "":
+            self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.TIMESTAMP] = str(int(datetime.now().timestamp() * 1000))
         #endregion
 
         #region ARGS:ITEMS
-        if not self._checkKeyAndValue(self.arancinoCommand.args, PACKET.CMD.ARGUMENTS.ITEMS) \
-                or len(self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.ITEMS]) == 0:
+        if not self._checkKeyAndValue(self.arancinoCommand.args, self.PACKET.CMD.ARGUMENTS.ITEMS) \
+                or len(self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.ITEMS]) == 0:
             raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
         #endregion
