@@ -58,7 +58,7 @@ class CortexCommandExecutorFactory:
         }
 
         self.cmds = {
-            "1.1.0": self.commands_110,
+            #"1.1.0": self.commands_110,
             "1.0.0": self.commands_100
         }
 
