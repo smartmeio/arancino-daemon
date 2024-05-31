@@ -33,6 +33,7 @@ from arancino.cortex.HashGet import HashGet
 from arancino.cortex.HashDel import HashDel
 from arancino.cortex.Publish import Publish
 from arancino.cortex.Subscribe import Subscribe
+from arancino.cortex.Flush import Flush
 
 from arancino.cortex.CortexCommandExectutor import CortexCommandExecutor
 from arancino.cortex.ArancinoPacket import ArancinoCommand
