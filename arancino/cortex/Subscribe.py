@@ -66,9 +66,9 @@ class Subscribe(CortexCommandExecutor):
             # region Selezione del datastore in base al paramentro "type"
 
             datastore = self._datastore
-            channels = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.ITEMS]
-            prefix_id = self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID]
-            port_id = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_ID]
+            channels = self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.ITEMS]
+            prefix_id = self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.PREFIX_ID]
+            port_id = self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.PORT_ID]
 
             # esegue un cambio di nome dei canali qualora il prefix id fosse abilitato
             channels_w_prefix = self._prefix(channels)
@@ -112,8 +112,8 @@ class Subscribe(CortexCommandExecutor):
 
 
     def _prefix(self, keys):
-        prefix_id = self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID]
-        port_id = self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.PORT_ID]
+        prefix_id = self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.PREFIX_ID]
+        port_id = self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.PORT_ID]
 
         if int(prefix_id) == 1:
             """
@@ -155,24 +155,24 @@ class Subscribe(CortexCommandExecutor):
 
         #region CFG:ACK
         # controllo se il paramentro ack è presente e valido, altrimenti lo imposto di default
-        if not self._checkKeyAndValue(self.arancinoCommand.cfg, PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT) \
-                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] < 0 \
-                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] > 1:
-            self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] = 1
+        if not self._checkKeyAndValue(self.arancinoCommand.cfg, self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT) \
+                or self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] < 0 \
+                or self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] > 1:
+            self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] = 1
             LOG.debug("{} - {}".format(self.log_prexix, "CFG:ACK Missing or Incorret: set default value ack:1"))
         #endregion
 
         # region CFG:PRFX
         # controllo se il paramentro prfx è presente e valido, altrimenti lo imposto di default
-        if not self._checkKeyAndValue(self.arancinoCommand.cfg, PACKET.CMD.CONFIGURATIONS.PREFIX_ID) \
-                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] < 0 \
-                or self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] > 1:
-            self.arancinoCommand.cfg[PACKET.CMD.CONFIGURATIONS.PREFIX_ID] = 0
+        if not self._checkKeyAndValue(self.arancinoCommand.cfg, self.PACKET.CMD.CONFIGURATIONS.PREFIX_ID) \
+                or self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.PREFIX_ID] < 0 \
+                or self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.PREFIX_ID] > 1:
+            self.arancinoCommand.cfg[self.PACKET.CMD.CONFIGURATIONS.PREFIX_ID] = 0
             LOG.debug("{} - {}".format(self.log_prexix, "CFG:PRFX Missing or Incorret: set default value prfx:0"))
         # endregion
 
         #region ARGS:ITEMS
-        if not self._checkKeyAndValue(self.arancinoCommand.args, PACKET.CMD.ARGUMENTS.ITEMS) \
-                or len(self.arancinoCommand.args[PACKET.CMD.ARGUMENTS.ITEMS]) == 0:
+        if not self._checkKeyAndValue(self.arancinoCommand.args, self.PACKET.CMD.ARGUMENTS.ITEMS) \
+                or len(self.arancinoCommand.args[self.PACKET.CMD.ARGUMENTS.ITEMS]) == 0:
             raise ArancinoException("Arguments Error: Arguments are incorrect or empty. Please check if number of Keys are the same of number of Values, or check if they are not empty", ArancinoCommandErrorCodes.ERR_INVALID_ARGUMENTS)
         #endregion
