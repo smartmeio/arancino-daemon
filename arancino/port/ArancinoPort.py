@@ -116,6 +116,7 @@ class ArancinoPort(object):
         self._sub_thread = None
         self._sub_channels: List = []
 
+        self.PACKET = PCK.PACKET["1.0.0"]
 
     def _sub_restoration(self):
         """
@@ -146,13 +147,15 @@ class ArancinoPort(object):
             Creo un Arancino Command in modo da rifare la SUB.
             """
             pck = {}
-            pck[PACKET.CMD.COMMAND_ID] = "SUB"
-            pck[PACKET.CMD.ARGUMENT] = {}
-            pck[PACKET.CMD.ARGUMENT][PACKET.CMD.ARGUMENTS.ITEMS] = chs
-            pck[PACKET.CMD.CONFIGURATION] = {}
-            pck[PACKET.CMD.CONFIGURATION][PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] = 0
-            pck[PACKET.CMD.ARGUMENT][PACKET.CMD.ARGUMENTS.PORT_ID] = self.getId()
-            pck[PACKET.CMD.ARGUMENT][PACKET.CMD.ARGUMENTS.PORT_TYPE] = self.getPortType().name
+            pck[self.PACKET.CMD.COMMAND_ID] = "SUB"
+            pck[self.PACKET.CMD.ARGUMENT] = {}
+            pck[self.PACKET.CMD.ARGUMENT][self.PACKET.CMD.ARGUMENTS.ITEMS] = chs
+            pck[self.PACKET.CMD.CONFIGURATION] = {}
+            pck[self.PACKET.CMD.CONFIGURATION][self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] = 0
+            pck[self.PACKET.CMD.ARGUMENT][self.PACKET.CMD.ARGUMENTS.PORT_ID] = self.getId()
+            pck[self.PACKET.CMD.ARGUMENT][self.PACKET.CMD.ARGUMENTS.PORT_TYPE] = self.getPortType().name
+
+            self._firmware_cortex_version
 
             """
             acmd = ArancinoCommand(packet=pck)
@@ -235,13 +238,13 @@ class ArancinoPort(object):
             LOG.debug("{} Triggered Redis Subscription: Channel: {} - Message: {}".format(self._log_prefix, channel, message))
 
             items = {
-                PACKET.RSP.ARGUMENTS.CHANNEL: channel,
-                PACKET.RSP.ARGUMENTS.MESSAGE: message
+                self.PACKET.RSP.ARGUMENTS.CHANNEL: channel,
+                self.PACKET.RSP.ARGUMENTS.MESSAGE: message
             }
 
             arsp = ArancinoResponse(packet=None)
             arsp.code = 100
-            arsp.args[PACKET.RSP.ARGUMENTS.ITEMS] = items
+            arsp.args[self.PACKET.RSP.ARGUMENTS.ITEMS] = items
             arsp.cfg = {}
 
             self.sendCommand(arsp)
@@ -283,11 +286,11 @@ class ArancinoPort(object):
 
             # inserisco il port id se non è presente
 
-            if not PCK.PACKET[acmd.cortex_version].CMD.ARGUMENTS.PORT_ID in acmd.args:
-                acmd.args[PCK.PACKET[acmd.cortex_version].CMD.ARGUMENTS.PORT_ID] = self.getId()
+            if not self.PACKET.CMD.ARGUMENTS.PORT_ID in acmd.args:
+                acmd.args[self.PACKET.CMD.ARGUMENTS.PORT_ID] = self.getId()
 
             # aggiungo il port type
-            acmd.args[PACKET.CMD.ARGUMENTS.PORT_TYPE] = self.getPortType().name
+            acmd.args[self.PACKET.CMD.ARGUMENTS.PORT_TYPE] = self.getPortType().name
 
             #if self.getPortType().name == PortTypes(PortTypes.MQTT).name or \
             #        self.getPortType().name == PortTypes(PortTypes.TEST).name:
@@ -342,7 +345,7 @@ class ArancinoPort(object):
                 self._retrieveStartCmdArgs(acmd.args)
 
                 # Set FreeRTOS
-                if (acmd.args[ PCK.PACKET[acmd.cortex_version].CMD.ARGUMENTS.FIRMWARE.USE_FREERTOS ] == 1):
+                if (acmd.args[ self.PACKET.CMD.ARGUMENTS.FIRMWARE.USE_FREERTOS ] == 1):
                     self._setFirmwareUseFreeRTOS("1")
 
                 if (self.getFirmwareUseFreeRTOS() and self.__HEARTBEAT == None):
@@ -368,7 +371,7 @@ class ArancinoPort(object):
 
             try:
 
-                if PCK.PACKET[acmd.cortex_version].CMD.CONFIGURATIONS.ACKNOLEDGEMENT in acmd.cfg and acmd.cfg[PCK.PACKET[acmd.cortex_version].CMD.CONFIGURATIONS.ACKNOLEDGEMENT] == 1:
+                if self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT in acmd.cfg and acmd.cfg[self.PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] == 1:
                     # send the response back.
                     self.sendResponse(arsp.getPackedPacket())
 
@@ -389,70 +392,70 @@ class ArancinoPort(object):
     def _retrieveStartCmdArgs(self, acmd: ArancinoCommand):
 
         args = acmd.args
-        PACKET = PCK.PACKET[acmd.cortex_version]
+        #PACKET = PCK.PACKET[acmd.cortex_version]
 
         #region port id
         old_id = self._id
-        self._id = args[PACKET.CMD.ARGUMENTS.PORT_ID]
+        self._id = args[self.PACKET.CMD.ARGUMENTS.PORT_ID]
         DATASTORE.getDataStoreDev().rename(old_id, self._id)
         self._log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
-        del args[PACKET.CMD.ARGUMENTS.PORT_ID]
+        del args[self.PACKET.CMD.ARGUMENTS.PORT_ID]
         #endregion
 
         #region library version
         arancino_lib_version = None
-        arancino_lib_version = args[PACKET.CMD.ARGUMENTS.FIRMWARE.LIBRARY_VERSION]
+        arancino_lib_version = args[self.PACKET.CMD.ARGUMENTS.FIRMWARE.LIBRARY_VERSION]
         arancino_lib_version = semantic_version.Version(arancino_lib_version)
         self._setLibVersion(arancino_lib_version)
-        del args[PACKET.CMD.ARGUMENTS.FIRMWARE.LIBRARY_VERSION]
+        del args[self.PACKET.CMD.ARGUMENTS.FIRMWARE.LIBRARY_VERSION]
         #endegion
 
         # region MICRO FAMILY
         arancino_micro_family = None
-        arancino_micro_family = args[PACKET.CMD.ARGUMENTS.FIRMWARE.MCU_FAMILY]
+        arancino_micro_family = args[self.PACKET.CMD.ARGUMENTS.FIRMWARE.MCU_FAMILY]
         self._setMicrocontrollerFamily(arancino_micro_family)
-        del args[PACKET.CMD.ARGUMENTS.FIRMWARE.MCU_FAMILY]
+        del args[self.PACKET.CMD.ARGUMENTS.FIRMWARE.MCU_FAMILY]
         # endregion
 
         # region FIRMWARE NAME
         arancino_fw_name = None
-        arancino_fw_name = args[PACKET.CMD.ARGUMENTS.FIRMWARE.NAME]
+        arancino_fw_name = args[self.PACKET.CMD.ARGUMENTS.FIRMWARE.NAME]
         self._setFirmwareName(arancino_fw_name)
-        del args[PACKET.CMD.ARGUMENTS.FIRMWARE.NAME]
+        del args[self.PACKET.CMD.ARGUMENTS.FIRMWARE.NAME]
         # endregion
 
         # region FIRMWARE VERSION
         arancino_fw_version = None
-        arancino_fw_version = args[PACKET.CMD.ARGUMENTS.FIRMWARE.VERSION]
+        arancino_fw_version = args[self.PACKET.CMD.ARGUMENTS.FIRMWARE.VERSION]
         arancino_fw_version = semantic_version.Version(arancino_fw_version)
         self._setFirmwareVersion(arancino_fw_version)
-        del args[PACKET.CMD.ARGUMENTS.FIRMWARE.VERSION]
+        del args[self.PACKET.CMD.ARGUMENTS.FIRMWARE.VERSION]
         # endregion
 
         # region FIRMWARE CORE VERSION
         arancino_fw_core_version = None
-        arancino_fw_core_version = args[PACKET.CMD.ARGUMENTS.FIRMWARE.CORE_VERSION]
+        arancino_fw_core_version = args[self.PACKET.CMD.ARGUMENTS.FIRMWARE.CORE_VERSION]
         arancino_fw_core_version = semantic_version.Version(arancino_fw_core_version)
         self._setFirmwareCoreVersion(arancino_fw_core_version)
-        del args[PACKET.CMD.ARGUMENTS.FIRMWARE.CORE_VERSION]
+        del args[self.PACKET.CMD.ARGUMENTS.FIRMWARE.CORE_VERSION]
         # endregion
 
         # region FIRMWARE BUILD DATE TIME
         arancino_firmware_upload_datetime = None
-        arancino_firmware_upload_datetime = args[PACKET.CMD.ARGUMENTS.FIRMWARE.BUILD_TIME]
+        arancino_firmware_upload_datetime = args[self.PACKET.CMD.ARGUMENTS.FIRMWARE.BUILD_TIME]
         arancino_firmware_upload_datetime = datetime.strptime(arancino_firmware_upload_datetime, '%b %d %Y %H:%M:%S %z')
         arancino_firmware_upload_datetime = datetime.timestamp(arancino_firmware_upload_datetime)
         arancino_firmware_upload_datetime = datetime.fromtimestamp(arancino_firmware_upload_datetime)
         self._setFirmwareBuildDate(arancino_firmware_upload_datetime)
-        del args[PACKET.CMD.ARGUMENTS.FIRMWARE.BUILD_TIME]
+        del args[self.PACKET.CMD.ARGUMENTS.FIRMWARE.BUILD_TIME]
         # endregion
 
         # region FIRMWARE CORTEX VERSION
         arancino_fw_cortex_version = None
-        arancino_fw_cortex_version = args[PACKET.CMD.ARGUMENTS.FIRMWARE.CORTEX_VERSION]
+        arancino_fw_cortex_version = args[self.PACKET.CMD.ARGUMENTS.FIRMWARE.CORTEX_VERSION]
         arancino_fw_cortex_version = semantic_version.Version(arancino_fw_cortex_version)
         self._setFirmwareCortexVersion(arancino_fw_cortex_version)
-        del args[PACKET.CMD.ARGUMENTS.FIRMWARE.CORTEX_VERSION]
+        del args[self.PACKET.CMD.ARGUMENTS.FIRMWARE.CORTEX_VERSION]
         # endregion
 
         # region GENERIC ATTRIBUTES
