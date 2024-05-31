@@ -29,7 +29,7 @@ import time
 import semantic_version
 from arancino.ArancinoExceptions import ArancinoException, NonCompatibilityException
 from arancino.cortex.ExecutorFactory import CortexCommandExecutorFactory
-from arancino.cortex.ArancinoPacket import ArancinoCommand, PACKET, ArancinoResponse, ArancinoPacket
+from arancino.cortex.ArancinoPacket import ArancinoCommand, PCK, ArancinoResponse, ArancinoPacket
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, stringToBool2, ArancinoEnvironment
 from arancino.ArancinoConstants import ArancinoCommandErrorCodes, ArancinoReservedChars, CortexCompatibilityLists, ArancinoApiResponseCode
 from arancino.ArancinoDataStore import ArancinoDataStore

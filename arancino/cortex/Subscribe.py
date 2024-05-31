@@ -24,7 +24,7 @@ from arancino.ArancinoExceptions import ArancinoException, RedisGenericException
 from arancino.cortex.CortexCommandExectutor import CortexCommandExecutor
 from arancino.cortex.ArancinoPacket import ArancinoCommand, ArancinoResponse
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig
-from arancino.cortex.ArancinoPacket import PACKET
+from arancino.cortex.ArancinoPacket import PCK
 from datetime import datetime
 from redis.exceptions import RedisError
 
@@ -55,6 +55,7 @@ class Subscribe(CortexCommandExecutor):
 
     def __init__(self, arancinoCommand: ArancinoCommand):
         self.arancinoCommand = arancinoCommand
+        self.PACKET = PCK.PACKET[arancinoCommand.cortex_version]
         self.arancinoResponse = ArancinoResponse(packet=None)
 
     def execute(self):
