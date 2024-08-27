@@ -178,7 +178,6 @@ def __get_arancinoapi_app():
 
     # region Operarations ####
     @app.route('/api/v1/ports/<port_id>/reset', methods=['POST'])
-    @auth.login_required
     def api_port_reset(port_id=None):
         result = api.resetPort(port_id)
         response = jsonify(result[0])
@@ -186,7 +185,6 @@ def __get_arancinoapi_app():
         return response
 
     @app.route('/api/v1/ports/<port_id>/enable', methods=['POST'])
-    @auth.login_required
     def api_port_enable(port_id=None):
         result = api.enablePort(port_id)
         response = jsonify(result[0])
@@ -194,7 +192,6 @@ def __get_arancinoapi_app():
         return response
 
     @app.route('/api/v1/ports/<port_id>/disable', methods=['POST'])
-    @auth.login_required
     def api_port_disable(port_id=None):
         result = api.disablePort(port_id)
         response = jsonify(result[0])
@@ -202,7 +199,6 @@ def __get_arancinoapi_app():
         return response
 
     @app.route('/api/v1/ports/<port_id>/upload', methods=['POST'])
-    @auth.login_required
     def api_port_upload_firmware(port_id):
 
         # check if the post request has the file part
@@ -241,7 +237,6 @@ def __get_arancinoapi_app():
             return response
 
     @app.route('/api/v1/ports/<port_id>/config', methods=['POST'])
-    @auth.login_required
     def api_port_config(port_id=None):
         result = api.setPortConfig(port_id, request.get_json())
         response = jsonify(result[0])
@@ -250,7 +245,6 @@ def __get_arancinoapi_app():
 
 
     @app.route('/api/v1/ports/<port_id>/hide', methods=['POST'])
-    @auth.login_required
     def api_port_hide(port_id=None):
         result = api.hidePort(port_id)
         response = jsonify(result[0])
@@ -259,7 +253,6 @@ def __get_arancinoapi_app():
 
 
     @app.route('/api/v1/ports/<port_id>/show', methods=['POST'])
-    @auth.login_required
     def api_port_show(port_id=None):
         result = api.showPort(port_id)
         response = jsonify(result[0])
@@ -267,7 +260,6 @@ def __get_arancinoapi_app():
         return response
 
     @app.route('/api/v1/arancino/config', methods=['POST'])
-    @auth.login_required
     def api_arancino_conf_set():
 
         """
@@ -308,7 +300,6 @@ def __get_arancinoapi_app():
 
 
     @app.route('/api/v1/ports/<port_id>/identify', methods=['POST'])
-    @auth.login_required
     def api_port_identify(port_id=None):
         result = api.identifyPort(port_id)
         response = jsonify(result[0])
