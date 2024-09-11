@@ -37,9 +37,9 @@ ENV = ArancinoEnvironment.Instance()
 
 class ArancinoTestPort(ArancinoPort):
     def __init__(self, id=None, device=None, m_s_plugged=True, m_c_enabled=True, m_c_auto_connect=True, m_c_alias="", m_c_hide=False, receivedCommandHandler=None, disconnectionHandler=None):
-        super().__init__(device=device, port_type=PortTypes.TEST, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=CONF.get("port").get("test").get("upload_command"), receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
-
         self._id = id if id is not None else uuid.uuid1()
+        super().__init__(id=self._id, device=device, port_type=PortTypes.TEST, m_s_plugged=m_s_plugged, m_c_enabled=m_c_enabled, m_c_alias=m_c_alias, m_c_hide=m_c_hide, upload_cmd=CONF.get("port").get("test").get("upload_command"), receivedCommandHandler=receivedCommandHandler, disconnectionHandler=disconnectionHandler)
+
         self.__stop = False
         self._log_prefix = "[{} - {} at {}]".format(PortTypes(self._port_type).name, self._id, self._device)
 
@@ -133,7 +133,7 @@ class ArancinoTestPort(ArancinoPort):
 
     def sendResponse(self, raw_response):
         # Do nothing
-        pass
+        print("raw_response")
 
 
     # region MICRO CONTROLLER FAMILY

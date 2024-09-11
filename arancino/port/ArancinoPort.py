@@ -22,12 +22,14 @@ import json
 import threading
 from abc import ABCMeta, abstractmethod
 from types import FunctionType, MethodType
+from typing import List
+
 from arancino.utils.ArancinoEventMessage import ArancinoEventMessage
 import time
 import semantic_version
 from arancino.ArancinoExceptions import ArancinoException, NonCompatibilityException
 from arancino.cortex.ExecutorFactory import CortexCommandExecutorFactory
-from arancino.cortex.ArancinoPacket import ArancinoCommand, PACKET, ArancinoResponse
+from arancino.cortex.ArancinoPacket import ArancinoCommand, PACKET, ArancinoResponse, ArancinoPacket
 from arancino.utils.ArancinoUtils import ArancinoLogger, ArancinoConfig, stringToBool2, ArancinoEnvironment
 from arancino.ArancinoConstants import ArancinoCommandErrorCodes, ArancinoReservedChars, CortexCompatibilityLists, ArancinoApiResponseCode
 from arancino.ArancinoDataStore import ArancinoDataStore
@@ -107,6 +109,68 @@ class ArancinoPort(object):
         self.__first_time = True
         self.__HEARTBEAT = None
 
+        """
+         Serve solo nel caso di MQTT PORT e solo se arriva un comando SUB. in questo qui viene attaccato
+         il thread di gestione della subscription su REDIS e che triggera il metodo sub_handler
+        """
+        self._sub_thread = None
+        self._sub_channels: List = []
+
+
+    def _sub_restoration(self):
+        """
+        Questa funziona viene chiamata all'avvio di una porta per fare una restore delle subscrition effettuate.
+        E' utile nel caso in cui durante una esecuzione la porta esegue una SUB, successivamente il demone viene
+        riavviato (ma non la porta) e perderebbe la lista dei channels, stessa cosa se viene riavviato redis
+
+        per cui i channel vengono memorizzati di volta in volta nel Device Datastore (nell'hashset della porta).
+        All'avvio viene verificato sul Device Datastore la presenza di Channels, se ci sono, li recupero e verifico
+        che siano attive le subscrition su redis
+
+        """
+
+        # prendo il Device Datastore
+        devds = DATASTORE.getDataStoreDev()
+
+        # recupero tutti i canali sottoscritti nell'hashset di Redis, ma sono serializzati
+        chs_srlz = devds.hget(self.getId(), "C_SUB_CHANNELS")
+        chs = []
+
+        if chs_srlz:
+            # deserializzo i canali e creo una la lista con i canali stessi
+            chs = json.loads(chs_srlz)
+
+
+        if len(chs) > 0:
+            """
+            Creo un Arancino Command in modo da rifare la SUB.
+            """
+            pck = {}
+            pck[PACKET.CMD.COMMAND_ID] = "SUB"
+            pck[PACKET.CMD.ARGUMENT] = {}
+            pck[PACKET.CMD.ARGUMENT][PACKET.CMD.ARGUMENTS.ITEMS] = chs
+            pck[PACKET.CMD.CONFIGURATION] = {}
+            pck[PACKET.CMD.CONFIGURATION][PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] = 0
+            pck[PACKET.CMD.ARGUMENT][PACKET.CMD.ARGUMENTS.PORT_ID] = self.getId()
+            pck[PACKET.CMD.ARGUMENT][PACKET.CMD.ARGUMENTS.PORT_TYPE] = self.getPortType().name
+
+            """
+            acmd = ArancinoCommand(packet=pck)
+            acmd.sub_handler = self._sub_handler
+            """
+            LOG.info("{} Subscribption Restorarion: {}".format(self._log_prefix, str(chs)))
+            self._commandReceivedHandlerAbs(pck)
+
+            """
+            # adesso devo eseguire l'Arancino Command, invocando il Command Executor
+            cxef = CortexCommandExecutorFactory()
+            cmd = cxef.getCommandExecutor(cmd=acmd)
+
+            # ottengo la risposta, ma la scarto in quando è un comando eseguito internamente.
+            arsp = cmd.execute()
+            """
+
+
     def unplug(self):
         self.disconnect()
         self._m_s_plugged = False
@@ -118,7 +182,7 @@ class ArancinoPort(object):
 
         :return:
         """
-
+        self._sub_restoration()
 
     @abstractmethod
     def disconnect(self):
@@ -153,6 +217,49 @@ class ArancinoPort(object):
         pass
 
 
+    def _sub_handler(self, message):
+        """
+        E' il metodo handler che viene passato al comando SUB dalle port
+        che a sua volta lo usa per effettua la subscription su REDIS.
+
+        message: un dict formato cosi:
+        {'type': 'message', 'pattern': None, 'channel': b'canale-3', 'data': b'aaaa1'}
+
+        """
+        #print(message)
+
+        if str(message["type"]) == 'message':
+            channel = str(message["channel"]) if str(message["channel"]) else None
+            message = str(message["data"]) if str(message["data"]) else None
+
+            LOG.debug("{} Triggered Redis Subscription: Channel: {} - Message: {}".format(self._log_prefix, channel, message))
+
+            items = {
+                PACKET.RSP.ARGUMENTS.CHANNEL: channel,
+                PACKET.RSP.ARGUMENTS.MESSAGE: message
+            }
+
+            arsp = ArancinoResponse(packet=None)
+            arsp.code = 100
+            arsp.args[PACKET.RSP.ARGUMENTS.ITEMS] = items
+            arsp.cfg = {}
+
+            self.sendCommand(arsp)
+
+
+
+    def sendCommand(self, command: ArancinoPacket):
+        """
+        Send a Command to a "Port". A Command is bind to a "Port". The Command is sent only if the
+            "Port" is Connected.
+
+        :param command: {ArancinoCommand} The Command to send back to the "Port".
+        :return: void
+        """
+
+        LOG.debug("{} Sending: {}".format(self._log_prefix, command.getPackedPacket()))
+        self.sendResponse(command.getPackedPacket())
+
     def _commandReceivedHandlerAbs(self, packet):
         """
         This is an Asynchronous function, and represent the "handler" to be used by an ArancinoHandler implementation to receive data.
@@ -163,18 +270,44 @@ class ArancinoPort(object):
         :return: void.
         """
 
+        #acmd = None
+
         try:
+
+           #self._sub_restoration()
+
             # create an Arancino Comamnd from the raw command (json or msgpack)
             #LOG.debug("{} Received: {}".format(self._log_prefix, packet))
             acmd = ArancinoCommand(packet=packet)
             #LOG.debug("{} Received: {}: {}".format(self._log_prefix, acmd.id, str(acmd.getUnpackedPacket())))
 
             # inserisco il port id se non è presente
-            if not PACKET.CMD.ARGUMENTS.PORT_ID in acmd.args:
-                acmd.args[PACKET.CMD.ARGUMENTS.PORT_ID] = self.getId()
 
-            #aggiungo il port type
+            if not PCK.PACKET[acmd.cortex_version].CMD.ARGUMENTS.PORT_ID in acmd.args:
+                acmd.args[PCK.PACKET[acmd.cortex_version].CMD.ARGUMENTS.PORT_ID] = self.getId()
+
+            # aggiungo il port type
             acmd.args[PACKET.CMD.ARGUMENTS.PORT_TYPE] = self.getPortType().name
+
+            #if self.getPortType().name == PortTypes(PortTypes.MQTT).name or \
+            #        self.getPortType().name == PortTypes(PortTypes.TEST).name:
+            """
+            Aggiungo il subscription handler solo per MQTT. Sfrutto una proprietà dell'oggetto
+            Arancino Command per trasportare il metodo handler fino al Command Executor (nello specifico comando
+            subscribe). Quando verrà eseguita la Subscription su un canale Redis, verrà agganciato l'handler che è 
+            stato trasportato, ma che è comunque parte dell'oggetto ArancinoPort. In questo modo, quando verrà 
+            pubblicato un messaggio nel canale sottoscritto, risponderà direttamente la sub_handler.
+            
+            Eseguito il comando dal Command Executor (SUB) questo generà un thread per la gestione della subscription
+            Redis, che come l'handler sarà trasportato verso l'Arancino Port, ma questa volta dall'Arancino Response.
+            
+            La sub_handler non dovrà fare altro che ritornare alla Aracino Port il messaggio, sfruttando la 
+            sendResponse, o analogo.
+            """
+            if acmd.id == "SUB":  # TODO ArancinoCommandIdentifiers.CMD_SYS_START["id"]:
+                acmd.sub_handler = self._sub_handler
+                acmd.sub_channels = self._sub_channels
+
 
             # check if the received command handler callback function is defined
             if self._received_command_handler is not None:
@@ -186,6 +319,20 @@ class ArancinoPort(object):
 
             arsp = cmd.execute()
 
+            """
+            Aggancio il thread di gestione della Subscribe Redis dalla Arancino Response. Poi  aggancio 
+            i Subscription Channels dalla Arancino Response per inserirli nella Arancino Port
+            Infine serializzo i Sub. Channels e li memorizzo su Device Datastore
+            """
+            if acmd.id == "SUB":
+                self._sub_thread = arsp.sub_thread
+                self._sub_channels = arsp.sub_channels
+                if self._sub_channels:
+                    chs_srlz = json.dumps(self._sub_channels)
+                    DATASTORE.getDataStoreDev().hset(self.getId(), "C_SUB_CHANNELS", chs_srlz)
+
+
+
             # pretty print
             formatted_command_json = json.dumps(acmd.getUnpackedPacket(), indent=2)
 
@@ -195,7 +342,7 @@ class ArancinoPort(object):
                 self._retrieveStartCmdArgs(acmd.args)
 
                 # Set FreeRTOS
-                if (acmd.args["fw_freertos"] == 1):
+                if (acmd.args[ PCK.PACKET[acmd.cortex_version].CMD.ARGUMENTS.FIRMWARE.USE_FREERTOS ] == 1):
                     self._setFirmwareUseFreeRTOS("1")
 
                 if (self.getFirmwareUseFreeRTOS() and self.__HEARTBEAT == None):
@@ -204,7 +351,7 @@ class ArancinoPort(object):
 
         except ArancinoException as ex:
             #if PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT in acmd.cfg and acmd.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] == 1:
-            arsp = ArancinoResponse(packet=None)
+            arsp = ArancinoResponse(packet=None, cortex_version=acmd.cortex_version)
             arsp.code = ex.error_code
 
             LOG.error("{} {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
@@ -212,7 +359,7 @@ class ArancinoPort(object):
         # Generic Exception uses a generic Error Code
         except Exception as ex:
             #if PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT in acmd.cfg and acmd.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] == 1:
-            arsp = ArancinoResponse(packet=None)
+            arsp = ArancinoResponse(packet=None, cortex_version=acmd.cortex_version)
             arsp.code = ArancinoCommandErrorCodes.ERR
 
             LOG.error("{} {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
@@ -220,7 +367,8 @@ class ArancinoPort(object):
         finally:
 
             try:
-                if PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT in acmd.cfg and acmd.cfg[PACKET.CMD.CONFIGURATIONS.ACKNOLEDGEMENT] == 1:
+
+                if PCK.PACKET[acmd.cortex_version].CMD.CONFIGURATIONS.ACKNOLEDGEMENT in acmd.cfg and acmd.cfg[PCK.PACKET[acmd.cortex_version].CMD.CONFIGURATIONS.ACKNOLEDGEMENT] == 1:
                     # send the response back.
                     self.sendResponse(arsp.getPackedPacket())
 
@@ -235,11 +383,13 @@ class ArancinoPort(object):
                     LOG.debug("{} Ack disabled, response is not sent back : {}: \n{}".format(self._log_prefix, arsp.code, formatted_response_json))
 
             except Exception as ex:
-                LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix), str(ex), exc_info=TRACE)
+                LOG.error("{} Error while transmitting a Response: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
 
 
-    def _retrieveStartCmdArgs(self, args):
+    def _retrieveStartCmdArgs(self, acmd: ArancinoCommand):
 
+        args = acmd.args
+        PACKET = PCK.PACKET[acmd.cortex_version]
 
         #region port id
         old_id = self._id

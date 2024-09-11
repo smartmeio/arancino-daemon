@@ -70,7 +70,7 @@ class ArancinoMqttDiscovery(object):
 
         try:
             #self.__mqtt_client = mqtt.Client(client_id="{}-{}".format(self.__mqtt_arancino_daemon_client_id, ENV.serial_number))
-            self.__mqtt_client = mqtt.Client(client_id="{}".format(self.__mqtt_arancino_daemon_client_id))
+            self.__mqtt_client = mqtt.Client(client_id=self.__mqtt_arancino_daemon_client_id)
             self.__mqtt_client.on_connect = self.__on_connect
             self.__mqtt_client.on_disconnect = self.__on_disconnect
             #self.__mqtt_client.on_message = self.__on_discovery
@@ -127,7 +127,7 @@ class ArancinoMqttDiscovery(object):
                 self.__topic_subcriptions(client, pid)
         except UnicodeDecodeError as ex:
             LOG.error("{}Failed to decode a message from {}, error code: {}".format(self._log_prefix, client,  str(ex)), exc_info=TRACE)
-        except Exception as e:
+        except Exception as ex:
             LOG.error("{}Error during discovery: {}".format(self._log_prefix, str(ex)), exc_info=TRACE)
 
     # endregion

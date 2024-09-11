@@ -69,18 +69,24 @@ RUN echo "cross-build-end"
 ####################
 # Arancino Section #
 ####################
-FROM alpine:3.14.2
+FROM alpine:3.18.6
+
+# RUN : \
+#     && apk update \
+#     && apk add vim wget nano curl python3 python3-dev linux-pam \
+#        gcc musl-dev linux-headers procps coreutils bash shadow \
+#        sudo net-tools libffi libffi-dev sed \
+#        libusb libusb-dev libftdi1 libftdi1-dev avrdude openocd \
+#        g++ make libressl-dev libc-dev  build-base \
+#        bsd-compat-headers bash-completion cmake bluez\
+#     && :
 
 RUN : \
     && apk update \
-    && apk add vim wget nano curl python3 python3-dev linux-pam \
-       gcc musl-dev linux-headers procps coreutils bash shadow \
-       sudo net-tools libffi libffi-dev openssl openssl-dev sed \
-       libusb libusb-dev libftdi1 libftdi1-dev avrdude openocd \
-       g++ make libressl-dev libc-dev musl-dev build-base \
-       bsd-compat-headers bash-completion cmake bluez\
+    && apk add py3-pip python3-dev musl-dev gcc bluez linux-headers linux-pam bash\
     && :
 
+RUN apk add 
 ARG user=me
 ARG group=me
 ARG uid=1000
@@ -90,6 +96,12 @@ ARG agent_port=50000
 ARG ARANCINO_HOME=/home/me
 
 ENV ARANCINO_HOME $ARANCINO_HOME
+ENV ARANCINO=/etc/arancino
+ENV ARANCINOCONF=/etc/arancino/config
+ENV ARANCINOLOG=/var/log/arancino
+ENV ARANCINOENV=PROD
+ENV FLASK_ENV=production
+
 
 # Arancino is run with user `me`, uid = 1000
 # If you bind mount a volume from the host or a data container,
@@ -121,26 +133,7 @@ COPY --from=builder /pico-sdk/tools/elf2uf2/build/elf2uf2 "$BINDIR"
 # picotool copy from builder
 COPY --from=builder /picotool/build/picotool "$BINDIR"
 
-# installing arancino
-RUN wget -qO- https://bootstrap.pypa.io/pip/get-pip.py | python3
-
 COPY ./extras/pip.conf /etc/pip.conf
-
-# Create a temporary directory in the Docker image
-WORKDIR /tmp
-
-# Copy the contents of tmp from the build context to the Docker image
-COPY tmp/ .
-
-
-
-# Estraggo il nome del file da pgk_name.txt
-RUN ARANCINO_PACKAGE_FILE=$(cat pgk_name.txt) \
-    && echo "Using Arancino package file: $ARANCINO_PACKAGE_FILE" \
-    && pip3 install -v --no-cache-dir "$ARANCINO_PACKAGE_FILE" adafruit-nrfutil
-
-COPY ./config/arancino.cfg.yml /etc/arancino/config/arancino.cfg.yml
-COPY ./config/arancino.dev.cfg /etc/arancino/config/arancino.dev.cfg
 
 # copying upload tool scripts
 COPY ./extras/uf2conv.py /usr/bin/uf2conv.py
@@ -152,8 +145,23 @@ COPY ./extras/run-arancino-rp2040load.sh /usr/bin/run-arancino-rp2040load
 COPY ./extras/run-arancino-uf2conv.sh /usr/bin/run-arancino-uf2conv
 RUN chmod +x /usr/bin/run-arancino-*
 
-# Arancino home directory is a volume, so configuration and build history
-# can be persisted and survive image upgrades
-VOLUME $ARANCINO_HOME
+# copying upload tool scripts
+COPY ./extras/uf2conv.py /usr/bin/uf2conv.py
 
+WORKDIR $ARANCINO_HOME/src
+
+COPY . $ARANCINO_HOME/src
+
+RUN pip3 install -r ./requirements.txt
+
+RUN pip3 install . && pip3 cache purge 
+RUN rm -r $ARANCINO_HOME/src
+
+COPY ./config/arancino.cfg.yml /etc/arancino/config/arancino.cfg.yml
+COPY ./config/arancino.dev.cfg /etc/arancino/config/arancino.dev.cfg
+COPY ./config/gunicorn.cfg.py /etc/arancino/config/gunicorn.cfg.py
+
+WORKDIR $ARANCINO_HOME/
 EXPOSE 1475
+
+ENTRYPOINT ["gunicorn","-c","/etc/arancino/config/gunicorn.cfg.py","arancino.ArancinoStart:app"]

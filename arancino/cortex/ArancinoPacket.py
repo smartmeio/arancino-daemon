@@ -22,7 +22,9 @@ under the License
 from abc import ABC, abstractmethod
 from arancino.ArancinoConstants import ArancinoCommandErrorCodes
 from arancino.ArancinoExceptions import InvalidCommandException
+from typing import Callable, List
 import msgpack
+
 
 
 class ArancinoPacket_(ABC):
@@ -163,8 +165,8 @@ class ArancinoPacket(ABC):
 
         if packet:
 
-            self.args = packet["args"]
-            self.cfg = packet["cfg"]
+            self.args = packet[PCK.PACKET[self.cortex_version].ARGUMENT]
+            self.cfg = packet[PCK.PACKET[self.cortex_version].CONFIGURATION]
 
         else:
 
@@ -202,11 +204,21 @@ class ArancinoPacket(ABC):
         pck = self._create_packet()
         return pck
 
+
     def getPackedPacket(self):
 
         pck = self._create_packet()
         packed_pck = msgpack.packb(pck, use_bin_type=True)
         return packed_pck
+
+
+    @property
+    def cortex_version(self):
+        return self.__cortex_version
+
+    @cortex_version.setter
+    def cortex_version(self, cortex_version: str):
+        self.__cortex_version = cortex_version
 
 
 class ArancinoCommand(ArancinoPacket):
@@ -217,13 +229,15 @@ class ArancinoCommand(ArancinoPacket):
 
             if isinstance(packet, dict):
 
-                self.id = packet["cmd"]
+                self.__set_cortex_version_by_packet(packet)
+                self.id = packet[PCK.PACKET[self.cortex_version].CMD.COMMAND_ID]
 
             elif isinstance(packet, bytes):
 
                 # trasformo packet in dict
                 packet = msgpack.unpackb(packet, use_list=True, raw=False)
-                self.id = packet["cmd"]
+                self.__set_cortex_version_by_packet(packet)
+                self.id = packet[PCK.PACKET[self.cortex_version].CMD.COMMAND_ID]
 
             else:
 
@@ -235,43 +249,76 @@ class ArancinoCommand(ArancinoPacket):
 
             self.id = None
 
+        self.sub_handler = None
+        self.sub_channels: List = []
+
         super().__init__(packet=packet)
 
 
     @property
     def id(self):
-        return self.__id
+        return self.__cmd_id
 
     @id.setter
-    def id(self, id: str):
-        self.__id = id
+    def id(self, cmd_id: str):
+        self.__cmd_id = cmd_id
 
+    @property
+    def sub_handler(self):
+        return self.__sub_handler
+
+    @sub_handler.setter
+    def sub_handler(self, sub_handler: Callable):
+        self.__sub_handler = sub_handler
+
+    @property
+    def sub_channels(self):
+        return self.__sub_channels
+
+    @sub_channels.setter
+    def sub_channels(self, sub_channels: List):
+        self.__sub_channels = sub_channels
 
     def _create_packet(self):
 
         pck = {}
-        pck.update({PACKET.CMD.COMMAND_ID: self.id})
-        pck.update({PACKET.CMD.CONFIGURATION: self.cfg})
-        pck.update({PACKET.CMD.ARGUMENT: self.args})
+        pck.update({PCK.PACKET[self.cortex_version].CMD.COMMAND_ID: self.id})
+        pck.update({PCK.PACKET[self.cortex_version].CONFIGURATION: self.cfg})
+        pck.update({PCK.PACKET[self.cortex_version].ARGUMENT: self.args})
 
         return pck
+
+    def __set_cortex_version_by_packet(self, packet):
+        # Versione 1.0.0: CMD : "cmd"
+        if "cmd" in packet:
+            self.cortex_version = "1.0.0"
+        # Versione 1.1.0: CMD : "C"
+        elif "C" in packet:
+            self.cortex_version = "1.1.0"
+        else:
+            # Tipo non riconosciuto/accettato
+            raise InvalidCommandException("Invalid Cortex Version - Skipped", ArancinoCommandErrorCodes.ERR_CMD_TYPE)
 
 
 class ArancinoResponse(ArancinoPacket):
 
-    def __init__(self, packet):
+    def __init__(self, packet, cortex_version):
+
+        self.cortex_version = cortex_version
 
         if packet:
 
             if isinstance(packet, dict):
 
-                self.code = packet["code"]
+                #self.code = packet[PACKET.RSP.RESPONSE_CODE]
+                self.code = packet[PCK.PACKET[self.cortex_version].RSP.RESPONSE_CODE]
 
             elif isinstance(packet, bytes):
 
                 # trasformo packet in dict
                 packet = msgpack.unpackb(packet, use_list=True, raw=False)
-                self.code = packet["code"]
+                #self.code = packet[PACKET.RSP.RESPONSE_CODE]
+                self.code = packet[PCK.PACKET[self.cortex_version].RSP.RESPONSE_CODE]
 
             else:
 
@@ -283,34 +330,197 @@ class ArancinoResponse(ArancinoPacket):
 
             self.code = None
 
+        self.sub_thread = None
+        self.sub_channels: List = []
+
         super().__init__(packet=packet)
 
     @property
     def code(self):
-        return self.__code
+        return self.__response_code
 
     @code.setter
-    def code(self, code: int):
-        self.__code = code
+    def code(self, response_code: int):
+        self.__response_code = response_code
 
+    @property
+    def sub_thread(self):
+        return self.__sub_thread
+
+    @sub_thread.setter
+    def sub_thread(self, thread):
+        self.__sub_thread = thread
+
+    @property
+    def sub_channels(self):
+        return self.__sub_channels
+
+    @sub_channels.setter
+    def sub_channels(self, sub_channels: List):
+        self.__sub_channels = sub_channels
 
     def _create_packet(self):
 
         pck = {}
+        """
         pck.update({PACKET.RSP.RESPONSE_CODE: self.code})
-        pck.update({PACKET.RSP.CONFIGURATION: self.cfg})
-        pck.update({PACKET.RSP.ARGUMENT: self.args})
+        pck.update({PACKET.CONFIGURATION: self.cfg})
+        pck.update({PACKET.ARGUMENT: self.args})
+        """
+        pck.update({PCK.PACKET[self.cortex_version].RSP.RESPONSE_CODE: self.code})
+        pck.update({PCK.PACKET[self.cortex_version].CONFIGURATION: self.cfg})
+        pck.update({PCK.PACKET[self.cortex_version].ARGUMENT: self.args})
 
         return pck
 
 
-class PACKET:
+class PACKET_110:
+    """
+    Version 1.1.0 of Cortex Protocol keys
+    """
+
+
+    CONFIGURATION = "CF"
+    ARGUMENT = "A"
+
+    class CMD:
+
+        COMMAND_ID = "C"
+
+        class CMDS:
+            START = 0
+            SET = 1
+            GET = 2
+            DEL = 3
+            STORE = 4
+            STORETAGS = 5
+            HSET = 6
+            HGET = 7
+            HDEL = 8
+            PUB = 9
+            FLUSH = 10
+            SIGN = 11
+
+        class ARGUMENTS:
+
+            ITEMS = "I"
+            KEYS = "K"
+            PORT_ID = "P"
+            PORT_TYPE = "PT"
+
+            TIMESTAMP = "TS"
+
+            class ITEM:
+                KEY = "K"
+                VALUE = "V"
+                FIELD = "F"
+                TIMESTAMP = "TS"
+                TAG = "N"
+                CHANNEL = "C"
+                MESSAGE = "M"
+
+            class FIRMWARE:
+
+                MCU_FAMILY = "FMF"
+                LIBRARY_VERSION = "FLV"
+                NAME = "FN"
+                VERSION = "FV"
+                BUILD_TIME = "FBT"
+                CORE_VERSION = "FCV"
+                CORTEX_VERSION = "FXV"
+                USE_FREERTOS = "FFOS"
+
+        class CONFIGURATIONS:
+            SECURE_MODE = "SM"
+            SIGNER_CERTIFICATE = "CS"
+            DEVICE_CERTIFICATE = "DS"
+
+            SIGNATURE = "SGN"
+
+            PERSISTENT = "P"
+            ACKNOLEDGEMENT = "A"
+            PREFIX_ID = "PX"
+
+            TYPE = "T"
+
+            class TYPES:
+
+                APPLICATION = "A"
+                SETTING = "S"
+                RESERVED = "R"
+
+                TIMESERIES = "TS"
+                TSTAGS = "TT"
+
+
+    class RSP:
+
+        RESPONSE_CODE = "RC"
+
+        class RSPS:
+
+            _100: 100
+            _101: 101
+            _102: 102
+            _200: 200
+            _201: 201
+            _202: 202
+            _203: 203
+            _204: 204
+            _205: 205
+            _206: 206
+            _207: 207
+            _208: 208
+            _209: 209
+            _210: 210
+
+
+        class ARGUMENTS:
+
+            DAEMON_VERSION = "DV"
+            DAEMON_ENVIRONMENT = "DE"
+
+            ITEMS = "I"
+            KEYS = "K"
+
+            CLIENTS = "C"
+
+
+        class CONFIGURATIONS:
+
+            CHALLENGE = "CLG"
+
+            TIMESTAMP = "TS"
+            LOG_LEVEL = "LL"
+
+
+class PACKET_100:
+    """
+    Version 1.0.0 of Cortex Protocol keys
+    """
+
+
+    CONFIGURATION = "cfg"
+    ARGUMENT = "args"
 
     class CMD:
 
         COMMAND_ID = "cmd"
-        CONFIGURATION = "cfg"
-        ARGUMENT = "args"
+
+        class CMDS:
+
+            START = "START"
+            SET = "SET"
+            GET = "GET"
+            DEL = "DEL"
+            STORE = "STORE"
+            STORETAGS = "STORETAGS"
+            HSET = "HSET"
+            HGET = "HGET"
+            HDEL = "HDEL"
+            PUB = "PUB"
+            FLUSH = "FLUSH"
+            SIGN = "SIGN"
 
         class ARGUMENTS:
 
@@ -319,8 +529,16 @@ class PACKET:
             PORT_ID = "port_id"
             PORT_TYPE = "port_type"
 
-            KEY = "key"
             TIMESTAMP = "ts"
+
+            class ITEM:
+                KEY = "key"
+                VALUE = "value"
+                FIELD = "field"
+                TIMESTAMP = "ts"
+                TAG = "tag"
+                CHANNEL = "channel"
+                MESSAGE = "message"
 
             class FIRMWARE:
 
@@ -331,6 +549,7 @@ class PACKET:
                 BUILD_TIME = "fw_build_time"
                 CORE_VERSION = "fw_core_ver"
                 CORTEX_VERSION = "fw_crtx_ver"
+                USE_FREERTOS = "fw_freertos"
 
         class CONFIGURATIONS:
             SECURE_MODE = "scr_mod"
@@ -350,6 +569,7 @@ class PACKET:
                 APPLICATION = "appl"
                 SETTING = "stng"
                 RESERVED = "rsvd"
+
                 TIMESERIES = "tse"
                 TSTAGS = "tags"
 
@@ -357,9 +577,22 @@ class PACKET:
     class RSP:
 
         RESPONSE_CODE = "rsp_code"
-        CONFIGURATION = "cfg"
-        ARGUMENT = "args"
 
+        class RSPS:
+            _100: 100
+            _101: 101
+            _102: 102
+            _200: 200
+            _201: 201
+            _202: 202
+            _203: 203
+            _204: 204
+            _205: 205
+            _206: 206
+            _207: 207
+            _208: 208
+            _209: 209
+            _210: 210
 
         class ARGUMENTS:
 
@@ -371,6 +604,9 @@ class PACKET:
 
             CLIENTS = "clients"
 
+            CHANNEL = "channel"
+            MESSAGE = "message"
+
 
         class CONFIGURATIONS:
 
@@ -378,3 +614,11 @@ class PACKET:
 
             TIMESTAMP = "ts"
             LOG_LEVEL = "log_lvl"
+
+
+class PCK:
+#    PACKET_110 = PACKET
+    PACKET = {
+        "1.1.0": PACKET_110,
+        "1.0.0": PACKET_100
+    }
