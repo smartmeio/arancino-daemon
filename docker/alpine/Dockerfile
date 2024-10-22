@@ -152,7 +152,7 @@ WORKDIR $ARANCINO_HOME/src
 
 COPY . $ARANCINO_HOME/src
 
-RUN pip3 install -r ./requirements.txt
+RUN pip3 install --no-cache-dir -r ./requirements.txt
 
 RUN pip3 install . && pip3 cache purge 
 RUN rm -r $ARANCINO_HOME/src
